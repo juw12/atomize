@@ -170,8 +170,42 @@ body.locked{overflow:hidden}
   #auth-gate{padding-left:16px;padding-right:16px}
 }
 </style>
+<style>
+/* iPhone-sized frame on wide screens (desktop preview).
+   The frame is applied to <body> and given a transform so that every
+   position:fixed descendant -- the auth gate, tab bar, FAB, drawer, modals
+   and toasts -- anchors to the frame instead of the viewport. On real phones
+   (<560px) body is a plain block, so the app stays full-bleed. */
+@media (min-width: 560px) {
+  html {
+    background: #14110d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  body.phone {
+    width: 390px;
+    height: 844px;
+    max-height: calc(100vh - 32px);
+    margin: 0;
+    flex: 0 0 auto;
+    background: var(--cream);
+    border-radius: 44px;
+    box-shadow:
+      0 0 0 10px #0d0b08,
+      0 0 0 12px #2a2620,
+      0 40px 90px rgba(0,0,0,.55);
+    position: relative;
+    transform: translateZ(0);
+    overflow: hidden;
+  }
+  body.phone #app { min-height: 0; height: 100%; }
+  body.phone::before { border-radius: 44px; }
+}
+</style>
 </head>
-<body>
+<body class="phone">
 <div id="app">
   <header id="app-bar" role="banner">
     <div style="display:flex;align-items:center;gap:12px;flex:1">
