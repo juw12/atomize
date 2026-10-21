@@ -2,7 +2,6 @@
 """Build static site from apps/*/web directories for GitHub Pages deployment."""
 
 import argparse
-import os
 import shutil
 from pathlib import Path
 
@@ -25,15 +24,15 @@ def copy_app_web(apps_dir, app_name, out_dir, site_subdir):
     """Copy app's web directory to output, return files copied."""
     src = apps_dir / app_name / "web"
     dst = out_dir / site_subdir
-    
+
     if not src.exists():
         print(f"  [SKIP] {app_name}/web does not exist")
         return []
-    
+
     if not src.is_dir():
         print(f"  [SKIP] {app_name}/web is not a directory")
         return []
-    
+
     shutil.copytree(src, dst)
     copied = list(dst.rglob("*"))
     print(f"  [OK] Copied {app_name}/web -> {site_subdir}/ ({len(copied)} items)")
@@ -47,10 +46,48 @@ def write_nojekyll(out_dir):
     print(f"Created {nojekyll}")
 
 
+# Each app ships a desktop and a mobile build. These are the entry points the
+# landing page links to (paths are relative to the site root).
+APPS = [
+    {
+        "name": "Orbis",
+        "desc": "Communication, identity and protection in one app",
+        "desktop": "orbis/app.html",
+        "mobile": "orbis/app-mobile.html",
+    },
+    {
+        "name": "Peers",
+        "desc": "Verified reviews for food, travel and products",
+        "desktop": "peers/",
+        "mobile": "peers/mobile.html",
+    },
+    {
+        "name": "House of Articles",
+        "desc": "Athlete-moment sneaker news + live market feed",
+        "desktop": "house-of-articles/desktop.html",
+        "mobile": "house-of-articles/",
+    },
+]
+
+
 def generate_index(out_dir, repo_name):
-    """Generate the main index.html landing page."""
+    """Generate the main index.html landing page with Desktop/Mobile links."""
     index_html = out_dir / "index.html"
-    
+
+    cards = []
+    for app in APPS:
+        cards.append(
+            f'''      <div class="card">
+        <h2>{app["name"]}</h2>
+        <p>{app["desc"]}</p>
+        <div class="variants">
+          <a class="btn" href="{app["desktop"]}">Desktop</a>
+          <a class="btn" href="{app["mobile"]}">Mobile</a>
+        </div>
+      </div>'''
+        )
+    cards_html = "\n".join(cards)
+
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +103,7 @@ def generate_index(out_dir, repo_name):
       --line: #E4E7EC;
       --brand: #4F46E5;
       --brand-600: #4338CA;
+      --brand-50: #EEF2FF;
       --radius: 12px;
       --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px -10px rgba(16, 24, 40, 0.18);
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -106,10 +144,9 @@ def generate_index(out_dir, repo_name):
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 24px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      text-decoration: none;
-      color: inherit;
-      display: block;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }}
     .card:hover {{
       transform: translateY(-2px);
@@ -127,14 +164,26 @@ def generate_index(out_dir, repo_name):
       color: var(--muted);
       margin: 0;
     }}
-    .card-arrow {{
-      float: right;
-      font-size: 1.25rem;
-      color: var(--brand);
-      transition: transform 0.2s ease;
+    .variants {{
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
     }}
-    .card:hover .card-arrow {{
-      transform: translateX(4px);
+    .btn {{
+      flex: 1;
+      text-align: center;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--brand-600);
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }}
+    .btn:hover {{
+      background: var(--brand-50);
+      border-color: var(--brand);
     }}
     footer {{
       margin-top: 64px;
@@ -149,28 +198,12 @@ def generate_index(out_dir, repo_name):
 <body>
   <div class="container">
     <h1>{repo_name}</h1>
-    <p class="subtitle">Static site monorepo — zero-dependency Python projects</p>
-    
+    <p class="subtitle">Three product projects — each with a desktop and a mobile build</p>
+
     <div class="grid">
-      <a class="card" href="orbis/">
-        <span class="card-arrow">→</span>
-        <h2>Orbis</h2>
-        <p>Communication, identity and protection in one app</p>
-      </a>
-      
-      <a class="card" href="peers/">
-        <span class="card-arrow">→</span>
-        <h2>Peers</h2>
-        <p>Verified reviews for food, travel and products</p>
-      </a>
-      
-      <a class="card" href="house-of-articles/">
-        <span class="card-arrow">→</span>
-        <h2>House of Articles</h2>
-        <p>Athlete-moment sneaker news + live market feed</p>
-      </a>
+{cards_html}
     </div>
-    
+
     <footer>
       <p>Built with Python stdlib only · Deployed to GitHub Pages</p>
     </footer>
@@ -178,7 +211,7 @@ def generate_index(out_dir, repo_name):
 </body>
 </html>
 '''
-    
+
     index_html.write_text(html_content, encoding="utf-8")
     print(f"Generated {index_html}")
 
@@ -187,38 +220,34 @@ def main():
     parser = argparse.ArgumentParser(description="Build static site from apps/*/web directories")
     parser.add_argument("--out", default="_site", help="Output directory (default: _site)")
     args = parser.parse_args()
-    
+
     repo_root = Path.cwd()
     out_dir = repo_root / args.out
     apps_dir = repo_root / "apps"
-    
+
     print(f"Building static site from {apps_dir}")
     print(f"Output directory: {out_dir}")
     print()
-    
-    # Clean and create output directory
+
     clean_create_site(out_dir)
-    
-    # Copy each app's web directory
+
     print("Copying app web directories:")
     apps_config = [
         ("orbis", "orbis"),
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
     ]
-    
+
     for app_name, site_subdir in apps_config:
         copy_app_web(apps_dir, app_name, out_dir, site_subdir)
-    
+
     print()
-    
-    # Write .nojekyll
+
     write_nojekyll(out_dir)
-    
-    # Generate index.html
+
     repo_name = get_repo_name().replace("-", " ").title()
     generate_index(out_dir, repo_name)
-    
+
     print()
     print("Build complete!")
     print(f"Output: {out_dir.absolute()}")
