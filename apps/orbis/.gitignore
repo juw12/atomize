@@ -1,0 +1,3 @@
+# Runtime SQLite database (created/seeded on first run)
+data/
+*.db

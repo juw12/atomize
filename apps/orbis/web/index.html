@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbis — Communication, identity and protection in one app</title>
+  <meta name="description" content="Orbis helps people keep their commitments and communicate clearly, while their conversations, identity and work stay protected.">
+  <style>
+    /* DESIGN SYSTEM — COPY VERBATIM */
+    :root {
+      --bg: #F7F8FB;
+      --surface: #FFFFFF;
+      --surface-2: #F1F3F9;
+      --ink: #101828;
+      --muted: #667085;
+      --line: #E4E7EC;
+      --brand: #4338CA;
+      --brand-600: #4F46E5;
+      --brand-50: #EEF0FF;
+      --accent: #0D9488;
+      --accent-50: #E6FFFA;
+      --warm: #F59E0B;
+      --danger: #DC2626;
+      --ok: #059669;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --pill: 999px;
+      --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px -10px rgba(16, 24, 40, 0.18);
+      --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      --mono: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0F1115;
+      --surface: #161920;
+      --surface-2: #1E222B;
+      --ink: #F2F4F8;
+      --muted: #98A2B3;
+      --line: #2A2F3A;
+      --brand-50: #1E1B4B;
+      --accent-50: #042F2E;
+    }
+
+    /* RESET & BASE */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font);
+      font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--bg);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* TYPOGRAPHY */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 0.75em;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.75rem, 1.5rem + 1.25vw, 2.5rem);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+    }
+
+    p {
+      margin-bottom: 1em;
+      max-width: 65ch;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5em;
+    }
+
+    .mono-label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    /* LAYOUT */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: clamp(60px, 40px + 5vw, 100px) 0;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      transition: all 0.3s ease;
+    }
+
+    header.condensed {
+      box-shadow: var(--shadow);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      transition: padding 0.3s ease;
+    }
+
+    header.condensed .header-inner {
+      padding: 12px 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .logo svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 8px 12px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+      background: var(--surface-2);
+    }
+
+    .nav-links a:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1024px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* HAMBURGER MENU */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .hamburger:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--ink);
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    @media (max-width: 1024px) {
+      .hamburger {
+        display: flex;
+      }
+    }
+
+    .mobile-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 16px 24px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mobile-menu.active {
+      display: flex;
+    }
+
+    .mobile-menu a {
+      padding: 12px;
+      text-decoration: none;
+      color: var(--ink);
+      border-radius: var(--radius-sm);
+      transition: background 0.2s ease;
+    }
+
+    .mobile-menu a:hover {
+      background: var(--surface-2);
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--brand-600);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--brand);
+    }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+
+    .btn-secondary:hover {
+      background: var(--line);
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.875rem;
+    }
+
+    /* THEME TOGGLE */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      padding: 6px 12px;
+      border-radius: var(--pill);
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--muted);
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      color: var(--ink);
+    }
+
+    .theme-toggle:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .theme-toggle span {
+        display: none;
+      }
+    }
+
+    /* HERO */
+    .hero {
+      padding: clamp(80px, 60px + 5vw, 140px) 0;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-tagline {
+      font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+      color: var(--muted);
+      margin: 24px 0 32px;
+      max-width: 70ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-disclaimer {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 24px;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: var(--pill);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-established {
+      background: rgba(13, 148, 136, 0.12);
+      color: var(--ok);
+    }
+
+    .badge-proposed {
+      background: rgba(79, 70, 229, 0.12);
+      color: var(--brand-600);
+    }
+
+    .badge-validation {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--warm);
+    }
+
+    .badge-future {
+      background: rgba(100, 116, 139, 0.12);
+      color: var(--muted);
+    }
+
+    /* CARDS & GRIDS */
+    .grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media (max-width: 1024px) {
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .card.planned {
+      opacity: 0.6;
+      background: var(--surface-2);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* TABLES */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      background: var(--surface-2);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* STEPPER */
+    .stepper {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 16px 0;
+      scrollbar-width: thin;
+    }
+
+    .step {
+      flex: 0 0 auto;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--brand-50);
+      color: var(--brand-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* AURA SWATCHES */
+    .aura-swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+
+    .swatch-color {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .swatch-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* RULES LIST */
+    .rules-list {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    .rules-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+    }
+
+    .rules-list li:last-child {
+      border-bottom: none;
+    }
+
+    .rules-list li::before {
+      content: "•";
+      color: var(--brand-600);
+      font-weight: bold;
+    }
+
+    /* ARCHITECTURE DIAGRAM */
+    .architecture-diagram {
+      margin: 40px 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px;
+    }
+
+    .architecture-diagram svg {
+      width: 100%;
+      height: auto;
+      max-height: 400px;
+    }
+
+    /* PRICING CARDS */
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .pricing-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-4px);
+    }
+
+    .pricing-card.planned {
+      opacity: 0.6;
+      background: var(--surface-2);
+    }
+
+    .pricing-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .pricing-audience {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .pricing-price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--brand-600);
+      margin-bottom: 8px;
+    }
+
+    .pricing-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* DECISION CHIPS */
+    .decision-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+      font-size: 0.8rem;
+      font-family: var(--mono);
+    }
+
+    /* CTA BAND */
+    .cta-band {
+      background: var(--brand-600);
+      color: white;
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .cta-band h2 {
+      margin-bottom: 24px;
+    }
+
+    .cta-band .btn-primary {
+      background: white;
+      color: var(--brand-600);
+    }
+
+    .cta-band .btn-primary:hover {
+      background: var(--surface-2);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      padding: 48px 24px 32px;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .footer-brand {
+        justify-content: center;
+      }
+    }
+
+    .footer-brand svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .footer-links {
+        justify-content: center;
+      }
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--ink);
+    }
+
+    .footer-disclaimer {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 16px;
+      font-family: var(--mono);
+    }
+
+    @media (max-width: 768px) {
+      .footer-meta {
+        text-align: center;
+      }
+    }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* FOCUS STYLES */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    /* COLOR ACCESSIBILITY */
+    .color-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* SECTION HEADERS */
+    .section-header {
+      margin-bottom: 40px;
+    }
+
+    .section-header p {
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+
+    /* RULE BOX */
+    .rule-box {
+      background: var(--surface-2);
+      border-left: 4px solid var(--brand-600);
+      padding: 16px 20px;
+      margin: 24px 0;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .rule-box-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .rule-box p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 4px 0;
+    }
+  </style>
+  <noscript><style>.reveal{opacity:1 !important;transform:none !important}.menu-toggle,.hamburger{display:none !important}</style></noscript>
+</head>
+<body>
+  <!-- HEADER -->
+  <header id="main-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo" aria-label="Orbis home">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="24" cy="24" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="24" cy="24" r="4" fill="currentColor"/>
+        </svg>
+        <span class="logo-text">Orbis</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links">
+          <li><a href="#product">Product</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#aura">Aura</a></li>
+          <li><a href="#culture">Culture</a></li>
+          <li><a href="#growth">Growth</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="mobile.html">Mobile</a></li>
+        </ul>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <span>Theme</span>
+        </button>
+        <a href="app.html" class="btn btn-primary btn-sm" style="margin-left: 8px;">Open the app</a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </nav>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#product" class="mobile-link">Product</a>
+      <a href="#how" class="mobile-link">How it works</a>
+      <a href="#aura" class="mobile-link">Aura</a>
+      <a href="#culture" class="mobile-link">Culture</a>
+      <a href="#growth" class="mobile-link">Growth</a>
+      <a href="#privacy" class="mobile-link">Privacy</a>
+      <a href="#pricing" class="mobile-link">Pricing</a>
+      <a href="mobile.html" class="mobile-link">Mobile</a>
+      <a href="app.html" class="btn btn-primary btn-sm" style="text-align: center; margin-top: 8px;">Open the app</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-content reveal">
+        <p class="eyebrow">MASTER GUIDE / v0.4 — DRAFT FOR FOUNDER REVIEW</p>
+        <h1>Orbis</h1>
+        <p class="hero-tagline">The Master Guide to the Product — communication, identity and protection in one app.</p>
+        <p class="hero-tagline" style="font-weight: 600; color: var(--ink);">Keep your commitments. Work clearly. Protect what matters.</p>
+        <div class="hero-actions">
+          <a href="app.html" class="btn btn-primary">Open the app</a>
+          <a href="#product" class="btn btn-secondary">Read the guide</a>
+        </div>
+        <p class="hero-disclaimer">Designed-to descriptions only. No security, legal compliance or launch outcome is guaranteed.</p>
+      </div>
+    </section>
+
+    <!-- PRODUCT PROMISE -->
+    <section id="product">
+      <div class="container reveal">
+        <div class="section-header">
+          <h2>Product Promise</h2>
+        </div>
+        <div class="card">
+          <p style="font-size: 1.1rem; margin-bottom: 16px;">Orbis helps people keep their commitments and communicate clearly, while their conversations, identity and work stay protected. It is designed to reduce the effort of chasing replies, remembering promises and finding context, and to keep work and personal life in separate spaces. After work, a Growth layer helps people turn learning and personal goals into visible, measurable output.</p>
+          <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          <span style="margin-left: 8px; color: var(--muted); font-size: 0.9rem;">Designed to, not guaranteed.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT IT IS -->
+    <section>
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Brand &amp; Naming</p>
+          <h2>What It Is</h2>
+        </div>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3 class="card-title">Orbis</h3>
+            <p class="card-desc">The product and the brand.</p>
+            <span class="badge badge-established">[ESTABLISHED CONCEPT]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Aura</h3>
+            <p class="card-desc">The personal profile: work style, strengths, growth edges, portfolio, shown with the color archetype language from Chromatica.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Culture</h3>
+            <p class="card-desc">The company's working rules: hours, tone, approval steps. Optional for companies.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Growth</h3>
+            <p class="card-desc">Personal learning and progress layer, from the 5–9 Freedom Lab method. After-work time, separate from work data.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card planned">
+            <h3 class="card-title">Orbis Work</h3>
+            <p class="card-desc">A planned job-discovery module (search, introduction, conversation).</p>
+            <span class="badge badge-future">[FUTURE VISION]</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHO IT IS FOR -->
+    <section>
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Audience</p>
+          <h2>Who It Is For</h2>
+        </div>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3 class="card-title">Individual users (B2C)</h3>
+            <p class="card-desc">Core communication features, personal Aura, personal privacy controls.</p>
+            <p style="font-size: 0.9rem; color: var(--brand-600); font-weight: 600;">Free plan, with an optional personal paid plan.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Companies (B2B)</h3>
+            <p class="card-desc">Team workspace, Culture rules, admin controls, audit trail.</p>
+            <p style="font-size: 0.9rem; color: var(--brand-600); font-weight: 600;">Per-seat team plan.</p>
+          </div>
+          <div class="card planned">
+            <h3 class="card-title">Job seekers and employers</h3>
+            <p class="card-desc">Orbis Work (planned): portfolios, search, introductions.</p>
+            <p style="font-size: 0.9rem; color: var(--muted); font-weight: 600;">Planned. Pricing to be decided.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CORE PRINCIPLES -->
+    <section>
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Foundation</p>
+          <h2>Core Principles</h2>
+        </div>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3 class="card-title">Privacy is the protection layer</h3>
+            <p class="card-desc">Built into every feature. Not a marketing theme.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Human in control</h3>
+            <p class="card-desc">AI suggests with a reason. The person decides. Nothing is sent without approval.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Explainable</h3>
+            <p class="card-desc">Every suggestion shows why it appeared and the source it came from.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Work and personal are separate</h3>
+            <p class="card-desc">Separate spaces, quiet hours and urgent-only exceptions by default.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Self-chosen identity</h3>
+            <p class="card-desc">Aura is created and edited by the person, never inferred from their messages.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Fair in hiring</h3>
+            <p class="card-desc">Personality never ranks, filters or rejects candidates. Human review is required for hiring decisions.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Accessible</h3>
+            <p class="card-desc">Screen-reader support, plain language, text labels alongside color.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Start from real use</h3>
+            <p class="card-desc">Build from a real problem, test with real people, and show what failed as well as what worked.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Evidence before expansion</h3>
+            <p class="card-desc">Each layer earns the next one through measured results.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMUNICATION ENGINE -->
+    <section id="how" style="background: var(--surface-2);">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Engine</p>
+          <h2>The Communication Engine</h2>
+        </div>
+        <div class="grid grid-3" style="margin-bottom: 40px;">
+          <div class="card">
+            <h3 class="card-title">Follow-up queue</h3>
+            <p class="card-desc">Messages that may need a reply, with reason and source. Confirm, edit, snooze or dismiss.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Commitment tracking</h3>
+            <p class="card-desc">Promises, requests and deadlines extracted with their source. Dates are used only when stated.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Search by meaning</h3>
+            <p class="card-desc">Ask in plain words. Results show the original message.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Thread summaries</h3>
+            <p class="card-desc">Main topic, decisions, open questions. Facts are separated from guesses.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Quiet hours</h3>
+            <p class="card-desc">Work alerts stop at the end of the day unless marked urgent.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Drafts</h3>
+            <p class="card-desc">A suggested reply for review. Never sent without approval.</p>
+            <span class="badge badge-proposed">[PROPOSED DESIGN]</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 40px;">
+          <h3 style="margin-bottom: 24px;">How a suggestion is made</h3>
+          <div class="stepper">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-title">Connect</div>
+              <div class="step-desc">Source chosen by the person</div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-title">Detect</div>
+              <div class="step-desc">Possible reply or commitment</div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-title">Explain</div>
+              <div class="step-desc">Reason and source shown</div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-title">Decide</div>
+              <div class="step-desc">Person confirms or dismisses</div>
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <div class="step-title">Track</div>
+              <div class="step-desc">Watches for resolution</div>
+            </div>
+            <div class="step">
+              <div class="step-num">6</div>
+              <div class="step-title">Review</div>
+              <div class="step-desc">Open items in one place</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-box-title">Rules</div>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Explainability</strong> — every suggestion shows its reason and source.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Uncertainty</strong> — inferred items labeled as suggestions, never facts.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>No invention</strong> — no invented date, owner or amount.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Correction</strong> — dismissed or wrong items teach the system and are easy to fix.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Sending</strong> — nothing is sent without explicit approval.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AURA -->
+    <section id="aura">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Identity</p>
+          <h2>Aura</h2>
+          <p>Aura is self-chosen and fully editable. It contains the person's work style, strengths, growth edges and a portfolio the person chooses to show. Its color archetype (twelve archetypes) gives a shared visual language.</p>
+        </div>
+
+        <div class="aura-swatches">
+          <div class="swatch"><span class="swatch-color" style="background: #F59E0B;"></span><span class="swatch-name">Ray</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #EAB308;"></span><span class="swatch-name">Citrine</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #EA580C;"></span><span class="swatch-name">Ember</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #E11D48;"></span><span class="swatch-name">Rose</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #DB2777;"></span><span class="swatch-name">Bloom</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #7C3AED;"></span><span class="swatch-name">Violet</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #4F46E5;"></span><span class="swatch-name">Indigo</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #0284C7;"></span><span class="swatch-name">Cerulean</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #0D9488;"></span><span class="swatch-name">Teal</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #16A34A;"></span><span class="swatch-name">Jade</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #64748B;"></span><span class="swatch-name">Stone</span></div>
+          <div class="swatch"><span class="swatch-color" style="background: #3730A3;"></span><span class="swatch-name">Dusk</span></div>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-box-title">Rules</div>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--accent);"></span>Created by the person</strong> — self-reflection quiz or by hand; never inferred from messages.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--accent);"></span>Visibility</strong> — private by default; shared only per item.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--accent);"></span>Used for</strong> — reflection, communication preferences, and context in an introduction the person accepts.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--accent);"></span>NEVER used for</strong> — ranking, filtering, rejecting or scoring any person, or for employer decisions.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--accent);"></span>Sensitive content</strong> — health, religion, political views not collected; written content of this kind is warned about and excluded from matching and search.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--accent);"></span>Control</strong> — edit, hide or delete at any time.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CULTURE -->
+    <section id="culture" style="background: var(--surface-2);">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Organization</p>
+          <h2>Culture</h2>
+          <p>Culture is an optional set of working norms an organization can publish: hours, tone of messages, approval steps and quiet-hour defaults.</p>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-box-title">Rules</div>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Optional</strong> — never forced beyond the workspace.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Visible</strong> — employees can read every rule that applies to them and why.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Scope</strong> — workspace only; personal life is outside its reach.</p>
+          <p><strong class="color-indicator"><span class="color-dot" style="background: var(--brand-600);"></span>Admin limits</strong> — admins set rules but do not see private message content.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- GROWTH LAYER -->
+    <section id="growth">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Personal Development</p>
+          <h2>Growth Layer</h2>
+          <p>A personal learning and progress layer for after-work time, built on the 5–9 Freedom Lab method. Separate from work data.</p>
+        </div>
+
+        <div class="card" style="margin-bottom: 32px;">
+          <h3 style="margin-bottom: 24px;">5-Stage Method</h3>
+          <div class="stepper">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-title">Understand</div>
+              <div class="step-desc">Real problem, baseline, interviews</div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-title">Organize</div>
+              <div class="step-desc">Simplest repeatable system</div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-title">Explain</div>
+              <div class="step-desc">Honest evidence and lessons</div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-title">Create</div>
+              <div class="step-desc">Turn proven workflow into output</div>
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <div class="step-title">Empower</div>
+              <div class="step-desc">Others adapt it and get results</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom: 32px;">
+          <div class="card">
+            <h3 class="card-title">Features</h3>
+            <ul class="rules-list">
+              <li>Curriculum</li>
+              <li>Key results (measurable goal with baseline, target and current value)</li>
+              <li>Session log</li>
+              <li>Weekly review (output, blockers and energy reviewed as evidence, not guilt — no streaks that punish missed days)</li>
+              <li>Before and after metrics</li>
+              <li>Progress card (opt-in summary the person designs)</li>
+              <li>Export (everything can be exported or deleted)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Growth Rules</h3>
+            <ul class="rules-list">
+              <li>Separate from work</li>
+              <li>No work-message analysis unless explicitly opted in</li>
+              <li>Private by default</li>
+              <li>No ranking/leaderboards</li>
+              <li>No guaranteed outcomes</li>
+              <li>Rest counts</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <span class="badge badge-validation" style="margin-bottom: 12px;">[VALIDATION REQUIRED]</span>
+          <p style="margin: 0;"><strong>Growth is a personal tool.</strong> It does not coach, diagnose or decide a person's purpose, and it does not claim that tracking will create wealth, discipline or success.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRIVACY -->
+    <section id="privacy" style="background: var(--surface-2);">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Protection</p>
+          <h2>Privacy Protection Layer</h2>
+        </div>
+
+        <div class="grid grid-4" style="margin-bottom: 32px;">
+          <div class="card">
+            <h3 class="card-title">Minimum data</h3>
+            <p class="card-desc">Only what each feature needs.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Consent</h3>
+            <p class="card-desc">Clear, revocable, per-source.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Visibility</h3>
+            <p class="card-desc">You see what is stored and why.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Control</h3>
+            <p class="card-desc">Edit, export or delete at any time.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Separation</h3>
+            <p class="card-desc">Work and personal data never mix.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Kill switch</h3>
+            <p class="card-desc">Disconnect any source instantly.</p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Audit</h3>
+            <p class="card-desc">Logs of access and changes.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 32px;">
+          <p style="margin: 0;"><strong>Aura and portfolio fields do not ask for health, religion, political views or similar sensitive data.</strong> If a person writes such content, Orbis warns them, and the content is excluded from matching, search and summaries.</p>
+        </div>
+
+        <h3>Data by Category</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Collected?</th>
+              <th>Use</th>
+              <th>Never used for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Message references and extracted commitments</td>
+              <td>Yes, from connected sources only</td>
+              <td>Follow-ups, commitments, search</td>
+              <td>Training, advertising, profiling</td>
+            </tr>
+            <tr>
+              <td>Message content</td>
+              <td>Only where needed for a feature</td>
+              <td>Summaries and suggestions</td>
+              <td>Anything outside the feature</td>
+            </tr>
+            <tr>
+              <td>Aura (self-chosen profile)</td>
+              <td>Yes, with the person's input</td>
+              <td>Personal reflection, chosen context</td>
+              <td>Ranking, rejecting, employer decisions</td>
+            </tr>
+            <tr>
+              <td>Portfolio items</td>
+              <td>Yes, chosen by the person</td>
+              <td>Shown to others the person picks</td>
+              <td>Matching without consent</td>
+            </tr>
+            <tr>
+              <td>Health, religion, political views, similar written</td>
+              <td>No. Warned and excluded if written</td>
+              <td>None</td>
+              <td>All uses</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Retention</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Retention</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Message references and commitments</td>
+              <td>While the source is connected, plus 30 days after disconnect, then deleted</td>
+            </tr>
+            <tr>
+              <td>Aura and portfolio</td>
+              <td>Until the person deletes them</td>
+            </tr>
+            <tr>
+              <td>Audit logs</td>
+              <td>12 months, then deleted</td>
+            </tr>
+            <tr>
+              <td>Backups</td>
+              <td>Deleted within a stated window (target 30 to 90 days)</td>
+            </tr>
+            <tr>
+              <td>Deletion requests</td>
+              <td>Confirmed in the app with a receipt</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="rule-box">
+          <span class="badge badge-validation" style="margin-bottom: 12px;">[VALIDATION REQUIRED]</span>
+          <p style="margin: 0;"><strong>Legal baseline.</strong> One design, built to the strictest common standard: data minimization, consent, deletion rights, explainability and human review. Each market needs a short addendum confirmed by counsel: Indonesia (PDP Law), the EU (GDPR and AI Act) and US states (automated hiring rules).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section>
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">System</p>
+          <h2>Architecture and Data</h2>
+        </div>
+
+        <div class="architecture-diagram">
+          <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="archTitle archDesc">
+            <title id="archTitle">Orbis Architecture Diagram</title>
+            <desc id="archDesc">Layered architecture showing Apps, Connections, Processing, AI layer, Core and rules, Security, and Privacy components</desc>
+
+            <!-- Background -->
+            <rect width="800" height="500" fill="var(--surface)" rx="12"/>
+
+            <!-- Layer boxes -->
+            <g style="font-family: var(--font); font-size: 13px;">
+              <!-- Apps layer -->
+              <rect x="40" y="30" width="720" height="55" fill="var(--brand-50)" stroke="var(--brand-600)" stroke-width="2" rx="8"/>
+              <text x="55" y="52" fill="var(--brand)" font-weight="600" font-size="14">Apps</text>
+              <text x="55" y="72" fill="var(--muted)" font-size="11">Mobile first, web for admins. Views: follow-up queue, commitments, search, Aura, Culture, privacy dashboard.</text>
+
+              <!-- Connections layer -->
+              <rect x="40" y="95" width="720" height="55" fill="var(--accent-50)" stroke="var(--accent)" stroke-width="2" rx="8"/>
+              <text x="55" y="117" fill="var(--accent)" font-weight="600" font-size="14">Connections</text>
+              <text x="55" y="137" fill="var(--muted)" font-size="11">Authorized sources only. Consent, revocation, rate limits and error handling.</text>
+
+              <!-- Processing layer -->
+              <rect x="40" y="160" width="720" height="55" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" rx="8"/>
+              <text x="55" y="182" fill="var(--ink)" font-weight="600" font-size="14">Processing</text>
+              <text x="55" y="202" fill="var(--muted)" font-size="11">Parsing, participant grouping, duplicate detection, metadata normalization.</text>
+
+              <!-- AI layer -->
+              <rect x="40" y="225" width="720" height="55" fill="var(--brand-50)" stroke="var(--brand-600)" stroke-width="2" rx="8"/>
+              <text x="55" y="247" fill="var(--brand)" font-weight="600" font-size="14">AI layer</text>
+              <text x="55" y="267" fill="var(--muted)" font-size="11">Detection, classification, summaries and drafts. Every output keeps its source link and reason.</text>
+
+              <!-- Core and rules -->
+              <rect x="40" y="290" width="720" height="55" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" rx="8"/>
+              <text x="55" y="312" fill="var(--ink)" font-weight="600" font-size="14">Core and rules</text>
+              <text x="55" y="332" fill="var(--muted)" font-size="11">Commitments, quiet hours, Culture rules and kill switch enforced here.</text>
+
+              <!-- Security layer -->
+              <rect x="40" y="355" width="720" height="55" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" rx="8"/>
+              <text x="55" y="377" fill="var(--ink)" font-weight="600" font-size="14">Security</text>
+              <text x="55" y="397" fill="var(--muted)" font-size="11">Authentication, roles, encryption in transit and at rest (to be verified), audit logs.</text>
+
+              <!-- Privacy layer -->
+              <rect x="40" y="420" width="720" height="55" fill="var(--accent-50)" stroke="var(--accent)" stroke-width="2" rx="8"/>
+              <text x="55" y="442" fill="var(--accent)" font-weight="600" font-size="14">Privacy</text>
+              <text x="55" y="462" fill="var(--muted)" font-size="11">Consent records, data map, deletion and retention jobs, objection handling.</text>
+            </g>
+          </svg>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: var(--muted); text-align: center;">Figure 1. Proposed Orbis architecture, from user interface to privacy controls.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing" style="background: var(--surface-2);">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Business Model</p>
+          <h2>Pricing</h2>
+        </div>
+        <div class="grid grid-4">
+          <div class="pricing-card">
+            <div class="pricing-name">Personal free</div>
+            <div class="pricing-audience">Individuals</div>
+            <div class="pricing-price">Free</div>
+            <div class="pricing-desc">Core features for a limited number of sources</div>
+          </div>
+          <div class="pricing-card">
+            <div class="pricing-name">Personal paid</div>
+            <div class="pricing-audience">Individuals</div>
+            <div class="pricing-price">TBD</div>
+            <div class="pricing-desc">More sources, longer history, advanced summaries</div>
+          </div>
+          <div class="pricing-card">
+            <div class="pricing-name">Team</div>
+            <div class="pricing-audience">Companies</div>
+            <div class="pricing-price">Per seat</div>
+            <div class="pricing-desc">Workspace, Culture rules, admin controls, audit log</div>
+          </div>
+          <div class="pricing-card planned">
+            <div class="pricing-name">Orbis Work</div>
+            <div class="pricing-audience">Planned</div>
+            <div class="pricing-price">TBD</div>
+            <div class="pricing-desc">Pricing to be decided</div>
+          </div>
+        </div>
+        <p style="text-align: center; color: var(--muted); margin-top: 24px; font-size: 0.9rem;">Individual use is the entry point. Company plans carry the revenue. Pricing needs willingness-to-pay evidence before it is fixed.</p>
+      </div>
+    </section>
+
+    <!-- RISKS & NEXT STEPS -->
+    <section>
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Planning</p>
+          <h2>Risks &amp; Next Steps</h2>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom: 32px;">
+          <div class="card">
+            <h3 class="card-title">Key Risks</h3>
+            <ul class="rules-list">
+              <li><strong>Privacy failure</strong> — Privacy built in; independent review before launch</li>
+              <li><strong>Hiring law</strong> — Human review; counsel confirmation per market</li>
+              <li><strong>Platform access</strong> — Launch with sources that allow it</li>
+              <li><strong>Noisy suggestions</strong> — Easy dismiss; learn from corrections</li>
+              <li><strong>Fake profiles</strong> — Verification stages and report queue</li>
+              <li><strong>Crowded market</strong> — Win on commitments and privacy, not inbox features</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Decision Register</h3>
+            <div class="decision-chips">
+              <span class="chip">D-01 Product name confirmed as Orbis</span>
+              <span class="chip">D-02 Trademark and domain check</span>
+              <span class="chip">D-03 First connected source(s)</span>
+              <span class="chip">D-04 Pricing</span>
+              <span class="chip">D-05 Launch language and market order</span>
+              <span class="chip">D-06 Whether/when to start Orbis Work</span>
+              <span class="chip">D-07 Retention windows confirmed by counsel</span>
+              <span class="chip">D-08 Aura color palette and Ray/Citrine separation</span>
+              <span class="chip">D-09 Growth layer timing (recommended: after)</span>
+              <span class="chip">D-10 Affiliate recommendations</span>
+              <span class="chip">D-11 Keep the "5–9 Freedom Lab" name or use only "Growth"</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--muted); margin-top: 12px;">All status: <strong>Open</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA BAND -->
+    <section class="cta-band">
+      <div class="container reveal">
+        <h2>See it in action.</h2>
+        <a href="app.html" class="btn btn-primary" style="background: white; color: var(--brand-600);">Open the app</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div>
+        <div class="footer-brand">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="24" cy="24" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="24" cy="24" r="4" fill="currentColor"/>
+          </svg>
+          <span class="logo-text">Orbis</span>
+        </div>
+        <div class="footer-links">
+          <a href="#product">Product</a>
+          <a href="#how">How it works</a>
+          <a href="#aura">Aura</a>
+          <a href="#culture">Culture</a>
+          <a href="#growth">Growth</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <p class="footer-disclaimer">Draft for founder review. Designed-to statements; legal points need counsel confirmation.</p>
+        <p class="footer-meta">Document ID ORBIS-MG-003 · Version 0.4</p>
+      </div>
+      <div>
+        <p class="footer-disclaimer">Confidential. Internal and invited collaborators only.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // THEME TOGGLE
+    (function() {
+      const toggle = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      const stored = localStorage.getItem('orbis-theme');
+
+      if (stored === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+      }
+
+      toggle.addEventListener('click', function() {
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          html.removeAttribute('data-theme');
+          localStorage.setItem('orbis-theme', 'light');
+        } else {
+          html.setAttribute('data-theme', 'dark');
+          localStorage.setItem('orbis-theme', 'dark');
+        }
+      });
+    })();
+
+    // HAMBURGER MENU
+    (function() {
+      const hamburger = document.getElementById('hamburger');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const mobileLinks = document.querySelectorAll('.mobile-link');
+
+      hamburger.addEventListener('click', function() {
+        const isActive = hamburger.classList.contains('active');
+        hamburger.classList.toggle('active', !isActive);
+        mobileMenu.classList.toggle('active', !isActive);
+        hamburger.setAttribute('aria-expanded', !isActive);
+      });
+
+      mobileLinks.forEach(function(link) {
+        link.addEventListener('click', function() {
+          hamburger.classList.remove('active');
+          mobileMenu.classList.remove('active');
+          hamburger.setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+
+    // STICKY HEADER CONDENSE
+    (function() {
+      const header = document.getElementById('main-header');
+      let lastScroll = 0;
+
+      window.addEventListener('scroll', function() {
+        const currentScroll = window.scrollY;
+        if (currentScroll > 50) {
+          header.classList.add('condensed');
+        } else {
+          header.classList.remove('condensed');
+        }
+        lastScroll = currentScroll;
+      });
+    })();
+
+    // SCROLL REVEAL
+    (function() {
+      const reveals = document.querySelectorAll('.reveal');
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      reveals.forEach(function(el) {
+        observer.observe(el);
+      });
+    })();
+
+    // SMOOTH SCROLL FOR ANCHOR LINKS
+    (function() {
+      document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+          const href = this.getAttribute('href');
+          if (href !== '#') {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

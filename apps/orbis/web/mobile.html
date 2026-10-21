@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbis on mobile — Keep your commitments from your pocket</title>
+  <meta name="description" content="Orbis mobile app — track commitments, protect privacy, works offline. Install to home screen.">
+  <style>
+    /* DESIGN SYSTEM — COPY VERBATIM FROM INDEX.HTML */
+    :root {
+      --bg: #F7F8FB;
+      --surface: #FFFFFF;
+      --surface-2: #F1F3F9;
+      --ink: #101828;
+      --muted: #667085;
+      --line: #E4E7EC;
+      --brand: #4338CA;
+      --brand-600: #4F46E5;
+      --brand-50: #EEF0FF;
+      --accent: #0D9488;
+      --accent-50: #E6FFFA;
+      --warm: #F59E0B;
+      --danger: #DC2626;
+      --ok: #059669;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --pill: 999px;
+      --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px -10px rgba(16, 24, 40, 0.18);
+      --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      --mono: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0F1115;
+      --surface: #161920;
+      --surface-2: #1E222B;
+      --ink: #F2F4F8;
+      --muted: #98A2B3;
+      --line: #2A2F3A;
+      --brand-50: #1E1B4B;
+      --accent-50: #042F2E;
+    }
+
+    /* RESET & BASE */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font);
+      font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--bg);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* TYPOGRAPHY */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 0.75em;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.75rem, 1.5rem + 1.25vw, 2.5rem);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+    }
+
+    p {
+      margin-bottom: 1em;
+      max-width: 65ch;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5em;
+    }
+
+    .mono-label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    /* LAYOUT */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: clamp(60px, 40px + 5vw, 100px) 0;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      transition: all 0.3s ease;
+    }
+
+    header.condensed {
+      box-shadow: var(--shadow);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      transition: padding 0.3s ease;
+    }
+
+    header.condensed .header-inner {
+      padding: 12px 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .logo svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 8px 12px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+      background: var(--surface-2);
+    }
+
+    .nav-links a:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1024px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* HAMBURGER MENU */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .hamburger:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--ink);
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    @media (max-width: 1024px) {
+      .hamburger {
+        display: flex;
+      }
+    }
+
+    .mobile-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 16px 24px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mobile-menu.active {
+      display: flex;
+    }
+
+    .mobile-menu a {
+      padding: 12px;
+      text-decoration: none;
+      color: var(--ink);
+      border-radius: var(--radius-sm);
+      transition: background 0.2s ease;
+    }
+
+    .mobile-menu a:hover {
+      background: var(--surface-2);
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--brand-600);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--brand);
+    }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+
+    .btn-secondary:hover {
+      background: var(--line);
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.875rem;
+    }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: var(--pill);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-established {
+      background: rgba(13, 148, 136, 0.12);
+      color: var(--ok);
+    }
+
+    .badge-proposed {
+      background: rgba(79, 70, 229, 0.12);
+      color: var(--brand-600);
+    }
+
+    .badge-validation {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--warm);
+    }
+
+    .badge-future {
+      background: rgba(100, 116, 139, 0.12);
+      color: var(--muted);
+    }
+
+    /* HERO */
+    .hero {
+      padding: clamp(80px, 60px + 5vw, 140px) 0;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-tagline {
+      font-size: clamp(1.1rem, 1rem + 0.75vw, 1.25rem);
+      color: var(--muted);
+      margin: 16px 0 24px;
+      max-width: 60ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-disclaimer {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 16px;
+      padding: 8px 12px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    /* PHONE FRAME MOCKUP */
+    .hero-phone {
+      margin: 40px auto 0;
+      max-width: 340px;
+    }
+
+    .phone {
+      width: 320px;
+      aspect-ratio: 9 / 19.5;
+      background: #0E1420;
+      border-radius: 40px;
+      padding: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 2px #1a2230;
+      margin: 0 auto;
+      max-width: 100%;
+    }
+
+    .phone-screen {
+      background: var(--surface);
+      border-radius: 32px;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px 4px;
+      font-size: 0.7rem;
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    .phone-status-icons {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .phone-status-icons svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .phone-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .phone-tabbar {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 4px 12px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.6rem;
+      color: var(--muted);
+    }
+
+    .tab-item.active {
+      color: var(--brand-600);
+    }
+
+    .tab-item svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* PHONE SCREEN CONTENT STYLES */
+    .screen-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .suggestion-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .suggestion-subject {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .suggestion-reason {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .source-chip {
+      display: inline-block;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      background: var(--surface-2);
+      border-radius: var(--pill);
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .confidence-label {
+      font-size: 0.6rem;
+      font-family: var(--mono);
+      color: var(--accent);
+    }
+
+    .suggestion-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .suggestion-actions button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 0.7rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-confirm {
+      background: var(--brand-600);
+      color: white;
+    }
+
+    .btn-edit {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+
+    /* COMMITMENTS LIST */
+    .commitment-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.8rem;
+    }
+
+    .commitment-row:last-child {
+      border-bottom: none;
+    }
+
+    .commitment-date {
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    /* AURA PROFILE */
+    .aura-profile {
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    .aura-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-50), var(--accent-50));
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--brand-600);
+    }
+
+    .aura-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .aura-style {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .strength-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .strength-chip {
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      background: var(--surface-2);
+      border-radius: var(--pill);
+    }
+
+    .aura-archetypes {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .archetype-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    /* CULTURE RULES */
+    .culture-rule {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.8rem;
+    }
+
+    .culture-rule:last-child {
+      border-bottom: none;
+    }
+
+    .culture-label {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .culture-value {
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+
+    /* PRIVACY TOGGLE */
+    .privacy-section {
+      padding: 12px;
+    }
+
+    .kill-switch {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .switch-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .switch-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      font-family: var(--mono);
+    }
+
+    .switch-on {
+      color: var(--ok);
+    }
+
+    .switch-off {
+      color: var(--muted);
+    }
+
+    .source-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      font-size: 0.75rem;
+    }
+
+    .source-actions {
+      font-size: 0.65rem;
+      color: var(--brand-600);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .privacy-note {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 12px;
+      padding: 8px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+    }
+
+    /* GROWTH STEPPER */
+    .growth-stepper {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .growth-step {
+      flex: 1;
+      text-align: center;
+      padding: 6px 4px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      font-size: 0.55rem;
+      font-family: var(--mono);
+    }
+
+    .growth-step.active {
+      background: var(--brand-600);
+      color: white;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: var(--pill);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 60%;
+    }
+
+    /* SCREENS GRID */
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    .screen-mockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .screen-caption {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* FEATURE GRID */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--brand-50);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feature-icon svg {
+      width: 20px;
+      height: 20px;
+      color: var(--brand-600);
+    }
+
+    .feature-content h3 {
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .feature-content p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* INSTALL STEPS */
+    .install-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 500px;
+      margin: 32px auto 0;
+    }
+
+    .install-step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: var(--brand-600);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h4 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* CTA BAND */
+    .cta-band {
+      background: var(--brand-600);
+      color: white;
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .cta-band h2 {
+      margin-bottom: 24px;
+    }
+
+    .cta-band .btn-primary {
+      background: white;
+      color: var(--brand-600);
+    }
+
+    .cta-band .btn-primary:hover {
+      background: var(--surface-2);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      padding: 48px 24px 32px;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .footer-brand {
+        justify-content: center;
+      }
+    }
+
+    .footer-brand svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .footer-links {
+        justify-content: center;
+      }
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--ink);
+    }
+
+    .footer-disclaimer {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 16px;
+      font-family: var(--mono);
+    }
+
+    @media (max-width: 768px) {
+      .footer-meta {
+        text-align: center;
+      }
+    }
+
+    /* HOW IT WORKS TIMELINE */
+    .timeline {
+      position: relative;
+      padding: 20px 0;
+    }
+
+    @media (min-width: 768px) {
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 40px;
+        left: 50px;
+        right: 50px;
+        height: 2px;
+        background: var(--line);
+        z-index: 0;
+      }
+    }
+
+    .timeline-item {
+      position: relative;
+      text-align: center;
+      padding: 0 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 768px) {
+      .timeline-item {
+        flex: 1;
+        margin-bottom: 0;
+      }
+    }
+
+    .timeline-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--brand-50);
+      color: var(--brand-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin: 0 auto 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .timeline-icon {
+      width: 24px;
+      height: 24px;
+      margin: 0 auto 8px;
+      color: var(--brand-600);
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .timeline-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+      max-width: 180px;
+      margin: 0 auto;
+    }
+
+    .timeline-caption {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 32px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* FOCUS STYLES */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    /* SECTION HEADERS */
+    .section-header {
+      margin-bottom: 40px;
+    }
+
+    .section-header p {
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+  </style>
+  <noscript><style>.reveal{opacity:1 !important;transform:none !important}.menu-toggle,.hamburger{display:none !important}</style></noscript>
+</head>
+<body>
+  <!-- HEADER -->
+  <header id="main-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo" aria-label="Orbis home">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="24" cy="24" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="24" cy="24" r="4" fill="currentColor"/>
+        </svg>
+        <span class="logo-text">Orbis</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#screens">Screens</a></li>
+          <li><a href="#onphone">On your phone</a></li>
+        </ul>
+        <a href="app-mobile.html" class="btn btn-primary btn-sm" style="margin-left: 8px;">Open the app</a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </nav>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="index.html" class="mobile-link">Home</a>
+      <a href="#how" class="mobile-link">How it works</a>
+      <a href="#screens" class="mobile-link">Screens</a>
+      <a href="#onphone" class="mobile-link">On your phone</a>
+      <a href="app-mobile.html" class="btn btn-primary btn-sm" style="text-align: center; margin-top: 8px;">Open the app</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-content reveal">
+        <p class="eyebrow">ORBIS · MOBILE APP</p>
+        <h1>Orbis on mobile</h1>
+        <p class="hero-tagline">Keep your commitments, protect your privacy — from your pocket. Works in a browser and installs to your home screen.</p>
+        <div class="hero-actions">
+          <a href="app-mobile.html" class="btn btn-primary">Open the app</a>
+          <a href="#how" class="btn btn-secondary">See how it works</a>
+        </div>
+        <p class="hero-disclaimer">Designed-to description. Prototype with mock data. No security or outcome guarantee.</p>
+
+        <div class="hero-phone">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-status">
+                <span>9:41</span>
+                <div class="phone-status-icons">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>
+                  </svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/>
+                    <rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="phone-content">
+                <div class="screen-title">Today</div>
+                <div class="suggestion-card">
+                  <div class="suggestion-subject">Re: Project timeline</div>
+                  <div class="suggestion-reason">Possible commitment: delivery date mentioned</div>
+                  <div class="source-chip">Gmail · Quote for Northwind</div>
+                  <div class="confidence-label">High confidence</div>
+                  <div class="suggestion-actions">
+                    <button class="btn-confirm">Confirm</button>
+                    <button class="btn-edit">Edit</button>
+                  </div>
+                </div>
+                <div class="suggestion-card">
+                  <div class="suggestion-subject">Follow up on proposal</div>
+                  <div class="suggestion-reason">No reply in 5 days</div>
+                  <div class="source-chip">Outlook · Client inquiry</div>
+                  <div class="confidence-label">Medium confidence</div>
+                  <div class="suggestion-actions">
+                    <button class="btn-confirm">Confirm</button>
+                    <button class="btn-edit">Edit</button>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-tabbar">
+                <div class="tab-item active">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <span>Today</span>
+                </div>
+                <div class="tab-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 20v-6M6 20V10M18 20v-4"/>
+                  </svg>
+                  <span>Commit</span>
+                </div>
+                <div class="tab-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                  <span>Search</span>
+                </div>
+                <div class="tab-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a10 10 0 0 1 0 20"/>
+                  </svg>
+                  <span>Aura</span>
+                </div>
+                <div class="tab-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <circle cx="12" cy="16" r="1"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <span>Privacy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how" style="background: var(--surface-2);">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">The Flow</p>
+          <h2>How it works</h2>
+          <p>Same order on every platform. Every suggestion keeps its source and reason.</p>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-num">1</div>
+            <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            <div class="timeline-title">Connect</div>
+            <div class="timeline-desc">You choose which source to connect. Nothing is read without your consent.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-num">2</div>
+            <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <div class="timeline-title">Detect</div>
+            <div class="timeline-desc">Orbis spots a possible reply or a commitment.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-num">3</div>
+            <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div class="timeline-title">Explain</div>
+            <div class="timeline-desc">It shows the reason and the original message.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-num">4</div>
+            <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            <div class="timeline-title">Decide</div>
+            <div class="timeline-desc">You confirm, edit, snooze or dismiss. Nothing is sent without your approval.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-num">5</div>
+            <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <div class="timeline-title">Track</div>
+            <div class="timeline-desc">Orbis watches for the resolution and keeps the item open until it is done.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-num">6</div>
+            <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <div class="timeline-title">Review</div>
+            <div class="timeline-desc">All open items in one place, and a short morning summary.</div>
+          </div>
+        </div>
+        <p class="timeline-caption">Same order on every platform. Every suggestion keeps its source and reason.</p>
+      </div>
+    </section>
+
+    <!-- SCREENS -->
+    <section id="screens">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Interface Tour</p>
+          <h2>Screens</h2>
+          <p>A look at the main views in the mobile app.</p>
+        </div>
+
+        <div class="screens-grid">
+          <!-- Today Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Today</div>
+                  <div class="suggestion-card">
+                    <div class="suggestion-subject">Re: Project timeline</div>
+                    <div class="suggestion-reason">Possible commitment: delivery date mentioned</div>
+                    <div class="source-chip">Gmail · Quote for Northwind</div>
+                    <div class="confidence-label">High confidence</div>
+                    <div class="suggestion-actions">
+                      <button class="btn-confirm">Confirm</button>
+                      <button class="btn-edit">Edit</button>
+                    </div>
+                  </div>
+                  <div class="suggestion-card">
+                    <div class="suggestion-subject">Follow up on proposal</div>
+                    <div class="suggestion-reason">No reply in 5 days</div>
+                    <div class="source-chip">Outlook · Client inquiry</div>
+                    <div class="confidence-label">Medium confidence</div>
+                    <div class="suggestion-actions">
+                      <button class="btn-confirm">Confirm</button>
+                      <button class="btn-edit">Edit</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg><span>Commit</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Today</strong> — Follow-up queue with suggestions, reasons, and source chips.</p>
+          </div>
+
+          <!-- Commitments Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Commitments</div>
+                  <div class="commitment-row">
+                    <span>Send proposal draft</span>
+                    <span class="commitment-date">Oct 25</span>
+                  </div>
+                  <div class="commitment-row">
+                    <span>Schedule kickoff call</span>
+                    <span class="commitment-date">Oct 28</span>
+                  </div>
+                  <div class="commitment-row">
+                    <span>Review Q4 budget</span>
+                    <span class="commitment-date">— not stated</span>
+                  </div>
+                  <div class="commitment-row">
+                    <span>Share design mockups</span>
+                    <span class="commitment-date">Nov 1</span>
+                  </div>
+                  <div class="commitment-row">
+                    <span>Team retrospective</span>
+                    <span class="commitment-date">Nov 5</span>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg>
+                    <span>Commit</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Commitments</strong> — Compact list with stated dates and "not stated" rows.</p>
+          </div>
+
+          <!-- Aura Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Aura</div>
+                  <div class="aura-profile">
+                    <div class="aura-avatar">JD</div>
+                    <div class="aura-name">Jamie Doe</div>
+                    <div class="aura-style">Strategic · Detail-oriented · Collaborative</div>
+                    <div class="strength-chips">
+                      <span class="strength-chip">Systems thinking</span>
+                      <span class="strength-chip">Clear writing</span>
+                      <span class="strength-chip">Mentoring</span>
+                    </div>
+                    <div class="aura-archetypes">
+                      <span class="archetype-swatch" style="background: #4F46E5;" title="Indigo">In</span>
+                      <span class="archetype-swatch" style="background: #0D9488;" title="Teal">Te</span>
+                      <span class="archetype-swatch" style="background: #F59E0B;" title="Ray">Ra</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg><span>Commit</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Aura</strong> — Profile with work style, strengths, and archetype swatches with names.</p>
+          </div>
+
+          <!-- Culture Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Culture</div>
+                  <div class="culture-rule">
+                    <div class="culture-label">Working hours</div>
+                    <div class="culture-value">9:00 AM – 6:00 PM local time</div>
+                  </div>
+                  <div class="culture-rule">
+                    <div class="culture-label">Tone of messages</div>
+                    <div class="culture-value">Direct but respectful. No urgency without reason.</div>
+                  </div>
+                  <div class="culture-rule">
+                    <div class="culture-label">Quiet hours</div>
+                    <div class="culture-value">After 6:00 PM and weekends — urgent only</div>
+                  </div>
+                  <div class="culture-rule">
+                    <div class="culture-label">Approval steps</div>
+                    <div class="culture-value">Client comms need team lead review</div>
+                  </div>
+                  <div class="culture-rule">
+                    <div class="culture-label">Meeting-free blocks</div>
+                    <div class="culture-value">Wednesday afternoons reserved for deep work</div>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg><span>Commit</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Culture</strong> — Company rules: hours, tone, quiet hours, and approval steps.</p>
+          </div>
+
+          <!-- Privacy Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Privacy</div>
+                  <div class="privacy-section">
+                    <div class="kill-switch">
+                      <span class="switch-label">AI features</span>
+                      <span class="switch-status switch-on">ON</span>
+                    </div>
+                    <div class="source-row">
+                      <span>Gmail (work)</span>
+                      <span class="source-actions">Disconnect</span>
+                    </div>
+                    <div class="source-row">
+                      <span>Outlook (personal)</span>
+                      <span class="source-actions">Disconnect</span>
+                    </div>
+                    <div class="privacy-note">
+                      <strong>What we read:</strong> Message metadata and extracted commitments only.
+                      <br><br>
+                      <strong>Never used for:</strong> Training, advertising, or profiling.
+                    </div>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg><span>Commit</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Privacy</strong> — Kill switch (ON/OFF with label), connected sources, and data usage summary.</p>
+          </div>
+
+          <!-- Growth Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Growth</div>
+                  <div class="growth-stepper">
+                    <div class="growth-step active">1. Understand</div>
+                    <div class="growth-step">2. Organize</div>
+                    <div class="growth-step">3. Explain</div>
+                    <div class="growth-step">4. Create</div>
+                    <div class="growth-step">5. Empower</div>
+                  </div>
+                  <div style="margin-top: 16px;">
+                    <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 4px;">Writing practice — Key result</div>
+                    <div style="font-size: 0.7rem; color: var(--muted);">Baseline: 2 posts/month → Target: 4 posts/month</div>
+                    <div class="progress-bar">
+                      <div class="progress-fill"></div>
+                    </div>
+                    <div style="font-size: 0.65rem; color: var(--muted); margin-top: 4px; text-align: right;">Current: 3 posts/month (75%)</div>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg><span>Commit</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Growth</strong> — 5-stage method stepper with key result progress bar.</p>
+          </div>
+
+          <!-- Orbis Work Screen -->
+          <div class="screen-mockup">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status">
+                  <span>9:41</span>
+                  <div class="phone-status-icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+                <div class="phone-content">
+                  <div class="screen-title">Orbis Work <span class="badge badge-future" style="vertical-align: middle; margin-left: 6px;">[FUTURE VISION]</span></div>
+                  <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: 12px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Planned</div>
+                    <div style="font-size: 0.7rem; color: var(--muted);">Job discovery and portfolio sharing coming soon.</div>
+                  </div>
+                  <div style="border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;">Senior Frontend Engineer</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                      <span class="strength-chip">React</span>
+                      <span class="strength-chip">TypeScript</span>
+                      <span class="strength-chip">5+ years</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--muted);">Matched to your Aura: Indigo · Teal</div>
+                  </div>
+                </div>
+                <div class="phone-tabbar">
+                  <div class="tab-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Today</span>
+                  </div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20v-4"/></svg><span>Commit</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>Search</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span>Aura</span></div>
+                  <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Privacy</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="screen-caption"><strong>Orbis Work</strong> — Planned module with role cards and requirement chips.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ON YOUR PHONE -->
+    <section id="onphone" style="background: var(--surface-2);">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Mobile Features</p>
+          <h2>On your phone</h2>
+          <p>Features designed specifically for mobile use.</p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="5" y="2" width="14" height="20" rx="2"/>
+                <line x1="12" y1="18" x2="12" y2="18"/>
+              </svg>
+            </div>
+            <div class="feature-content">
+              <h3>Install to home screen</h3>
+              <p>Add Orbis to your home screen and open it like a native app.</p>
+              <span class="badge badge-proposed" style="margin-top: 6px;">[PWA]</span>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>
+              </svg>
+            </div>
+            <div class="feature-content">
+              <h3>Works offline</h3>
+              <p>Your data stays on your device when there is no connection.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div class="feature-content">
+              <h3>Bottom tab bar</h3>
+              <p>Today, Commitments, Search, Aura and Privacy are one thumb-tap away.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </div>
+            <div class="feature-content">
+              <h3>Quiet hours</h3>
+              <p>Work alerts stop at the end of the day unless marked urgent.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <circle cx="12" cy="16" r="1"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <div class="feature-content">
+              <h3>Kill switch</h3>
+              <p>Pause every AI feature from one control.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="feature-content">
+              <h3>Private by default</h3>
+              <p>Work and personal stay in separate spaces.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSTALL STEPS -->
+    <section>
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="eyebrow">Setup</p>
+          <h2>Add it to your home screen</h2>
+          <p>Three simple steps to install Orbis on your phone.</p>
+        </div>
+
+        <div class="install-steps">
+          <div class="install-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Open the app in your phone browser</h4>
+              <p>Navigate to app-mobile.html using Safari (iOS) or Chrome (Android).</p>
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>Tap the browser menu</h4>
+              <p>iOS: Tap the Share icon (square with arrow). Android: Tap the three-dot menu.</p>
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>Choose "Add to Home screen"</h4>
+              <p>Select the option and confirm. Orbis will appear on your home screen like a native app.</p>
+            </div>
+          </div>
+        </div>
+
+        <p style="text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 24px;">Note: Exact steps vary by browser and device. Some browsers may not support home screen installation.</p>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="cta-band">
+      <div class="container reveal">
+        <h2>Try it on your phone.</h2>
+        <a href="app-mobile.html" class="btn btn-primary" style="background: white; color: var(--brand-600);">Open the app</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div>
+        <div class="footer-brand">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="24" cy="24" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="24" cy="24" r="4" fill="currentColor"/>
+          </svg>
+          <span class="logo-text">Orbis</span>
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="#how">How it works</a>
+          <a href="#screens">Screens</a>
+          <a href="app-mobile.html">Open the app</a>
+        </div>
+        <p class="footer-disclaimer">Draft for founder review. Designed-to statements; legal points need counsel confirmation.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // HAMBURGER MENU
+    (function() {
+      const hamburger = document.getElementById('hamburger');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const mobileLinks = document.querySelectorAll('.mobile-link');
+
+      hamburger.addEventListener('click', function() {
+        const isActive = hamburger.classList.contains('active');
+        hamburger.classList.toggle('active', !isActive);
+        mobileMenu.classList.toggle('active', !isActive);
+        hamburger.setAttribute('aria-expanded', !isActive);
+      });
+
+      mobileLinks.forEach(function(link) {
+        link.addEventListener('click', function() {
+          hamburger.classList.remove('active');
+          mobileMenu.classList.remove('active');
+          hamburger.setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+
+    // STICKY HEADER CONDENSE
+    (function() {
+      const header = document.getElementById('main-header');
+      let lastScroll = 0;
+
+      window.addEventListener('scroll', function() {
+        const currentScroll = window.scrollY;
+        if (currentScroll > 50) {
+          header.classList.add('condensed');
+        } else {
+          header.classList.remove('condensed');
+        }
+        lastScroll = currentScroll;
+      });
+    })();
+
+    // SCROLL REVEAL
+    (function() {
+      const reveals = document.querySelectorAll('.reveal');
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      reveals.forEach(function(el) {
+        observer.observe(el);
+      });
+    })();
+
+    // SMOOTH SCROLL FOR ANCHOR LINKS
+    (function() {
+      document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+          const href = this.getAttribute('href');
+          if (href !== '#') {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

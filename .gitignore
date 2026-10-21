@@ -1,0 +1,34 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# ---- App runtime data (generated) ----
+apps/orbis/data/
+apps/orbis/server/data/
+apps/peers/server/data/
+apps/house-of-articles/server/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Generated static site ----
+_site/
+
+# ---- opencode / local tooling ----
+.omo/
+.opencode/
+
+# ---- OS cruft ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Editors / IDEs ----
+.vscode/
+.idea/
+*.swp
+*~

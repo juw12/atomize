@@ -1,0 +1,2775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>House of Articles — Mobile Prototype</title>
+  <style>
+/* DESIGN SYSTEM v2 */
+:root{--bg:#111110;--surface:#1A1917;--surface-2:#222019;--surface-3:#2A2825;--ink:#F2EEE6;--ink-2:#A39C8F;--ink-3:#6B655C;--hair:#33302B;--rule:#F2EEE6;--accent:#E4572E;--accent-hover:#F56A3E;--accent-dim:rgba(228,87,46,.15);--up:#6FA96B;--up-bg:rgba(111,169,107,.12);--down:#C0574B;--down-bg:rgba(192,87,75,.12);--gold:#D9A441;--gold-bg:rgba(217,164,65,.12);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--font-display:"Didot","Bodoni MT","Baskerville",Georgia,serif;--font-serif:Georgia,serif;--font-grotesk:"Franklin Gothic Medium","Helvetica Neue",Helvetica,Arial,sans-serif;--font-mono:ui-monospace,"SF Mono",Consolas,monospace;--text-xs:11px;--text-sm:13px;--text-base:15px;--text-lg:17px;--text-xl:20px;--text-2xl:24px;--radius-sm:0;--radius-md:2px;--radius-lg:3px;--radius-full:9999px;--t-fast:150ms cubic-bezier(.4,0,.2,1);--t-norm:250ms cubic-bezier(.4,0,.2,1);--t-slow:400ms cubic-bezier(.4,0,.2,1);--phone-width:390px;--phone-height:844px;--status-bar-h:47px;--safe-bottom:34px;--tab-bar-h:78px}
+*{box-sizing:border-box;margin:0;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+html,body{height:100%;width:100%;overflow:hidden}
+body{font-family:var(--font-grotesk);background:linear-gradient(135deg,#1a1a1e 0%,#161618 50%,#0f0f10 100%);display:flex;align-items:center;justify-content:center;padding:var(--space-6);-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+
+/* Phone Frame */
+.phone-frame{width:var(--phone-width);height:var(--phone-height);background:var(--bg);border-radius:50px;border:12px solid #2A2825;box-shadow:0 0 0 2px #3A3530,0 50px 100px -20px rgba(0,0,0,.7);position:relative;overflow:hidden;flex-shrink:0}
+.phone-frame::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:30px;background:#2A2825;border-bottom-left-radius:16px;border-bottom-right-radius:16px;z-index:1000}
+.phone-frame::after{content:'';position:absolute;right:-14px;top:100px;width:4px;height:60px;background:#3A3530;border-radius:2px}
+.app{height:100%;width:100%;position:relative;overflow:hidden;border-radius:38px}
+
+/* Status Bar */
+.status-bar{height:var(--status-bar-h);padding:14px var(--space-6) 0;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink);position:relative;z-index:999;background:var(--bg)}
+.status-icons{display:flex;align-items:center;gap:5px}
+.status-icons svg{width:16px;height:16px;fill:var(--ink);stroke:none}
+
+/* Screens */
+.screen{position:absolute;top:var(--status-bar-h);left:0;width:100%;height:calc(100% - var(--tab-bar-h) - var(--status-bar-h));overflow-y:auto;overflow-x:hidden;background:var(--bg);opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity var(--t-norm),transform var(--t-norm),visibility var(--t-norm);-webkit-overflow-scrolling:touch;padding-bottom:var(--tab-bar-h);scrollbar-gutter:stable}
+.screen.active{opacity:1;visibility:visible;transform:translateY(0);z-index:10}
+.screen::-webkit-scrollbar{width:3px}
+.screen::-webkit-scrollbar-thumb{background:var(--hair);border-radius:2px}
+
+/* Masthead */
+.masthead-wrap{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--hair)}
+.utility-bar{padding:var(--space-2) var(--space-5);font-size:var(--text-xs);font-weight:500;color:var(--ink-3);text-transform:uppercase;letter-spacing:.14em;display:flex;justify-content:space-between}
+.masthead{padding:0 var(--space-5) var(--space-3);display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--ink)}
+.masthead-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1}
+.masthead-title em{color:var(--accent);font-style:normal}
+.masthead-right{display:flex;align-items:center;gap:var(--space-2)}
+.masthead-right button{background:none;border:none;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);transition:background var(--t-fast);position:relative}
+.masthead-right button:hover{background:var(--surface-2)}
+.masthead-right button:active{transform:scale(.94)}
+.masthead-right button svg{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.masthead-right button .badge{position:absolute;top:2px;right:2px;width:7px;height:7px;background:var(--accent);border-radius:50%}
+
+/* Icon Buttons */
+.icon-btn{width:34px;height:34px;border-radius:var(--radius-md);background:var(--surface);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--t-fast)}
+.icon-btn:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:16px;height:16px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+
+/* Filter Chips */
+.chip-row{display:flex;gap:var(--space-2);padding:var(--space-3) var(--space-5);overflow-x:auto;border-bottom:1px solid var(--hair)}
+.chip-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:5px 12px;border:1px solid var(--hair);border-radius:var(--radius-full);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);background:transparent;transition:all var(--t-fast)}
+.chip:hover{border-color:var(--ink-2);color:var(--ink)}
+.chip.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+
+/* Section label */
+.section-label{font-family:var(--font-grotesk);font-size:11px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.12em;padding:var(--space-5) var(--space-5) var(--space-2);border-bottom:1px solid var(--hair)}
+
+/* Horizontal scroll */
+.h-scroll{display:flex;gap:var(--space-3);overflow-x:auto;padding:var(--space-4) var(--space-5);scroll-snap-type:x mandatory}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-scroll>*{scroll-snap-align:start;flex-shrink:0}
+
+/* Trend card */
+.trend-card{width:120px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all var(--t-fast)}
+.trend-card:hover{border-color:var(--ink-2);background:var(--surface-2)}
+.trend-card:active{transform:scale(.97)}
+.trend-card-img{height:76px;background:var(--surface-2);overflow:hidden}
+.trend-card-img img{width:100%;height:100%;object-fit:cover}
+.trend-card-info{padding:var(--space-2)}
+.trend-card-name{font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.trend-card-price{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* Ticker */
+.ticker-wrap{overflow:hidden;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);background:var(--surface);padding:6px 0}
+.ticker-track{display:flex;gap:40px;animation:ticker 22s linear infinite;width:max-content}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+.ticker-item .up{color:var(--up)}.ticker-item .dn{color:var(--down)}.ticker-item .sep{color:var(--hair)}
+
+/* Story card */
+.story-card{border-bottom:1px solid var(--hair);padding:var(--space-5);cursor:pointer;transition:background var(--t-fast);display:block}
+.story-card:hover{background:var(--surface)}
+.story-kicker{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
+.story-headline{font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--ink);line-height:1.15;letter-spacing:-.02em;margin-bottom:6px}
+.story-deck{font-family:var(--font-serif);font-size:14px;color:var(--ink-2);line-height:1.4;margin-bottom:var(--space-3)}
+.story-byline{display:flex;align-items:center;justify-content:space-between;font-size:var(--text-xs);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.story-img{height:180px;overflow:hidden;background:var(--surface-2);border-radius:var(--radius-lg);margin-bottom:var(--space-4)}
+.story-img img{width:100%;height:100%;object-fit:cover}
+.story-price{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--radius-full);font-family:var(--font-mono);font-size:var(--text-xs);font-weight:600;font-variant-numeric:tabular-nums}
+.story-price.up{background:var(--up-bg);color:var(--up)}.story-price.down{background:var(--down-bg);color:var(--down)}
+
+/* Pull-quote */
+.pull-quote{padding:var(--space-8) var(--space-6);border-bottom:1px solid var(--hair);text-align:center}
+.pull-quote blockquote{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--ink);line-height:1.3;font-style:italic;margin-bottom:var(--space-3)}
+.pull-quote cite{font-size:var(--text-xs);color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;font-style:normal}
+
+/* On this day */
+.onthisday{padding:var(--space-5);border-bottom:1px solid var(--hair);background:var(--surface)}
+.onthisday-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);margin-bottom:var(--space-2)}
+.onthisday-text{font-family:var(--font-serif);font-size:14px;color:var(--ink);line-height:1.45}
+
+/* Skeleton */
+.skeleton{position:relative;overflow:hidden;background:var(--surface-2)}
+.skeleton::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(242,238,230,.05),transparent);animation:shimmer 1.6s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px var(--space-8);text-align:center}
+.empty-state svg{width:64px;height:64px;stroke:var(--hair);fill:none;stroke-width:1.5;margin-bottom:var(--space-4)}
+.empty-state h3{font-family:var(--font-display);font-size:var(--text-lg);color:var(--ink);margin-bottom:var(--space-2)}
+.empty-state p{font-size:var(--text-sm);color:var(--ink-3);margin-bottom:var(--space-5)}
+.empty-state .cta{background:var(--accent);color:var(--ink);border:none;padding:10px 24px;border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:600}
+.empty-state .cta:hover{background:var(--accent-hover)}
+
+/* Detail hero */
+.detail-hero{position:relative;height:280px;overflow:hidden;background:var(--surface-2)}
+.detail-hero img{width:100%;height:100%;object-fit:cover}
+.detail-hero-overlay{position:absolute;bottom:0;left:0;right:0;padding:var(--space-5);background:linear-gradient(transparent,rgba(17,17,16,.9))}
+.detail-hero-overlay .kicker{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:4px}
+.detail-hero-overlay h1{font-family:var(--font-display);font-size:var(--text-2xl);color:var(--ink);line-height:1.1}
+.detail-subheader{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-5);background:var(--bg);border-bottom:1px solid var(--hair)}
+.detail-subheader .back-btn{background:none;border:none;color:var(--ink-2);display:flex;align-items:center;gap:6px;font-size:var(--text-sm);font-weight:500}
+.detail-subheader .back-btn:hover{color:var(--ink)}
+.detail-subheader .back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.detail-actions{display:flex;gap:var(--space-2)}
+.detail-actions button{width:34px;height:34px;border-radius:var(--radius-md);background:var(--surface);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center}
+.detail-actions button:hover{background:var(--surface-2)}
+.detail-actions button svg{width:16px;height:16px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+
+/* Bid/Ask */
+.bidask-row{display:flex;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.bidask-box{flex:1;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3);text-align:center}
+.bidask-box .lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:4px}
+.bidask-box .val{font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.bidask-box.ask .val{color:var(--accent)}
+
+/* Chart segmented */
+.seg-ctrl{display:flex;border:1px solid var(--hair);border-radius:var(--radius-md);overflow:hidden;margin-bottom:var(--space-3)}
+.seg-btn{flex:1;padding:6px 0;text-align:center;font-size:11px;font-weight:600;color:var(--ink-2);background:transparent;border:none;border-right:1px solid var(--hair)}
+.seg-btn:last-child{border-right:none}
+.seg-btn:hover{background:var(--surface-2)}
+.seg-btn.active{background:var(--accent);color:var(--ink)}
+
+/* Size grid */
+.size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2);padding:var(--space-4) var(--space-5)}
+.size-cell{border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-2);text-align:center;cursor:pointer;min-width:0}
+.size-cell:hover{border-color:var(--accent)}
+.size-cell .sz{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.size-cell .pr{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px}
+.size-cell.selected{border-color:var(--accent);background:var(--accent-dim)}
+
+/* Cost bar */
+.cost-bar-wrap{padding:var(--space-4) var(--space-5);border-top:1px solid var(--hair)}
+.cost-bar-head{display:flex;justify-content:space-between;margin-bottom:var(--space-2)}
+.cost-bar-head span{font-size:var(--text-xs);color:var(--ink-3);text-transform:uppercase;font-weight:600}
+.cost-bar-head strong{font-family:var(--font-mono);font-size:var(--text-sm);color:var(--ink);font-variant-numeric:tabular-nums}
+.cost-bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.cost-bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width var(--t-slow)}
+
+/* Sticky Buy Bar */
+.buy-bar{position:sticky;bottom:0;display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-5);padding-bottom:calc(var(--space-3) + var(--safe-bottom));background:var(--bg);border-top:1px solid var(--ink);z-index:80}
+.buy-bar .price{font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;flex:1}
+.buy-bar .price small{font-size:10px;color:var(--ink-3);font-weight:400;display:block;text-transform:uppercase}
+.buy-bar button{background:var(--accent);color:var(--ink);border:none;padding:12px 24px;border-radius:var(--radius-md);font-weight:700;font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.08em}
+.buy-bar button:hover{background:var(--accent-hover)}
+
+/* Manufacturing & Specs sections */
+.mfg-section,.specs-section{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.mfg-row,.specs-row{display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--hair)}
+.mfg-row:last-child,.specs-row:last-child{border-bottom:none}
+.mfg-label,.specs-label{font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)}
+.mfg-value,.specs-value{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.mfg-site{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);font-weight:400}
+.mfg-summary{font-size:10px;color:var(--ink-3);font-style:italic;margin-top:var(--space-2)}
+
+/* Athletes profile */
+.athlete-profile{padding:var(--space-5);display:flex;align-items:flex-start;gap:var(--space-4);border-bottom:1px solid var(--hair)}
+.athlete-profile .avatar{width:72px;height:72px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--hair)}
+.athlete-profile .avatar img{width:100%;height:100%;object-fit:cover}
+.athlete-profile .avatar .initials{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:var(--text-2xl);font-weight:700;color:var(--ink);background:var(--surface-2)}
+.athlete-profile .info{flex:1}
+.athlete-profile .name{font-family:var(--font-display);font-size:var(--text-xl);color:var(--ink);font-weight:700;margin-bottom:2px}
+.athlete-profile .team{font-family:var(--font-serif);font-style:italic;font-size:var(--text-sm);color:var(--ink-2);margin-bottom:4px}
+.athlete-profile .tag{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.follow-btn{padding:6px 16px;border:1px solid var(--accent);border-radius:var(--radius-full);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--accent);background:transparent}
+.follow-btn:hover,.follow-btn.following{background:var(--accent);color:var(--ink)}
+.follow-btn.following{border-color:var(--hair);background:var(--surface-2);color:var(--ink-2)}
+
+/* Stats grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--hair);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.stat-cell{background:var(--bg);padding:var(--space-4) var(--space-2);text-align:center;min-width:0}
+.stat-cell .sv{font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat-cell .sl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+
+/* Movers table */
+.movers-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.movers-table tr{border-bottom:1px solid var(--hair);cursor:pointer}
+.movers-table tr:hover{background:var(--surface)}
+.movers-table td{padding:var(--space-2) 4px;vertical-align:middle}
+.movers-table .rank{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--ink-3);width:22px}
+.movers-table .thumb{width:36px;height:36px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.movers-table .thumb img{width:100%;height:100%;object-fit:cover}
+.movers-table .m-name{font-size:12px;font-weight:600;color:var(--ink);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.movers-table .m-sub{font-size:9px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.movers-table .spark{width:44px;height:24px}
+.movers-table .spark polyline{fill:none;stroke-width:1.5;stroke-linecap:round}
+.movers-table .m-price{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;width:56px}
+.movers-table .m-pct{font-family:var(--font-mono);font-size:10px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;padding-left:4px;width:44px}
+.m-pct.up{color:var(--up)}.m-pct.down{color:var(--down)}
+
+/* Market index */
+.mkt-index{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--hair);margin-bottom:var(--space-5);border:1px solid var(--hair);border-radius:var(--radius-lg)}
+.mkt-index-cell{background:var(--surface);padding:var(--space-4);text-align:center;min-width:0}
+.mkt-index-cell .iv{font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.mkt-index-cell .il{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+/* Watchlist */
+.portfolio-card{padding:var(--space-5);border-bottom:1px solid var(--hair)}
+.portfolio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);margin-bottom:var(--space-4)}
+.portfolio-metric{text-align:center}
+.portfolio-metric .pv{font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.portfolio-metric .pv.up{color:var(--up)}
+.portfolio-metric .pl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.portfolio-chart{height:80px;border:1px solid var(--hair);border-radius:var(--radius-md);overflow:hidden}
+
+.wl-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer}
+.wl-item:hover{background:var(--surface)}
+.wl-thumb{width:48px;height:48px;border-radius:var(--radius-md);overflow:hidden;flex-shrink:0;border:1px solid var(--hair)}
+.wl-thumb img{width:100%;height:100%;object-fit:cover}
+.wl-info{flex:1;min-width:0}
+.wl-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-sub{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.wl-right{text-align:right}
+.wl-price{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.wl-chg{font-family:var(--font-mono);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.wl-chg.up{color:var(--up)}.wl-chg.down{color:var(--down)}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--hair)}
+.toggle-row .tog-info{flex:1}
+.toggle-row .tog-name{font-size:13px;font-weight:600;color:var(--ink)}
+.toggle-row .tog-sub{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:var(--font-mono)}
+.toggle{width:44px;height:24px;border-radius:12px;background:var(--hair);position:relative;cursor:pointer}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--ink);transition:transform var(--t-fast)}
+.toggle.on::after{transform:translateX(20px)}
+
+/* Bottom Sheet */
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:900;opacity:0;visibility:hidden;transition:opacity var(--t-norm),visibility var(--t-norm)}
+.backdrop.open{opacity:1;visibility:visible}
+.bottom-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--ink);border-radius:12px 12px 0 0;z-index:901;transform:translateY(100%);transition:transform var(--t-slow);max-height:70%;overflow-y:auto;padding-bottom:var(--safe-bottom)}
+.bottom-sheet.open{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:var(--hair);border-radius:2px;margin:var(--space-3) auto var(--space-2)}
+.sheet-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink);padding:0 var(--space-5) var(--space-4);border-bottom:1px solid var(--hair)}
+.retailer-row{display:flex;align-items:center;justify-content:space-between;padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.retailer-row:hover{background:var(--surface)}
+.retailer-name{font-weight:600;font-size:13px;color:var(--ink)}
+.retailer-sub{font-size:11px;color:var(--ink-3);margin-top:2px}
+.retailer-right{text-align:right}
+.retailer-price{font-family:var(--font-mono);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.retailer-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-top:2px}
+
+/* Toast */
+.toast{position:absolute;bottom:calc(var(--tab-bar-h) + 12px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-3);border:1px solid var(--hair);color:var(--ink);padding:10px 20px;border-radius:var(--radius-md);font-size:13px;font-weight:500;z-index:800;opacity:0;visibility:hidden;transition:all var(--t-norm);white-space:nowrap}
+.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+
+/* Search */
+.search-wrap{padding:var(--space-4) var(--space-5)}
+.search-field{display:flex;align-items:center;gap:var(--space-2);background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);padding:10px 12px}
+.search-field svg{width:16px;height:16px;stroke:var(--ink-3);fill:none;stroke-width:1.5}
+.search-field input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:14px;font-family:var(--font-grotesk)}
+.search-field input::placeholder{color:var(--ink-3)}
+.trending-chips{display:flex;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-4) var(--space-5)}
+.trending-chips .chip{cursor:pointer}
+.recent-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);padding:var(--space-4) var(--space-5) var(--space-2)}
+.recent-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-5);cursor:pointer}
+.recent-item:hover{background:var(--surface)}
+.recent-item svg{width:14px;height:14px;stroke:var(--ink-3);fill:none;stroke-width:1.5}
+.recent-item span{font-size:13px;color:var(--ink)}
+
+/* Notifications */
+.notif-item{display:flex;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer}
+.notif-item:hover{background:var(--surface)}
+.notif-item .n-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--hair)}
+.notif-item .n-icon svg{width:16px;height:16px;stroke-width:1.5;fill:none}
+.notif-item .n-icon.price svg{stroke:var(--up)}.notif-item .n-icon.price{background:var(--up-bg)}
+.notif-item .n-icon.restock svg{stroke:var(--gold)}.notif-item .n-icon.restock{background:var(--gold-bg)}
+.notif-item .n-icon.athlete svg{stroke:var(--accent)}.notif-item .n-icon.athlete{background:var(--accent-dim)}
+.notif-body{flex:1;min-width:0}
+.notif-text{font-size:13px;color:var(--ink);line-height:1.3}
+.notif-time{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums}
+.notif-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:6px}
+
+/* Tab Bar */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:var(--tab-bar-h);padding-bottom:var(--safe-bottom);background:var(--bg);border-top:1px solid var(--ink);display:flex;align-items:flex-start;padding-top:var(--space-2);z-index:100}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--space-2);cursor:pointer;position:relative;transition:background var(--t-fast)}
+.tab-item:hover{background:var(--surface)}
+.tab-item:active{transform:scale(.98)}
+.tab-item svg{width:20px;height:20px;stroke:var(--ink-3);fill:none;stroke-width:1.5;transition:color var(--t-fast)}
+.tab-item.active svg{stroke:var(--accent)}
+.tab-item.active::before{content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--accent);border-radius:1px}
+.tab-label{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;transition:color var(--t-fast)}
+.tab-item.active .tab-label{color:var(--accent)}
+
+/* Related news */
+.related-item{display:flex;gap:var(--space-3);padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer}
+.related-item:hover{background:var(--surface)}
+.related-item .ri-img{width:56px;height:44px;border-radius:var(--radius-md);overflow:hidden;flex-shrink:0;border:1px solid var(--hair)}
+.related-item .ri-img img{width:100%;height:100%;object-fit:cover}
+.related-item .ri-body{flex:1;min-width:0}
+.related-item .ri-head{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.related-item .ri-meta{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+
+/* Worn avatars */
+.worn-row{display:flex;gap:var(--space-3);overflow-x:auto;padding:var(--space-3) var(--space-5)}
+.worn-row::-webkit-scrollbar{display:none}
+.worn-av{flex-shrink:0;text-align:center;width:60px}
+.worn-av .av{width:48px;height:48px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:1px solid var(--hair)}
+.worn-av .av img{width:100%;height:100%;object-fit:cover}
+.worn-av .av .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--ink);background:var(--surface-2)}
+.worn-av .wn{font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* PB grid */
+.pb-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--hair);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.pb-cell{background:var(--bg);padding:var(--space-4);text-align:center;min-width:0}
+.pb-cell .pv{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.pb-cell .pl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+/* Game card */
+.game-card{display:flex;align-items:center;justify-content:space-between;padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.game-card .gc-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3)}
+.game-card .gc-match{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.game-card .gc-time{font-family:var(--font-mono);font-size:11px;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* Chart SVG */
+.chart-svg{width:100%;height:100%}
+.chart-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round}
+.chart-area{fill:rgba(228,87,46,.2)}
+.chart-grid{stroke:var(--hair);stroke-width:1}
+
+/* === AUTH SCREENS === */
+.auth-screen{position:absolute;top:var(--status-bar-h);left:0;width:100%;height:calc(100% - var(--status-bar-h));overflow-y:auto;background:var(--bg);padding:var(--space-6) var(--space-5);display:flex;flex-direction:column;z-index:30;scrollbar-gutter:stable}
+.auth-logo{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:var(--space-2);letter-spacing:-.02em}
+.auth-logo em{color:var(--accent);font-style:normal}
+.auth-tagline{font-family:var(--font-serif);font-size:14px;color:var(--ink-2);text-align:center;margin-bottom:var(--space-8);line-height:1.4}
+.auth-form{display:flex;flex-direction:column;gap:var(--space-4)}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-family:var(--font-grotesk);font-size:11px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.08em}
+.form-group input[type="email"],.form-group input[type="password"],.form-group input[type="text"]{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);padding:12px var(--space-3);color:var(--ink);font-size:15px;font-family:var(--font-grotesk);outline:none;transition:border-color var(--t-fast)}
+.form-group input:focus{border-color:var(--accent)}
+.form-group input::placeholder{color:var(--ink-3)}
+.form-row{display:flex;align-items:center;gap:var(--space-2)}
+.checkbox{width:18px;height:18px;border:1px solid var(--hair);border-radius:3px;background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.checkbox.checked{background:var(--accent);border-color:var(--accent)}
+.checkbox svg{width:12px;height:12px;stroke:var(--ink);fill:none;stroke-width:3;display:none}
+.checkbox.checked svg{display:block}
+.checkbox-label{font-size:13px;color:var(--ink-2);line-height:1.3}
+.checkbox-label a{color:var(--accent);text-decoration:none}
+.btn-primary{width:100%;padding:14px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:background var(--t-fast)}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{width:100%;padding:14px;background:var(--surface-2);color:var(--ink);border:1px solid var(--hair);border-radius:var(--radius-md);font-weight:600;font-size:14px;cursor:pointer;transition:all var(--t-fast);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-secondary:hover{background:var(--surface-3)}
+.btn-secondary svg{width:18px;height:18px;stroke:var(--ink);fill:none;stroke-width:1.5}
+.auth-divider{display:flex;align-items:center;gap:var(--space-3);margin:var(--space-5) 0}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--hair)}
+.auth-divider span{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+.auth-link{font-size:13px;color:var(--ink-3);text-align:center;margin-top:var(--space-5)}
+.auth-link a{color:var(--accent);text-decoration:none;font-weight:600}
+.guest-link{display:block;text-align:center;font-size:12px;color:var(--ink-3);margin-top:var(--space-4);text-decoration:none;transition:color var(--t-fast)}
+.guest-link:hover{color:var(--ink)}
+
+/* === ONBOARDING === */
+.onboarding-screen{position:absolute;top:var(--status-bar-h);left:0;width:100%;height:calc(100% - var(--status-bar-h));overflow-y:auto;background:var(--bg);padding:var(--space-6) var(--space-5);display:none;flex-direction:column;z-index:30;scrollbar-gutter:stable}
+.onboarding-screen.active{display:flex}
+.onboarding-progress{display:flex;gap:6px;justify-content:center;margin-bottom:var(--space-6)}
+.onboarding-dot{width:6px;height:6px;border-radius:50%;background:var(--hair);transition:all var(--t-fast)}
+.onboarding-dot.active{background:var(--accent);width:20px}
+.onboarding-title{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:var(--space-2)}
+.onboarding-subtitle{font-family:var(--font-serif);font-size:14px;color:var(--ink-2);text-align:center;line-height:1.5;margin-bottom:var(--space-6)}
+.persona-grid{display:grid;grid-template-columns:1fr;gap:var(--space-3);margin-bottom:var(--space-6)}
+.persona-card{background:var(--surface);border:2px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);cursor:pointer;transition:all var(--t-fast);display:flex;align-items:center;gap:var(--space-3)}
+.persona-card:hover{border-color:var(--ink-2)}
+.persona-card.selected{border-color:var(--accent);background:var(--accent-dim)}
+.persona-icon{width:48px;height:48px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+.persona-icon svg{width:24px;height:24px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+.persona-card.selected .persona-icon svg{stroke:var(--accent)}
+.persona-info h3{font-family:var(--font-grotesk);font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.persona-info p{font-size:12px;color:var(--ink-3);line-height:1.3}
+.interest-chips{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-6)}
+.interest-chip{padding:8px 16px;border:1px solid var(--hair);border-radius:var(--radius-full);font-size:13px;font-weight:600;color:var(--ink-2);background:var(--surface);cursor:pointer;transition:all var(--t-fast)}
+.interest-chip:hover{border-color:var(--ink-2)}
+.interest-chip.selected{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.onboarding-success{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:var(--space-8)}
+.success-check{width:80px;height:80px;border-radius:50%;background:var(--up-bg);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-5)}
+.success-check svg{width:40px;height:40px;stroke:var(--up);fill:none;stroke-width:2}
+.btn-enter{width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:opacity var(--t-fast)}
+.btn-enter:hover{opacity:.9}
+
+/* === PROFILE SCREEN === */
+.profile-header{padding:var(--space-6) var(--space-5);border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:var(--space-4)}
+.profile-avatar-lg{width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--surface-2);border:2px solid var(--hair);flex-shrink:0}
+.profile-avatar-lg img{width:100%;height:100%;object-fit:cover}
+.profile-avatar-lg .initials{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--ink)}
+.profile-details{flex:1}
+.profile-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.profile-handle{font-family:var(--font-mono);font-size:12px;color:var(--ink-3);margin-bottom:var(--space-2)}
+.profile-stats{display:flex;gap:var(--space-4);font-size:12px}
+.profile-stats span{color:var(--ink-2)}
+.profile-stats strong{color:var(--ink);font-weight:700}
+.profile-edit-btn{padding:6px 14px;border:1px solid var(--hair);border-radius:var(--radius-full);font-size:11px;font-weight:600;color:var(--ink);background:var(--surface);cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
+.profile-edit-btn:hover{background:var(--surface-2)}
+.profile-menu{padding:var(--space-2) 0}
+.profile-menu-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);cursor:pointer;transition:background var(--t-fast)}
+.profile-menu-item:hover{background:var(--surface)}
+.profile-menu-item svg{width:20px;height:20px;stroke:var(--ink-2);fill:none;stroke-width:1.5;flex-shrink:0}
+.profile-menu-text{flex:1;font-size:14px;color:var(--ink);font-weight:500}
+.profile-menu-item .chevron{width:16px;height:16px;stroke:var(--ink-3)}
+.profile-menu-item.danger .profile-menu-text{color:var(--down)}
+.profile-menu-item.danger svg{stroke:var(--down)}
+
+/* === CART SCREEN === */
+.cart-header{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between}
+.cart-header h2{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink)}
+.cart-count{font-family:var(--font-mono);font-size:12px;color:var(--ink-3)}
+.cart-item{display:flex;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.cart-thumb{width:64px;height:48px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);flex-shrink:0}
+.cart-thumb img{width:100%;height:100%;object-fit:cover}
+.cart-info{flex:1;min-width:0}
+.cart-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.cart-meta{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.cart-price{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);margin-bottom:var(--space-2)}
+.cart-qty{display:flex;align-items:center;gap:var(--space-2)}
+.qty-btn{width:28px;height:28px;border:1px solid var(--hair);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qty-btn:hover{background:var(--surface-2)}
+.qty-val{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);width:24px;text-align:center}
+.cart-remove{color:var(--ink-3);font-size:11px;text-transform:uppercase;letter-spacing:.06em;background:none;border:none;cursor:pointer;padding:4px 0}
+.cart-remove:hover{color:var(--down)}
+.cart-summary{padding:var(--space-5);background:var(--surface);margin:var(--space-4) var(--space-5);border:1px solid var(--hair);border-radius:var(--radius-lg)}
+.summary-row{display:flex;justify-content:space-between;margin-bottom:var(--space-2);font-size:13px}
+.summary-row .lbl{color:var(--ink-2)}
+.summary-row .val{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.summary-row.total{border-top:1px solid var(--ink);padding-top:var(--space-3);margin-top:var(--space-2);margin-bottom:0}
+.summary-row.total .lbl{font-size:14px;font-weight:700;color:var(--ink);text-transform:uppercase}
+.summary-row.total .val{font-size:18px;color:var(--accent)}
+.cart-empty{display:flex;flex-direction:column;align-items:center;padding:60px var(--space-5);text-align:center}
+.cart-empty svg{width:56px;height:56px;stroke:var(--hair);fill:none;stroke-width:1.5;margin-bottom:var(--space-4)}
+.cart-empty h3{font-family:var(--font-display);font-size:18px;color:var(--ink);margin-bottom:var(--space-2)}
+.cart-empty p{font-size:13px;color:var(--ink-3);margin-bottom:var(--space-5)}
+
+/* === CHECKOUT SCREEN === */
+.checkout-section{padding:var(--space-5);border-bottom:1px solid var(--hair)}
+.section-title{font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-3)}
+.checkout-field{margin-bottom:var(--space-3)}
+.checkout-field label{display:block;font-size:12px;color:var(--ink-3);margin-bottom:6px}
+.checkout-field input{width:100%;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);padding:10px 12px;color:var(--ink);font-size:14px;font-family:var(--font-grotesk);outline:none}
+.checkout-field input:focus{border-color:var(--accent)}
+.checkout-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}
+.delivery-option{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3);border:1px solid var(--hair);border-radius:var(--radius-md);cursor:pointer;margin-bottom:var(--space-2);transition:all var(--t-fast)}
+.delivery-option:hover{border-color:var(--ink-2)}
+.delivery-option.selected{border-color:var(--accent);background:var(--accent-dim)}
+.delivery-info{display:flex;align-items:center;gap:var(--space-2)}
+.delivery-radio{width:18px;height:18px;border:2px solid var(--hair);border-radius:50%;position:relative;cursor:pointer}
+.delivery-option.selected .delivery-radio{border-color:var(--accent)}
+.delivery-option.selected .delivery-radio::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;background:var(--accent);border-radius:50%}
+.delivery-name{font-size:13px;font-weight:600;color:var(--ink)}
+.delivery-time{font-size:11px;color:var(--ink-3);margin-top:2px}
+.delivery-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink)}
+.payment-option{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3);border:1px solid var(--hair);border-radius:var(--radius-md);cursor:pointer;margin-bottom:var(--space-2);transition:all var(--t-fast)}
+.payment-option:hover{border-color:var(--ink-2)}
+.payment-option.selected{border-color:var(--accent);background:var(--accent-dim)}
+.payment-info{display:flex;align-items:center;gap:var(--space-3)}
+.payment-radio{width:18px;height:18px;border:2px solid var(--hair);border-radius:50%;position:relative}
+.payment-option.selected .payment-radio{border-color:var(--accent)}
+.payment-option.selected .payment-radio::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;background:var(--accent);border-radius:50%}
+.payment-name{font-size:13px;font-weight:600;color:var(--ink)}
+.payment-sub{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:var(--font-mono)}
+.order-summary-item{display:flex;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--hair)}
+.order-summary-item:last-child{border-bottom:none}
+.order-thumb{width:48px;height:36px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.order-thumb img{width:100%;height:100%;object-fit:cover}
+.order-item-info{flex:1}
+.order-item-name{font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.order-item-meta{font-size:10px;color:var(--ink-3);text-transform:uppercase}
+.order-item-price{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink)}
+.checkout-sticky{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--ink);padding:var(--space-4) var(--space-5);padding-bottom:calc(var(--space-4) + var(--safe-bottom))}
+.order-total-row{display:flex;justify-content:space-between;margin-bottom:var(--space-3)}
+.order-total-row .lbl{font-size:13px;color:var(--ink-2)}
+.order-total-row .val{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* === ORDER CONFIRMATION === */
+.confirmation-screen{position:absolute;top:var(--status-bar-h);left:0;width:100%;height:calc(100% - var(--status-bar-h));overflow-y:auto;background:var(--bg);padding:var(--space-6) var(--space-5);display:none;flex-direction:column;align-items:center;text-align:center;z-index:30;scrollbar-gutter:stable}
+.confirmation-screen.active{display:flex}
+.confirm-check{width:100px;height:100px;border-radius:50%;background:var(--up-bg);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-5)}
+.confirm-check svg{width:50px;height:50px;stroke:var(--up);fill:none;stroke-width:2}
+.confirm-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--ink);margin-bottom:var(--space-2)}
+.confirm-order-num{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--accent);margin-bottom:var(--space-2);font-variant-numeric:tabular-nums}
+.confirm-delivery{font-size:13px;color:var(--ink-2);margin-bottom:var(--space-6);line-height:1.5}
+.confirm-items{width:100%;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-6)}
+.confirm-item-row{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--hair)}
+.confirm-item-row:last-child{border-bottom:none;padding-bottom:0}
+.confirm-item-row:first-child{padding-top:0}
+.confirm-item-thumb{width:56px;height:42px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.confirm-item-thumb img{width:100%;height:100%;object-fit:cover}
+.confirm-item-details{flex:1;text-align:left}
+.confirm-item-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.confirm-item-meta{font-size:10px;color:var(--ink-3);text-transform:uppercase}
+.confirm-actions{display:flex;gap:var(--space-3);width:100%}
+.btn-secondary-full{flex:1;padding:14px;background:var(--surface-2);color:var(--ink);border:1px solid var(--hair);border-radius:var(--radius-md);font-weight:600;font-size:14px;cursor:pointer;transition:all var(--t-fast)}
+.btn-secondary-full:hover{background:var(--surface-3)}
+
+/* === MASTHEAD UPDATES === */
+.masthead-right .cart-btn{position:relative}
+.masthead-right .cart-count-badge{position:absolute;top:0;right:0;background:var(--accent);color:var(--ink);font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;line-height:1}
+
+/* === FLOW MODE (hide tab bar) === */
+.app.flow-mode .tab-bar{display:none}
+.app.flow-mode .screen{height:calc(100% - var(--status-bar-h))}
+
+/* === LIGHT THEME === */
+.app.light{--bg:#F5F1E8;--surface:#FFFFFF;--surface-2:#EFE9DD;--surface-3:#E8E0D0;--ink:#17130E;--ink-2:#5B5347;--ink-3:#8A8072;--hair:#D8D0C2;--rule:#17130E;--accent:#E4572E;--accent-hover:#C94520;--accent-dim:rgba(228,87,46,.1);--up:#3E7D45;--up-bg:rgba(62,125,69,.15);--down:#A84439;--down-bg:rgba(168,68,57,.15);--gold:#B88830;--gold-bg:rgba(184,136,48,.15)}
+.app.light .trend-card-img{background:var(--surface-2)}
+.app.light .story-img{background:var(--surface-2)}
+.app.light .detail-hero{background:var(--surface-2)}
+.app.light .cart-thumb,.app.light .order-thumb,.app.light .wl-thumb,.app.light .confirm-item-thumb{border-color:var(--hair)}
+.app.light .athlete-profile,.app.light .stat-grid,.app.light .movers-table tr,.app.light .wl-item,.app.light .toggle-row,.app.light .notif-item,.app.light .profile-menu-item,.app.light .cart-item,.app.light .checkout-section,.app.light .order-summary-item{border-color:var(--hair)}
+
+/* === UTILITY CLASSES === */
+.section-pad{padding:var(--space-4) var(--space-5)}
+.section-label-sm{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)}
+.stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)}
+.stat-center{text-align:center}
+.stat-label{font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px}
+.stat-value{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.label-value-row{display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0}
+.label-text{font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)}
+.value-text{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.divider{height:1px;background:var(--hair);margin:var(--space-2) 0}
+.flex-center{display:flex;align-items:center;justify-content:space-between}
+.text-xs{font-size:var(--text-xs)}
+.text-sm{font-size:var(--text-sm)}
+.text-muted{color:var(--ink-3)}
+.text-accent{color:var(--accent)}
+
+/* === MICRO-INTERACTIONS === */
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@keyframes chartDraw{from{stroke-dasharray:1000;stroke-dashoffset:1000}to{stroke-dasharray:1000;stroke-dashoffset:0}}
+.chart-line{stroke-dasharray:1000;stroke-dashoffset:0;animation:chartDraw 1.2s var(--t-slow) ease-out forwards}
+@keyframes tabSlide{0%{transform:translateX(-50%);width:0;opacity:0}100%{transform:translateX(-50%);width:20px;opacity:1}}
+.tab-item.active::before{animation:tabSlide var(--t-norm) ease-out}
+@keyframes countUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.count-animate{animation:countUp var(--t-norm)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.screen.active{animation:fadeIn var(--t-norm) ease-out}
+.btn-press:active{transform:scale(.97)}
+.card-press:active{transform:scale(.97)}
+
+/* === DROPS SCREEN === */
+.calendar-wrap{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-3)}
+.calendar-header h3{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--ink)}
+.calendar-header button{background:none;border:1px solid var(--hair);border-radius:var(--radius-md);padding:4px 10px;color:var(--ink-2);font-size:18px;font-weight:700}
+.calendar-header button:hover{background:var(--surface-2)}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.calendar-weekday{font-size:9px;font-weight:600;color:var(--ink-3);text-transform:uppercase;text-align:center;padding:6px 0}
+.calendar-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-family:var(--font-mono);color:var(--ink-2);border-radius:var(--radius-sm);cursor:pointer;position:relative;min-width:0}
+.calendar-day:hover{background:var(--surface-2)}
+.calendar-day.today{background:var(--ink);color:var(--bg);font-weight:700}
+.calendar-day.selected{background:var(--accent);color:var(--ink)}
+.calendar-day.has-drop::after{content:'';position:absolute;bottom:4px;width:4px;height:4px;background:var(--accent);border-radius:50%}
+.calendar-day.today.has-drop::after{background:var(--bg)}
+.drops-list{padding:var(--space-2) 0}
+.drop-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer;transition:background var(--t-fast)}
+.drop-item:hover{background:var(--surface)}
+.drop-thumb{width:56px;height:42px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);flex-shrink:0}
+.drop-thumb img{width:100%;height:100%;object-fit:cover}
+.drop-info{flex:1;min-width:0}
+.drop-brand{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.drop-model{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drop-meta{display:flex;align-items:center;gap:var(--space-2);margin-top:2px}
+.drop-price{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.drop-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:3px}
+.drop-tag.drop{background:var(--accent-dim);color:var(--accent)}
+.drop-tag.raffle{background:var(--gold-bg);color:var(--gold)}
+.drop-tag.soldout{background:var(--down-bg);color:var(--down)}
+.drop-countdown{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* === ATHLETE DETAIL SCREEN === */
+.athlete-detail-hero{height:200px;overflow:hidden;position:relative}
+.athlete-detail-hero img{width:100%;height:100%;object-fit:cover}
+.athlete-detail-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(transparent,var(--bg))}
+.athlete-detail-info{padding:var(--space-5);border-bottom:1px solid var(--hair)}
+.athlete-detail-name{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.athlete-detail-team{font-family:var(--font-serif);font-size:14px;color:var(--ink-2);margin-bottom:var(--space-3)}
+.athlete-detail-actions{display:flex;gap:var(--space-3);align-items:center}
+.athlete-detail-actions .follow-btn{padding:8px 20px;border:1px solid var(--accent);border-radius:var(--radius-full);font-size:12px;font-weight:700;text-transform:uppercase;color:var(--accent);background:transparent}
+.athlete-detail-actions .follow-btn.following{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.events-section{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.section-head{font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-3)}
+.event-row{display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;border-bottom:1px solid var(--hair)}
+.event-row:last-child{border-bottom:none}
+.event-date{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.event-info{flex:1;padding:0 var(--space-3)}
+.event-name{font-size:13px;font-weight:600;color:var(--ink)}
+.event-venue{font-size:11px;color:var(--ink-3);margin-top:2px}
+.event-action{font-size:11px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em}
+.shoe-rotation-scroll{display:flex;gap:var(--space-3);overflow-x:auto;padding:var(--space-3) var(--space-5)}
+.shoe-rotation-scroll::-webkit-scrollbar{display:none}
+.rotation-item{width:72px;text-align:center;flex-shrink:0}
+.rotation-thumb{width:56px;height:42px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);margin:0 auto 6px}
+.rotation-thumb img{width:100%;height:100%;object-fit:cover}
+.rotation-name{font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.latest-list{padding:var(--space-2) 0}
+.latest-item{display:flex;gap:var(--space-3);padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer}
+.latest-item:hover{background:var(--surface)}
+.latest-thumb{width:64px;height:48px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);flex-shrink:0}
+.latest-thumb img{width:100%;height:100%;object-fit:cover}
+.latest-info{flex:1}
+.latest-head{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:2px}
+.latest-meta{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+
+/* === ORDERS SCREEN === */
+.orders-list{padding:var(--space-2) 0}
+.order-card{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer;transition:background var(--t-fast)}
+.order-card:hover{background:var(--surface)}
+.order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)}
+.order-num{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.order-date{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.order-items{display:flex;gap:var(--space-2);margin-bottom:var(--space-3)}
+.order-item-thumb{width:40px;height:30px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--hair)}
+.order-item-thumb img{width:100%;height:100%;object-fit:cover}
+.order-foot{display:flex;justify-content:space-between;align-items:center}
+.order-total{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.order-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:3px}
+.order-status.delivered{background:var(--up-bg);color:var(--up)}
+.order-status.transit{background:var(--gold-bg);color:var(--gold)}
+.order-status.processing{background:var(--ink-3);color:var(--ink-2)}
+
+/* === ORDER DETAIL SCREEN === */
+.order-detail-header{padding:var(--space-5);border-bottom:1px solid var(--hair);background:var(--surface)}
+.order-detail-num{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-bottom:4px}
+.order-detail-date{font-size:12px;color:var(--ink-3)}
+.tracking-section{padding:var(--space-5);border-bottom:1px solid var(--hair)}
+.tracking-timeline{position:relative;padding-left:20px}
+.tracking-timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--hair)}
+.tracking-item{position:relative;padding-left:var(--space-4);padding-bottom:var(--space-4);display:flex;gap:var(--space-3)}
+.tracking-item:last-child{padding-bottom:0}
+.tracking-item::before{content:'';position:absolute;left:-16px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--hair);z-index:1}
+.tracking-item.completed::before{background:var(--up);border-color:var(--up)}
+.tracking-item.current::before{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-dim)}
+.tracking-item.future::before{background:var(--hair);border-color:var(--hair)}
+.tracking-item-content{flex:1}
+.tracking-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.tracking-meta{font-size:11px;color:var(--ink-3)}
+.help-section{padding:var(--space-5);background:var(--surface-2);margin:var(--space-4) var(--space-5);border-radius:var(--radius-lg)}
+.help-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:var(--space-2)}
+.help-text{font-size:12px;color:var(--ink-3);margin-bottom:var(--space-3)}
+.help-actions{display:flex;gap:var(--space-2)}
+.help-actions button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);font-size:12px;font-weight:600;color:var(--ink)}
+
+/* === BROWSE SCREEN === */
+.browse-header{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)}
+.browse-title{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:var(--space-3)}
+.category-row{display:flex;gap:var(--space-2);overflow-x:auto;padding:var(--space-2) var(--space-5);border-bottom:1px solid var(--hair)}
+.category-row::-webkit-scrollbar{display:none}
+.category-chip{flex-shrink:0;padding:8px 16px;border:1px solid var(--hair);border-radius:var(--radius-full);font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface);cursor:pointer;transition:all var(--t-fast);text-transform:uppercase;letter-spacing:.06em}
+.category-chip:hover{border-color:var(--ink-2)}
+.category-chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.brand-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--hair);padding:var(--space-4) var(--space-5)}
+.brand-tile{background:var(--surface);padding:var(--space-4);text-align:center;cursor:pointer;transition:all var(--t-fast);min-width:0}
+.brand-tile:hover{background:var(--surface-2)}
+.brand-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.brand-count{font-size:11px;color:var(--ink-3)}
+.brand-results{padding:var(--space-2) 0;display:none}
+.brand-results.active{display:block}
+.brand-result-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer}
+.brand-result-item:hover{background:var(--surface)}
+.result-thumb{width:56px;height:42px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.result-thumb img{width:100%;height:100%;object-fit:cover}
+.result-info{flex:1}
+.result-name{font-size:13px;font-weight:600;color:var(--ink)}
+.result-sub{font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-top:2px}
+.result-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.result-trend{font-size:10px;font-weight:600;margin-top:2px}
+.result-trend.up{color:var(--up)}
+.result-trend.down{color:var(--down)}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+<div class="app">
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="auth-screen">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div class="auth-logo">HOUSE OF <em>ARTICLES</em></div>
+    <p class="auth-tagline">Where culture meets commerce.<br>Track, collect, and cop the latest.</p>
+    
+    <div class="auth-form">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••••••">
+      </div>
+      <div style="text-align:right;margin-top:-4px">
+        <a href="#" style="font-size:12px;color:var(--ink-3);text-decoration:none" onclick="showToast('Password reset link sent')">Forgot password?</a>
+      </div>
+      <button class="btn-primary" onclick="handleLogin()">Sign in</button>
+    </div>
+    
+    <div class="auth-divider"><span>or continue with</span></div>
+    
+    <button class="btn-secondary" onclick="handleLogin()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="2"/></svg>
+      Continue with Apple
+    </button>
+    <button class="btn-secondary" onclick="handleLogin()" style="margin-top:var(--space-2)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+      Continue with Google
+    </button>
+    
+    <p class="auth-link">Don't have an account? <a href="#" onclick="navSignup()">Create account</a></p>
+    <a href="#" class="guest-link" onclick="navGuest()">Continue as guest →</a>
+  </div>
+</div>
+
+<!-- SIGNUP SCREEN -->
+<div id="screen-signup" class="auth-screen" style="display:none">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div class="auth-logo">HOUSE OF <em>ARTICLES</em></div>
+    <p class="auth-tagline">Create your account to start collecting.</p>
+    
+    <div class="auth-form">
+      <div class="form-group">
+        <label for="signup-name">Full Name</label>
+        <input type="text" id="signup-name" placeholder="John Doe">
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" placeholder="8+ characters">
+      </div>
+      <div class="form-row">
+        <div class="checkbox" id="terms-check" onclick="this.classList.toggle('checked')">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="checkbox-label">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></span>
+      </div>
+      <button class="btn-primary" onclick="handleSignup()">Create account</button>
+    </div>
+    
+    <div class="auth-divider"><span>or sign up with</span></div>
+    
+    <button class="btn-secondary" onclick="handleSignup()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="2"/></svg>
+      Continue with Apple
+    </button>
+    <button class="btn-secondary" onclick="handleSignup()" style="margin-top:var(--space-2)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M12 3v18" stroke="currentColor" stroke-width="1.5"/></svg>
+      Continue with Google
+    </button>
+    
+    <p class="auth-link">Already have an account? <a href="#" onclick="navLogin()">Sign in</a></p>
+  </div>
+</div>
+
+<!-- ONBOARDING SCREEN -->
+<div id="screen-onboarding" class="onboarding-screen">
+  <div class="onboarding-progress">
+    <div class="onboarding-dot active" id="onboarding-dot-1"></div>
+    <div class="onboarding-dot" id="onboarding-dot-2"></div>
+    <div class="onboarding-dot" id="onboarding-dot-3"></div>
+  </div>
+  
+  <!-- Step 1: Persona -->
+  <div id="onboarding-step-1">
+    <h2 class="onboarding-title">What brings you here?</h2>
+    <p class="onboarding-subtitle">Pick the persona that fits you best. You can always adjust later.</p>
+    <div class="persona-grid">
+      <div class="persona-card" onclick="selectPersona(this)">
+        <div class="persona-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="persona-info">
+          <h3>Reseller</h3>
+          <p>Track market trends and flips</p>
+        </div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this)">
+        <div class="persona-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+        <div class="persona-info">
+          <h3>Sports Fan</h3>
+          <p>Follow athletes and on-court heat</p>
+        </div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this)">
+        <div class="persona-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="persona-info">
+          <h3>Casual Buyer</h3>
+          <p>Just here for the latest drops</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="nextOnboardingStep(2)">Continue</button>
+  </div>
+  
+  <!-- Step 2: Interests -->
+  <div id="onboarding-step-2" style="display:none">
+    <h2 class="onboarding-title">Pick your interests</h2>
+    <p class="onboarding-subtitle">Select the brands and athletes you care about.</p>
+    <div class="interest-chips">
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Nike</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Adidas</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Jordan</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">New Balance</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Puma</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Asics</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Marcus Vale</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">Jenna Cruz</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">DeShawn Reid</button>
+      <button class="interest-chip" onclick="this.classList.toggle('selected')">HYROX</button>
+    </div>
+    <div style="display:flex;gap:var(--space-3)">
+      <button class="btn-secondary-full" onclick="prevOnboardingStep(1)">Back</button>
+      <button class="btn-primary" onclick="nextOnboardingStep(3)">Continue</button>
+    </div>
+  </div>
+  
+  <!-- Step 3: Success -->
+  <div id="onboarding-step-3" style="display:none">
+    <div class="onboarding-success">
+      <div class="success-check">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="onboarding-title">You're all set</h2>
+      <p class="onboarding-subtitle">Welcome to House of Articles.<br>Your personalized feed awaits.</p>
+    </div>
+    <button class="btn-enter" onclick="enterApp()">Enter House of Articles</button>
+  </div>
+</div>
+
+<!-- PROFILE SCREEN -->
+<div id="screen-profile" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>PROFILE</span><span></span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button onclick="closeProfile()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="profile-header">
+    <div class="profile-avatar-lg" id="profile-avatar">
+      <img src="./assets/athlete-portrait.jpg" alt="Profile">
+    </div>
+    <div class="profile-details">
+      <div class="profile-name" id="profile-name">Guest User</div>
+      <div class="profile-handle" id="profile-handle">@guest</div>
+      <div class="profile-stats">
+        <span><strong id="profile-followers">0</strong> Followers</span>
+        <span><strong id="profile-following">0</strong> Following</span>
+      </div>
+    </div>
+    <button class="profile-edit-btn" onclick="showToast('Edit profile coming soon')">Edit</button>
+  </div>
+  
+  <div class="profile-menu">
+    <div class="profile-menu-item" onclick="showToast('Account settings coming soon')">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="profile-menu-text">Account</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="profile-menu-item" onclick="showToast('Notifications settings coming soon')">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="profile-menu-text">Notifications</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="profile-menu-item" onclick="showToast('Price alerts coming soon')">
+      <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <span class="profile-menu-text">Price Alerts</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="profile-menu-item" onclick="showToast('Payment methods coming soon')">
+      <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span class="profile-menu-text">Payment Methods</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="profile-menu-item" onclick="openOrders()">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span class="profile-menu-text">Orders</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="profile-menu-item" onclick="toggleAppearance()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20z" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+      <span class="profile-menu-text">Appearance</span>
+      <span id="appearance-value" style="font-size:12px;color:var(--ink-3);font-family:var(--font-mono)">Dark</span>
+    </div>
+    <div class="profile-menu-item" onclick="showToast('Help center coming soon')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="profile-menu-text">Help</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="profile-menu-item danger" onclick="handleSignOut()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span class="profile-menu-text">Sign Out</span>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- CART SCREEN -->
+<div id="screen-cart" class="screen" style="background:var(--bg)">
+  <div class="cart-header">
+    <h2>Cart</h2>
+    <span class="cart-count" id="cart-count-header">0 items</span>
+  </div>
+  
+  <div id="cart-items-container">
+    <!-- Cart items injected here -->
+  </div>
+  
+  <div class="cart-empty" id="cart-empty-state">
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    <h3>Your cart is empty</h3>
+    <p>Add shoes from the feed or market to get started.</p>
+    <button class="cta" onclick="switchTab('feed')">Browse Feed</button>
+  </div>
+  
+  <div class="cart-summary" id="cart-summary" style="display:none">
+    <div class="summary-row"><span class="lbl">Subtotal</span><span class="val" id="cart-subtotal"></span></div>
+    <div class="summary-row"><span class="lbl">Shipping</span><span class="val" id="cart-shipping"></span></div>
+    <div class="summary-row"><span class="lbl">Tax</span><span class="val" id="cart-tax"></span></div>
+    <div class="summary-row total"><span class="lbl">Total</span><span class="val" id="cart-total"></span></div>
+    <button class="btn-primary" onclick="navCheckout()" style="margin-top:var(--space-4);width:100%">Checkout</button>
+  </div>
+</div>
+
+<!-- CHECKOUT SCREEN -->
+<div id="screen-checkout" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>CHECKOUT</span><span></span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button onclick="navCart()" aria-label="Back to cart"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Shipping Address -->
+  <div class="checkout-section">
+    <div class="section-title">Shipping Address</div>
+    <div class="checkout-field">
+      <label>Full Name</label>
+      <input type="text" id="checkout-name" value="John Doe">
+    </div>
+    <div class="checkout-field">
+      <label>Address</label>
+      <input type="text" id="checkout-address" value="123 Sneaker Street">
+    </div>
+    <div class="checkout-row">
+      <div class="checkout-field">
+        <label>City</label>
+        <input type="text" id="checkout-city" value="Metro City">
+      </div>
+      <div class="checkout-field">
+        <label>Postal Code</label>
+        <input type="text" id="checkout-zip" value="10001">
+      </div>
+    </div>
+  </div>
+  
+  <!-- Delivery Method -->
+  <div class="checkout-section">
+    <div class="section-title">Delivery Method</div>
+    <div class="delivery-option selected" onclick="selectDelivery(this,'standard')">
+      <div class="delivery-info">
+        <div class="delivery-radio"></div>
+        <div>
+          <div class="delivery-name">Standard Shipping</div>
+          <div class="delivery-time">5-7 business days</div>
+        </div>
+      </div>
+      <div class="delivery-price">Free</div>
+    </div>
+    <div class="delivery-option" onclick="selectDelivery(this,'express')">
+      <div class="delivery-info">
+        <div class="delivery-radio"></div>
+        <div>
+          <div class="delivery-name">Express Shipping</div>
+          <div class="delivery-time">2-3 business days</div>
+        </div>
+      </div>
+      <div class="delivery-price">$15.00</div>
+    </div>
+  </div>
+  
+  <!-- Payment Method -->
+  <div class="checkout-section">
+    <div class="section-title">Payment Method</div>
+    <div class="payment-option selected" onclick="selectPayment(this,'card')">
+      <div class="payment-info">
+        <div class="payment-radio"></div>
+        <div>
+          <div class="payment-name">Credit Card</div>
+          <div class="payment-sub">•••• •••• •••• 4242</div>
+        </div>
+      </div>
+    </div>
+    <div class="payment-option" onclick="selectPayment(this,'apple')">
+      <div class="payment-info">
+        <div class="payment-radio"></div>
+        <div>
+          <div class="payment-name">Apple Pay</div>
+          <div class="payment-sub">Fast, secure checkout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Order Summary -->
+  <div class="checkout-section" style="background:var(--surface)">
+    <div class="section-title">Order Summary</div>
+    <div id="checkout-items-container">
+      <!-- Items injected here -->
+    </div>
+  </div>
+  
+  <div style="height:100px"></div>
+  
+  <div class="checkout-sticky">
+    <div class="order-total-row">
+      <span class="lbl">Total</span>
+      <span class="val" id="checkout-total"></span>
+    </div>
+    <button class="btn-primary" onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
+
+<!-- ORDER CONFIRMATION SCREEN -->
+<div id="screen-confirmation" class="confirmation-screen">
+  <div class="confirm-check">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h2 class="confirm-title">Order Confirmed!</h2>
+  <div class="confirm-order-num" id="confirm-order-num">Order #HOA-48213</div>
+  <p class="confirm-delivery">Estimated delivery:<br><strong style="color:var(--ink)">Oct 26-28, 2025</strong></p>
+  
+  <div class="confirm-items" id="confirm-items-container">
+    <!-- Items injected here -->
+  </div>
+  
+  <div class="confirm-actions">
+    <button class="btn-secondary-full" onclick="switchTab('feed')">Back to Feed</button>
+    <button class="btn-secondary-full" onclick="openOrders()">View Orders</button>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span>9:41</span>
+  <div class="status-icons">
+    <svg viewBox="0 0 24 24"><path d="M2 12h2l3-9 4 18 3-9h2"/><path d="M12 3v18"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+    <svg viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"/><line x1="22" y1="11" x2="22" y2="13" stroke="currentColor" stroke-width="2"/></svg>
+  </div>
+</div>
+
+<!-- FEED SCREEN -->
+<div id="screen-feed" class="screen active">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>Thu · Oct 21, 2025</span><span>Global Edition</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+    <div class="masthead-right">
+        <button onclick="openSearch()" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        <button onclick="openNotifs()" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge"></span></button>
+        <button class="cart-btn" onclick="navCart()" aria-label="Cart"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="cart-count-badge" id="cart-badge" style="display:none">0</span></button>
+        <button onclick="openProfile()" aria-label="Profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+      </div>
+    </div>
+    <div class="chip-row">
+      <button class="chip active" onclick="setFeedFilter(this,'all')">All</button>
+      <button class="chip" onclick="setFeedFilter(this,'drops')">Drops</button>
+      <button class="chip" onclick="setFeedFilter(this,'oncourt')">On-Court</button>
+      <button class="chip" onclick="setFeedFilter(this,'running')">Running</button>
+      <button class="chip" onclick="setFeedFilter(this,'hyrox')">HYROX</button>
+    </div>
+  </div>
+  
+  <!-- Trending Carousel -->
+  <div class="section-label">Trending Now</div>
+  <div class="h-scroll">
+    <div class="trend-card" onclick="navDetail('apex-runner-3')"><div class="trend-card-img"><img src="./assets/hero-basketball.jpg" alt="Apex Runner 3"></div><div class="trend-card-info"><div class="trend-card-name">Apex Runner 3 "Midnight"</div><div class="trend-card-price">$248</div></div></div>
+    <div class="trend-card" onclick="navDetail('court-legend-1')"><div class="trend-card-img"><img src="./assets/runner-supershoe.jpg" alt="Court Legend 1"></div><div class="trend-card-info"><div class="trend-card-name">Court Legend 1 "Sunset"</div><div class="trend-card-price">$320</div></div></div>
+    <div class="trend-card" onclick="navDetail('velocity-x')"><div class="trend-card-img"><img src="./assets/court-lowtop.jpg" alt="Velocity X"></div><div class="trend-card-info"><div class="trend-card-name">Velocity X "Competition"</div><div class="trend-card-price">$245</div></div></div>
+    <div class="trend-card" onclick="navDetail('street-phoenix')"><div class="trend-card-img"><img src="./assets/retro-street.jpg" alt="Street Phoenix"></div><div class="trend-card-info"><div class="trend-card-name">Street Phoenix "Royal"</div><div class="trend-card-price">$198</div></div></div>
+    <div class="trend-card" onclick="navDetail('trail-blazer-2')"><div class="trend-card-img"><img src="./assets/hyrox-trainer.jpg" alt="Trail Blazer 2"></div><div class="trend-card-info"><div class="trend-card-name">Trail Blazer 2 "Arctic"</div><div class="trend-card-price">$175</div></div></div>
+    <div class="trend-card" onclick="navDetail('velocity-ultra')"><div class="trend-card-img"><img src="./assets/court-lowtop.jpg" alt="Velocity Ultra"></div><div class="trend-card-info"><div class="trend-card-name">Velocity Ultra "Volt"</div><div class="trend-card-price">$265</div></div></div>
+    <div class="trend-card" onclick="navDetail('cloud-walker-2')"><div class="trend-card-img"><img src="./assets/court-lowtop.jpg" alt="Cloud Walker 2"></div><div class="trend-card-info"><div class="trend-card-name">Cloud Walker 2 "Pearl"</div><div class="trend-card-price">$145</div></div></div>
+  </div>
+  
+  <!-- Live Ticker -->
+  <div class="ticker-wrap"><div class="ticker-track">
+    <div class="ticker-item"><span>APEX RN3</span><span class="up">+</span><span class="sep">|</span><span>CRT LGND1</span><span class="up">+</span><span class="sep">|</span><span>VLC X</span><span class="up">+</span><span class="sep">|</span><span>STR PHX</span><span class="up">+</span><span class="sep">|</span><span>TRL BLZ2</span><span class="dn">-</span><span class="sep">|</span><span>NITE OWL5</span><span class="dn">-</span><span class="sep">|</span><span>CLD WLK2</span><span class="up">+</span></div>
+    <div class="ticker-item"><span>APEX RN3</span><span class="up">+</span><span class="sep">|</span><span>CRT LGND1</span><span class="up">+</span><span class="sep">|</span><span>VLC X</span><span class="up">+</span><span class="sep">|</span><span>STR PHX</span><span class="up">+</span><span class="sep">|</span><span>TRL BLZ2</span><span class="dn">-</span><span class="sep">|</span><span>NITE OWL5</span><span class="dn">-</span><span class="sep">|</span><span>CLD WLK2</span><span class="up">+</span></div>
+  </div></div>
+  
+  <!-- Story Cards -->
+  <article class="story-card" onclick="navDetail('Apex Runner 3','Midnight')">
+    <div class="story-kicker">Marcus Vale · 2h ago</div>
+    <h2 class="story-headline">Vale drops 38 in overtime thriller wearing Apex Runner 3</h2>
+    <p class="story-deck">The signature midnight colorway sparked instant collector demand as resale climbed 23% within hours of the final buzzer.</p>
+    <div class="story-img"><img src="./assets/hero-basketball.jpg" alt="Apex Runner 3 on court"></div>
+    <div class="story-byline"><span class="story-price up">+23% ? </span><span>By J. Thompson</span></div>
+  </article>
+  
+  <article class="story-card" onclick="navDetail('Court Legend 1','Sunset')">
+    <div class="story-kicker">Jenna Cruz · 5h ago</div>
+    <h2 class="story-headline">Cruz smashes 5K PB in Court Legend 1 — limited colorway sells out</h2>
+    <p class="story-deck">A personal best and an instant grail: the sunset pack is now commanding 40%+ over retail across EU marketplaces.</p>
+    <div class="story-img"><img src="./assets/runner-supershoe.jpg" alt="Court Legend 1 on track"></div>
+    <div class="story-byline"><span class="story-price up">+41% ? </span><span>By R. Chen</span></div>
+  </article>
+  
+  <!-- Pull Quote -->
+  <div class="pull-quote"><blockquote>"The line between performance and culture has never been thinner."</blockquote><cite>— Editorial Team</cite></div>
+  
+  <!-- On This Day -->
+  <div class="onthisday"><div class="onthisday-label">On This Day · 2019</div><p class="onthisday-text">The original Apex Runner debuted at NBA All-Star weekend, quietly setting the stage for a decade of signature basketball footwear.</p></div>
+  
+  <!-- More Stories -->
+  <article class="story-card" onclick="navDetail('Velocity X','Competition')">
+    <div class="story-kicker">HYROX Pro · 8h ago</div>
+    <h2 class="story-headline">Championship win in Velocity X — demand spikes across EU</h2>
+    <p class="story-deck">Competition-ready footwear continues to dominate crossover appeal between track and street.</p>
+    <div class="story-img"><img src="./assets/court-lowtop.jpg" alt="Velocity X competition"></div>
+    <div class="story-byline"><span class="story-price up">+18% ? </span><span>By K. Mueller</span></div>
+  </article>
+  
+  <article class="story-card" onclick="navDetail('street-phoenix')">
+    <div class="story-kicker">DeShawn Reid · 1d ago</div>
+    <h2 class="story-headline">Reid's buzzer-beater in Street Phoenix — collectors scrambling</h2>
+    <p class="story-deck">Royal accents meet court-ready performance in this instant classic.</p>
+    <div class="story-img"><img src="./assets/retro-street.jpg" alt="Street Phoenix"></div>
+    <div class="story-byline"><span class="story-price up">+15% ↑ </span><span>By A. Davis</span></div>
+  </article>
+  
+  <article class="story-card" onclick="navDetail('night-owl-5')">
+    <div class="story-kicker">Market Watch · 2d ago</div>
+    <h2 class="story-headline">Night Owl 5 "Nebula" dips below retail — buy the opportunity?</h2>
+    <p class="story-deck">Oversupply and shifting trends push the nebula colorway into discount territory across major retailers.</p>
+    <div class="story-img"><img src="./assets/hero-basketball.jpg" alt="Night Owl 5"></div>
+    <div class="story-byline"><span class="story-price down">-8% ↓ </span><span>By M. Torres</span></div>
+  </article>
+  
+  <article class="story-card" onclick="navDetail('trail-blazer-2')">
+    <div class="story-kicker">HYROX Pro · 3d ago</div>
+    <h2 class="story-headline">Trail Co. dominates HYROX World Championship podium</h2>
+    <p class="story-deck">Three of the top five finishers wore Arctic colorway Blazer 2 — functional fitness meets street credibility.</p>
+    <div class="story-img"><img src="./assets/hyrox-trainer.jpg" alt="Trail Blazer 2"></div>
+    <div class="story-byline"><span class="story-price down">-5% ↓ </span><span>By K. Mueller</span></div>
+  </article>
+  
+  <article class="story-card" onclick="navDetail('velocity-x')">
+    <div class="story-kicker">Culture · 4d ago</div>
+    <h2 class="story-headline">From track to street: How Velocity X became a lifestyle staple</h2>
+    <p class="story-deck">The competition-grade foam that conquered the 400m is now finding homes in urban wardrobes worldwide.</p>
+    <div class="story-img"><img src="./assets/court-lowtop.jpg" alt="Velocity X lifestyle"></div>
+    <div class="story-byline"><span class="story-price up">+12% ↑ </span><span>By S. Park</span></div>
+  </article>
+  
+  <!-- Empty State Example (hidden by default, for watchlist demo) -->
+  <div class="empty-state" id="feed-empty" style="display:none">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <h3>No items yet</h3>
+    <p>Follow athletes and shoes to populate your personalized feed.</p>
+    <button class="cta">Explore Feed</button>
+  </div>
+  
+  <!-- Loading Skeleton (shown briefly on tab switch) -->
+  <div class="skeleton" style="height:280px;margin:var(--space-4) var(--space-5);border-radius:var(--radius-lg)" id="feed-skeleton"></div>
+</div>
+
+<!-- SHOE DETAIL SCREEN -->
+<div id="screen-detail" class="screen">
+  <div class="detail-subheader">
+    <button class="back-btn" onclick="navFeed()"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <div class="detail-actions">
+      <button aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+      <button aria-label="Bookmark" onclick="toggleBookmark(this)"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+    </div>
+  </div>
+  
+  <div class="detail-hero">
+    <img src="./assets/hero-basketball.jpg" id="detail-img" alt="Shoe hero">
+    <div class="detail-hero-overlay">
+      <div class="kicker" id="detail-kicker">APEX</div>
+      <h1 id="detail-title">Runner 3 "Midnight"</h1>
+    </div>
+  </div>
+  
+  <div class="bidask-row">
+    <div class="bidask-box"><div class="lbl">Highest Bid</div><div class="val">$232</div></div>
+    <div class="bidask-box ask"><div class="lbl">Lowest Ask</div><div class="val">$248</div></div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2)">
+      <span style="font-size:var(--text-xs);color:var(--ink-3);text-transform:uppercase;font-weight:600">Price Trend</span>
+      <div class="seg-ctrl" style="width:140px;margin:0">
+        <button class="seg-btn" onclick="setChart(this,'1m')">1M</button>
+        <button class="seg-btn" onclick="setChart(this,'6m')">6M</button>
+        <button class="seg-btn active" onclick="setChart(this,'1y')">1Y</button>
+        <button class="seg-btn" onclick="setChart(this,'all')">ALL</button>
+      </div>
+    </div>
+    <div style="height:160px;border:1px solid var(--hair);border-radius:var(--radius-md);overflow:hidden;background:var(--surface)">
+      <svg class="chart-svg" viewBox="0 0 350 160" preserveAspectRatio="none">
+        <defs><linearGradient id="cg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--accent);stop-opacity:.4"/><stop offset="100%" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs>
+        <line x1="0" y1="40" x2="350" y2="40" class="chart-grid"/><line x1="0" y1="80" x2="350" y2="80" class="chart-grid"/><line x1="0" y1="120" x2="350" y2="120" class="chart-grid"/>
+        <path class="chart-area" d="M0 140 L0 120 L50 115 L100 110 L150 100 L200 90 L250 80 L300 70 L350 60 L350 160 Z"/>
+        <path class="chart-line" d="M0 120 L50 115 L100 110 L150 100 L200 90 L250 80 L300 70 L350 60"/>
+        <text x="5" y="155" fill="var(--ink-3)" font-size="10" font-family="var(--font-mono)">Nov 1</text>
+        <text x="175" y="155" fill="var(--ink-3)" font-size="10" font-family="var(--font-mono)" text-anchor="middle">Dec 1</text>
+        <text x="345" y="155" fill="var(--ink-3)" font-size="10" font-family="var(--font-mono)" text-anchor="end">Jan 1</text>
+      </svg>
+    </div>
+    <div style="display:flex;gap:var(--space-3);margin-top:var(--space-3)">
+      <div style="flex:1;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3);text-align:center">
+        <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px">Retail</div>
+        <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">$180</div>
+      </div>
+      <div style="flex:1;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3);text-align:center">
+        <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px">Market</div>
+        <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums">$248</div>
+      </div>
+    </div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">Everything You Need to Know</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3)">
+      <div style="text-align:center"><div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px">Release</div><div style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink)">Oct 12</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px">SKU</div><div style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink)">APX-RN3</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px">Colorway</div><div style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink)">Midnight</div></div>
+    </div>
+  </div>
+  
+  <!-- THE BREAKDOWN -->
+  <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">The Breakdown</div>
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Manufacturer</span><span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums" id="detail-manufacturer">Apex Athletic Manufacturing</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Sourced / Made in</span><span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums" id="detail-origin">Vietnam · Factory 07</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Materials</span><span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums" id="detail-materials">Recycled knit · EVA · Rubber</span></div>
+      <div style="height:1px;background:var(--hair);margin:var(--space-2) 0"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Retail (MSRP)</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums" id="detail-retail">$180</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Est. cost to make</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums" id="detail-estcost">~$74 <span style="font-size:11px;color:var(--ink-3);font-weight:400">(41%)</span></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Market / Resale</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums" id="detail-market">$248</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Markup over retail</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--up);font-variant-numeric:tabular-nums" id="detail-markup">+38%</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-grotesk);font-size:12px;font-weight:600;color:var(--ink-2)">Margin (retail − est. cost)</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums" id="detail-margin">59%</span></div>
+    </div>
+    <!-- Stacked bar: cost | margin within retail, plus market spread marker -->
+    <div style="margin-top:var(--space-3);display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em"><span>Cost</span><span>Margin</span><span>Market ↑</span></div>
+      <div style="height:8px;background:var(--surface-2);border-radius:2px;overflow:hidden;position:relative">
+        <!-- Cost segment: 41% of retail -->
+        <div style="position:absolute;left:0;top:0;height:100%;width:41%;background:var(--ink-2);border-radius:2px 0 0 2px"></div>
+        <!-- Margin segment: 59% of retail -->
+        <div style="position:absolute;left:41%;top:0;height:100%;width:59%;background:var(--accent);border-radius:0 2px 2px 0"></div>
+        <!-- Market spread marker at retail→market boundary (100% → 138%) -->
+        <div style="position:absolute;left:100%;top:0;height:100%;width:2px;background:var(--up);transform:translateX(2px)"></div>
+      </div>
+      <div style="font-size:10px;color:var(--ink-3);font-style:italic">Retail price breakdown vs. market premium</div>
+    </div>
+  </div>
+  
+  <!-- SPECS SECTION -->
+  <div class="specs-section" id="detail-specs-section">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">SPECS</div>
+    <div class="specs-row"><span class="specs-label">Category</span><span class="specs-value" id="detail-specs-category">Basketball</span></div>
+    <div class="specs-row"><span class="specs-label">Weight</span><span class="specs-value" id="detail-specs-weight">340g</span></div>
+    <div class="specs-row"><span class="specs-label">Drop</span><span class="specs-value" id="detail-specs-drop">10mm</span></div>
+  </div>
+  
+  <!-- MANUFACTURING SECTION -->
+  <div class="mfg-section" id="detail-mfg-section">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">WHERE IT'S MADE</div>
+    <div id="detail-mfg-rows">
+      <div class="mfg-row"><span class="mfg-label">Upper · Recycled knit</span><span class="mfg-value mfg-site">Vietnam · Factory 07</span></div>
+      <div class="mfg-row"><span class="mfg-label">Midsole · EVA foam</span><span class="mfg-value mfg-site">China · Factory 12</span></div>
+      <div class="mfg-row"><span class="mfg-label">Outsole · Rubber</span><span class="mfg-value mfg-site">Indonesia · Factory 03</span></div>
+      <div class="mfg-row"><span class="mfg-label">Laces · Recycled polyester</span><span class="mfg-value mfg-site">Vietnam · Factory 09</span></div>
+      <div class="mfg-row"><span class="mfg-label">Insole · Foam</span><span class="mfg-value mfg-site">Taiwan · Factory 21</span></div>
+      <div class="mfg-row"><span class="mfg-label">Final assembly</span><span class="mfg-value mfg-site">Vietnam · Factory 07</span></div>
+    </div>
+    <div class="mfg-summary" id="detail-mfg-summary">6 parts · 4 countries</div>
+  </div>
+  
+  <div style="border-bottom:1px solid var(--hair)">
+    <div style="padding:var(--space-4) var(--space-5);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)">Select Size</span>
+      <span style="font-size:11px;color:var(--ink-3)">Last Sale</span>
+    </div>
+    <div class="size-grid">
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 8</div><div class="pr">$248</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 8.5</div><div class="pr">$245</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 9</div><div class="pr">$240</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 9.5</div><div class="pr">$252</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 10</div><div class="pr">$248</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 10.5</div><div class="pr">$255</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 11</div><div class="pr">$260</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 11.5</div><div class="pr">$268</div></div>
+      <div class="size-cell" onclick="selectSize(this)"><div class="sz">US 12</div><div class="pr">$275</div></div>
+    </div>
+  </div>
+  
+  <div style="border-bottom:1px solid var(--hair)">
+    <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)">Worn by</div>
+    <div class="worn-row">
+      <div class="worn-av"><div class="av"><img src="./assets/athlete-portrait.jpg" alt="MV"></div><div class="wn">M. Vale</div></div>
+      <div class="worn-av"><div class="av"><span class="ini">JC</span></div><div class="wn">J. Cruz</div></div>
+      <div class="worn-av"><div class="av"><span class="ini">DR</span></div><div class="wn">D. Reid</div></div>
+      <div class="worn-av"><div class="av"><span class="ini">TK</span></div><div class="wn">T. Knox</div></div>
+    </div>
+  </div>
+  
+  <div style="border-bottom:1px solid var(--hair)">
+    <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)">Related News</div>
+    <div class="related-item"><div class="ri-img"><img src="./assets/runner-supershoe.jpg" alt=""></div><div class="ri-body"><div class="ri-head">The science behind super-shoe foam</div><div class="ri-meta">Tech · 3d ago</div></div></div>
+    <div class="related-item"><div class="ri-img"><img src="./assets/court-lowtop.jpg" alt=""></div><div class="ri-body"><div class="ri-head">Why low-tops dominate the court</div><div class="ri-meta">Culture · 5d ago</div></div></div>
+    <div class="related-item"><div class="ri-img"><img src="./assets/retro-street.jpg" alt=""></div><div class="ri-body"><div class="ri-head">Retro revivals: what to cop next</div><div class="ri-meta">Buy Guide · 1w ago</div></div></div>
+    <div class="related-item"><div class="ri-img"><img src="./assets/hyrox-trainer.jpg" alt=""></div><div class="ri-body"><div class="ri-head">HYROX athletes share training secrets</div><div class="ri-meta">Training · 2w ago</div></div></div>
+    <div class="related-item"><div class="ri-img"><img src="./assets/hero-basketball.jpg" alt=""></div><div class="ri-body"><div class="ri-head">Signature shoe deals: behind the numbers</div><div class="ri-meta">Business · 3w ago</div></div></div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5)">
+    <button class="buy-button" style="width:100%;padding:14px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:700;font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.08em;cursor:pointer" onclick="openSheet()">Where to Buy</button>
+  </div>
+  
+  <div class="buy-bar">
+    <div class="price"><small>Lowest Ask</small><span id="detail-price-display">$248</span></div>
+    <button onclick="addToCartFromDetail()" id="detail-add-to-cart-btn" disabled style="opacity:.5;cursor:not-allowed">Select Size</button>
+  </div>
+</div>
+
+
+<!-- MARKET SCREEN -->
+<div id="screen-market" class="screen">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>MARKET</span><span>Global Edition</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button aria-label="Filter"><svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
+      </div>
+    </div>
+    <div class="chip-row">
+      <button class="chip active" onclick="setMktFilter(this,'gainers')">Gainers</button>
+      <button class="chip" onclick="setMktFilter(this,'drops')">Drops</button>
+      <button class="chip" onclick="setMktFilter(this,'trending')">Trending</button>
+    </div>
+  </div>
+  
+  <!-- Market Index -->
+  <div style="padding:var(--space-5)">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">Market Overview</div>
+    <div class="mkt-index">
+      <div class="mkt-index-cell"><div class="iv" style="color:var(--up)">+2.4%</div><div class="il">24h Change</div></div>
+      <div class="mkt-index-cell"><div class="iv">$214</div><div class="il">Avg Price</div></div>
+      <div class="mkt-index-cell"><div class="iv" style="color:var(--gold)">Med</div><div class="il">Volatility</div></div>
+      <div class="mkt-index-cell"><div class="iv" style="color:var(--up)">+18.2%</div><div class="il">7D Change</div></div>
+      <div class="mkt-index-cell"><div class="iv">2.4K</div><div class="il">Volume</div></div>
+      <div class="mkt-index-cell"><div class="iv" style="color:var(--up)">52.3</div><div class="il">Market Cap</div></div>
+    </div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">Top Movers</div>
+  <table class="movers-table">
+    <tr onclick="navDetail('court-legend-1')"><td class="rank">1</td><td><div class="thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div></td><td><div class="m-name">Court Legend 1</div><div class="m-sub">Sunset</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,20 10,18 20,16 30,12 40,8 50,4 56,2" stroke="var(--up)"/></svg></td><td class="m-price">$320</td><td class="m-pct up">+41%</td></tr>
+    <tr onclick="navDetail('apex-runner-3')"><td class="rank">2</td><td><div class="thumb"><img src="./assets/hero-basketball.jpg" alt=""></div></td><td><div class="m-name">Apex Runner 3</div><div class="m-sub">Midnight</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,18 10,16 20,14 30,10 40,6 50,3 56,1" stroke="var(--up)"/></svg></td><td class="m-price">$285</td><td class="m-pct up">+23%</td></tr>
+    <tr onclick="navDetail('velocity-ultra')"><td class="rank">3</td><td><div class="thumb"><img src="./assets/court-lowtop.jpg" alt=""></div></td><td><div class="m-name">Velocity Ultra</div><div class="m-sub">Volt</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,16 10,14 20,13 30,10 40,7 50,4 56,2" stroke="var(--up)"/></svg></td><td class="m-price">$265</td><td class="m-pct up">+22%</td></tr>
+    <tr onclick="navDetail('velocity-x')"><td class="rank">4</td><td><div class="thumb"><img src="./assets/court-lowtop.jpg" alt=""></div></td><td><div class="m-name">Velocity X</div><div class="m-sub">Competition</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,16 10,14 20,13 30,10 40,7 50,4 56,2" stroke="var(--up)"/></svg></td><td class="m-price">$245</td><td class="m-pct up">+18%</td></tr>
+    <tr onclick="navDetail('street-phoenix')"><td class="rank">5</td><td><div class="thumb"><img src="./assets/retro-street.jpg" alt=""></div></td><td><div class="m-name">Street Phoenix</div><div class="m-sub">Royal</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,14 10,12 20,11 30,9 40,7 50,5 56,3" stroke="var(--up)"/></svg></td><td class="m-price">$198</td><td class="m-pct up">+15%</td></tr>
+    <tr onclick="navDetail('court-pace-3')"><td class="rank">6</td><td><div class="thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div></td><td><div class="m-name">Court Pace 3</div><div class="m-sub">Thunder</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,12 10,11 20,10 30,9 40,8 50,7 56,6" stroke="var(--up)"/></svg></td><td class="m-price">$210</td><td class="m-pct up">+12%</td></tr>
+    <tr onclick="navDetail('apex-trail-1')"><td class="rank">7</td><td><div class="thumb"><img src="./assets/hero-basketball.jpg" alt=""></div></td><td><div class="m-name">Apex Trail 1</div><div class="m-sub">Forest</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,12 10,11 20,10 30,9 40,8 50,7 56,6" stroke="var(--up)"/></svg></td><td class="m-price">$185</td><td class="m-pct up">+5%</td></tr>
+    <tr onclick="navDetail('cloud-walker-2')"><td class="rank">8</td><td><div class="thumb"><img src="./assets/court-lowtop.jpg" alt=""></div></td><td><div class="m-name">Cloud Walker 2</div><div class="m-sub">Pearl</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,12 10,11 20,10 30,9 40,8 50,7 56,6" stroke="var(--up)"/></svg></td><td class="m-price">$145</td><td class="m-pct up">+7%</td></tr>
+    <tr onclick="navDetail('trail-blazer-2')"><td class="rank">9</td><td><div class="thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div></td><td><div class="m-name">Trail Blazer 2</div><div class="m-sub">Arctic</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,4 10,6 20,8 30,11 40,14 50,17 56,19" stroke="var(--down)"/></svg></td><td class="m-price">$175</td><td class="m-pct down">-12%</td></tr>
+    <tr onclick="navDetail('night-owl-5')"><td class="rank">10</td><td><div class="thumb"><img src="./assets/hero-basketball.jpg" alt=""></div></td><td><div class="m-name">Night Owl 5</div><div class="m-sub">Nebula</div></td><td><svg class="spark" viewBox="0 0 56 24"><polyline points="0,6 10,8 20,10 30,12 40,14 50,16 56,18" stroke="var(--down)"/></svg></td><td class="m-price">$162</td><td class="m-pct down">-5%</td></tr>
+  </table>
+  
+  <div style="height:40px"></div>
+</div>
+
+<!-- ATHLETES SCREEN -->
+<div id="screen-athletes" class="screen">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>ATHLETES</span><span>Global Edition</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button aria-label="Filter"><svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- NBA Athlete -->
+  <div class="athlete-profile" onclick="openAthlete('Marcus Vale')" style="cursor:pointer">
+    <div class="avatar"><img src="./assets/athlete-portrait.jpg" alt="Marcus Vale"></div>
+    <div class="info">
+      <div class="name">Marcus Vale</div>
+      <div class="team">Metro City Ballers · SG</div>
+      <div class="tag">6'5" · 245 lbs</div>
+    </div>
+    <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+  </div>
+  
+  <div class="stat-grid">
+    <div class="stat-cell"><div class="sv">28.4</div><div class="sl">PPG</div></div>
+    <div class="stat-cell"><div class="sv">6.2</div><div class="sl">RPG</div></div>
+    <div class="stat-cell"><div class="sv">5.8</div><div class="sl">APG</div></div>
+    <div class="stat-cell"><div class="sv">48%</div><div class="sl">FG</div></div>
+  </div>
+  
+  <div class="game-card">
+    <div><div class="gc-label">Next Game</div><div class="gc-match">MCB vs RC</div></div>
+    <div class="gc-time">TONIGHT 7:30</div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">On-Court Shoe</div>
+  <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer" onclick="navDetail('apex-runner-3')">
+    <div style="width:56px;height:44px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)"><img src="./assets/hero-basketball.jpg" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">Apex Runner 3 "Midnight"</div><div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Signature colorway</div></div>
+    <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--accent)">$285</div>
+  </div>
+  
+  <!-- Endurance Athlete -->
+  <div class="athlete-profile">
+    <div class="avatar"><span class="initials">JC</span></div>
+    <div class="info">
+      <div class="name">Jenna Cruz</div>
+      <div class="team">Elite Endurance Team</div>
+      <div class="tag">5K / 10K Specialist</div>
+    </div>
+    <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+  </div>
+  
+  <div class="pb-grid">
+    <div class="pb-cell"><div class="pv">2:24:18</div><div class="pl">Marathon</div></div>
+    <div class="pb-cell"><div class="pv">31:42</div><div class="pl">10K</div></div>
+    <div class="pb-cell"><div class="pv">15:08</div><div class="pl">5K</div></div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">Recent Results</div>
+  <div style="padding:var(--space-3) var(--space-5);font-size:13px;color:var(--ink);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between"><span>City Marathon 2025</span><span style="font-family:var(--font-mono);font-weight:700;color:var(--gold)">?? 1st</span></div>
+  <div style="padding:var(--space-3) var(--space-5);font-size:13px;color:var(--ink);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between"><span>Highland 10K</span><span style="font-family:var(--font-mono);font-weight:700;color:var(--ink-2)">?? 2nd</span></div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">Shoe Rotation</div>
+  <div class="h-scroll">
+    <div style="width:80px;text-align:center"><div style="width:60px;height:44px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);margin:0 auto 6px"><img src="./assets/runner-supershoe.jpg" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="font-size:10px;color:var(--ink-3)">Court Legend 1</div></div>
+    <div style="width:80px;text-align:center"><div style="width:60px;height:44px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);margin:0 auto 6px"><img src="./assets/court-lowtop.jpg" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="font-size:10px;color:var(--ink-3)">Velocity X</div></div>
+    <div style="width:80px;text-align:center"><div style="width:60px;height:44px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);margin:0 auto 6px"><img src="./assets/retro-street.jpg" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="font-size:10px;color:var(--ink-3)">Trail Blazer 2</div></div>
+    <div style="width:80px;text-align:center"><div style="width:60px;height:44px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);margin:0 auto 6px"><img src="./assets/hero-basketball.jpg" alt="" style="width:100%;height:100%;object-fit:cover"></div><div style="font-size:10px;color:var(--ink-3)">Apex Runner 3</div></div>
+  </div>
+  
+  <!-- HYROX Athlete -->
+  <div class="athlete-profile" style="border-top:1px solid var(--hair)">
+    <div class="avatar"><span class="initials">TK</span></div>
+    <div class="info">
+      <div class="name">Tobias Knox</div>
+      <div class="team">HYROX Elite Series</div>
+      <div class="tag">Functional Fitness</div>
+    </div>
+    <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+  </div>
+  
+  <div class="pb-grid">
+    <div class="pb-cell"><div class="sv">58:42</div><div class="pl">HYROX</div></div>
+    <div class="pb-cell"><div class="sv">12:18</div><div class="pl">5K Run</div></div>
+    <div class="pb-cell"><div class="sv">8:45</div><div class="pl">Ski Erg</div></div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">Recent Results</div>
+  <div style="padding:var(--space-3) var(--space-5);font-size:13px;color:var(--ink);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between"><span>HYROX World Championship</span><span style="font-family:var(--font-mono);font-weight:700;color:var(--gold)">🥇 1st</span></div>
+  <div style="padding:var(--space-3) var(--space-5);font-size:13px;color:var(--ink);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between"><span>European Open</span><span style="font-family:var(--font-mono);font-weight:700;color:var(--ink-2)">🥈 2nd</span></div>
+  
+  <div style="height:40px"></div>
+</div>
+
+<!-- WATCHLIST SCREEN -->
+<div id="screen-watchlist" class="screen">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>MY WATCHLIST</span><span>Global Edition</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button aria-label="Add"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="portfolio-card">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-4)">Portfolio Summary</div>
+    <div class="portfolio-grid">
+      <div class="portfolio-metric"><div class="pv">,847</div><div class="pl">Cost Basis</div></div>
+      <div class="portfolio-metric"><div class="pv">,412</div><div class="pl">Market Value</div></div>
+      <div class="portfolio-metric"><div class="pv up">+</div><div class="pl">P/L (+19.8%)</div></div>
+    </div>
+    <div class="portfolio-chart">
+      <svg class="chart-svg" viewBox="0 0 350 80" preserveAspectRatio="none">
+        <defs><linearGradient id="pg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--up);stop-opacity:.4"/><stop offset="100%" style="stop-color:var(--up);stop-opacity:0"/></linearGradient></defs>
+        <path class="chart-area" d="M0 80 L0 65 L35 62 L70 58 L105 55 L140 50 L175 45 L210 42 L245 38 L280 35 L315 32 L350 28 L350 80 Z"/>
+        <path class="chart-line" d="M0 65 L35 62 L70 58 L105 55 L140 50 L175 45 L210 42 L245 38 L280 35 L315 32 L350 28" style="stroke:var(--up)"/>
+      </svg>
+    </div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">My Tracked Shoes</div>
+  
+  <div class="wl-item" onclick="navDetail('apex-runner-3')">
+    <div class="wl-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Apex Runner 3 "Midnight"</div><div class="wl-sub">APEX</div></div>
+    <div class="wl-right"><div class="wl-price">$248</div><div class="wl-chg up">+23%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('court-legend-1')">
+    <div class="wl-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Court Legend 1 "Sunset"</div><div class="wl-sub">COURT CO.</div></div>
+    <div class="wl-right"><div class="wl-price">$320</div><div class="wl-chg up">+41%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('velocity-x')">
+    <div class="wl-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Velocity X "Competition"</div><div class="wl-sub">VELOCITY</div></div>
+    <div class="wl-right"><div class="wl-price">$245</div><div class="wl-chg up">+18%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('velocity-ultra')">
+    <div class="wl-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Velocity Ultra "Volt"</div><div class="wl-sub">VELOCITY</div></div>
+    <div class="wl-right"><div class="wl-price">$265</div><div class="wl-chg up">+22%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('street-phoenix')">
+    <div class="wl-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Street Phoenix "Royal"</div><div class="wl-sub">PHOENIX</div></div>
+    <div class="wl-right"><div class="wl-price">$198</div><div class="wl-chg up">+15%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('court-pace-3')">
+    <div class="wl-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Court Pace 3 "Thunder"</div><div class="wl-sub">COURT CO.</div></div>
+    <div class="wl-right"><div class="wl-price">$210</div><div class="wl-chg up">+12%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('apex-trail-1')">
+    <div class="wl-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Apex Trail 1 "Forest"</div><div class="wl-sub">APEX</div></div>
+    <div class="wl-right"><div class="wl-price">$185</div><div class="wl-chg up">+5%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('trail-blazer-2')">
+    <div class="wl-thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Trail Blazer 2 "Arctic"</div><div class="wl-sub">TRAIL</div></div>
+    <div class="wl-right"><div class="wl-price">$175</div><div class="wl-chg down">-8%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('night-owl-5')">
+    <div class="wl-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Night Owl 5 "Nebula"</div><div class="wl-sub">OWL</div></div>
+    <div class="wl-right"><div class="wl-price">$162</div><div class="wl-chg down">-5%</div></div>
+  </div>
+  
+  <div class="wl-item" onclick="navDetail('cloud-walker-2')">
+    <div class="wl-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+    <div class="wl-info"><div class="wl-name">Cloud Walker 2 "Pearl"</div><div class="wl-sub">WALKER</div></div>
+    <div class="wl-right"><div class="wl-price">$145</div><div class="wl-chg up">+7%</div></div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">Price Alerts</div>
+  
+  <div class="toggle-row">
+    <div class="tog-info"><div class="tog-name">Apex Runner 3</div><div class="tog-sub">Alert at </div></div>
+    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+  </div>
+  <div class="toggle-row">
+    <div class="tog-info"><div class="tog-name">Court Legend 1</div><div class="tog-sub">Alert at </div></div>
+    <div class="toggle" onclick="this.classList.toggle('on')"></div>
+  </div>
+  <div class="toggle-row">
+    <div class="tog-info"><div class="tog-name">Trail Blazer 2</div><div class="tog-sub">Alert at </div></div>
+    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+  </div>
+  
+  <!-- Empty State for demo -->
+  <div class="empty-state" id="wl-empty" style="display:none">
+    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    <h3>Watchlist is empty</h3>
+    <p>Track shoes and athletes to see your portfolio here.</p>
+    <button class="cta" onclick="switchTab('feed')">Browse Feed</button>
+  </div>
+  
+  <div style="height:60px"></div>
+</div>
+
+
+<!-- SEARCH SCREEN -->
+<div id="screen-search" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>SEARCH</span><span></span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button onclick="closeSearch()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-field">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search shoes, athletes, brands..." id="search-input" oninput="filterSearch()">
+    </div>
+  </div>
+  <div class="section-label" style="margin-top:var(--space-2)">Trending</div>
+  <div class="trending-chips">
+    <button class="chip">Apex Runner 3</button>
+    <button class="chip">Court Legend 1</button>
+    <button class="chip">Marcus Vale</button>
+    <button class="chip">Jenna Cruz</button>
+    <button class="chip">HYROX</button>
+    <button class="chip">New Balance</button>
+  </div>
+  <div style="padding:var(--space-3) var(--space-5)">
+    <button onclick="openBrowse()" style="width:100%;padding:10px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);font-size:12px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em">Browse All Brands</button>
+  </div>
+  <div class="recent-title">Recent Searches</div>
+  <div class="recent-item" onclick="navDetail('apex-runner-3')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Apex Runner 3</span></div>
+  <div class="recent-item" onclick="navDetail('court-legend-1')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Court Legend 1</span></div>
+  <div class="recent-item"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Marcus Vale stats</span></div>
+  <div style="height:60px"></div>
+</div>
+
+<!-- DROPS SCREEN (Release Calendar) -->
+<div id="screen-drops" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>DROPS</span><span>Global Edition</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button aria-label="Filter"><svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="calendar-wrap">
+    <div class="calendar-header">
+      <button onclick="prevMonth()">&#8249;</button>
+      <h3 id="calendar-month">October 2025</h3>
+      <button onclick="nextMonth()">&#8250;</button>
+    </div>
+    <div class="calendar-grid">
+      <div class="calendar-weekday">Sun</div><div class="calendar-weekday">Mon</div><div class="calendar-weekday">Tue</div><div class="calendar-weekday">Wed</div><div class="calendar-weekday">Thu</div><div class="calendar-weekday">Fri</div><div class="calendar-weekday">Sat</div>
+      <div class="calendar-day" onclick="selectDay(this)">28</div><div class="calendar-day" onclick="selectDay(this)">29</div><div class="calendar-day" onclick="selectDay(this)">30</div><div class="calendar-day" onclick="selectDay(this)">1</div><div class="calendar-day" onclick="selectDay(this)">2</div><div class="calendar-day has-drop" onclick="selectDay(this)">3</div><div class="calendar-day" onclick="selectDay(this)">4</div>
+      <div class="calendar-day" onclick="selectDay(this)">5</div><div class="calendar-day" onclick="selectDay(this)">6</div><div class="calendar-day has-drop" onclick="selectDay(this)">7</div><div class="calendar-day" onclick="selectDay(this)">8</div><div class="calendar-day" onclick="selectDay(this)">9</div><div class="calendar-day has-drop" onclick="selectDay(this)">10</div><div class="calendar-day" onclick="selectDay(this)">11</div>
+      <div class="calendar-day" onclick="selectDay(this)">12</div><div class="calendar-day" onclick="selectDay(this)">13</div><div class="calendar-day" onclick="selectDay(this)">14</div><div class="calendar-day has-drop" onclick="selectDay(this)">15</div><div class="calendar-day today" onclick="selectDay(this)">16</div><div class="calendar-day has-drop" onclick="selectDay(this)">17</div><div class="calendar-day" onclick="selectDay(this)">18</div>
+      <div class="calendar-day" onclick="selectDay(this)">19</div><div class="calendar-day" onclick="selectDay(this)">20</div><div class="calendar-day has-drop" onclick="selectDay(this)">21</div><div class="calendar-day" onclick="selectDay(this)">22</div><div class="calendar-day" onclick="selectDay(this)">23</div><div class="calendar-day has-drop" onclick="selectDay(this)">24</div><div class="calendar-day" onclick="selectDay(this)">25</div>
+      <div class="calendar-day" onclick="selectDay(this)">26</div><div class="calendar-day" onclick="selectDay(this)">27</div><div class="calendar-day has-drop" onclick="selectDay(this)">28</div><div class="calendar-day" onclick="selectDay(this)">29</div><div class="calendar-day" onclick="selectDay(this)">30</div><div class="calendar-day" onclick="selectDay(this)">31</div><div class="calendar-day" onclick="selectDay(this)">1</div>
+    </div>
+  </div>
+  
+  <div class="section-label">Releases for Oct 16</div>
+  <div class="drops-list">
+    <div class="drop-item" onclick="navDetail('apex-runner-3')">
+      <div class="drop-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Apex</div>
+        <div class="drop-model">Runner 3 "Midnight"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$285</div>
+          <div class="drop-tag drop">DROP</div>
+          <div class="drop-countdown">2h 14m</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('court-legend-1')">
+      <div class="drop-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Court Co.</div>
+        <div class="drop-model">Legend 1 "Sunset"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$320</div>
+          <div class="drop-tag raffle">RAFFLE</div>
+          <div class="drop-countdown">5h 30m</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('velocity-x')">
+      <div class="drop-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Velocity</div>
+        <div class="drop-model">X "Competition"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$245</div>
+          <div class="drop-tag drop">DROP</div>
+          <div class="drop-countdown">8h 00m</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('velocity-ultra')">
+      <div class="drop-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Velocity</div>
+        <div class="drop-model">Ultra "Volt"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$265</div>
+          <div class="drop-tag drop">DROP</div>
+          <div class="drop-countdown">1d 4h</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('night-owl-5')">
+      <div class="drop-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Night Owl</div>
+        <div class="drop-model">5 "Nebula"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$165</div>
+          <div class="drop-tag drop">DROP</div>
+          <div class="drop-countdown">1d 2h</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('cloud-walker-2')">
+      <div class="drop-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Cloud Walker</div>
+        <div class="drop-model">2 "Pearl"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$145</div>
+          <div class="drop-tag drop">DROP</div>
+          <div class="drop-countdown">2d 0h</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('trail-blazer-2')">
+      <div class="drop-thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Trail Co.</div>
+        <div class="drop-model">Blazer 2 "Arctic"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$175</div>
+          <div class="drop-tag soldout">SOLD OUT</div>
+          <div class="drop-countdown">Ended</div>
+        </div>
+      </div>
+    </div>
+    <div class="drop-item" onclick="navDetail('street-phoenix')">
+      <div class="drop-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+      <div class="drop-info">
+        <div class="drop-brand">Street</div>
+        <div class="drop-model">Phoenix "Royal"</div>
+        <div class="drop-meta">
+          <div class="drop-price">$198</div>
+          <div class="drop-tag raffle">RAFFLE</div>
+          <div class="drop-countdown">2d 6h</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ATHLETE DETAIL SCREEN -->
+<div id="screen-athlete" class="screen" style="background:var(--bg)">
+  <div class="detail-subheader">
+    <button class="back-btn" onclick="switchTab('athletes')"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <div class="detail-actions">
+      <button aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+    </div>
+  </div>
+  
+  <div class="athlete-detail-hero">
+    <img src="./assets/athlete-portrait.jpg" alt="Marcus Vale">
+  </div>
+  
+  <div class="athlete-detail-info">
+    <h1 class="athlete-detail-name">Marcus Vale</h1>
+    <p class="athlete-detail-team">Metro City Ballers · Shooting Guard</p>
+    <div class="athlete-detail-actions">
+      <button class="follow-btn" onclick="this.classList.toggle('following');this.textContent=this.classList.contains('following')?'Following':'Follow'">Follow</button>
+      <span style="font-size:12px;color:var(--ink-3)">6'5" · 245 lbs</span>
+    </div>
+  </div>
+  
+  <div class="stat-grid">
+    <div class="stat-cell"><div class="sv">28.4</div><div class="sl">PPG</div></div>
+    <div class="stat-cell"><div class="sv">6.2</div><div class="sl">RPG</div></div>
+    <div class="stat-cell"><div class="sv">5.8</div><div class="sl">APG</div></div>
+    <div class="stat-cell"><div class="sv">48%</div><div class="sl">FG</div></div>
+  </div>
+  
+  <div class="events-section">
+    <div class="section-head">Upcoming Events</div>
+    <div class="event-row">
+      <div class="event-date">OCT 22</div>
+      <div class="event-info">
+        <div class="event-name">vs. Riverside</div>
+        <div class="event-venue">Metro Arena · 7:30 PM</div>
+      </div>
+      <div class="event-action">Tickets</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date">OCT 25</div>
+      <div class="event-info">
+        <div class="event-name">@ Northside</div>
+        <div class="event-venue">North Court · 8:00 PM</div>
+      </div>
+      <div class="event-action">Tickets</div>
+    </div>
+    <div class="event-row">
+      <div class="event-date">OCT 28</div>
+      <div class="event-info">
+        <div class="event-name">vs. Eastside</div>
+        <div class="event-venue">Metro Arena · 7:00 PM</div>
+      </div>
+      <div class="event-action">Sold Out</div>
+    </div>
+  </div>
+  
+  <div class="section-label">Shoe Rotation</div>
+  <div class="shoe-rotation-scroll">
+    <div class="rotation-item" onclick="navDetail('apex-runner-3')">
+      <div class="rotation-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+      <div class="rotation-name">Apex Runner 3</div>
+    </div>
+    <div class="rotation-item" onclick="navDetail('court-legend-1')">
+      <div class="rotation-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+      <div class="rotation-name">Court Legend 1</div>
+    </div>
+    <div class="rotation-item" onclick="navDetail('velocity-x')">
+      <div class="rotation-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+      <div class="rotation-name">Velocity X</div>
+    </div>
+    <div class="rotation-item" onclick="navDetail('street-phoenix')">
+      <div class="rotation-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+      <div class="rotation-name">Street Phoenix</div>
+    </div>
+  </div>
+  
+  <div class="section-label">Latest</div>
+  <div class="latest-list">
+    <div class="latest-item" onclick="navDetail('apex-runner-3')">
+      <div class="latest-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+      <div class="latest-info">
+        <div class="latest-head">Vale drops 38 in overtime thriller</div>
+        <div class="latest-meta">Highlights · 2h ago</div>
+      </div>
+    </div>
+    <div class="latest-item">
+      <div class="latest-thumb"><img src="./assets/athlete-portrait.jpg" alt=""></div>
+      <div class="latest-info">
+        <div class="latest-head">Training camp diary: Week 3</div>
+        <div class="latest-meta">Behind the Scenes · 1d ago</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDERS SCREEN -->
+<div id="screen-orders" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>MY ORDERS</span><span></span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button onclick="closeProfile()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="orders-list">
+    <div class="order-card" onclick="openOrderDetail('HOA-48213','Oct 18, 2025')">
+      <div class="order-head">
+        <div class="order-num">Order #HOA-48213</div>
+        <div class="order-date">Oct 18, 2025</div>
+      </div>
+      <div class="order-items">
+        <div class="order-item-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+        <div class="order-item-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+      </div>
+      <div class="order-foot">
+        <div class="order-total">$605.00</div>
+        <div class="order-status delivered">Delivered</div>
+      </div>
+    </div>
+    
+    <div class="order-card" onclick="openOrderDetail('HOA-47892','Oct 12, 2025')">
+      <div class="order-head">
+        <div class="order-num">Order #HOA-47892</div>
+        <div class="order-date">Oct 12, 2025</div>
+      </div>
+      <div class="order-items">
+        <div class="order-item-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+      </div>
+      <div class="order-foot">
+        <div class="order-total">$245.00</div>
+        <div class="order-status transit">In Transit</div>
+      </div>
+    </div>
+    
+    <div class="order-card" onclick="openOrderDetail('HOA-47156','Oct 5, 2025')">
+      <div class="order-head">
+        <div class="order-num">Order #HOA-47156</div>
+        <div class="order-date">Oct 5, 2025</div>
+      </div>
+      <div class="order-items">
+        <div class="order-item-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+        <div class="order-item-thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div>
+      </div>
+      <div class="order-foot">
+        <div class="order-total">$373.00</div>
+        <div class="order-status processing">Processing</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL SCREEN -->
+<div id="screen-order-detail" class="screen" style="background:var(--bg)">
+  <div class="detail-subheader">
+    <button class="back-btn" onclick="openOrders()"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Orders</button>
+  </div>
+  
+  <div class="order-detail-header">
+    <div class="order-detail-num" id="order-detail-num">Order #HOA-48213</div>
+    <div class="order-detail-date" id="order-detail-date">Placed on Oct 18, 2025</div>
+  </div>
+  
+  <div class="tracking-section">
+    <div class="section-head">Tracking</div>
+    <div class="tracking-timeline">
+      <div class="tracking-item completed">
+        <div class="tracking-item-content">
+          <div class="tracking-title">Order Placed</div>
+          <div class="tracking-meta">Oct 18, 2025 at 2:34 PM</div>
+        </div>
+      </div>
+      <div class="tracking-item completed">
+        <div class="tracking-item-content">
+          <div class="tracking-title">Shipped</div>
+          <div class="tracking-meta">Oct 19, 2025 at 10:15 AM</div>
+        </div>
+      </div>
+      <div class="tracking-item completed">
+        <div class="tracking-item-content">
+          <div class="tracking-title">Out for Delivery</div>
+          <div class="tracking-meta">Oct 21, 2025 at 8:00 AM</div>
+        </div>
+      </div>
+      <div class="tracking-item current">
+        <div class="tracking-item-content">
+          <div class="tracking-title">Delivered</div>
+          <div class="tracking-meta">Expected by Oct 22, 2025</div>
+        </div>
+      </div>
+      <div class="tracking-item future">
+        <div class="tracking-item-content">
+          <div class="tracking-title">Return Window Closes</div>
+          <div class="tracking-meta">Nov 21, 2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="checkout-section">
+    <div class="section-title">Items</div>
+    <div id="order-detail-items">
+      <div class="order-summary-item">
+        <div class="order-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+        <div class="order-item-info">
+          <div class="order-item-name">Apex Runner 3 "Midnight"</div>
+          <div class="order-item-meta">Size 10.5 x 1</div>
+        </div>
+        <div class="order-item-price">$285</div>
+      </div>
+      <div class="order-summary-item">
+        <div class="order-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+        <div class="order-item-info">
+          <div class="order-item-name">Court Legend 1 "Sunset"</div>
+          <div class="order-item-meta">Size 9 x 1</div>
+        </div>
+        <div class="order-item-price">$320</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="help-section">
+    <div class="help-title">Need help with this order?</div>
+    <div class="help-text">Contact our support team for returns, exchanges, or any issues.</div>
+    <div class="help-actions">
+      <button onclick="showToast('Support coming soon')">Contact Support</button>
+      <button onclick="showToast('Return request coming soon')">Start Return</button>
+    </div>
+  </div>
+</div>
+
+<!-- BROWSE SCREEN -->
+<div id="screen-browse" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>BROWSE</span><span></span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button onclick="closeBrowse()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="browse-header">
+    <h2 class="browse-title">Browse by Category</h2>
+    <div class="category-row">
+      <button class="category-chip active" onclick="selectCategory(this,'all')">All</button>
+      <button class="category-chip" onclick="selectCategory(this,'basketball')">Basketball</button>
+      <button class="category-chip" onclick="selectCategory(this,'running')">Running</button>
+      <button class="category-chip" onclick="selectCategory(this,'lifestyle')">Lifestyle</button>
+      <button class="category-chip" onclick="selectCategory(this,'hyrox')">HYROX</button>
+    </div>
+  </div>
+  
+  <div class="section-label">Brands</div>
+  <div class="brand-grid">
+    <div class="brand-tile" onclick="selectBrand('apex')">
+      <div class="brand-name">Apex</div>
+      <div class="brand-count">12 Models</div>
+    </div>
+    <div class="brand-tile" onclick="selectBrand('court')">
+      <div class="brand-name">Court Co.</div>
+      <div class="brand-count">8 Models</div>
+    </div>
+    <div class="brand-tile" onclick="selectBrand('velocity')">
+      <div class="brand-name">Velocity</div>
+      <div class="brand-count">6 Models</div>
+    </div>
+    <div class="brand-tile" onclick="selectBrand('trail')">
+      <div class="brand-name">Trail Co.</div>
+      <div class="brand-count">5 Models</div>
+    </div>
+    <div class="brand-tile" onclick="selectBrand('street')">
+      <div class="brand-name">Street</div>
+      <div class="brand-count">10 Models</div>
+    </div>
+    <div class="brand-tile" onclick="selectBrand('owl')">
+      <div class="brand-name">Night Owl</div>
+      <div class="brand-count">7 Models</div>
+    </div>
+  </div>
+  
+  <div class="section-label">Apex Results</div>
+  <div class="brand-results active" id="brand-apex">
+    <div class="brand-result-item" onclick="navDetail('apex-runner-3')">
+      <div class="result-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+      <div class="result-info">
+        <div class="result-name">Runner 3 "Midnight"</div>
+        <div class="result-sub">Basketball · Signature</div>
+      </div>
+      <div>
+        <div class="result-price">$285</div>
+        <div class="result-trend up">+23%</div>
+      </div>
+    </div>
+    <div class="brand-result-item">
+      <div class="result-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+      <div class="result-info">
+        <div class="result-name">Runner 2 "Elite"</div>
+        <div class="result-sub">Running · Performance</div>
+      </div>
+      <div>
+        <div class="result-price">$220</div>
+        <div class="result-trend up">+12%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS SCREEN -->
+<div id="screen-notifs" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>NOTIFICATIONS</span><span></span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+      <div class="masthead-right">
+        <button onclick="closeNotifs()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair)">Today</div>
+  <div class="notif-item" onclick="navDetail('apex-runner-3')">
+    <div class="n-icon price"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+    <div class="notif-body"><div class="notif-text">Apex Runner 3 dropped 8% — now $228</div><div class="notif-time">2h ago</div></div>
+    <div class="notif-dot"></div>
+  </div>
+  <div class="notif-item" onclick="navDetail('court-legend-1')">
+    <div class="n-icon restock"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+    <div class="notif-body"><div class="notif-text">Court Legend 1 restocked at FootLocker</div><div class="notif-time">5h ago</div></div>
+    <div class="notif-dot"></div>
+  </div>
+  <div class="notif-item">
+    <div class="n-icon athlete"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div class="notif-body"><div class="notif-text">Marcus Vale drops 38 points in overtime win</div><div class="notif-time">8h ago</div></div>
+    <div class="notif-dot"></div>
+  </div>
+  <div style="padding:var(--space-4) var(--space-5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);border-bottom:1px solid var(--hair);border-top:1px solid var(--hair)">This Week</div>
+  <div class="notif-item">
+    <div class="n-icon price"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+    <div class="notif-body"><div class="notif-text">Street Phoenix up 15% after buzzer-beater</div><div class="notif-time">1d ago</div></div>
+  </div>
+  <div class="notif-item">
+    <div class="n-icon restock"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+    <div class="notif-body"><div class="notif-text">Velocity X restocked · Competition colorway</div><div class="notif-time">2d ago</div></div>
+  </div>
+  <div style="height:60px"></div>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="bottom-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Where to Buy</div>
+  <div class="retailer-row">
+    <div><div class="retailer-name">StockX</div><div class="retailer-sub">Ships in 2-3 days</div></div>
+    <div class="retailer-right"><div class="retailer-price">$248</div><div class="retailer-badge">Verified</div></div>
+  </div>
+  <div class="retailer-row">
+    <div><div class="retailer-name">GOAT</div><div class="retailer-sub">Instant ship available</div></div>
+    <div class="retailer-right"><div class="retailer-price">$255</div><div class="retailer-badge">Verified</div></div>
+  </div>
+  <div class="retailer-row">
+    <div><div class="retailer-name">eBay</div><div class="retailer-sub">Authenticity Guarantee</div></div>
+    <div class="retailer-right"><div class="retailer-price">$249</div><div class="retailer-badge">Top Rated</div></div>
+  </div>
+  <div class="retailer-row">
+    <div><div class="retailer-name">FootLocker</div><div class="retailer-sub">In-store pickup</div></div>
+    <div class="retailer-right"><div class="retailer-price">$180</div><div class="retailer-badge">Retail</div></div>
+  </div>
+  <div class="retailer-row">
+    <div><div class="retailer-name">Finish Line</div><div class="retailer-sub">Free shipping</div></div>
+    <div class="retailer-right"><div class="retailer-price">$180</div><div class="retailer-badge">Retail</div></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Added to Watchlist</div>
+
+<!-- BOTTOM TAB BAR -->
+<div class="tab-bar">
+  <div class="tab-item active" data-tab="feed" onclick="switchTab('feed')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span class="tab-label">Feed</span>
+  </div>
+  <div class="tab-item" data-tab="drops" onclick="switchTab('drops')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    <span class="tab-label">Drops</span>
+  </div>
+  <div class="tab-item" data-tab="market" onclick="switchTab('market')">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span class="tab-label">Market</span>
+  </div>
+  <div class="tab-item" data-tab="athletes" onclick="switchTab('athletes')">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="tab-label">Athletes</span>
+  </div>
+  <div class="tab-item" data-tab="watchlist" onclick="switchTab('watchlist')">
+    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    <span class="tab-label">Watchlist</span>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+// === SHOE DATASET ===
+const SHOE_DATA={
+  'apex-runner-3':{brand:'Apex',model:'Runner 3',colorway:'Midnight',sku:'APX-RN3-MID',release:'Oct 12, 2025',retail:180,market:248,bid:232,ask:248,estCost:74,markupPct:38,marginPct:59,category:'Basketball',weight:'340g',drop:'10mm',image:'./assets/hero-basketball.jpg',trend:'+23%',parts:[{part:'Upper',material:'Recycled knit',site:'Vietnam · Factory 07'},{part:'Midsole',material:'EVA foam',site:'China · Factory 12'},{part:'Outsole',material:'Rubber',site:'Indonesia · Factory 03'},{part:'Laces',material:'Recycled polyester',site:'Vietnam · Factory 09'},{part:'Insole',material:'Foam',site:'Taiwan · Factory 21'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 07'}]},
+  'court-legend-1':{brand:'Court Co.',model:'Legend 1',colorway:'Sunset',sku:'CRT-LG1-SUN',release:'Sep 28, 2025',retail:200,market:320,bid:305,ask:320,estCost:82,markupPct:60,marginPct:59,category:'Running',weight:'285g',drop:'8mm',image:'./assets/runner-supershoe.jpg',trend:'+41%',parts:[{part:'Upper',material:'Engineered mesh',site:'Portugal · Factory 04'},{part:'Midsole',material:'PEBA foam',site:'Germany · Factory 02'},{part:'Outsole',material:'Carbon rubber',site:'Vietnam · Factory 11'},{part:'Laces',material:'Nylon',site:'Portugal · Factory 04'},{part:'Insole',material:'OrthoLite',site:'Italy · Factory 08'},{part:'Final assembly',material:'—',site:'Portugal · Factory 04'}]},
+  'velocity-x':{brand:'Velocity',model:'X',colorway:'Competition',sku:'VLC-X-COMP',release:'Aug 15, 2025',retail:165,market:245,bid:230,ask:245,estCost:68,markupPct:48,marginPct:59,category:'Running',weight:'220g',drop:'6mm',image:'./assets/court-lowtop.jpg',trend:'+18%',parts:[{part:'Upper',material:'VaporWeave',site:'Japan · Factory 01'},{part:'Midsole',material:'ZoomX foam',site:'China · Factory 15'},{part:'Outsole',material:'Blown rubber',site:'Vietnam · Factory 06'},{part:'Laces',material:'Recycled nylon',site:'Japan · Factory 01'},{part:'Insole',material:'EVA',site:'Taiwan · Factory 19'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 06'}]},
+  'trail-blazer-2':{brand:'Trail Co.',model:'Blazer 2',colorway:'Arctic',sku:'TRL-BL2-ARC',release:'Jul 22, 2025',retail:150,market:175,bid:165,ask:175,estCost:62,markupPct:17,marginPct:59,category:'HYROX',weight:'310g',drop:'8mm',image:'./assets/hyrox-trainer.jpg',trend:'-12%',parts:[{part:'Upper',material:'Ripstop nylon',site:'Indonesia · Factory 05'},{part:'Midsole',material:'Dual-density EVA',site:'Thailand · Factory 08'},{part:'Outsole',material:'Vibram rubber',site:'Italy · Factory 03'},{part:'Laces',material:'Kevlar blend',site:'Indonesia · Factory 05'},{part:'Insole',material:'Memory foam',site:'China · Factory 14'},{part:'Final assembly',material:'—',site:'Indonesia · Factory 05'}]},
+  'night-owl-5':{brand:'Night Owl',model:'5',colorway:'Nebula',sku:'NTE-OWL5-NBL',release:'Jun 10, 2025',retail:140,market:162,bid:155,ask:162,estCost:58,markupPct:16,marginPct:59,category:'Lifestyle',weight:'365g',drop:'12mm',image:'./assets/hero-basketball.jpg',trend:'-5%',parts:[{part:'Upper',material:'Suede + mesh',site:'China · Factory 09'},{part:'Midsole',material:'Phylon',site:'Vietnam · Factory 14'},{part:'Outsole',material:'Solid rubber',site:'China · Factory 09'},{part:'Laces',material:'Cotton blend',site:'China · Factory 09'},{part:'Insole',material:'EVA',site:'Vietnam · Factory 14'},{part:'Final assembly',material:'—',site:'China · Factory 09'}]},
+  'street-phoenix':{brand:'Street Phoenix',model:'Royal',colorway:'Royal',sku:'ST-PHX-RYL',release:'May 5, 2025',retail:130,market:198,bid:185,ask:198,estCost:54,markupPct:52,marginPct:58,category:'Lifestyle',weight:'380g',drop:'10mm',image:'./assets/retro-street.jpg',trend:'+15%',parts:[{part:'Upper',material:'Leather + synthetic',site:'South Korea · Factory 02'},{part:'Midsole',material:'EVA + Air unit',site:'China · Factory 18'},{part:'Outsole',material:'Gum rubber',site:'Vietnam · Factory 10'},{part:'Laces',material:'Waxed cotton',site:'South Korea · Factory 02'},{part:'Insole',material:'Poron',site:'Japan · Factory 05'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 10'}]},
+  'cloud-walker-2':{brand:'Cloud Walker',model:'2',colorway:'Pearl',sku:'CLD-WLK2-PRL',release:'Apr 18, 2025',retail:120,market:145,bid:138,ask:145,estCost:50,markupPct:21,marginPct:58,category:'Lifestyle',weight:'295g',drop:'10mm',image:'./assets/court-lowtop.jpg',trend:'+7%',parts:[{part:'Upper',material:'Knit mesh',site:'Vietnam · Factory 15'},{part:'Midsole',material:'Cloudfoam EVA',site:'China · Factory 22'},{part:'Outsole',material:'Blown rubber',site:'Vietnam · Factory 15'},{part:'Laces',material:'Recycled polyester',site:'Vietnam · Factory 15'},{part:'Insole',material:'Comfort foam',site:'Taiwan · Factory 08'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 15'}]},
+  'apex-trail-1':{brand:'Apex',model:'Trail 1',colorway:'Forest',sku:'APX-TRL1-FST',release:'Mar 30, 2025',retail:160,market:185,bid:175,ask:185,estCost:66,markupPct:16,marginPct:59,category:'Running',weight:'305g',drop:'8mm',image:'./assets/hero-basketball.jpg',trend:'+5%',parts:[{part:'Upper',material:'Gore-Tex knit',site:'Vietnam · Factory 03'},{part:'Midsole',material:'Trail EVA',site:'China · Factory 08'},{part:'Outsole',material:'Vibram Megagrip',site:'Italy · Factory 01'},{part:'Laces',material:'Quick-lace system',site:'Vietnam · Factory 03'},{part:'Insole',material:'Rock plate',site:'Germany · Factory 05'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 03'}]},
+  'court-pace-3':{brand:'Court Co.',model:'Pace 3',colorway:'Thunder',sku:'CRT-PCE3-THN',release:'Feb 14, 2025',retail:175,market:210,bid:198,ask:210,estCost:72,markupPct:20,marginPct:59,category:'Basketball',weight:'355g',drop:'10mm',image:'./assets/runner-supershoe.jpg',trend:'+12%',parts:[{part:'Upper',material:'Flyknit',site:'Portugal · Factory 07'},{part:'Midsole',material:'React foam',site:'China · Factory 11'},{part:'Outsole',material:'Traction rubber',site:'Vietnam · Factory 08'},{part:'Laces',material:'Flat laces',site:'Portugal · Factory 07'},{part:'Insole',material:'Zoom Air',site:'Taiwan · Factory 12'},{part:'Final assembly',material:'—',site:'Portugal · Factory 07'}]},
+  'velocity-ultra':{brand:'Velocity',model:'Ultra',colorway:'Volt',sku:'VLC-ULR-VLT',release:'Jan 20, 2025',retail:195,market:265,bid:250,ask:265,estCost:78,markupPct:36,marginPct:60,category:'Running',weight:'205g',drop:'4mm',image:'./assets/court-lowtop.jpg',trend:'+22%',parts:[{part:'Upper',material:'AtomKnit',site:'Japan · Factory 03'},{part:'Midsole',material:'Carbon plate + foam',site:'Germany · Factory 04'},{part:'Outsole',material:'Grip rubber',site:'Vietnam · Factory 12'},{part:'Laces',material:'Elastic laces',site:'Japan · Factory 03'},{part:'Insole',material:'PEBA insert',site:'Taiwan · Factory 15'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 12'}]}
+};
+
+// Tab switching with skeleton
+function switchTab(tab){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab-item[data-tab="'+tab+'"]').classList.add('active');
+  const screen=document.getElementById('screen-'+tab);
+  if(screen){
+    // Remove flow-mode when switching to app screens
+    document.querySelector('.app').classList.remove('flow-mode');
+    // Show skeleton briefly for feed
+    if(tab==='feed'){
+      const skel=document.getElementById('feed-skeleton');
+      if(skel){skel.style.display='block';setTimeout(()=>{skel.style.display='none'},250);}
+    }
+    screen.classList.add('active');
+    screen.scrollTop=0;
+  }
+}
+
+// Navigate to detail - DATA DRIVEN from SHOE_DATA
+let currentShoeKey=null;
+function navDetail(shoeKey,title,colorway){
+  // Support legacy call signature: navDetail('Apex Runner 3','Midnight')
+  if(typeof shoeKey==='string'&&!shoeKey.includes('-')&&SHOE_DATA[shoeKey.toLowerCase().replace(/\s+/g,'-')]){
+    shoeKey=shoeKey.toLowerCase().replace(/\s+/g,'-');
+  }else if(typeof shoeKey==='string'&&title&&!SHOE_DATA[shoeKey]){
+    // Legacy: title+colorway - find matching shoe
+    const found=Object.entries(SHOE_DATA).find(([k,v])=>v.brand+' '+v.model===shoeKey||(v.model===shoeKey));
+    if(found)shoeKey=found[0];
+    else shoeKey='apex-runner-3'; // default
+  }
+  
+  const shoe=SHOE_DATA[shoeKey]||SHOE_DATA['apex-runner-3'];
+  currentShoeKey=shoeKey;
+  
+  // Hero section
+  document.getElementById('detail-title').textContent=shoe.model+' "'+shoe.colorway+'"';
+  document.getElementById('detail-kicker').textContent=shoe.brand.toUpperCase();
+  document.getElementById('detail-img').src=shoe.image;
+  
+  // Bid/Ask
+  const bidaskRow=document.querySelector('.bidask-row');
+  if(bidaskRow){
+    bidaskRow.innerHTML='<div class="bidask-box"><div class="lbl">Highest Bid</div><div class="val">$'+shoe.bid+'</div></div><div class="bidask-box ask"><div class="lbl">Lowest Ask</div><div class="val">$'+shoe.ask+'</div></div>';
+  }
+  
+  // Breakdown section
+  document.getElementById('detail-manufacturer').textContent=shoe.brand+' Athletic';
+  document.getElementById('detail-origin').textContent=shoe.parts[0].site;
+  const materials=[...new Set(shoe.parts.map(p=>p.material))].join(' · ');
+  document.getElementById('detail-materials').textContent=materials;
+  document.getElementById('detail-retail').textContent='$'+shoe.retail;
+  const costPct=Math.round((shoe.estCost/shoe.retail)*100);
+  document.getElementById('detail-estcost').innerHTML='~$'+shoe.estCost+' <span style="font-size:11px;color:var(--ink-3);font-weight:400">('+costPct+'%)</span>';
+  document.getElementById('detail-market').textContent='$'+shoe.market;
+  document.getElementById('detail-markup').textContent='+'+shoe.markupPct+'%';
+  document.getElementById('detail-margin').textContent=shoe.marginPct+'%';
+  
+  // Update stacked bar widths
+  const barFill=document.querySelector('.cost-bar-fill')||(document.querySelector('.mfg-section')?.previousElementSibling?.querySelector('div[style*="height:8px"]'));
+  if(barFill&&barFill.querySelector){
+    const costSeg=barFill.children[0];const marginSeg=barFill.children[1];
+    if(costSeg)costSeg.style.width=costPct+'%';
+    if(marginSeg)marginSeg.style.width=(100-costPct)+'%';
+  }
+  
+  // SPECS section
+  document.getElementById('detail-specs-category').textContent=shoe.category;
+  document.getElementById('detail-specs-weight').textContent=shoe.weight;
+  document.getElementById('detail-specs-drop').textContent=shoe.drop;
+  
+  // MANUFACTURING section - build rows dynamically
+  const mfgRows=document.getElementById('detail-mfg-rows');
+  if(mfgRows){
+    mfgRows.innerHTML=shoe.parts.map(p=>'<div class="mfg-row"><span class="mfg-label">'+p.part+' · '+p.material+'</span><span class="mfg-value mfg-site">'+p.site+'</span></div>').join('');
+  }
+  // Count unique countries
+  const countries=[...new Set(shoe.parts.map(p=>p.site.split('·')[0].trim()))];
+  document.getElementById('detail-mfg-summary').textContent=shoe.parts.length+' parts · '+countries.length+' countr'+(countries.length===1?'y':'ies');
+  
+  // Size grid - generate prices based on retail
+  const sizeGrid=document.querySelector('.size-grid');
+  if(sizeGrid){
+    const sizes=['US 8','US 8.5','US 9','US 9.5','US 10','US 10.5','US 11','US 11.5','US 12'];
+    const basePrice=shoe.market;
+    const variations=[-8,-5,-10,+4,+0,+7,+12,+20,+27];
+    sizeGrid.innerHTML=sizes.map((s,i)=>'<div class="size-cell" onclick="selectSize(this)"><div class="sz">'+s+'</div><div class="pr">$'+(basePrice+variations[i])+'</div></div>').join('');
+  }
+  
+  // Update price display
+  document.getElementById('detail-price-display').textContent='$'+shoe.ask;
+  
+  // Navigate
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-detail').classList.add('active');
+  document.getElementById('screen-detail').scrollTop=0;
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+
+// Navigate back to feed
+function navFeed(){
+  document.querySelector('.app').classList.remove('flow-mode');
+  switchTab('feed');
+}
+
+// Chart segmented control
+function setChart(btn,range){
+  btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // In a real app, this would update the SVG path
+}
+
+// Size selection with Add to Cart enable
+let selectedSize=null;
+let selectedShoe=null;
+function selectSize(cell){
+  document.querySelectorAll('.size-cell').forEach(c=>c.classList.remove('selected'));
+  cell.classList.add('selected');
+  selectedSize=cell.querySelector('.sz').textContent;
+  const btn=document.getElementById('detail-add-to-cart-btn');
+  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer'}
+}
+
+// Bookmark toggle with toast
+function toggleBookmark(btn){
+  const isOn=btn.classList.contains('active');
+  btn.classList.toggle('active');
+  showToast(isOn?'Removed from Watchlist':'Added to Watchlist');
+}
+
+// Follow button toggle
+function toggleFollow(btn){
+  btn.classList.toggle('following');
+  btn.textContent=btn.classList.contains('following')?'Following':'Follow';
+}
+
+// Bottom sheet
+function openSheet(){document.getElementById('bottom-sheet').classList.add('open');document.getElementById('backdrop').classList.add('open')}
+function closeSheet(){document.getElementById('bottom-sheet').classList.remove('open');document.getElementById('backdrop').classList.remove('open')}
+
+
+
+// Toast
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// Feed filter chips
+function setFeedFilter(btn,filter){
+  btn.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Market filter
+function setMktFilter(btn,filter){
+  btn.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// === CART STATE ===
+let cartState={items:[],count:0};
+const shoePrices={'Apex Runner 3':285,'Court Legend 1':320,'Velocity X':245,'Street Phoenix':198,'Trail Blazer 2':175,'Cloud Walker 2':145,'Apex Trail 1':185,'Court Pace 3':210,'Velocity Ultra':265};
+const shoeImages={'Apex Runner 3':'./assets/hero-basketball.jpg','Court Legend 1':'./assets/runner-supershoe.jpg','Velocity X':'./assets/court-lowtop.jpg','Street Phoenix':'./assets/retro-street.jpg','Trail Blazer 2':'./assets/hyrox-trainer.jpg','Cloud Walker 2':'./assets/court-lowtop.jpg','Apex Trail 1':'./assets/hero-basketball.jpg','Court Pace 3':'./assets/runner-supershoe.jpg','Velocity Ultra':'./assets/court-lowtop.jpg'};
+
+function addToCartFromDetail(){
+  if(!selectedSize)return;
+  const titleEl=document.getElementById('detail-title');
+  const kickerEl=document.getElementById('detail-kicker');
+  if(!titleEl||!kickerEl)return;
+  const shoeName=kickerEl.textContent+' '+titleEl.textContent;
+  const baseName=kickerEl.textContent;
+  const price=shoePrices[baseName]||250;
+  const img=shoeImages[baseName]||'./assets/hero-basketball.jpg';
+  
+  const existing=cartState.items.find(i=>i.name===shoeName&&i.size===selectedSize);
+  if(existing){existing.qty++}else{cartState.items.push({name:shoeName,size:selectedSize,price:price,qty:1,image:img})}
+  cartState.count=cartState.items.reduce((sum,i)=>sum+i.qty,0);
+  updateCartBadge();
+  showToast('Added to cart');
+  selectedSize=null;
+  const btn=document.getElementById('detail-add-to-cart-btn');
+  if(btn){btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed'}
+  document.querySelectorAll('.size-cell').forEach(c=>c.classList.remove('selected'));
+}
+
+function updateCartBadge(){
+  const badge=document.getElementById('cart-badge');
+  const countHeader=document.getElementById('cart-count-header');
+  if(badge){
+    badge.textContent=cartState.count;
+    badge.style.display=cartState.count>0?'block':'none';
+  }
+  if(countHeader){countHeader.textContent=cartState.count+' item'+(cartState.count!==1?'s':'')}
+}
+
+function renderCart(){
+  const container=document.getElementById('cart-items-container');
+  const emptyState=document.getElementById('cart-empty-state');
+  const summary=document.getElementById('cart-summary');
+  if(!container)return;
+  
+  if(cartState.items.length===0){
+    container.innerHTML='';
+    if(emptyState)emptyState.style.display='flex';
+    if(summary)summary.style.display='none';
+    return;
+  }
+  
+  if(emptyState)emptyState.style.display='none';
+  if(summary)summary.style.display='block';
+  
+  container.innerHTML=cartState.items.map((item,idx)=>`
+    <div class="cart-item">
+      <div class="cart-thumb"><img src="${item.image}" alt="${item.name}"></div>
+      <div class="cart-info">
+        <div class="cart-name">${item.name}</div>
+        <div class="cart-meta">Size: ${item.size}</div>
+        <div class="cart-price">$${item.price}</div>
+        <div class="cart-qty">
+          <button class="qty-btn" onclick="updateCartQty(${idx},-1)">-</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="updateCartQty(${idx},1)">+</button>
+          <button class="cart-remove" onclick="removeFromCart(${idx})">Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  
+  const subtotal=cartState.items.reduce((sum,i)=>sum+(i.price*i.qty),0);
+  const shipping=0;
+  const tax=Math.round(subtotal*0.08);
+  const total=subtotal+shipping+tax;
+  
+  document.getElementById('cart-subtotal').textContent='$'+subtotal.toFixed(2);
+  document.getElementById('cart-shipping').textContent=shipping===0?'Free':'$'+shipping.toFixed(2);
+  document.getElementById('cart-tax').textContent='$'+tax.toFixed(2);
+  document.getElementById('cart-total').textContent='$'+total.toFixed(2);
+}
+
+function updateCartQty(idx,delta){
+  const item=cartState.items[idx];
+  if(!item)return;
+  item.qty+=delta;
+  if(item.qty<=0){cartState.items.splice(idx,1)}
+  cartState.count=cartState.items.reduce((sum,i)=>sum+i.qty,0);
+  updateCartBadge();
+  renderCart();
+}
+
+function removeFromCart(idx){
+  cartState.items.splice(idx,1);
+  cartState.count=cartState.items.reduce((sum,i)=>sum+i.qty,0);
+  updateCartBadge();
+  renderCart();
+}
+
+function navCart(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.onboarding-screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.confirmation-screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-cart').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+  renderCart();
+}
+
+// === CHECKOUT ===
+let selectedDelivery='standard';
+let selectedPayment='card';
+
+function selectDelivery(el,method){
+  document.querySelectorAll('.delivery-option').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDelivery=method;
+}
+
+function selectPayment(el,method){
+  document.querySelectorAll('.payment-option').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPayment=method;
+}
+
+function navCheckout(){
+  if(cartState.items.length===0){showToast('Cart is empty');return}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-checkout').classList.add('active');
+  document.querySelector('.app').classList.add('flow-mode');
+  
+  // Render checkout items
+  const container=document.getElementById('checkout-items-container');
+  if(container){
+    container.innerHTML=cartState.items.map(item=>`
+      <div class="order-summary-item">
+        <div class="order-thumb"><img src="${item.image}" alt="${item.name}"></div>
+        <div class="order-item-info">
+          <div class="order-item-name">${item.name}</div>
+          <div class="order-item-meta">Size ${item.size} x ${item.qty}</div>
+        </div>
+        <div class="order-item-price">$${item.price*item.qty}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Calculate total
+  const subtotal=cartState.items.reduce((sum,i)=>sum+(i.price*i.qty),0);
+  const shipping=selectedDelivery==='express'?15:0;
+  const tax=Math.round(subtotal*0.08);
+  const total=subtotal+shipping+tax;
+  document.getElementById('checkout-total').textContent='$'+total.toFixed(2);
+}
+
+function placeOrder(){
+  const orderNum='HOA-'+Math.floor(10000+Math.random()*90000);
+  document.getElementById('confirm-order-num').textContent='Order #'+orderNum;
+  
+  // Render confirmation items
+  const container=document.getElementById('confirm-items-container');
+  if(container){
+    container.innerHTML=cartState.items.map(item=>`
+      <div class="confirm-item-row">
+        <div class="confirm-item-thumb"><img src="${item.image}" alt="${item.name}"></div>
+        <div class="confirm-item-details">
+          <div class="confirm-item-name">${item.name}</div>
+          <div class="confirm-item-meta">Size ${item.size} x ${item.qty}</div>
+        </div>
+        <div class="confirm-item-price">$${item.price*item.qty}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Clear cart
+  cartState={items:[],count:0};
+  updateCartBadge();
+  
+  // Show confirmation (keep flow-mode on)
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-confirmation').classList.add('active');
+}
+
+// === AUTH FLOW ===
+let isLoggedIn=false;
+let currentUser=null;
+
+function navLogin(){
+  document.getElementById('screen-signup').style.display='none';
+  document.getElementById('screen-login').style.display='flex';
+}
+
+function navSignup(){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-signup').style.display='flex';
+}
+
+function handleLogin(){
+  isLoggedIn=true;
+  currentUser={name:'Guest User',handle:'@guest',avatar:'./assets/athlete-portrait.jpg'};
+  document.getElementById('screen-login').style.display='none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-onboarding').classList.add('active');
+  updateOnboardingDots(1);
+}
+
+function handleSignup(){
+  const name=document.getElementById('signup-name').value;
+  const email=document.getElementById('signup-email').value;
+  const termsChecked=document.getElementById('terms-check').classList.contains('checked');
+  
+  if(!termsChecked){showToast('Please accept the terms');return}
+  
+  isLoggedIn=true;
+  currentUser={name:name||'User',handle:'@'+(name||'user').toLowerCase().replace(' ',''),avatar:'./assets/athlete-portrait.jpg'};
+  document.getElementById('screen-signup').style.display='none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-onboarding').classList.add('active');
+  updateOnboardingDots(1);
+}
+
+function navGuest(){
+  isLoggedIn=false;
+  currentUser={name:'Guest User',handle:'@guest',avatar:null};
+  document.getElementById('screen-login').style.display='none';
+  document.querySelector('.app').classList.remove('flow-mode');
+  switchTab('feed');
+}
+
+function handleSignOut(){
+  isLoggedIn=false;
+  currentUser=null;
+  closeProfile();
+  document.getElementById('screen-login').style.display='flex';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.app').classList.add('flow-mode');
+}
+
+// === ONBOARDING ===
+let onboardingStep=1;
+
+function updateOnboardingDots(step){
+  for(let i=1;i<=3;i++){
+    const dot=document.getElementById('onboarding-dot-'+i);
+    if(dot){dot.classList.toggle('active',i===step)}
+  }
+}
+
+function nextOnboardingStep(step){
+  if(step===2){
+    document.getElementById('onboarding-step-1').style.display='none';
+    document.getElementById('onboarding-step-2').style.display='block';
+    updateOnboardingDots(2);
+  }else if(step===3){
+    document.getElementById('onboarding-step-2').style.display='none';
+    document.getElementById('onboarding-step-3').style.display='block';
+    updateOnboardingDots(3);
+  }
+}
+
+function prevOnboardingStep(step){
+  if(step===1){
+    document.getElementById('onboarding-step-2').style.display='none';
+    document.getElementById('onboarding-step-1').style.display='block';
+    updateOnboardingDots(1);
+  }
+  onboardingStep=step;
+}
+
+function selectPersona(card){
+  document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+function enterApp(){
+  document.getElementById('screen-onboarding').classList.remove('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+  updateProfileUI();
+  switchTab('feed');
+}
+
+// === PROFILE ===
+function openProfile(){
+  updateProfileUI();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-profile').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+
+function closeProfile(){
+  switchTab('feed');
+}
+
+function updateProfileUI(){
+  if(currentUser){
+    document.getElementById('profile-name').textContent=currentUser.name;
+    document.getElementById('profile-handle').textContent=currentUser.handle;
+    if(currentUser.avatar){
+      document.getElementById('profile-avatar').innerHTML='<img src="'+currentUser.avatar+'" alt="Profile">';
+    }else{
+      document.getElementById('profile-avatar').innerHTML='<span class="initials">'+currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase()+'</span>';
+    }
+  }
+}
+
+// === NAVIGATION HELPERS ===
+function openSearch(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-search').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+  setTimeout(()=>{document.getElementById('search-input').focus()},100)
+}
+function closeSearch(){switchTab('feed')}
+function filterSearch(){/* placeholder */}
+function openNotifs(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-notifs').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+function closeNotifs(){switchTab('feed')}
+
+// === NEW SCREENS NAVIGATION ===
+function openAthlete(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-athlete').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+
+function openOrders(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-orders').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+
+function openOrderDetail(orderNum,date){
+  document.getElementById('order-detail-num').textContent='Order #'+orderNum;
+  document.getElementById('order-detail-date').textContent='Placed on '+date;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-order-detail').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+
+function openBrowse(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-browse').classList.add('active');
+  document.querySelector('.app').classList.remove('flow-mode');
+}
+
+function closeBrowse(){switchTab('feed')}
+
+function selectCategory(el,cat){
+  document.querySelectorAll('.category-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  // In a real app, this would filter brands
+}
+
+function selectBrand(brand){
+  document.querySelectorAll('.brand-results').forEach(r=>r.classList.remove('active'));
+  const results=document.getElementById('brand-'+brand);
+  if(results){results.classList.add('active');results.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+
+// === APPEARANCE TOGGLE ===
+let isLightTheme=false;
+function toggleAppearance(){
+  isLightTheme=!isLightTheme;
+  const app=document.querySelector('.app');
+  const valEl=document.getElementById('appearance-value');
+  if(isLightTheme){
+    app.classList.add('light');
+    if(valEl)valEl.textContent='Light';
+  }else{
+    app.classList.remove('light');
+    if(valEl)valEl.textContent='Dark';
+  }
+}
+
+// === CALENDAR ===
+let currentMonth='October 2025';
+function prevMonth(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const idx=months.indexOf(currentMonth.split(' ')[0]);
+  const prevIdx=(idx-1+12)%12;
+  currentMonth=months[prevIdx]+' 2025';
+  document.getElementById('calendar-month').textContent=currentMonth;
+}
+function nextMonth(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const idx=months.indexOf(currentMonth.split(' ')[0]);
+  const nextIdx=(idx+1)%12;
+  currentMonth=months[nextIdx]+' 2025';
+  document.getElementById('calendar-month').textContent=currentMonth;
+}
+function selectDay(el){
+  document.querySelectorAll('.calendar-day').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// Init - Start on Login screen
+document.addEventListener('DOMContentLoaded',()=>{
+  // Clear all active screens so login is visible
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.onboarding-screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.confirmation-screen').forEach(s=>s.classList.remove('active'));
+  // Show login, enable flow mode (hides tab bar)
+  document.getElementById('screen-login').style.display='flex';
+  document.querySelector('.app').classList.add('flow-mode');
+});
+</script>
+</body>
+</html>

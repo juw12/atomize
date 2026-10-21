@@ -1,0 +1,3853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4338CA">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Orbis">
+  <link rel="apple-touch-icon" href="icons/orbit.svg">
+  <title>Orbis — Mobile</title>
+  <style>
+    :root {
+      --bg: #F7F8FB; --surface: #FFFFFF; --surface-2: #F1F3F9;
+      --ink: #101828; --muted: #667085; --line: #E4E7EC;
+      --brand: #4338CA; --brand-600: #4F46E5; --brand-50: #EEF0FF;
+      --accent: #0D9488; --accent-50: #E6FFFA;
+      --warm: #F59E0B; --danger: #DC2626; --ok: #059669;
+      --radius: 16px; --radius-sm: 10px; --pill: 999px;
+      --shadow-sm: 0 1px 2px rgba(16,24,40,.06);
+      --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -10px rgba(16,24,40,.18);
+      --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      --mono: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    }
+    [data-theme="dark"] {
+      --bg: #0F141F; --surface: #1A1F2E; --surface-2: #252B3D;
+      --ink: #F0F4F8; --muted: #94A3B8; --line: #2D3748;
+      --brand-50: #1E1B4B; --accent-50: #134E48;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    button { cursor: pointer; font-family: inherit; }
+    input, textarea, select { font-family: inherit; }
+    a { color: var(--brand-600); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); border: 0;
+    }
+    :focus-visible {
+      outline: 2px solid var(--brand-600);
+      outline-offset: 2px;
+    }
+
+    /* App Shell */
+    .app { display: flex; height: 100vh; }
+    .sidebar {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-header {
+      padding: 20px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-link { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+    .logo-link:hover { text-decoration: none; }
+    .logo-orbit {
+      width: 32px; height: 32px;
+      border: 3px solid var(--brand);
+      border-radius: 50%;
+      position: relative;
+    }
+    .logo-orbit::before {
+      content: '';
+      position: absolute;
+      width: 8px; height: 8px;
+      background: var(--brand-600);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .logo-wordmark { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .nav { flex: 1; overflow-y: auto; padding: 12px 8px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 4px;
+    }
+    .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+    .nav-item.active { background: var(--brand-50); color: var(--brand-600); }
+    .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .sidebar-footer a { font-size: 12px; }
+
+    /* Main Content */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .top-bar {
+      height: 64px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      gap: 16px;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 16px; flex: 1; }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      padding: 8px;
+      color: var(--muted);
+    }
+    .search-input {
+      flex: 1;
+      max-width: 480px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .top-bar-right { display: flex; align-items: center; gap: 12px; }
+    .toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .toggle-btn.active { background: var(--accent-50); color: var(--accent); border-color: var(--accent); }
+    .kill-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: var(--pill);
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--surface-2);
+      color: var(--muted);
+    }
+    .kill-switch.paused { background: #FEF2F2; color: var(--danger); border: 1px solid var(--danger); }
+    .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--brand-50);
+      color: var(--brand-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* Content Area */
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .view-header { margin-bottom: 20px; }
+    .view-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .view-intro { color: var(--muted); font-size: 14px; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--pill);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-established { background: var(--accent-50); color: var(--accent); }
+    .badge-proposed { background: var(--brand-50); color: var(--brand-600); }
+    .badge-validation { background: #FFFBEB; color: var(--warm); }
+    .badge-future { background: #F1F5F9; color: #64748B; }
+
+    /* Source Chip */
+    .source-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--brand-600); color: white; }
+    .btn-primary:hover { background: var(--brand); }
+    .btn-secondary { background: var(--surface); border-color: var(--line); color: var(--ink); }
+    .btn-secondary:hover { background: var(--surface-2); }
+    .btn-ghost { background: transparent; color: var(--muted); }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+    .btn-sm { padding: 6px 10px; font-size: 13px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Today View */
+    .summary-strip {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+    }
+    .summary-item { display: flex; align-items: center; gap: 8px; }
+    .summary-item strong { color: var(--ink); }
+    .suggestion-card {
+      border-left: 4px solid var(--brand-600);
+    }
+    .suggestion-card.committed { border-left-color: var(--accent); }
+    .suggestion-card.snoozed { opacity: 0.6; }
+    .suggestion-card.snoozed .card-title { text-decoration: line-through; }
+    .suggestion-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .why-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--line);
+    }
+    .why-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .why-content { display: none; margin-top: 10px; font-size: 13px; color: var(--muted); }
+    .why-content.expanded { display: block; }
+    .reason-line { margin-bottom: 6px; }
+
+    /* Commitments Table */
+    .filter-chips { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-chip {
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .filter-chip.active { background: var(--brand-50); color: var(--brand-600); border-color: var(--brand-600); }
+    .commitments-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .commitments-table th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 2px solid var(--line);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .commitments-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+    .commitments-table tr:hover { background: var(--surface-2); }
+    /* Stacked cards so the commitments table fits any phone width */
+    .commitments-table thead { display: none; }
+    .commitments-table,
+    .commitments-table tbody,
+    .commitments-table tr,
+    .commitments-table td { display: block; width: 100%; }
+    .commitments-table tr {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 12px 14px;
+      margin: 0 0 12px;
+    }
+    .commitments-table tr:hover { background: var(--surface); }
+    .commitments-table td {
+      border: 0;
+      padding: 6px 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .commitments-table td::before {
+      content: attr(data-label);
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .commitments-table td[data-label="Commitment"] {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      margin-bottom: 4px;
+    }
+    .commitments-table td[data-label="Commitment"]::before,
+    .commitments-table td[data-label="Source"]::before { display: none; }
+    .commitments-table td[data-label="Source"] { justify-content: flex-end; }
+    .status-menu { position: relative; }
+    .status-menu-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .status-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      z-index: 100;
+      display: none;
+      min-width: 120px;
+    }
+    .status-dropdown.show { display: block; }
+    .status-dropdown button {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      text-align: left;
+      background: none;
+      border: none;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .status-dropdown button:hover { background: var(--surface-2); }
+
+    /* Search View */
+    .search-results { margin-top: 20px; }
+    .search-result-item {
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+    .search-result-item mark {
+      background: var(--warm);
+      color: var(--ink);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .search-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+
+    /* Summaries View */
+    .summary-block {
+      padding: 12px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+    .summary-block h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .facts-guesses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .facts-list, .guesses-list { list-style: none; }
+    .facts-list li::before { content: '✓ '; color: var(--ok); }
+    .guesses-list li::before { content: '◌ '; color: var(--muted); }
+    .guesses-note { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+    /* Drafts View */
+    .draft-card { border-left: 4px solid var(--accent); }
+    .draft-text {
+      background: var(--surface-2);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 12px 0;
+      white-space: pre-wrap;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+    }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .form-textarea { min-height: 120px; resize: vertical; }
+
+    /* Aura View */
+    .aura-form { max-width: 720px; }
+    .archetype-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .archetype-swatch {
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .archetype-swatch:hover { transform: scale(1.05); }
+    .archetype-swatch.selected { border-color: var(--ink); transform: scale(1.1); }
+    .archetype-label { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .tag-input-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      min-height: 44px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--brand-50);
+      color: var(--brand-600);
+      border-radius: var(--pill);
+      font-size: 13px;
+    }
+    .tag-remove { cursor: pointer; font-weight: 700; }
+    .portfolio-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+    .portfolio-item input { flex: 1; }
+    .visibility-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .aura-note {
+      padding: 16px;
+      background: var(--accent-50);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+
+    /* Culture View */
+    .culture-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .role-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .rule-card { margin-bottom: 12px; }
+    .rule-why {
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--muted);
+      display: none;
+    }
+    .rule-why.expanded { display: block; }
+    .admin-notice {
+      padding: 12px;
+      background: #FFFBEB;
+      border: 1px solid var(--warm);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    /* Growth View */
+    .stepper {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .stepper::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 40px;
+      right: 40px;
+      height: 2px;
+      background: var(--line);
+      z-index: 0;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 1;
+      flex: 1;
+    }
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .step.active .step-circle {
+      background: var(--brand-600);
+      border-color: var(--brand-600);
+      color: white;
+    }
+    .step-label { font-size: 13px; font-weight: 500; text-align: center; }
+    .step-sublabel { font-size: 11px; color: var(--muted); text-align: center; }
+    .progress-bar {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: var(--pill);
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--brand-600);
+      border-radius: var(--pill);
+      transition: width 0.3s ease;
+    }
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+    .metrics-table th, .metrics-table td {
+      padding: 10px;
+      border: 1px solid var(--line);
+      text-align: left;
+    }
+    .metrics-table th { background: var(--surface-2); font-weight: 600; }
+    .growth-section { margin-bottom: 24px; }
+    .growth-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .not-now-tag {
+      padding: 4px 8px;
+      background: var(--surface-2);
+      border-radius: var(--pill);
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .session-log {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+    .session-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .session-row:last-child { border-bottom: none; }
+    .session-header {
+      background: var(--surface-2);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Privacy View */
+    .principles-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .principle-card {
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+    .principle-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .principle-desc { font-size: 13px; color: var(--muted); }
+    .privacy-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+    .privacy-table th, .privacy-table td {
+      padding: 12px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    .privacy-table th { background: var(--surface-2); font-weight: 600; }
+    .source-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+    .source-info { display: flex; align-items: center; gap: 12px; }
+    .source-status {
+      padding: 4px 10px;
+      border-radius: var(--pill);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .source-status.connected { background: var(--accent-50); color: var(--accent); }
+    .source-status.disconnected { background: var(--surface-2); color: var(--muted); }
+    .audit-log {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .audit-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .audit-row:last-child { border-bottom: none; }
+    .audit-header {
+      background: var(--surface-2);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .sensitive-warning {
+      display: none;
+      padding: 12px;
+      background: #FEF2F2;
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--danger);
+      margin-top: 8px;
+    }
+    .sensitive-warning.show { display: block; }
+
+    /* Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      display: none;
+      z-index: 900;
+    }
+    .drawer-overlay.show { display: block; }
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--line);
+      transition: right 0.3s ease;
+      z-index: 901;
+      overflow-y: auto;
+    }
+    .drawer.show { right: 0; }
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title { font-size: 18px; font-weight: 600; }
+    .drawer-body { padding: 24px; }
+    .drawer-message {
+      background: var(--surface-2);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      margin: 16px 0;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 16px;
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
+      max-width: 320px;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Auth Gate */
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 2000;
+      overflow-y: auto;
+      display: none;
+    }
+    .auth-gate.show { display: block; }
+    .auth-gate-content {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .auth-logo-orbit {
+      width: 48px; height: 48px;
+      border: 4px solid var(--brand);
+      border-radius: 50%;
+      position: relative;
+    }
+    .auth-logo-orbit::before {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: var(--brand-600);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .auth-logo-wordmark {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+    }
+    .auth-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+      text-align: center;
+    }
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .auth-segmented {
+      display: flex;
+      background: var(--surface-2);
+      border-radius: var(--pill);
+      padding: 4px;
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .auth-segmented-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--pill);
+      cursor: pointer;
+      transition: all 0.15s;
+      min-height: 44px;
+    }
+    .auth-segmented-btn:hover { color: var(--ink); }
+    .auth-segmented-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+    .auth-form {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .auth-note {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+    .auth-error {
+      padding: 10px 12px;
+      background: #FEF2F2;
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--danger);
+      display: none;
+    }
+    .auth-error.show { display: block; }
+    .auth-guest-btn {
+      margin-top: 12px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: underline;
+      min-height: 44px;
+    }
+    .auth-guest-btn:hover { color: var(--ink); }
+
+    /* Account Avatar */
+    .account-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--brand-50);
+      color: var(--brand-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+    .account-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .account-email {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+    .account-row:last-child { border-bottom: none; }
+    .account-label { color: var(--muted); }
+    .account-value { font-weight: 500; color: var(--ink); }
+
+    /* Settings */
+    .settings-group {
+      margin-bottom: 24px;
+    }
+    .settings-group-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 12px;
+    }
+    .settings-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+    .settings-item-label {
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .settings-item-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .settings-toggle {
+      width: 44px; height: 24px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .settings-toggle.on {
+      background: var(--brand-50);
+      border-color: var(--brand-600);
+    }
+    .settings-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: transform 0.15s;
+    }
+    .settings-toggle.on::after {
+      transform: translateX(20px);
+      background: var(--brand-600);
+    }
+    .settings-select {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      min-height: 44px;
+    }
+    .settings-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .settings-signout {
+      margin-top: 24px;
+      width: 100%;
+      padding: 14px;
+      background: #FEF2F2;
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-sm);
+      color: var(--danger);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .settings-signout:hover { background: #FEE2E2; }
+
+    /* Empty State for AI Paused */
+    .ai-paused-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+    .ai-paused-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+    /* Bottom Tab Bar - hidden by default, shown on mobile */
+    .tabbar { display: none; }
+
+    /* Mobile Responsive */
+    @media (max-width: 99999px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        z-index: 800;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .hamburger { display: block; }
+      .top-bar { padding: 0 16px; }
+      .search-input { display: none; }
+      .content { padding: 16px; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+      .stepper { flex-wrap: wrap; gap: 16px; }
+      .stepper::before { display: none; }
+      .step { flex: 0 0 calc(33.333% - 8px); }
+      .facts-guesses { grid-template-columns: 1fr; }
+      .archetype-grid { grid-template-columns: repeat(4, 1fr); }
+      .session-row { grid-template-columns: 1fr 1fr; }
+      .audit-row { grid-template-columns: 1fr 1fr; }
+
+      /* Bottom Tab Bar */
+      .tabbar {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 60px;
+        padding-bottom: env(safe-area-inset-bottom);
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1000;
+      }
+      .tab-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 4px 8px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 11px;
+        border-radius: var(--radius-sm);
+        transition: background 0.15s, color 0.15s;
+      }
+      .tab-item svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+      .tab-item:hover { background: var(--surface-2); color: var(--ink); }
+      .tab-item.active { color: var(--brand-600); background: var(--brand-50); }
+      .tab-more { color: var(--ink); }
+
+      /* Touch targets */
+      .btn, .nav-item, .filter-chip, .status-dropdown button,
+      .form-input, .form-select, .search-input {
+        min-height: 44px;
+      }
+      table tbody tr { cursor: pointer; }
+      table tbody tr td { padding: 12px 8px; }
+
+      /* Full-screen modals on mobile */
+      .modal {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+        max-height: 90vh;
+      }
+      .modal-overlay { align-items: flex-end; }
+
+      /* Full-width drawer */
+      .drawer {
+        width: 100%;
+        right: -100%;
+      }
+      .drawer.show { right: 0; }
+
+      /* Toasts with safe-area */
+      .toast-container {
+        bottom: calc(24px + env(safe-area-inset-bottom));
+        right: 16px;
+        left: 16px;
+      }
+      .toast {
+        max-width: none;
+        width: 100%;
+      }
+    }
+
+    /* Footer */
+    .app-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface);
+    }
+
+    /* iPhone-sized frame on wide screens.
+       Giving .phone a transform makes every position:fixed descendant
+       (tab bar, sidebar, drawer, modals, toasts) anchor to the phone
+       frame instead of the viewport. On real phones (<560px) .phone is a
+       plain block, so the app stays full-bleed. */
+    @media (min-width: 560px) {
+      html { background: #0B0F19; }
+      body {
+        background: #0B0F19;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .phone {
+        width: 390px;
+        height: 844px;
+        max-height: calc(100vh - 32px);
+        flex: 0 0 auto;
+        background: var(--bg);
+        border-radius: 44px;
+        box-shadow:
+          0 0 0 10px #05070d,
+          0 0 0 12px #2a2f3a,
+          0 40px 90px rgba(0,0,0,.65);
+        position: relative;
+        transform: translateZ(0);
+        overflow: hidden;
+      }
+      .phone .app { height: 100%; }
+      .phone .sidebar { height: 100%; }
+      .phone .drawer { height: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone" id="phone">
+  <div class="app" id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link" aria-label="Orbis home">
+          <div class="logo-orbit" aria-hidden="true"></div>
+          <span class="logo-wordmark">Orbis</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item active" data-view="today" href="#today" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Today</span>
+        </a>
+        <a class="nav-item" data-view="commitments" href="#commitments" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>Commitments</span>
+        </a>
+        <a class="nav-item" data-view="search" href="#search" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span>Search</span>
+        </a>
+        <a class="nav-item" data-view="summaries" href="#summaries" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Summaries</span>
+        </a>
+        <a class="nav-item" data-view="drafts" href="#drafts" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>Drafts</span>
+        </a>
+        <a class="nav-item" data-view="aura" href="#aura" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20 14.5 14.5 0 000-20"/></svg>
+          <span>Aura</span>
+        </a>
+        <a class="nav-item" data-view="culture" href="#culture" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <span>Culture</span>
+        </a>
+        <a class="nav-item" data-view="growth" href="#growth" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>Growth</span>
+        </a>
+        <a class="nav-item" data-view="privacy" href="#privacy" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <span>Privacy</span>
+        </a>
+        <a class="nav-item" data-view="work" href="#work" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+          <span>Orbis Work</span>
+        </a>
+        <a class="nav-item" data-view="account" href="#account" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Account</span>
+        </a>
+        <a class="nav-item" data-view="settings" href="#settings" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div style="margin-bottom: 8px;">Prototype · mock data</div>
+        <a href="index.html">Landing page →</a><br>
+        <a href="mobile.html">Mobile guide</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main" role="main">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <input type="text" class="search-input" id="topSearch" placeholder="Search messages, commitments... (press / to focus)" aria-label="Search">
+        </div>
+        <div class="top-bar-right">
+          <button class="toggle-btn" id="quietHoursToggle" aria-pressed="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span>Quiet hours</span>
+          </button>
+          <div class="kill-switch" id="killSwitch" role="status" aria-live="polite">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="killSwitchText">AI active</span>
+          </div>
+          <div class="kill-switch" id="connectionBadge" role="status" aria-live="polite" style="border: 1px solid var(--line);">
+            <span style="width:8px;height:8px;background:var(--warm);border-radius:50%;display:inline-block;"></span>
+            <span style="font-size:12px;">Connecting...</span>
+          </div>
+          <button class="toggle-btn" id="themeToggle" aria-label="Toggle dark mode">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </button>
+          <div class="user-avatar" aria-label="User profile">AR</div>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="content">
+        <!-- TODAY VIEW -->
+        <section id="today" class="view active" role="region" aria-labelledby="today-title">
+          <div class="view-header">
+            <h1 class="view-title" id="today-title">Today</h1>
+            <p class="view-intro">Messages that may need a reply, with reason and source.</p>
+          </div>
+          <div class="summary-strip" id="todaySummary">
+            <div class="summary-item"><strong>3</strong> need a reply</div>
+            <div class="summary-item"><strong>2</strong> commitments due</div>
+          </div>
+          <div id="todayContent"></div>
+        </section>
+
+        <!-- COMMITMENTS VIEW -->
+        <section id="commitments" class="view" role="region" aria-labelledby="commitments-title">
+          <div class="view-header">
+            <h1 class="view-title" id="commitments-title">Commitments</h1>
+            <p class="view-intro">Track what you said you would do. Dates are used only when explicitly stated.</p>
+          </div>
+          <div class="filter-chips" role="group" aria-label="Filter commitments">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="open">Open</button>
+            <button class="filter-chip" data-filter="done">Done</button>
+            <button class="filter-chip" data-filter="overdue">Overdue</button>
+          </div>
+          <table class="commitments-table">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>With</th>
+                <th>Stated date</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="commitmentsBody"></tbody>
+          </table>
+        </section>
+
+        <!-- SEARCH VIEW -->
+        <section id="search" class="view" role="region" aria-labelledby="search-title">
+          <div class="view-header">
+            <h1 class="view-title" id="search-title">Search</h1>
+            <p class="view-intro">Search by meaning. Ask in plain words — e.g. "what did I promise the studio about the invoice?"</p>
+          </div>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search messages..." style="max-width: 100%;">
+          <div class="search-results" id="searchResults">
+            <div class="search-empty">Enter a search query to find messages</div>
+          </div>
+        </section>
+
+        <!-- SUMMARIES VIEW -->
+        <section id="summaries" class="view" role="region" aria-labelledby="summaries-title">
+          <div class="view-header">
+            <h1 class="view-title" id="summaries-title">Summaries</h1>
+            <p class="view-intro">Thread summaries with decisions, questions, and labelled inferences.</p>
+          </div>
+          <div id="summariesContent"></div>
+        </section>
+
+        <!-- DRAFTS VIEW -->
+        <section id="drafts" class="view" role="region" aria-labelledby="drafts-title">
+          <div class="view-header">
+            <h1 class="view-title" id="drafts-title">Drafts</h1>
+            <p class="view-intro">Suggested replies. Review, edit, and approve before sending.</p>
+          </div>
+          <div id="draftsContent"></div>
+        </section>
+
+        <!-- AURA VIEW -->
+        <section id="aura" class="view" role="region" aria-labelledby="aura-title">
+          <div class="view-header">
+            <h1 class="view-title" id="aura-title">Aura</h1>
+            <p class="view-intro">Your self-chosen profile. Created by you. Never inferred from your messages. Never used to rank, filter or reject anyone.</p>
+          </div>
+          <div class="aura-note">
+            <strong>Privacy notice:</strong> This profile is created entirely from your input. Orbis never infers personality traits, and never uses this data to rank, filter, or reject anyone.
+          </div>
+          <form class="aura-form" id="auraForm">
+            <div class="form-group">
+              <label class="form-label" for="workStyle">Work style</label>
+              <select class="form-select" id="workStyle">
+                <option value="collaborative">Collaborative</option>
+                <option value="independent">Independent</option>
+                <option value="structured">Structured</option>
+                <option value="flexible">Flexible</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Strengths (comma-separated)</label>
+              <div class="tag-input-container" id="strengthsTags">
+                <span class="tag">Strategic thinking<span class="tag-remove" role="button" tabindex="0">×</span></span>
+                <span class="tag">Clear communication<span class="tag-remove" role="button" tabindex="0">×</span></span>
+              </div>
+              <input type="text" class="form-input" id="strengthsInput" placeholder="Add a strength..." style="margin-top: 8px;">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="growthEdges">Growth edges</label>
+              <textarea class="form-textarea" id="growthEdges" rows="3">Delegating earlier when workload increases</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Archetype</label>
+              <div class="archetype-grid" role="group" aria-label="Archetype selection">
+                <div class="archetype-swatch" data-color="#F59E0B" data-name="Ray" style="background: #F59E0B;" role="radio" tabindex="0" aria-label="Ray"></div>
+                <div class="archetype-swatch" data-color="#EAB308" data-name="Citrine" style="background: #EAB308;" role="radio" tabindex="0" aria-label="Citrine"></div>
+                <div class="archetype-swatch" data-color="#EA580C" data-name="Ember" style="background: #EA580C;" role="radio" tabindex="0" aria-label="Ember"></div>
+                <div class="archetype-swatch" data-color="#E11D48" data-name="Rose" style="background: #E11D48;" role="radio" tabindex="0" aria-label="Rose"></div>
+                <div class="archetype-swatch" data-color="#DB2777" data-name="Bloom" style="background: #DB2777;" role="radio" tabindex="0" aria-label="Bloom"></div>
+                <div class="archetype-swatch" data-color="#7C3AED" data-name="Violet" style="background: #7C3AED;" role="radio" tabindex="0" aria-label="Violet"></div>
+                <div class="archetype-swatch selected" data-color="#4F46E5" data-name="Indigo" style="background: #4F46E5;" role="radio" tabindex="0" aria-label="Indigo"></div>
+                <div class="archetype-swatch" data-color="#0284C7" data-name="Cerulean" style="background: #0284C7;" role="radio" tabindex="0" aria-label="Cerulean"></div>
+                <div class="archetype-swatch" data-color="#0D9488" data-name="Teal" style="background: #0D9488;" role="radio" tabindex="0" aria-label="Teal"></div>
+                <div class="archetype-swatch" data-color="#16A34A" data-name="Jade" style="background: #16A34A;" role="radio" tabindex="0" aria-label="Jade"></div>
+                <div class="archetype-swatch" data-color="#64748B" data-name="Stone" style="background: #64748B;" role="radio" tabindex="0" aria-label="Stone"></div>
+                <div class="archetype-swatch" data-color="#3730A3" data-name="Dusk" style="background: #3730A3;" role="radio" tabindex="0" aria-label="Dusk"></div>
+              </div>
+              <div class="archetype-label">Your archetype: <strong id="archetypeName">Indigo</strong></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Portfolio</label>
+              <div id="portfolioItems">
+                <div class="portfolio-item">
+                  <input type="text" class="form-input" value="Senior Product Designer at Northwind Studio" style="flex: 2;">
+                  <input type="text" class="form-input" value="https://northwind.example" style="flex: 1;">
+                  <label class="visibility-toggle">
+                    <input type="checkbox" checked> Shared <span style="color: var(--muted); font-size: 12px;">(off = private)</span>
+                  </label>
+                  <button type="button" class="btn btn-ghost btn-sm" aria-label="Remove item">×</button>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="addPortfolioItem" style="margin-top: 8px;">+ Add item</button>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Aura</button>
+          </form>
+        </section>
+
+        <!-- CULTURE VIEW -->
+        <section id="culture" class="view" role="region" aria-labelledby="culture-title">
+          <div class="culture-header">
+            <div>
+              <h1 class="view-title" id="culture-title">Culture</h1>
+              <p class="view-intro">Northwind Studio — Company rules and norms</p>
+            </div>
+            <div class="role-toggle">
+              <span>You are viewing as:</span>
+              <select class="form-select" id="roleView" style="width: auto;">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div id="adminNotice" class="admin-notice" style="display: none;">
+            <strong>Admin notice:</strong> Admins set rules but do not see private message content.
+          </div>
+          <div id="cultureRules"></div>
+          <div id="adminSection" style="display: none; margin-top: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 12px;">Add a rule</h2>
+            <form id="addRuleForm" style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <input type="text" class="form-input" id="newRuleTitle" placeholder="Rule title" required style="flex: 1; min-width: 200px;">
+              <textarea class="form-input" id="newRuleText" placeholder="Rule description" required style="flex: 2; min-width: 300px; min-height: 80px;"></textarea>
+              <input type="text" class="form-input" id="newRuleWhy" placeholder="Why it applies" required style="width: 100%;">
+              <button type="submit" class="btn btn-primary">Add rule</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- GROWTH VIEW -->
+        <section id="growth" class="view" role="region" aria-labelledby="growth-title">
+          <div class="view-header">
+            <h1 class="view-title" id="growth-title">Growth</h1>
+            <p class="view-intro">After-work layer. Evidence, not guilt. No streaks that punish missed days.</p>
+          </div>
+
+          <!-- 5-Stage Method -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Method
+            </h2>
+            <div class="stepper" role="progressbar" aria-valuenow="3" aria-valuemin="1" aria-valuemax="5">
+              <div class="step active">
+                <div class="step-circle">1</div>
+                <div class="step-label">Understand</div>
+                <div class="step-sublabel">Clarify the problem</div>
+              </div>
+              <div class="step active">
+                <div class="step-circle">2</div>
+                <div class="step-label">Organize</div>
+                <div class="step-sublabel">Structure approach</div>
+              </div>
+              <div class="step active">
+                <div class="step-circle">3</div>
+                <div class="step-label">Explain</div>
+                <div class="step-sublabel">Teach to learn</div>
+              </div>
+              <div class="step">
+                <div class="step-circle">4</div>
+                <div class="step-label">Create</div>
+                <div class="step-sublabel">Build something</div>
+              </div>
+              <div class="step">
+                <div class="step-circle">5</div>
+                <div class="step-label">Empower</div>
+                <div class="step-sublabel">Enable others</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Curriculum -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">Curriculum</h2>
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
+                <div>
+                  <strong>Product Strategy</strong>
+                  <div style="font-size: 13px; color: var(--muted);">Market analysis, positioning, roadmap planning</div>
+                </div>
+                <span class="badge badge-established">In progress</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
+                <div>
+                  <strong>Leadership Communication</strong>
+                  <div style="font-size: 13px; color: var(--muted);">Stakeholder management, difficult conversations</div>
+                </div>
+                <span class="badge badge-established">In progress</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                <div>
+                  <strong>Advanced Data Visualization</strong>
+                  <div style="font-size: 13px; color: var(--muted);">D3.js, interactive dashboards</div>
+                </div>
+                <span class="not-now-tag">Not now</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Results -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">Key Results</h2>
+            <div class="card">
+              <div style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                  <span>Ship 4 major features this quarter</span>
+                  <span><strong>3</strong> / 4</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div>
+                <div style="font-size: 12px; color: var(--muted);">Baseline: 0 · Target: 4 · Current: 3</div>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                  <span>Reduce meeting time by 30%</span>
+                  <span><strong>22%</strong> reduction</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 73%;"></div></div>
+                <div style="font-size: 12px; color: var(--muted);">Baseline: 20hrs/wk · Target: 14hrs · Current: 15.6hrs</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Log -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">
+              Session Log
+              <span style="font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 8px;">Focus minutes this week: <strong id="focusMinutes">185</strong></span>
+            </h2>
+            <div class="session-log">
+              <div class="session-row session-header">
+                <div>Date</div>
+                <div>Category</div>
+                <div>Output</div>
+                <div>Reflection</div>
+              </div>
+              <div class="session-row">
+                <div>Oct 17</div>
+                <div>Deep work</div>
+                <div>Feature spec doc</div>
+                <div>Good flow state</div>
+              </div>
+              <div class="session-row">
+                <div>Oct 18</div>
+                <div>Learning</div>
+                <div>Watched 2 lectures</div>
+                <div>Took notes</div>
+              </div>
+              <div class="session-row">
+                <div>Oct 19</div>
+                <div>Deep work</div>
+                <div>Prototype v1</div>
+                <div>Blocked on API</div>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="addSessionBtn" style="margin-top: 12px;">+ Add session</button>
+          </div>
+
+          <!-- Weekly Review -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">Weekly Review</h2>
+            <form id="weeklyReviewForm" class="card">
+              <div class="form-group">
+                <label class="form-label" for="reviewOutput">Output</label>
+                <textarea class="form-textarea" id="reviewOutput" rows="3" placeholder="What did you accomplish this week?"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="reviewBlockers">Blockers</label>
+                <textarea class="form-textarea" id="reviewBlockers" rows="3" placeholder="What got in the way?"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="reviewEnergy">Energy</label>
+                <textarea class="form-textarea" id="reviewEnergy" rows="3" placeholder="How was your energy and focus?"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Save review</button>
+            </form>
+          </div>
+
+          <!-- Before/After Metrics -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">Progress Metrics</h2>
+            <table class="metrics-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Baseline</th>
+                  <th>Current</th>
+                  <th>Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Planning time</td>
+                  <td>45 min/day</td>
+                  <td>25 min/day</td>
+                  <td style="color: var(--ok);">-20 min</td>
+                </tr>
+                <tr>
+                  <td>Time to start</td>
+                  <td>2.5 hrs</td>
+                  <td>1.2 hrs</td>
+                  <td style="color: var(--ok);">-1.3 hrs</td>
+                </tr>
+                <tr>
+                  <td>Completion rate</td>
+                  <td>62%</td>
+                  <td>78%</td>
+                  <td style="color: var(--ok);">+16%</td>
+                </tr>
+                <tr>
+                  <td>Consistency</td>
+                  <td>3.2 days/wk</td>
+                  <td>4.5 days/wk</td>
+                  <td style="color: var(--ok);">+1.3 days</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Progress Card -->
+          <div class="growth-section">
+            <h2 class="growth-section-title">Share Progress</h2>
+            <div class="card">
+              <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 16px;">
+                <input type="checkbox" id="progressCardToggle">
+                Create a progress card
+              </label>
+              <div id="progressCardPreview" style="display: none;">
+                <div style="padding: 16px; background: var(--brand-50); border: 1px solid var(--brand-600); border-radius: var(--radius-sm); margin-bottom: 12px;">
+                  <strong>Weekly Progress Card</strong>
+                  <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">Oct 14 - Oct 20, 2025</div>
+                  <div style="margin-top: 12px; font-size: 14px;">
+                    <div>✓ 3 features shipped</div>
+                    <div>✓ 185 focus minutes</div>
+                    <div>✓ 78% completion rate</div>
+                  </div>
+                </div>
+                <button class="btn btn-secondary" id="shareProgressBtn">Share</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export -->
+          <div class="growth-section">
+            <button class="btn btn-secondary" id="exportGrowthBtn">Export growth data (JSON)</button>
+          </div>
+        </section>
+
+        <!-- PRIVACY VIEW -->
+        <section id="privacy" class="view" role="region" aria-labelledby="privacy-title">
+          <div class="view-header">
+            <h1 class="view-title" id="privacy-title">Privacy</h1>
+            <p class="view-intro">The protection layer. You control what data is collected and how it is used.</p>
+          </div>
+
+          <!-- Principles -->
+          <h2 style="font-size: 18px; margin-bottom: 16px;">Principles</h2>
+          <div class="principles-list">
+            <div class="principle-card">
+              <div class="principle-title">Minimum data</div>
+              <div class="principle-desc">Collect only what is needed for each feature.</div>
+            </div>
+            <div class="principle-card">
+              <div class="principle-title">Consent</div>
+              <div class="principle-desc">Explicit opt-in for every data source.</div>
+            </div>
+            <div class="principle-card">
+              <div class="principle-title">Visibility</div>
+              <div class="principle-desc">See what is stored and why.</div>
+            </div>
+            <div class="principle-card">
+              <div class="principle-title">Control</div>
+              <div class="principle-desc">Export or delete your data anytime.</div>
+            </div>
+            <div class="principle-card">
+              <div class="principle-title">Separation</div>
+              <div class="principle-desc">Employer cannot access your Aura.</div>
+            </div>
+            <div class="principle-card">
+              <div class="principle-title">Kill switch</div>
+              <div class="principle-desc">Pause all AI features instantly.</div>
+            </div>
+            <div class="principle-card">
+              <div class="principle-title">Audit</div>
+              <div class="principle-desc">Log of all data operations.</div>
+            </div>
+          </div>
+
+          <!-- Data by Category -->
+          <h2 style="font-size: 18px; margin-bottom: 16px;">Data by category</h2>
+          <table class="privacy-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Collected?</th>
+                <th>Use</th>
+                <th>Never used for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Message references and extracted commitments</td>
+                <td>Yes, from connected sources only</td>
+                <td>Follow-ups, commitments, search</td>
+                <td>Training, advertising, profiling</td>
+              </tr>
+              <tr>
+                <td>Message content</td>
+                <td>Only where needed for a feature</td>
+                <td>Summaries and suggestions</td>
+                <td>Anything outside the feature</td>
+              </tr>
+              <tr>
+                <td>Aura</td>
+                <td>Yes, with your input</td>
+                <td>Personal reflection, chosen context</td>
+                <td>Ranking, rejecting, employer decisions</td>
+              </tr>
+              <tr>
+                <td>Portfolio items</td>
+                <td>Yes, chosen by you</td>
+                <td>Shown to others you pick</td>
+                <td>Matching without consent</td>
+              </tr>
+              <tr>
+                <td>Health, religion, political views, similar</td>
+                <td>No — warned and excluded if written</td>
+                <td>None</td>
+                <td>All uses</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Connected Sources -->
+          <h2 style="font-size: 18px; margin-bottom: 16px;">Connected sources</h2>
+          <div id="sourcesList">
+            <div class="source-row">
+              <div class="source-info">
+                <strong>Gmail</strong>
+                <span class="source-status connected">Connected</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" data-source="gmail" data-connected="true">Disconnect</button>
+            </div>
+            <div class="source-row">
+              <div class="source-info">
+                <strong>WhatsApp</strong>
+                <span class="source-status disconnected">Not connected</span>
+              </div>
+              <button class="btn btn-primary btn-sm" data-source="whatsapp" data-connected="false">Connect</button>
+            </div>
+            <div class="source-row">
+              <div class="source-info">
+                <strong>Slack</strong>
+                <span class="source-status disconnected">Not connected</span>
+              </div>
+              <button class="btn btn-primary btn-sm" data-source="slack" data-connected="false">Connect</button>
+            </div>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 12px;">Connected only with explicit consent.</p>
+
+          <!-- Kill Switch -->
+          <h2 style="font-size: 18px; margin: 24px 0 16px;">AI Kill Switch</h2>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>Pause all AI features</strong>
+                <div style="font-size: 13px; color: var(--muted);">When enabled, all AI-powered suggestions and summaries are disabled.</div>
+              </div>
+              <button class="btn btn-secondary" id="privacyKillSwitch">AI active</button>
+            </div>
+          </div>
+
+          <!-- Audit Log -->
+          <h2 style="font-size: 18px; margin: 24px 0 16px;">Audit log</h2>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">You can see your own log. Kept 12 months.</p>
+          <div class="audit-log">
+            <div class="audit-row audit-header">
+              <div>Actor</div>
+              <div>Action</div>
+              <div>Time</div>
+              <div>Object</div>
+            </div>
+            <div class="audit-row">
+              <div>you</div>
+              <div>exported data</div>
+              <div>Oct 18, 14:32</div>
+              <div>growth-data.json</div>
+            </div>
+            <div class="audit-row">
+              <div>you</div>
+              <div>connected source</div>
+              <div>Oct 15, 09:15</div>
+              <div>Gmail</div>
+            </div>
+            <div class="audit-row">
+              <div>you</div>
+              <div>updated Aura</div>
+              <div>Oct 12, 16:45</div>
+              <div>profile</div>
+            </div>
+            <div class="audit-row">
+              <div>system</div>
+              <div>deleted expired refs</div>
+              <div>Oct 10, 03:00</div>
+              <div>47 items</div>
+            </div>
+            <div class="audit-row">
+              <div>you</div>
+              <div>enabled quiet hours</div>
+              <div>Oct 8, 22:00</div>
+              <div>settings</div>
+            </div>
+          </div>
+
+          <!-- Retention -->
+          <h2 style="font-size: 18px; margin: 24px 0 16px;">Retention</h2>
+          <ul style="font-size: 14px; color: var(--muted); line-height: 1.8;">
+            <li>Message references: +30 days after disconnect</li>
+            <li>Aura: until you delete</li>
+            <li>Audit logs: 12 months</li>
+            <li>Backups: deleted within 30-90 days</li>
+            <li>Deletion requests: confirmed with a receipt</li>
+          </ul>
+
+          <!-- Sensitive Content Demo -->
+          <h2 style="font-size: 18px; margin: 24px 0 16px;">Sensitive content detection (demo)</h2>
+          <div class="card">
+            <label class="form-label" for="sensitiveDemo">Type something that might be sensitive (try: health, religion, politics)</label>
+            <textarea class="form-textarea" id="sensitiveDemo" rows="3" placeholder="Type here to see the warning..."></textarea>
+            <div class="sensitive-warning" id="sensitiveWarning">
+              <strong>⚠ Sensitive content detected:</strong> This looks sensitive. It will be excluded from matching, search and summaries.
+            </div>
+          </div>
+
+          <!-- Export / Delete -->
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="btn btn-secondary" id="exportAllData">Export all data (JSON)</button>
+            <button class="btn btn-ghost" id="deleteDataBtn" style="color: var(--danger);">Delete my data</button>
+          </div>
+        </section>
+
+        <!-- WORK VIEW -->
+        <section id="work" class="view" role="region" aria-labelledby="work-title">
+          <div class="view-header">
+            <h1 class="view-title" id="work-title">Orbis Work</h1>
+            <p class="view-intro">[FUTURE VISION] Planned module — not in first release</p>
+          </div>
+
+          <div class="card" style="border-left: 4px solid var(--warm); margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <span class="badge badge-future">[FUTURE VISION]</span>
+              <strong style="font-size: 16px;">Planned module</strong>
+            </div>
+            <p style="font-size: 14px; color: var(--muted);">
+              Scope, pricing and launch are not decided. This view shows the intended design for matching people with roles based on skills and experience only — never personality ranking.
+            </p>
+          </div>
+
+          <!-- How it works -->
+          <div class="card" style="margin-bottom: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">How it works</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 4px;">1. Build profile</div>
+                <div style="font-size: 13px; color: var(--muted);">Portfolio and Aura, chosen by you</div>
+              </div>
+              <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 4px;">2. Post or search</div>
+                <div style="font-size: 13px; color: var(--muted);">Roles with stated requirements</div>
+              </div>
+              <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 4px;">3. Match on skills</div>
+                <div style="font-size: 13px; color: var(--muted);">Experience and requirements only</div>
+              </div>
+              <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 4px;">4. Introduce</div>
+                <div style="font-size: 13px; color: var(--muted);">Both sides accept</div>
+              </div>
+              <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 4px;">5. Chat</div>
+                <div style="font-size: 13px; color: var(--muted);">Direct conversation</div>
+              </div>
+              <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 4px;">6. Decide</div>
+                <div style="font-size: 13px; color: var(--muted);">Human review, both can end or report</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fairness rules -->
+          <div class="card" style="margin-bottom: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Fairness rules</h2>
+            <ul style="font-size: 14px; color: var(--muted); line-height: 1.8; padding-left: 20px;">
+              <li><strong>No personality ranking</strong> — Aura never ranks, filters or rejects candidates.</li>
+              <li><strong>Matching criteria</strong> — skills, experience and stated requirements only.</li>
+              <li><strong>Context, not scoring</strong> — profiles provide context for human decisions.</li>
+              <li><strong>Human decisions</strong> — hiring decisions are made by people, with the reason visible.</li>
+              <li><strong>Exit</strong> — either side can end, report or delete.</li>
+            </ul>
+          </div>
+
+          <!-- Roles list -->
+          <div class="card">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Available roles</h2>
+            <div id="workRolesList"></div>
+          </div>
+        </section>
+
+        <section id="account" class="view" role="region" aria-labelledby="account-title">
+          <div class="view-header">
+            <h1 class="view-title" id="account-title">Account</h1>
+            <p class="view-intro">Your Orbis account settings and profile.</p>
+          </div>
+
+          <div class="card" style="text-align: center; padding: 32px 20px;">
+            <div class="account-avatar" id="accountAvatar" aria-label="Profile picture">AR</div>
+            <div class="account-name" id="accountName">Alex Rivera</div>
+            <div class="account-email" id="accountEmail">alex@example.com</div>
+
+            <div class="account-row">
+              <span class="account-label">Plan</span>
+              <span class="account-value">Personal free</span>
+            </div>
+            <div class="account-row">
+              <span class="account-label">Workspace</span>
+              <span class="account-value">Northwind Studio</span>
+            </div>
+            <div class="account-row">
+              <span class="account-label">Verification</span>
+              <span class="account-value">Light — email and phone</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+              <button class="btn btn-secondary btn-sm" id="accountViewAuraBtn">View Aura</button>
+              <button class="btn btn-ghost btn-sm" id="accountSignOutBtn" style="color: var(--danger);">Sign out</button>
+            </div>
+
+            <p class="auth-note" style="margin-top: 20px;">Prototype account — no real authentication or identity verification.</p>
+          </div>
+        </section>
+
+        <section id="settings" class="view" role="region" aria-labelledby="settings-title">
+          <div class="view-header">
+            <h1 class="view-title" id="settings-title">Settings</h1>
+            <p class="view-intro">Customize your Orbis experience.</p>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Appearance</div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">Theme</div>
+                <div class="settings-item-desc">Switch between light and dark mode</div>
+              </div>
+              <div class="settings-toggle" id="settingsThemeToggle" role="switch" aria-checked="false" tabindex="0"></div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Focus</div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">Quiet hours</div>
+                <div class="settings-item-desc">Disable notifications during rest time</div>
+              </div>
+              <div class="settings-toggle" id="settingsQuietHoursToggle" role="switch" aria-checked="true" tabindex="0"></div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Language</div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">Interface language</div>
+                <select class="settings-select" id="settingsLangSelect" aria-label="Language selection">
+                  <option value="en">English</option>
+                  <option value="id">Bahasa Indonesia</option>
+                </select>
+                <div class="settings-note">Prototype — interface language switching is not wired yet.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Notifications</div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">Follow-ups</div>
+                <div class="settings-item-desc">Get notified about pending replies</div>
+              </div>
+              <div class="settings-toggle" id="settingsNotifFollowups" role="switch" aria-checked="true" tabindex="0"></div>
+            </div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">Commitments</div>
+                <div class="settings-item-desc">Reminders for your commitments</div>
+              </div>
+              <div class="settings-toggle" id="settingsNotifCommitments" role="switch" aria-checked="true" tabindex="0"></div>
+            </div>
+            <div class="settings-note" style="padding: 0 4px;">Prototype — notifications are not wired yet.</div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Privacy</div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">AI Kill Switch</div>
+                <div class="settings-item-desc">Pause all AI features instantly</div>
+              </div>
+              <div class="settings-toggle" id="settingsAiKillSwitch" role="switch" aria-checked="false" tabindex="0"></div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">About</div>
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-label">Orbis mobile prototype</div>
+                <div class="settings-item-desc">Draft for founder review. Designed-to statements; legal points need counsel confirmation.</div>
+              </div>
+            </div>
+            <div class="settings-item" style="display: block;">
+              <div class="settings-item-label">Add to Home screen</div>
+              <div class="settings-item-desc" style="margin-top: 4px;">On iOS: tap Share → Add to Home Screen. On Android: tap menu → Install app.</div>
+            </div>
+          </div>
+
+          <button class="settings-signout" id="settingsSignOutBtn">Sign out</button>
+        </section>
+
+      </div>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        Orbis — prototype for founder review. Mock data only. Draft for founder review. Designed-to statements; legal points need counsel confirmation.
+      </footer>
+    </main>
+  </div>
+
+  <!-- Bottom Tab Bar (mobile only) -->
+  <nav class="tabbar" aria-label="Primary navigation">
+    <a class="tab-item active" data-view="today" role="button" tabindex="0" aria-label="Today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Today</span>
+    </a>
+    <a class="tab-item" data-view="commitments" role="button" tabindex="0" aria-label="Commitments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span>Commitments</span>
+    </a>
+    <a class="tab-item" data-view="search" role="button" tabindex="0" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span>Search</span>
+    </a>
+    <a class="tab-item" data-view="aura" role="button" tabindex="0" aria-label="Aura">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20 14.5 14.5 0 000-20"/></svg>
+      <span>Aura</span>
+    </a>
+    <a class="tab-item" data-view="privacy" role="button" tabindex="0" aria-label="Privacy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <span>Privacy</span>
+    </a>
+    <a class="tab-item tab-more" role="button" tabindex="0" aria-label="More options">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      <span>More</span>
+    </a>
+  </nav>
+
+  <!-- Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true">
+    <div class="drawer-header">
+      <h2 class="drawer-title" id="drawerTitle">Message</h2>
+      <button class="modal-close" id="drawerClose" aria-label="Close drawer">×</button>
+    </div>
+    <div class="drawer-body">
+      <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+        <strong id="drawerSender"></strong> · <span id="drawerTimestamp"></span>
+      </div>
+      <div class="drawer-message" id="drawerContent"></div>
+    </div>
+  </aside>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Edit Draft</h2>
+        <button class="modal-close" id="modalClose" aria-label="Close modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="draftText">Draft content</label>
+          <textarea class="form-textarea" id="draftText" rows="8"></textarea>
+        </div>
+        <p style="font-size: 13px; color: var(--muted);">
+          <strong>Note:</strong> Nothing is sent without your approval. This is a prototype.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn-secondary" id="modalCopy">Approve &amp; copy</button>
+        <button class="btn btn-primary" id="modalSend">Send (prototype)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="confirmOverlay">
+    <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirmTitle">Confirm</h2>
+        <button class="modal-close" id="confirmClose" aria-label="Close modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage">Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+        <button class="btn btn-danger" id="confirmOk" style="background: var(--danger); color: white;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+  <!-- Persist announcement (aria-live) -->
+  <div id="persistAnnounce" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Auth Gate -->
+  <div id="authGate" class="auth-gate" role="dialog" aria-modal="true" aria-labelledby="authGateTitle">
+    <div class="auth-gate-content">
+      <div class="auth-logo">
+        <div class="auth-logo-orbit" aria-hidden="true"></div>
+        <span class="auth-logo-wordmark">Orbis</span>
+      </div>
+      <h1 class="auth-title" id="authGateTitle">Welcome to Orbis</h1>
+      <p class="auth-subtitle">Keep your commitments. Work clearly. Protect what matters.</p>
+
+      <div class="auth-segmented" role="tablist" aria-label="Authentication mode">
+        <button class="auth-segmented-btn active" id="authSignInBtn" role="tab" aria-selected="true" tabindex="0">Sign in</button>
+        <button class="auth-segmented-btn" id="authCreateAccountBtn" role="tab" aria-selected="false" tabindex="-1">Create account</button>
+      </div>
+
+      <form class="auth-form" id="authForm" novalidate>
+        <div class="auth-error" id="authError" role="alert" aria-live="assertive"></div>
+
+        <div class="form-group">
+          <label class="form-label" for="authEmail">Email</label>
+          <input type="email" class="form-input" id="authEmail" placeholder="you@example.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group" id="authNameGroup" style="display: none;">
+          <label class="form-label" for="authName">Full name</label>
+          <input type="text" class="form-input" id="authName" placeholder="Your name" autocomplete="name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="authPassword">Password</label>
+          <input type="password" class="form-input" id="authPassword" placeholder="At least 4 characters" required minlength="4" autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="authSubmitBtn" style="width: 100%;">Sign in</button>
+      </form>
+
+      <button class="auth-guest-btn" id="authGuestBtn">Continue as guest</button>
+
+      <p class="auth-note">Prototype — no real authentication. Any email and password work.</p>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    // === STATE ===
+    const state = {
+      currentView: 'today',
+      aiPaused: false,
+      quietHours: true,
+      darkMode: localStorage.getItem('orbis-theme') === 'dark',
+      commitments: [
+        { id: 1, text: 'Send revised quote to Northwind', with: 'Northwind Studio', date: '2025-10-20', status: 'open', confidence: 'established', source: 'Email · Oct 15' },
+        { id: 2, text: 'Intro Alex to Maria re: design system', with: 'Alex Chen, Maria Santos', date: '— not stated', status: 'open', confidence: 'proposed', source: 'Slack · Oct 16' },
+        { id: 3, text: 'Review Q4 roadmap draft', with: 'Product team', date: '2025-10-18', status: 'done', confidence: 'established', source: 'Email · Oct 14' },
+        { id: 4, text: 'Follow up on invoice #2847', with: 'Finance', date: '2025-10-17', status: 'overdue', confidence: 'established', source: 'Email · Oct 10' },
+        { id: 5, text: 'Prepare studio visit presentation', with: 'Client', date: '2025-10-25', status: 'open', confidence: 'validation', source: 'WhatsApp · Oct 12' }
+      ],
+      todayItems: [
+        { id: 1, type: 'reply', subject: 'Re: Revised quote timeline', reason: 'Client asked for the revised quote. You said you would send it Friday.', source: 'Gmail · thread "Quote for Northwind" · Oct 15', confidence: 'Suggested — inferred', committed: false, snoozed: false, dismissed: false, hasDate: true },
+        { id: 2, type: 'reply', subject: 'Design system kickoff', reason: 'Meeting invite needs RSVP.', source: 'Slack · #design-system · Oct 16', confidence: 'Suggested — explicit', committed: false, snoozed: false, dismissed: false, hasDate: false },
+        { id: 3, type: 'commitment', subject: 'Send invoice reminder', reason: 'Stated commitment with deadline.', source: 'Email · Oct 10', confidence: 'Committed — stated', committed: false, snoozed: false, dismissed: false, hasDate: true },
+        { id: 4, type: 'reply', subject: 'Re: Portfolio review feedback', reason: 'Direct question requiring response.', source: 'Gmail · Oct 17', confidence: 'Suggested — inferred', committed: false, snoozed: false, dismissed: false, hasDate: false },
+        { id: 5, type: 'commitment', subject: 'Share sprint retrospective notes', reason: 'Team expectation from standup.', source: 'Slack · #team · Oct 18', confidence: 'Committed — stated', committed: false, snoozed: false, dismissed: false, hasDate: true }
+      ],
+      summaries: [
+        {
+          id: 1,
+          title: 'Q4 Roadmap Discussion',
+          participants: 'Product Team',
+          date: 'Oct 14, 2025',
+          mainTopic: 'Prioritization of features for Q4 release cycle.',
+          decisions: ['Feature A moved to Q1 2026', 'Feature B fast-tracked for November', 'Design review scheduled for Oct 22'],
+          openQuestions: ['Resource allocation for Feature B', 'Timeline for user testing'],
+          facts: ['Q4 release planned for December 15', 'Team capacity at 85%', 'Feature A depends on API v2'],
+          guesses: ['Client may request timeline change', 'Budget approval might slip'],
+          source: 'Slack thread · #product-strategy · Oct 14'
+        },
+        {
+          id: 2,
+          title: 'Northwind Quote Revision',
+          participants: 'You, Maria Santos (Northwind)',
+          date: 'Oct 15, 2025',
+          mainTopic: 'Revised pricing for the design system project.',
+          decisions: ['10% discount applied for annual contract', 'Payment terms: Net 30', 'Kickoff call scheduled'],
+          openQuestions: ['Final deliverable format', 'Number of revision rounds included'],
+          facts: ['Original quote: $45,000', 'Revised quote: $40,500', 'Annual contract committed'],
+          guesses: ['Client comparing with other vendors', 'May request additional services'],
+          source: 'Gmail thread · "Quote for Northwind" · Oct 15'
+        }
+      ],
+      drafts: [
+        {
+          id: 1,
+          recipient: 'Maria Santos',
+          subject: 'Re: Revised quote timeline',
+          text: 'Hi Maria,\n\nThanks for your patience. I\'ve attached the revised quote with the 10% annual discount applied.\n\nKey changes:\n- Total: $40,500 (was $45,000)\n- Payment terms: Net 30\n- Includes 3 revision rounds\n\nLet me know if you have any questions. Ready to kick off whenever you are.\n\nBest,\nAlex',
+          reason: 'Responding to quote request with revised pricing.',
+          source: 'Gmail · thread "Quote for Northwind"'
+        },
+        {
+          id: 2,
+          recipient: 'Team',
+          subject: 'Re: Design system kickoff',
+          text: 'Hey team,\n\nCount me in for the design system kickoff. I\'ve reviewed the initial docs and have a few thoughts:\n\n1. Should we align with Material Design tokens?\n2. Can we schedule weekly syncs?\n3. I can own the documentation piece.\n\nSee you Thursday!\n\n— Alex',
+          reason: 'RSVP to meeting with added context.',
+          source: 'Slack · #design-system · Oct 16'
+        }
+      ],
+      cultureRules: [
+        { id: 1, title: 'Working hours', text: 'Core hours are 10:00-16:00. Flexible outside these hours.', why: 'Ensures overlap for collaboration while respecting individual schedules.' },
+        { id: 2, title: 'Tone of messages', text: 'Direct but kind. Assume positive intent.', why: 'Reduces ambiguity while maintaining psychological safety.' },
+        { id: 3, title: 'Approval steps', text: 'Design decisions need 2 approvals. Code needs 1.', why: 'Balances quality with velocity.' },
+        { id: 4, title: 'Quiet-hour defaults', text: 'No notifications 22:00-08:00 unless marked urgent.', why: 'Protects focus time and work-life boundaries.' }
+      ],
+      auditLog: [
+        { actor: 'you', action: 'exported data', time: 'Oct 18, 14:32', object: 'growth-data.json' },
+        { actor: 'you', action: 'connected source', time: 'Oct 15, 09:15', object: 'Gmail' },
+        { actor: 'you', action: 'updated Aura', time: 'Oct 12, 16:45', object: 'profile' },
+        { actor: 'system', action: 'deleted expired refs', time: 'Oct 10, 03:00', object: '47 items' },
+        { actor: 'you', action: 'enabled quiet hours', time: 'Oct 8, 22:00', object: 'settings' }
+      ],
+      sources: {
+        gmail: true,
+        whatsapp: false,
+        slack: false
+      },
+      aura: {
+        workStyle: 'collaborative',
+        strengths: ['Strategic thinking', 'Clear communication'],
+        growthEdges: 'Delegating earlier when workload increases',
+        archetype: { name: 'Indigo', color: '#4F46E5' },
+        portfolio: [
+          { title: 'Senior Product Designer at Northwind Studio', url: 'https://northwind.example', shared: true }
+        ]
+      },
+      growth: {
+        sessions: [
+          { date: 'Oct 17', category: 'Deep work', output: 'Feature spec doc', reflection: 'Good flow state' },
+          { date: 'Oct 18', category: 'Learning', output: 'Watched 2 lectures', reflection: 'Took notes' },
+          { date: 'Oct 19', category: 'Deep work', output: 'Prototype v1', reflection: 'Blocked on API' }
+        ],
+        review: null
+      },
+      work: {
+        roles: [
+          { id: 1, title: 'Senior Product Designer', company: 'Acme Corp', requirements: ['5+ years UX', 'Design systems', 'Figma'], posted: 'Oct 18' },
+          { id: 2, title: 'Frontend Lead', company: 'TechStart', requirements: ['React', 'TypeScript', 'Team leadership'], posted: 'Oct 16' },
+          { id: 3, title: 'UX Researcher', company: 'DataCo', requirements: ['User research', 'Qualitative analysis', 'Workshop facilitation'], posted: 'Oct 14' }
+        ],
+        interests: []
+      }
+    };
+
+    // === UTILS ===
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const escapeHtml = (str) => String(str == null ? '' : str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    function showToast(message) {
+      const container = $('#toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    function confirmDialog(message) {
+      return new Promise((resolve) => {
+        $('#confirmMessage').textContent = message;
+        $('#confirmOverlay').classList.add('show');
+        const cleanup = () => {
+          $('#confirmOverlay').classList.remove('show');
+          $('#confirmOk').onclick = null;
+          $('#confirmCancel').onclick = null;
+        };
+        $('#confirmOk').onclick = () => { cleanup(); resolve(true); };
+        $('#confirmCancel').onclick = () => { cleanup(); resolve(false); };
+      });
+    }
+
+    // === API + PERSISTENCE ===
+    const API_BASE = location.protocol === 'file:' ? 'http://127.0.0.1:8765/api' : location.origin + '/api';
+    let dataSource = 'local';
+    let persistDebounceTimer = null;
+    let lastPersistedState = null;
+
+    async function apiGet(path) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 1500);
+      try {
+        const res = await fetch(API_BASE + path, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (e) {
+        clearTimeout(timeout);
+        throw e;
+      }
+    }
+
+    async function apiPut(collection, value) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 1500);
+      try {
+        const res = await fetch(API_BASE + '/' + collection, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(value),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (e) {
+        clearTimeout(timeout);
+        throw e;
+      }
+    }
+
+    function getSettings() {
+      return { aiPaused: state.aiPaused, quietHours: state.quietHours, darkMode: state.darkMode };
+    }
+
+    function hydrateFromServer(serverState) {
+      if (serverState.queue) state.todayItems = serverState.queue;
+      if (serverState.commitments) state.commitments = serverState.commitments;
+      if (serverState.aura) state.aura = serverState.aura;
+      if (serverState.culture && serverState.culture.rules) state.cultureRules = serverState.culture.rules;
+      if (serverState.growth) state.growth = serverState.growth;
+      if (serverState.sources) state.sources = serverState.sources;
+      if (serverState.audit) state.auditLog = serverState.audit;
+      if (serverState.settings) {
+        if (typeof serverState.settings.aiPaused === 'boolean') state.aiPaused = serverState.settings.aiPaused;
+        if (typeof serverState.settings.quietHours === 'boolean') state.quietHours = serverState.settings.quietHours;
+        if (typeof serverState.settings.darkMode === 'boolean') state.darkMode = serverState.settings.darkMode;
+      }
+      if (serverState.work) state.work = serverState.work;
+      if (serverState.summaries) state.summaries = serverState.summaries;
+      if (serverState.drafts) state.drafts = serverState.drafts;
+    }
+
+    async function hydrate() {
+      try {
+        const serverState = await apiGet('/state');
+        hydrateFromServer(serverState);
+        dataSource = 'server';
+        updateConnectionBadge(true, 'Saved to server');
+      } catch (e) {
+        dataSource = 'local';
+        try {
+          const local = localStorage.getItem('orbis-state');
+          if (local) {
+            const parsed = JSON.parse(local);
+            hydrateFromServer(parsed);
+          }
+        } catch (localErr) {
+          // Keep built-in mock data
+        }
+        updateConnectionBadge(false, 'Local mode — not saved');
+      }
+    }
+
+    function buildStateSnapshot() {
+      return {
+        queue: state.todayItems,
+        commitments: state.commitments,
+        aura: state.aura,
+        culture: { rules: state.cultureRules },
+        growth: state.growth,
+        sources: state.sources,
+        audit: state.auditLog,
+        settings: getSettings(),
+        work: state.work,
+        summaries: state.summaries,
+        drafts: state.drafts
+      };
+    }
+
+    function updateConnectionBadge(isServer, message) {
+      const badge = $('#connectionBadge');
+      if (!badge) return;
+      badge.classList.toggle('connected', isServer);
+      badge.classList.toggle('disconnected', !isServer);
+      badge.innerHTML = isServer
+        ? '<span style="width:8px;height:8px;background:var(--ok);border-radius:50%;display:inline-block;"></span><span style="font-size:12px;">Saved to server</span>'
+        : '<span style="width:8px;height:8px;background:var(--warm);border-radius:50%;display:inline-block;"></span><span style="font-size:12px;">Local mode</span>';
+      badge.setAttribute('aria-label', message);
+    }
+
+    function announcePersist(success, local) {
+      const region = $('#persistAnnounce');
+      if (!region) return;
+      region.textContent = success ? (local ? 'Saved locally' : 'Saved to server') : 'Save failed';
+    }
+
+    function doPersist(collection) {
+      const snapshot = buildStateSnapshot();
+      if (dataSource === 'server') {
+        apiPut(collection, snapshot[collection]).then(() => {
+          updateConnectionBadge(true, 'Saved to server');
+          announcePersist(true, false);
+        }).catch(() => {
+          localStorage.setItem('orbis-state', JSON.stringify(snapshot));
+          updateConnectionBadge(false, 'Saved locally (server failed)');
+          announcePersist(true, true);
+        });
+      } else {
+        localStorage.setItem('orbis-state', JSON.stringify(snapshot));
+        announcePersist(true, true);
+      }
+    }
+
+    function persist(collection) {
+      clearTimeout(persistDebounceTimer);
+      persistDebounceTimer = setTimeout(() => doPersist(collection), 250);
+    }
+
+    // === RENDERERS ===
+    function renderToday() {
+      const container = $('#todayContent');
+      if (state.aiPaused) {
+        container.innerHTML = `
+          <div class="ai-paused-state card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p><strong>AI paused</strong></p>
+            <p style="font-size: 13px; margin-top: 8px;">AI-powered suggestions are disabled. Enable the AI kill switch to see follow-up recommendations.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const doneCount = state.todayItems.filter(i => i.committed && !i.dismissed && !i.snoozed).length;
+      const needReply = state.todayItems.filter(i => i.type === 'reply' && !i.dismissed && !i.snoozed).length;
+      const commitmentsDue = state.todayItems.filter(i => i.type === 'commitment' && !i.dismissed && !i.snoozed).length;
+
+      $('#todaySummary').innerHTML = `
+        <div class="summary-item"><strong>${needReply}</strong> need a reply</div>
+        <div class="summary-item"><strong>${commitmentsDue}</strong> commitments due</div>
+        ${doneCount > 0 ? `<div class="summary-item"><strong>${doneCount}</strong> done today ✓</div>` : ''}
+      `;
+
+      container.innerHTML = state.todayItems
+        .filter(i => !i.dismissed)
+        .map(item => `
+          <div class="card suggestion-card ${item.type === 'commitment' ? 'committed' : ''} ${item.snoozed ? 'snoozed' : ''}" data-id="${item.id}">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${escapeHtml(item.subject)}</div>
+                <div class="card-subtitle">${item.hasDate ? 'Date stated in message' : 'No date stated'}</div>
+              </div>
+              <span class="badge ${item.confidence.includes('Committed') ? 'badge-established' : item.confidence.includes('explicit') ? 'badge-proposed' : 'badge-validation'}">
+                ${item.confidence}
+              </span>
+            </div>
+            <div style="font-size: 14px; margin-bottom: 8px;">${escapeHtml(item.reason)}</div>
+            <span class="source-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ${escapeHtml(item.source)}
+            </span>
+            <div class="why-section">
+              <button class="why-toggle" onclick="toggleWhy(${item.id})">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Why this?
+              </button>
+              <div class="why-content" id="why-${item.id}">
+                <div class="reason-line"><strong>Reason:</strong> ${escapeHtml(item.reason)}</div>
+                <div><strong>Source:</strong> ${escapeHtml(item.source)}</div>
+              </div>
+            </div>
+            ${!item.snoozed ? `
+            <div class="suggestion-actions">
+              <button class="btn btn-primary btn-sm" onclick="confirmToday(${item.id})">Confirm</button>
+              <button class="btn btn-secondary btn-sm" onclick="openDraftModal(${item.id})">Edit</button>
+              <button class="btn btn-secondary btn-sm" onclick="snoozeToday(${item.id})">Snooze</button>
+              <button class="btn btn-ghost btn-sm" onclick="dismissToday(${item.id})">Dismiss</button>
+            </div>
+            ` : `<div style="margin-top: 12px; font-size: 13px; color: var(--muted);"><strong>Snoozed</strong> — will reappear later</div>`}
+          </div>
+        `).join('');
+    }
+
+    function toggleWhy(id) {
+      const content = $(`#why-${id}`);
+      content.classList.toggle('expanded');
+    }
+
+    function confirmToday(id) {
+      const item = state.todayItems.find(i => i.id === id);
+      if (item) {
+        item.committed = true;
+        renderToday();
+        persist('queue');
+        showToast('Commitment marked done');
+      }
+    }
+
+    function snoozeToday(id) {
+      const item = state.todayItems.find(i => i.id === id);
+      if (item) {
+        item.snoozed = true;
+        renderToday();
+        persist('queue');
+        showToast('Snoozed — will reappear later');
+      }
+    }
+
+    function dismissToday(id) {
+      const item = state.todayItems.find(i => i.id === id);
+      if (item) {
+        item.dismissed = true;
+        renderToday();
+        persist('queue');
+        showToast('Dismissed — Orbis will learn from this');
+      }
+    }
+
+    function renderCommitments(filter = 'all') {
+      const tbody = $('#commitmentsBody');
+      const filtered = state.commitments.filter(c => {
+        if (filter === 'all') return true;
+        return c.status === filter;
+      });
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr>
+          <td data-label="Commitment">${escapeHtml(c.text)}</td>
+          <td data-label="With">${escapeHtml(c.with)}</td>
+          <td data-label="Stated date">${escapeHtml(c.date)}${c.date === '— not stated' ? '<br><span style="font-size: 11px; color: var(--muted);">Dates are used only when stated.</span>' : ''}</td>
+          <td data-label="Status">
+            <div class="status-menu">
+              <button class="status-menu-btn" onclick="toggleStatusDropdown(${c.id})">
+                ${c.status} ▼
+              </button>
+              <div class="status-dropdown" id="status-${c.id}">
+                <button onclick="updateCommitmentStatus(${c.id}, 'open')">Open</button>
+                <button onclick="updateCommitmentStatus(${c.id}, 'done')">Done</button>
+                <button onclick="updateCommitmentStatus(${c.id}, 'overdue')">Overdue</button>
+              </div>
+            </div>
+          </td>
+          <td data-label="Confidence"><span class="badge badge-${c.confidence}">${c.confidence}</span></td>
+          <td data-label="Source"><button class="btn btn-ghost btn-sm" onclick="openSourceDrawer('${escapeHtml(c.source)}', '${escapeHtml(c.text)}')">View source →</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleStatusDropdown(id) {
+      $$('.status-dropdown').forEach(d => {
+        if (d.id !== `status-${id}`) d.classList.remove('show');
+      });
+      $(`#status-${id}`).classList.toggle('show');
+    }
+
+    function updateCommitmentStatus(id, status) {
+      const c = state.commitments.find(x => x.id === id);
+      if (c) {
+        c.status = status;
+        renderCommitments($('.filter-chip.active').dataset.filter);
+        persist('commitments');
+        showToast(`Commitment marked as ${status}`);
+      }
+      $$('.status-dropdown').forEach(d => d.classList.remove('show'));
+    }
+
+    function openSourceDrawer(source, message) {
+      $('#drawerSender').textContent = 'Unknown sender';
+      $('#drawerTimestamp').textContent = 'Date unknown';
+      $('#drawerContent').textContent = `Source: ${source}\n\n[Mock message content would appear here. This is a prototype demo.]`;
+      $('#drawerTitle').textContent = 'Source Message';
+      $('#drawer').classList.add('show');
+      $('#drawerOverlay').classList.add('show');
+    }
+
+    function renderSearch(query = '') {
+      const container = $('#searchResults');
+      if (!query.trim()) {
+        container.innerHTML = '<div class="search-empty">Ask in plain words — e.g. "what did I promise the studio about the invoice?"</div>';
+        return;
+      }
+
+      const mockMessages = [
+        { id: 1, sender: 'Maria Santos', date: 'Oct 15, 2025', text: 'Hi Alex, could you send over the revised quote by Friday? We need it for the budget review.', tags: ['quote', 'deadline', 'northwind'] },
+        { id: 2, sender: 'Product Team', date: 'Oct 14, 2025', text: 'Q4 roadmap discussion: Feature A moved to Q1, Feature B fast-tracked for November.', tags: ['roadmap', 'q4', 'planning'] },
+        { id: 3, sender: 'Finance', date: 'Oct 10, 2025', text: 'Reminder: Invoice #2847 is due for payment. Please follow up with the client.', tags: ['invoice', 'payment', 'followup'] },
+        { id: 4, sender: 'Alex Chen', date: 'Oct 16, 2025', text: 'Can you intro me to Maria? I\'d love to discuss the design system collaboration.', tags: ['intro', 'design-system'] },
+        { id: 5, sender: 'You', date: 'Oct 12, 2025', text: 'I promised the studio we would deliver the first milestone by end of month.', tags: ['promise', 'milestone', 'studio'] }
+      ];
+
+      const results = mockMessages.filter(m =>
+        m.text.toLowerCase().includes(query.toLowerCase()) ||
+        m.tags.some(t => t.includes(query.toLowerCase())) ||
+        m.sender.toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (results.length === 0) {
+        container.innerHTML = '<div class="search-empty">No results found. Try a different search term.</div>';
+        return;
+      }
+
+      const highlight = (text, q) => {
+        const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
+      };
+
+      container.innerHTML = `
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">${results.length} result${results.length !== 1 ? 's' : ''} found</div>
+        ${results.map(m => `
+          <div class="search-result-item">
+            <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(m.sender)}</div>
+            <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">${m.date}</div>
+            <div style="font-size: 14px; line-height: 1.5;">${highlight(escapeHtml(m.text), query)}</div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function renderSummaries() {
+      const container = $('#summariesContent');
+      if (state.aiPaused) {
+        container.innerHTML = `
+          <div class="ai-paused-state card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p><strong>AI paused</strong></p>
+            <p style="font-size: 13px; margin-top: 8px;">Thread summaries are disabled while AI is paused.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.summaries.map(s => `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${escapeHtml(s.title)}</div>
+              <div class="card-subtitle">${s.participants} · ${s.date}</div>
+            </div>
+            <span class="source-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ${escapeHtml(s.source)}
+            </span>
+          </div>
+          <div class="summary-block">
+            <h4>Main topic</h4>
+            <div>${escapeHtml(s.mainTopic)}</div>
+          </div>
+          <div class="summary-block">
+            <h4>Decisions</h4>
+            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+              ${s.decisions.map(d => `<li>${escapeHtml(d)}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="summary-block">
+            <h4>Open questions</h4>
+            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+              ${s.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="summary-block">
+            <div class="facts-guesses">
+              <div>
+                <h4>Facts</h4>
+                <ul class="facts-list">
+                  ${s.facts.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+                </ul>
+              </div>
+              <div>
+                <h4>Guesses</h4>
+                <ul class="guesses-list">
+                  ${s.guesses.map(g => `<li>${escapeHtml(g)}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+            <div class="guesses-note">Inferred items are labelled as suggestions, never as facts.</div>
+          </div>
+          <div class="why-section">
+            <button class="why-toggle" onclick="toggleSummaryWhy(${s.id})">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Why this summary?
+            </button>
+            <div class="why-content" id="summary-why-${s.id}">
+              <div><strong>Source:</strong> ${escapeHtml(s.source)}</div>
+              <div><strong>Generated:</strong> Automatically from thread activity</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleSummaryWhy(id) {
+      const content = $(`#summary-why-${id}`);
+      content.classList.toggle('expanded');
+    }
+
+    function renderDrafts() {
+      const container = $('#draftsContent');
+      if (state.aiPaused) {
+        container.innerHTML = `
+          <div class="ai-paused-state card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p><strong>AI paused</strong></p>
+            <p style="font-size: 13px; margin-top: 8px;">Draft suggestions are disabled while AI is paused.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.drafts.map(d => `
+        <div class="card draft-card" data-id="${d.id}">
+          <div class="card-header">
+            <div>
+              <div class="card-title">To: ${escapeHtml(d.recipient)}</div>
+              <div class="card-subtitle">${escapeHtml(d.subject)}</div>
+            </div>
+          </div>
+          <div class="draft-text">${escapeHtml(d.text)}</div>
+          <span class="source-chip" style="margin-bottom: 12px;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${escapeHtml(d.source)}
+          </span>
+          <div class="why-section">
+            <button class="why-toggle" onclick="toggleDraftWhy(${d.id})">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Why this draft?
+            </button>
+            <div class="why-content" id="draft-why-${d.id}">
+              <div><strong>Reason:</strong> ${escapeHtml(d.reason)}</div>
+              <div><strong>Source:</strong> ${escapeHtml(d.source)}</div>
+            </div>
+          </div>
+          <div class="suggestion-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openDraftEditModal(${d.id})">Edit</button>
+            <button class="btn btn-primary btn-sm" onclick="approveDraft(${d.id})">Approve &amp; copy</button>
+            <button class="btn btn-ghost btn-sm" onclick="discardDraft(${d.id})">Discard</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleDraftWhy(id) {
+      const content = $(`#draft-why-${id}`);
+      content.classList.toggle('expanded');
+    }
+
+    let currentDraftId = null;
+
+    function openDraftModal(id) {
+      currentDraftId = id;
+      const item = state.todayItems.find(i => i.id === id);
+      if (item) {
+        $('#draftText').value = `Re: ${item.subject}\n\n[Draft your response here...]`;
+        $('#modalTitle').textContent = 'Edit Draft';
+        $('#modalOverlay').classList.add('show');
+      }
+    }
+
+    function openDraftEditModal(id) {
+      currentDraftId = id;
+      const draft = state.drafts.find(d => d.id === id);
+      if (draft) {
+        $('#draftText').value = draft.text;
+        $('#modalTitle').textContent = 'Edit Draft';
+        $('#modalOverlay').classList.add('show');
+      }
+    }
+
+    function approveDraft(id) {
+      const draft = state.drafts.find(d => d.id === id);
+      if (draft) {
+        navigator.clipboard?.writeText(draft.text);
+        showToast('Draft copied to clipboard');
+      }
+      $('#modalOverlay').classList.remove('show');
+    }
+
+    function discardDraft(id) {
+      state.drafts = state.drafts.filter(d => d.id !== id);
+      renderDrafts();
+      persist('drafts');
+      showToast('Draft discarded');
+    }
+
+    function renderCulture() {
+      const container = $('#cultureRules');
+      container.innerHTML = state.cultureRules.map(r => `
+        <div class="card rule-card">
+          <div class="card-title">${escapeHtml(r.title)}</div>
+          <div style="font-size: 14px; margin: 8px 0;">${escapeHtml(r.text)}</div>
+          <button class="why-toggle" onclick="toggleRuleWhy(${r.id})">
+            Why it applies to you ▼
+          </button>
+          <div class="rule-why" id="rule-why-${r.id}">${escapeHtml(r.why)}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleRuleWhy(id) {
+      const content = $(`#rule-why-${id}`);
+      content.classList.toggle('expanded');
+    }
+
+    function renderAura() {
+      // Aura is mostly static, just ensure form values are set
+      if (state.aura) {
+        $('#workStyle').value = state.aura.workStyle || 'collaborative';
+        $('#growthEdges').value = state.aura.growthEdges || '';
+        $('#archetypeName').textContent = state.aura.archetype?.name || 'Indigo';
+        // Render strengths tags
+        const strengthsTags = $('#strengthsTags');
+        strengthsTags.querySelectorAll('.tag').forEach(t => t.remove());
+        (state.aura.strengths || []).forEach(s => {
+          const tag = document.createElement('span');
+          tag.className = 'tag';
+          tag.innerHTML = `${escapeHtml(s)}<span class="tag-remove" role="button" tabindex="0">×</span>`;
+          tag.querySelector('.tag-remove').addEventListener('click', () => {
+            tag.remove();
+            persist('aura');
+          });
+          const input = $('#strengthsInput');
+          if (input && input.parentElement === strengthsTags) {
+            strengthsTags.insertBefore(tag, input);
+          } else {
+            strengthsTags.appendChild(tag);
+          }
+        });
+        // Render portfolio
+        const portfolio = $('#portfolioItems');
+        portfolio.innerHTML = '';
+        (state.aura.portfolio || []).forEach((item, idx) => {
+          const div = document.createElement('div');
+          div.className = 'portfolio-item';
+          div.innerHTML = `
+            <input type="text" class="form-input" value="${escapeHtml(item.title || '')}" placeholder="Title" style="flex: 2;">
+            <input type="text" class="form-input" value="${escapeHtml(item.url || '')}" placeholder="Link" style="flex: 1;">
+            <label class="visibility-toggle">
+              <input type="checkbox" ${item.shared ? 'checked' : ''}> Shared <span style="color: var(--muted); font-size: 12px;">(off = private)</span>
+            </label>
+            <button type="button" class="btn btn-ghost btn-sm remove-portfolio" aria-label="Remove item">×</button>
+          `;
+          div.querySelector('.remove-portfolio').addEventListener('click', () => {
+            state.aura.portfolio.splice(idx, 1);
+            renderAura();
+            persist('aura');
+          });
+          portfolio.appendChild(div);
+        });
+        // Highlight selected archetype
+        $$('.archetype-swatch').forEach(s => {
+          const selected = s.dataset.name === (state.aura.archetype?.name || 'Indigo');
+          s.classList.toggle('selected', selected);
+          s.setAttribute('aria-checked', selected ? 'true' : 'false');
+        });
+      }
+    }
+
+    function renderWork() {
+      const container = $('#workRolesList');
+      if (!container) return;
+      const roles = state.work?.roles || [];
+      if (roles.length === 0) {
+        container.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--muted);">No roles available yet.</div>';
+        return;
+      }
+      container.innerHTML = roles.map(r => {
+        const interested = state.work.interests?.includes(r.id);
+        return `
+          <div class="card" style="margin-bottom: 12px;">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${escapeHtml(r.title)}</div>
+                <div class="card-subtitle">${escapeHtml(r.company)}${r.posted ? ' · Posted ' + escapeHtml(r.posted) : ''}</div>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+              ${(r.requirements || []).map(req => `<span class="badge badge-proposed">${escapeHtml(req)}</span>`).join('')}
+            </div>
+            <button class="btn ${interested ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="toggleWorkInterest(${r.id})">
+              ${interested ? 'Interest expressed' : 'Express interest'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleWorkInterest(roleId) {
+      if (!state.work.interests) state.work.interests = [];
+      const idx = state.work.interests.indexOf(roleId);
+      if (idx >= 0) {
+        state.work.interests.splice(idx, 1);
+        showToast('Interest withdrawn');
+      } else {
+        state.work.interests.push(roleId);
+        showToast('Interest expressed — you will be notified');
+      }
+      renderWork();
+      persist('work');
+    }
+
+    function renderPrivacy() {
+      // Privacy view is mostly static
+      renderAuditLog();
+    }
+
+    function renderAuditLog() {
+      // Already rendered in HTML, could be dynamic if needed
+    }
+
+    // === ACCOUNT & SETTINGS ===
+    function getSession() {
+      try {
+        return JSON.parse(localStorage.getItem('orbis-session') || 'null');
+      } catch {
+        return null;
+      }
+    }
+
+    function getInitials(name) {
+      if (!name) return '??';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function renderAccount() {
+      const session = getSession();
+      const name = session?.name || (session?.guest ? 'Guest' : 'User');
+      const email = session?.email || '';
+
+      $('#accountAvatar').textContent = getInitials(name);
+      $('#accountName').textContent = name;
+      $('#accountEmail').textContent = email || 'Not provided';
+
+      $('#accountViewAuraBtn').onclick = () => navigateTo('aura');
+      $('#accountSignOutBtn').onclick = () => signOut();
+    }
+
+    function renderSettings() {
+      // Theme toggle
+      const themeToggle = $('#settingsThemeToggle');
+      themeToggle.classList.toggle('on', state.darkMode);
+      themeToggle.setAttribute('aria-checked', state.darkMode ? 'true' : 'false');
+      themeToggle.onclick = () => {
+        state.darkMode = !state.darkMode;
+        applyTheme();
+        renderSettings();
+        persist('settings');
+      };
+      themeToggle.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          themeToggle.onclick();
+        }
+      };
+
+      // Quiet hours toggle
+      const quietToggle = $('#settingsQuietHoursToggle');
+      quietToggle.classList.toggle('on', state.quietHours);
+      quietToggle.setAttribute('aria-checked', state.quietHours ? 'true' : 'false');
+      quietToggle.onclick = () => {
+        state.quietHours = !state.quietHours;
+        renderSettings();
+        persist('settings');
+        showToast(state.quietHours ? 'Quiet hours ON' : 'Quiet hours OFF');
+      };
+      quietToggle.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          quietToggle.onclick();
+        }
+      };
+
+      // Language select
+      const langSelect = $('#settingsLangSelect');
+      langSelect.value = localStorage.getItem('orbis-lang') || 'en';
+      langSelect.onchange = () => {
+        localStorage.setItem('orbis-lang', langSelect.value);
+        showToast('Language preference saved (prototype)');
+      };
+
+      // Notification toggles
+      const notifData = JSON.parse(localStorage.getItem('orbis-notif') || '{"followups": true, "commitments": true}');
+      const followupsToggle = $('#settingsNotifFollowups');
+      const commitmentsToggle = $('#settingsNotifCommitments');
+
+      followupsToggle.classList.toggle('on', notifData.followups);
+      followupsToggle.setAttribute('aria-checked', notifData.followups ? 'true' : 'false');
+      followupsToggle.onclick = () => {
+        notifData.followups = !notifData.followups;
+        localStorage.setItem('orbis-notif', JSON.stringify(notifData));
+        followupsToggle.classList.toggle('on', notifData.followups);
+        followupsToggle.setAttribute('aria-checked', notifData.followups ? 'true' : 'false');
+      };
+      followupsToggle.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          followupsToggle.onclick();
+        }
+      };
+
+      commitmentsToggle.classList.toggle('on', notifData.commitments);
+      commitmentsToggle.setAttribute('aria-checked', notifData.commitments ? 'true' : 'false');
+      commitmentsToggle.onclick = () => {
+        notifData.commitments = !notifData.commitments;
+        localStorage.setItem('orbis-notif', JSON.stringify(notifData));
+        commitmentsToggle.classList.toggle('on', notifData.commitments);
+        commitmentsToggle.setAttribute('aria-checked', notifData.commitments ? 'true' : 'false');
+      };
+      commitmentsToggle.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          commitmentsToggle.onclick();
+        }
+      };
+
+      // AI Kill Switch
+      const aiToggle = $('#settingsAiKillSwitch');
+      aiToggle.classList.toggle('on', state.aiPaused);
+      aiToggle.setAttribute('aria-checked', state.aiPaused ? 'true' : 'false');
+      aiToggle.onclick = () => {
+        state.aiPaused = !state.aiPaused;
+        updateKillSwitch();
+        renderSettings();
+        persist('settings');
+        showToast(state.aiPaused ? 'AI paused' : 'AI enabled');
+        if (state.currentView === 'today') renderToday();
+        if (state.currentView === 'summaries') renderSummaries();
+        if (state.currentView === 'drafts') renderDrafts();
+      };
+      aiToggle.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          aiToggle.onclick();
+        }
+      };
+
+      // Sign out
+      $('#settingsSignOutBtn').onclick = () => signOut();
+    }
+
+    function signOut() {
+      localStorage.removeItem('orbis-session');
+      showToast('Signed out');
+      $('#authGate').classList.add('show');
+    }
+
+    // === AUTH GATE ===
+    function initAuthGate() {
+      const gate = $('#authGate');
+      const signInBtn = $('#authSignInBtn');
+      const createAccountBtn = $('#authCreateAccountBtn');
+      const nameGroup = $('#authNameGroup');
+      const submitBtn = $('#authSubmitBtn');
+      const form = $('#authForm');
+      const errorEl = $('#authError');
+      const guestBtn = $('#authGuestBtn');
+
+      let isSignIn = true;
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+      }
+
+      function hideError() {
+        errorEl.classList.remove('show');
+      }
+
+      function updateMode() {
+        hideError();
+        if (isSignIn) {
+          signInBtn.classList.add('active');
+          signInBtn.setAttribute('aria-selected', 'true');
+          createAccountBtn.classList.remove('active');
+          createAccountBtn.setAttribute('aria-selected', 'false');
+          nameGroup.style.display = 'none';
+          $('#authName').required = false;
+          submitBtn.textContent = 'Sign in';
+        } else {
+          createAccountBtn.classList.add('active');
+          createAccountBtn.setAttribute('aria-selected', 'true');
+          signInBtn.classList.remove('active');
+          signInBtn.setAttribute('aria-selected', 'false');
+          nameGroup.style.display = 'block';
+          $('#authName').required = true;
+          submitBtn.textContent = 'Create account';
+        }
+      }
+
+      signInBtn.onclick = () => { isSignIn = true; updateMode(); };
+      createAccountBtn.onclick = () => { isSignIn = false; updateMode(); };
+
+      signInBtn.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          signInBtn.onclick();
+        }
+      };
+      createAccountBtn.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          createAccountBtn.onclick();
+        }
+      };
+
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        hideError();
+
+        const email = $('#authEmail').value.trim();
+        const password = $('#authPassword').value;
+        const name = $('#authName').value.trim();
+
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showError('Please enter a valid email address.');
+          $('#authEmail').focus();
+          return;
+        }
+
+        // Validate password
+        if (password.length < 4) {
+          showError('Password must be at least 4 characters.');
+          $('#authPassword').focus();
+          return;
+        }
+
+        // Validate name for create account
+        if (!isSignIn && !name) {
+          showError('Please enter your full name.');
+          $('#authName').focus();
+          return;
+        }
+
+        // Save session
+        const session = {
+          email: email,
+          name: isSignIn ? (name || email.split('@')[0]) : name,
+          guest: false
+        };
+        localStorage.setItem('orbis-session', JSON.stringify(session));
+
+        // Hide gate and navigate
+        gate.classList.remove('show');
+        navigateTo('today');
+        showToast(isSignIn ? 'Welcome back!' : 'Account created!');
+      };
+
+      guestBtn.onclick = () => {
+        localStorage.setItem('orbis-session', JSON.stringify({ guest: true, name: 'Guest' }));
+        gate.classList.remove('show');
+        navigateTo('today');
+        showToast('Continuing as guest');
+      };
+
+      // Check for existing session
+      const existingSession = getSession();
+      if (existingSession) {
+        gate.classList.remove('show');
+      } else {
+        gate.classList.add('show');
+      }
+
+      updateMode();
+    }
+
+    // === NAVIGATION ===
+    function navigateTo(view) {
+      state.currentView = view;
+      $$('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.view === view);
+      });
+      $$('.tab-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.view === view);
+      });
+      $$('.view').forEach(v => {
+        v.classList.toggle('active', v.id === view);
+      });
+
+      // Render view content
+      switch(view) {
+        case 'today': renderToday(); break;
+        case 'commitments': renderCommitments(); break;
+        case 'search': break;
+        case 'summaries': renderSummaries(); break;
+        case 'drafts': renderDrafts(); break;
+        case 'aura': renderAura(); break;
+        case 'culture': renderCulture(); break;
+        case 'growth': break;
+        case 'privacy': renderPrivacy(); break;
+        case 'work': renderWork(); break;
+        case 'account': renderAccount(); break;
+        case 'settings': renderSettings(); break;
+      }
+
+      // Update URL hash without scrolling
+      history.replaceState(null, '', `#${view}`);
+    }
+
+    // === EVENT LISTENERS ===
+    function initNavigation() {
+      // Hash routing
+      window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.slice(1) || 'today';
+        if ($(`#${hash}`)) navigateTo(hash);
+      });
+
+      // Initial route
+      const initialHash = window.location.hash.slice(1) || 'today';
+      if ($(`#${initialHash}`)) {
+        navigateTo(initialHash);
+      } else {
+        navigateTo('today');
+      }
+
+      // Nav item clicks
+      $$('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          navigateTo(item.dataset.view);
+        });
+        item.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigateTo(item.dataset.view);
+          }
+        });
+      });
+
+      // Tab bar clicks
+      $$('.tab-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (item.classList.contains('tab-more')) {
+            // Open sidebar drawer
+            const sidebar = $('#sidebar');
+            sidebar.classList.toggle('show');
+          } else {
+            navigateTo(item.dataset.view);
+          }
+        });
+        item.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (item.classList.contains('tab-more')) {
+              const sidebar = $('#sidebar');
+              sidebar.classList.toggle('show');
+            } else {
+              navigateTo(item.dataset.view);
+            }
+          }
+        });
+      });
+    }
+
+    // === TOP BAR ===
+    function initTopBar() {
+      // Theme toggle
+      const themeToggle = $('#themeToggle');
+      const themeIcon = $('#themeIcon');
+
+      function applyTheme() {
+        document.documentElement.setAttribute('data-theme', state.darkMode ? 'dark' : 'light');
+        themeIcon.innerHTML = state.darkMode
+          ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>'
+          : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+        localStorage.setItem('orbis-theme', state.darkMode ? 'dark' : 'light');
+      }
+
+      themeToggle.addEventListener('click', () => {
+        state.darkMode = !state.darkMode;
+        applyTheme();
+        persist('settings');
+      });
+
+      applyTheme();
+
+      // Quiet hours toggle
+      const quietToggle = $('#quietHoursToggle');
+      quietToggle.addEventListener('click', () => {
+        state.quietHours = !state.quietHours;
+        quietToggle.classList.toggle('active', state.quietHours);
+        quietToggle.setAttribute('aria-pressed', state.quietHours);
+        persist('settings');
+        showToast(state.quietHours ? 'Quiet hours ON' : 'Quiet hours OFF');
+      });
+
+      // Kill switch
+      const killSwitch = $('#killSwitch');
+      const killSwitchText = $('#killSwitchText');
+      const privacyKillSwitch = $('#privacyKillSwitch');
+
+      function updateKillSwitch() {
+        killSwitch.classList.toggle('paused', state.aiPaused);
+        killSwitchText.textContent = state.aiPaused ? 'AI paused' : 'AI active';
+        privacyKillSwitch.textContent = state.aiPaused ? 'AI paused' : 'AI active';
+        privacyKillSwitch.classList.toggle('btn-primary', !state.aiPaused);
+        privacyKillSwitch.classList.toggle('btn-secondary', state.aiPaused);
+      }
+
+      function toggleAiPaused() {
+        state.aiPaused = !state.aiPaused;
+        updateKillSwitch();
+        persist('settings');
+        showToast(state.aiPaused ? 'AI paused' : 'AI enabled');
+        // Re-render affected views
+        if (state.currentView === 'today') renderToday();
+        if (state.currentView === 'summaries') renderSummaries();
+        if (state.currentView === 'drafts') renderDrafts();
+      }
+
+      killSwitch.addEventListener('click', toggleAiPaused);
+      privacyKillSwitch.addEventListener('click', toggleAiPaused);
+
+      // Search focus shortcut
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          $('#topSearch').focus();
+        }
+      });
+
+      // Top search sync with search view
+      $('#topSearch').addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (state.currentView === 'search') {
+          $('#searchInput').value = query;
+          renderSearch(query);
+        }
+      });
+
+      $('#searchInput').addEventListener('input', (e) => {
+        const query = e.target.value;
+        $('#topSearch').value = query;
+        renderSearch(query);
+      });
+    }
+
+    // === MOBILE ===
+    function initMobile() {
+      const hamburger = $('#hamburger');
+      const sidebar = $('#sidebar');
+      const drawerOverlay = $('#drawerOverlay');
+
+      hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+      });
+
+      drawerOverlay.addEventListener('click', () => {
+        $('#drawer').classList.remove('show');
+        drawerOverlay.classList.remove('show');
+      });
+
+      $('#drawerClose').addEventListener('click', () => {
+        $('#drawer').classList.remove('show');
+        drawerOverlay.classList.remove('show');
+      });
+    }
+
+    // === MODAL ===
+    function initModal() {
+      const overlay = $('#modalOverlay');
+      const closeBtn = $('#modalClose');
+      const cancelBtn = $('#modalCancel');
+      const copyBtn = $('#modalCopy');
+      const sendBtn = $('#modalSend');
+
+      function closeModal() {
+        overlay.classList.remove('show');
+        currentDraftId = null;
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+
+      copyBtn.addEventListener('click', () => {
+        const text = $('#draftText').value;
+        navigator.clipboard?.writeText(text);
+        showToast('Draft copied to clipboard');
+        closeModal();
+      });
+
+      sendBtn.addEventListener('click', async () => {
+        const confirmed = await confirmDialog('Nothing is sent without your approval. Confirm send (prototype)?');
+        if (confirmed) {
+          showToast('Send (prototype) — draft saved');
+          closeModal();
+        }
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+
+      // Confirm modal
+      const confirmOverlay = $('#confirmOverlay');
+      $('#confirmClose').addEventListener('click', () => {
+        confirmOverlay.classList.remove('show');
+      });
+      $('#confirmCancel').addEventListener('click', () => {
+        confirmOverlay.classList.remove('show');
+      });
+    }
+
+    // === AURA ===
+    function initAura() {
+      // Archetype selection
+      $$('.archetype-swatch').forEach(swatch => {
+        swatch.title = swatch.dataset.name;
+        swatch.setAttribute('aria-checked', swatch.classList.contains('selected') ? 'true' : 'false');
+        swatch.addEventListener('click', () => {
+          $$('.archetype-swatch').forEach(s => { s.classList.remove('selected'); s.setAttribute('aria-checked', 'false'); });
+          swatch.classList.add('selected');
+          swatch.setAttribute('aria-checked', 'true');
+          $('#archetypeName').textContent = swatch.dataset.name;
+          if (!state.aura) state.aura = {};
+          state.aura.archetype = { name: swatch.dataset.name, color: swatch.dataset.color };
+          persist('aura');
+        });
+        swatch.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            swatch.click();
+          }
+        });
+      });
+
+      // Tag input
+      const strengthsInput = $('#strengthsInput');
+      const strengthsTags = $('#strengthsTags');
+
+      strengthsInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const value = strengthsInput.value.trim();
+          if (value) {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML = `${escapeHtml(value)}<span class="tag-remove" role="button" tabindex="0">×</span>`;
+            tag.querySelector('.tag-remove').addEventListener('click', () => tag.remove());
+            strengthsTags.insertBefore(tag, strengthsInput);
+            strengthsInput.value = '';
+          }
+        }
+      });
+
+      // Tag removal
+      strengthsTags.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tag-remove')) {
+          e.target.parentElement.remove();
+        }
+      });
+
+      // Portfolio
+      $('#addPortfolioItem').addEventListener('click', () => {
+        const container = $('#portfolioItems');
+        const item = document.createElement('div');
+        item.className = 'portfolio-item';
+        item.innerHTML = `
+          <input type="text" class="form-input" placeholder="Title" style="flex: 2;">
+          <input type="text" class="form-input" placeholder="Link" style="flex: 1;">
+          <label class="visibility-toggle">
+            <input type="checkbox" checked> Shared <span style="color: var(--muted); font-size: 12px;">(off = private)</span>
+          </label>
+          <button type="button" class="btn btn-ghost btn-sm remove-portfolio" aria-label="Remove item">×</button>
+        `;
+        item.querySelector('.remove-portfolio').addEventListener('click', () => item.remove());
+        container.appendChild(item);
+      });
+
+      // Form submit
+      $('#auraForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const workStyle = $('#workStyle').value;
+        const growthEdges = $('#growthEdges').value;
+        const strengths = Array.from($('#strengthsTags').querySelectorAll('.tag')).map(t => t.childNodes[0]?.textContent?.trim() || '').filter(Boolean);
+        const portfolio = Array.from($('#portfolioItems').querySelectorAll('.portfolio-item')).map(item => ({
+          title: item.querySelector('input[type="text"]').value,
+          url: item.querySelectorAll('input[type="text"]')[1]?.value || '',
+          shared: item.querySelector('input[type="checkbox"]').checked
+        }));
+        const archetype = state.aura?.archetype || { name: 'Indigo', color: '#4F46E5' };
+        state.aura = { workStyle, strengths, growthEdges, portfolio, archetype };
+        persist('aura');
+        showToast('Aura saved');
+      });
+    }
+
+    // === CULTURE ===
+    function initCulture() {
+      const roleView = $('#roleView');
+      const adminNotice = $('#adminNotice');
+      const adminSection = $('#adminSection');
+
+      roleView.addEventListener('change', () => {
+        const isAdmin = roleView.value === 'admin';
+        adminNotice.style.display = isAdmin ? 'block' : 'none';
+        adminSection.style.display = isAdmin ? 'block' : 'none';
+      });
+
+      $('#addRuleForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = $('#newRuleTitle').value;
+        const text = $('#newRuleText').value;
+        const why = $('#newRuleWhy').value;
+
+        if (title && text && why) {
+          state.cultureRules.push({ id: Date.now(), title, text, why });
+          renderCulture();
+          persist('culture');
+          showToast('Rule added');
+          e.target.reset();
+        }
+      });
+    }
+
+    // === GROWTH ===
+    function initGrowth() {
+      // Weekly review
+      $('#weeklyReviewForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!state.growth) state.growth = { sessions: [], review: null };
+        state.growth.review = {
+          output: $('#reviewOutput').value,
+          blockers: $('#reviewBlockers').value,
+          energy: $('#reviewEnergy').value,
+          date: new Date().toISOString()
+        };
+        persist('growth');
+        showToast('Weekly review saved');
+      });
+
+      // Progress card toggle
+      $('#progressCardToggle').addEventListener('change', (e) => {
+        $('#progressCardPreview').style.display = e.target.checked ? 'block' : 'none';
+      });
+
+      // Share progress
+      $('#shareProgressBtn').addEventListener('click', () => {
+        showToast('Shared with 0 people (you control this)');
+      });
+
+      // Export growth
+      $('#exportGrowthBtn').addEventListener('click', () => {
+        const data = {
+          exported: new Date().toISOString(),
+          sessions: [
+            { date: 'Oct 17', category: 'Deep work', output: 'Feature spec doc', reflection: 'Good flow state' },
+            { date: 'Oct 18', category: 'Learning', output: 'Watched 2 lectures', reflection: 'Took notes' },
+            { date: 'Oct 19', category: 'Deep work', output: 'Prototype v1', reflection: 'Blocked on API' }
+          ],
+          keyResults: [
+            { metric: 'Ship 4 major features', current: 3, target: 4 },
+            { metric: 'Reduce meeting time 30%', current: '22%', target: '30%' }
+          ],
+          metrics: {
+            planningTime: { baseline: '45 min/day', current: '25 min/day', change: '-20 min' },
+            timeToStart: { baseline: '2.5 hrs', current: '1.2 hrs', change: '-1.3 hrs' },
+            completionRate: { baseline: '62%', current: '78%', change: '+16%' },
+            consistency: { baseline: '3.2 days/wk', current: '4.5 days/wk', change: '+1.3 days' }
+          }
+        };
+        downloadJson(data, 'orbis-growth-data.json');
+        showToast('Data exported');
+      });
+
+      // Add session
+      $('#addSessionBtn').addEventListener('click', async () => {
+        const date = prompt('Date (e.g., Oct 20):');
+        if (!date) return;
+        const category = prompt('Category (e.g., Deep work, Learning):');
+        if (!category) return;
+        const output = prompt('Output:');
+        if (!output) return;
+        const reflection = prompt('Reflection:') || '';
+
+        if (!state.growth) state.growth = { sessions: [], review: null };
+        state.growth.sessions.unshift({ date, category, output, reflection });
+
+        const container = $('.session-log');
+        const row = document.createElement('div');
+        row.className = 'session-row';
+        row.innerHTML = `
+          <div>${escapeHtml(date)}</div>
+          <div>${escapeHtml(category)}</div>
+          <div>${escapeHtml(output)}</div>
+          <div>${escapeHtml(reflection)}</div>
+        `;
+        container.insertBefore(row, container.querySelector('.session-header').nextSibling);
+
+        const current = parseInt($('#focusMinutes').textContent);
+        $('#focusMinutes').textContent = current + 45;
+        persist('growth');
+        showToast('Session added');
+      });
+    }
+
+    // === PRIVACY ===
+    function initPrivacy() {
+      // Source connections
+      $$('#sourcesList button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const source = btn.dataset.source;
+          const connected = btn.dataset.connected === 'true';
+
+          state.sources[source] = !connected;
+          btn.dataset.connected = String(!connected);
+          btn.textContent = !connected ? 'Disconnect' : 'Connect';
+          btn.classList.toggle('btn-primary', connected);
+          btn.classList.toggle('btn-secondary', !connected);
+
+          const statusEl = btn.parentElement.querySelector('.source-status');
+          statusEl.textContent = !connected ? 'Connected' : 'Not connected';
+          statusEl.classList.toggle('connected', !connected);
+          statusEl.classList.toggle('disconnected', connected);
+
+          persist('sources');
+          showToast(`${source} ${!connected ? 'connected' : 'disconnected'}`);
+        });
+      });
+
+      // Sensitive content detection
+      const sensitiveDemo = $('#sensitiveDemo');
+      const sensitiveWarning = $('#sensitiveWarning');
+      const sensitiveWords = ['health', 'religion', 'politics', 'medical', 'faith', 'political'];
+
+      sensitiveDemo.addEventListener('input', () => {
+        const text = sensitiveDemo.value.toLowerCase();
+        const hasSensitive = sensitiveWords.some(word => text.includes(word));
+        sensitiveWarning.classList.toggle('show', hasSensitive);
+      });
+
+      // Export all data
+      $('#exportAllData').addEventListener('click', () => {
+        const data = {
+          exported: new Date().toISOString(),
+          commitments: state.commitments,
+          todayItems: state.todayItems,
+          summaries: state.summaries,
+          drafts: state.drafts,
+          cultureRules: state.cultureRules,
+          auditLog: state.auditLog,
+          sources: state.sources
+        };
+        downloadJson(data, 'orbis-all-data.json');
+        showToast('All data exported');
+      });
+
+      // Delete data
+      $('#deleteDataBtn').addEventListener('click', async () => {
+        const confirmed = await confirmDialog('Delete all your data? This action cannot be undone.');
+        if (confirmed) {
+          const receiptId = 'DEL-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+          showToast(`Deletion receipt: ${receiptId}`);
+          // In prototype, just show receipt
+        }
+      });
+    }
+
+    function downloadJson(data, filename) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // === CLOSE DROPDOWNS ON OUTSIDE CLICK ===
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.status-menu')) {
+        $$('.status-dropdown').forEach(d => d.classList.remove('show'));
+      }
+    });
+
+    // === PWA HOOKS ===
+    function initPWA() {
+      if (location.protocol !== 'file:') {
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = 'manifest.webmanifest';
+        document.head.appendChild(link);
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+      }
+    }
+
+    // === INIT ===
+    async function init() {
+      initPWA();
+      await hydrate();
+      initAuthGate();
+      initNavigation();
+      initTopBar();
+      initMobile();
+      initModal();
+      initAura();
+      initCulture();
+      initGrowth();
+      initPrivacy();
+
+      // Initial renders
+      renderToday();
+      renderCommitments();
+      renderSummaries();
+      renderDrafts();
+      renderCulture();
+      renderPrivacy();
+      renderAura();
+      renderWork();
+    }
+
+    init();
+  </script>
+</body>
+</html>

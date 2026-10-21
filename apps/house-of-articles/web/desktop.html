@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House of Articles — Desktop App</title>
+<style>
+/* DESIGN SYSTEM — reused from mobile */
+:root{--bg:#111110;--surface:#1A1917;--surface-2:#222019;--surface-3:#2A2825;--ink:#F2EEE6;--ink-2:#A39C8F;--ink-3:#6B655C;--hair:#33302B;--rule:#F2EEE6;--accent:#E4572E;--accent-hover:#F56A3E;--accent-dim:rgba(228,87,46,.15);--up:#6FA96B;--up-bg:rgba(111,169,107,.12);--down:#C0574B;--down-bg:rgba(192,87,75,.12);--gold:#D9A441;--gold-bg:rgba(217,164,65,.12);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--font-display:"Didot","Bodoni MT","Baskerville",Georgia,serif;--font-serif:Georgia,serif;--font-grotesk:"Franklin Gothic Medium","Helvetica Neue",Helvetica,Arial,sans-serif;--font-mono:ui-monospace,"SF Mono",Consolas,monospace;--text-xs:11px;--text-sm:13px;--text-base:15px;--text-lg:17px;--text-xl:20px;--text-2xl:24px;--text-3xl:32px;--radius-sm:0;--radius-md:2px;--radius-lg:3px;--radius-full:9999px;--t-fast:150ms cubic-bezier(.4,0,.2,1);--t-norm:250ms cubic-bezier(.4,0,.2,1);--t-slow:400ms cubic-bezier(.4,0,.2,1);--sidebar-w:248px;--topbar-h:64px;--max-w:1360px}
+
+/* LIGHT THEME */
+.app.light{--bg:#F5F1E8;--surface:#FFFFFF;--surface-2:#EFE9DD;--surface-3:#E8E0D0;--ink:#17130E;--ink-2:#5B5347;--ink-3:#8A8072;--hair:#D8D0C2;--rule:#17130E;--accent:#E4572E;--accent-hover:#C94520;--accent-dim:rgba(228,87,46,.1);--up:#3E7D45;--up-bg:rgba(62,125,69,.15);--down:#A84439;--down-bg:rgba(168,68,57,.15);--gold:#B88830;--gold-bg:rgba(184,136,48,.15)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;overflow:hidden}
+body{font-family:var(--font-grotesk);background:linear-gradient(135deg,#1a1a1e 0%,#161618 50%,#0f0f10 100%);display:flex;align-items:center;justify-content:center;padding:var(--space-6);-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:none;background:none}
+a{color:var(--accent);text-decoration:none}
+
+/* APP SHELL */
+.app{width:100%;max-width:var(--max-w);height:90vh;background:var(--bg);border-radius:var(--radius-lg);overflow:hidden;display:flex;box-shadow:0 50px 100px -20px rgba(0,0,0,.7)}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--hair);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-brand{padding:var(--space-6);border-bottom:1px solid var(--hair)}
+.sidebar-brand h1{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.2}
+.sidebar-brand h1 em{color:var(--accent);font-style:normal}
+.nav-primary{flex:1;padding:var(--space-4) 0;overflow-y:auto;scrollbar-gutter:stable}
+.nav-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-5);color:var(--ink-2);font-size:var(--text-sm);font-weight:500;cursor:pointer;transition:all var(--t-fast);border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface-2);color:var(--ink)}
+.nav-item:active{background:var(--surface-3);color:var(--ink)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);border-left-color:transparent}
+.nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5}
+.nav-secondary{padding:var(--space-4) 0;border-top:1px solid var(--hair)}
+.nav-section-label{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;padding:var(--space-3) var(--space-5);margin-bottom:var(--space-1)}
+
+/* TOP BAR */
+.topbar{height:var(--topbar-h);border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;padding:0 var(--space-5);background:var(--bg);flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:var(--space-4);flex:1}
+.search-input{width:320px;padding:10px 14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);color:var(--ink);font-size:var(--text-sm);font-family:var(--font-grotesk);outline:none;transition:border-color var(--t-fast),background var(--t-fast)}
+.search-input:focus{border-color:var(--accent)}
+.search-input:active{background:var(--surface-2)}
+.search-input::placeholder{color:var(--ink-3)}
+.topbar-right{display:flex;align-items:center;gap:var(--space-2)}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-md);background:var(--surface);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--t-fast);position:relative}
+.icon-btn:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.icon-btn:active{background:var(--surface-3)}
+.icon-btn svg{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+.icon-btn .badge{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--accent);border-radius:50%}
+.cart-btn .count-badge{position:absolute;top:-4px;right:-4px;background:var(--accent);color:var(--ink);font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;line-height:1}
+.avatar-btn{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--hair);cursor:pointer;transition:border-color var(--t-fast)}
+.avatar-btn:hover{border-color:var(--accent)}
+.avatar-btn:active{border-color:var(--ink);transform:scale(.95)}
+.avatar-btn img{width:100%;height:100%;object-fit:cover}
+
+/* MAIN AREA */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.view-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:var(--space-6);display:none;scrollbar-gutter:stable}
+.view-container.active{display:block}
+.view-container::-webkit-scrollbar{width:6px}
+.view-container::-webkit-scrollbar-thumb{background:var(--hair);border-radius:3px}
+
+/* FEED VIEW — 3 column layout */
+.feed-layout{display:grid;grid-template-columns:1fr 1fr 320px;gap:var(--space-6);max-width:var(--max-w);margin:0 auto}
+.feed-layout>*{min-width:0}
+.feed-hero{grid-column:1/-1;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast)}
+.feed-hero:hover{transform:translateY(-2px);border-color:var(--ink-2);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.feed-hero:active{transform:translateY(0);box-shadow:none}
+.feed-hero-img{height:340px;overflow:hidden}
+.feed-hero-img img{width:100%;height:100%;object-fit:cover}
+.feed-hero-content{padding:var(--space-6)}
+.feed-hero-kicker{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-2)}
+.feed-hero-headline{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:var(--space-3)}
+.feed-hero-deck{font-family:var(--font-serif);font-size:var(--text-base);color:var(--ink-2);line-height:1.5;margin-bottom:var(--space-4)}
+.feed-hero-meta{display:flex;align-items:center;gap:var(--space-3);font-size:var(--text-xs);color:var(--ink-3)}
+.feed-hero-price{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--radius-full);font-family:var(--font-mono);font-size:var(--text-xs);font-weight:600;font-variant-numeric:tabular-nums}
+.feed-hero-price.up{background:var(--up-bg);color:var(--up)}
+.feed-story-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)}
+.story-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast)}
+.story-card:hover{transform:translateY(-2px);border-color:var(--ink-2);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.story-card:active{transform:translateY(0);box-shadow:none}
+.story-card-img{height:180px;overflow:hidden}
+.story-card-img img{width:100%;height:100%;object-fit:cover}
+.story-card-content{padding:var(--space-4)}
+.story-card-kicker{font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
+.story-card-headline{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:8px}
+.story-card-deck{font-family:var(--font-serif);font-size:var(--text-sm);color:var(--ink-2);line-height:1.4;margin-bottom:var(--space-3)}
+.story-card-meta{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--ink-3)}
+
+/* RIGHT RAIL */
+.right-rail{display:flex;flex-direction:column;gap:var(--space-5)}
+.rail-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4)}
+.rail-title{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-3)}
+.trend-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) 0;border-bottom:1px solid var(--hair);cursor:pointer;transition:background var(--t-fast)}
+.trend-item:last-child{border-bottom:none;padding-bottom:0}
+.trend-item:hover{background:var(--surface-2);margin:0 calc(-1 * var(--space-4));padding-left:var(--space-4);padding-right:var(--space-4)}
+.trend-item:active{background:var(--surface-3)}
+.trend-thumb{width:48px;height:36px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);flex-shrink:0}
+.trend-thumb img{width:100%;height:100%;object-fit:cover}
+.trend-info{flex:1;min-width:0}
+.trend-name{font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-sub{font-size:10px;color:var(--ink-3);margin-top:2px}
+.trend-right{text-align:right}
+.trend-price{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.trend-pct{font-family:var(--font-mono);font-size:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.trend-pct.up{color:var(--up)}
+.trend-pct.down{color:var(--down)}
+
+/* MARKET MOVERS MINI TABLE */
+.movers-mini{width:100%;border-collapse:collapse;font-size:11px}
+.movers-mini td{padding:6px 0;border-bottom:1px solid var(--hair);font-variant-numeric:tabular-nums}
+.movers-mini tr:last-child td{border-bottom:none}
+.movers-mini .name{font-weight:600;color:var(--ink)}
+.movers-mini .pct{font-weight:700;text-align:right}
+
+/* DROPS VIEW */
+.drops-layout{display:grid;grid-template-columns:1fr 360px;gap:var(--space-6);max-width:var(--max-w);margin:0 auto}
+.drops-layout>*{min-width:0}
+.calendar-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5)}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)}
+.calendar-header h3{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink)}
+.calendar-nav{display:flex;gap:var(--space-2)}
+.calendar-nav button{width:32px;height:32px;border:1px solid var(--hair);border-radius:var(--radius-md);color:var(--ink-2);font-size:18px;font-weight:700;transition:all var(--t-fast)}
+.calendar-nav button:hover{background:var(--surface-2);color:var(--ink)}
+.calendar-nav button:active{background:var(--surface-3)}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.calendar-weekday{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;text-align:center;padding:8px 0}
+.calendar-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-family:var(--font-mono);color:var(--ink-2);border-radius:var(--radius-sm);cursor:pointer;position:relative;transition:background var(--t-fast)}
+.calendar-day:hover{background:var(--surface-2)}
+.calendar-day:active{background:var(--surface-3)}
+.calendar-day.today{background:var(--ink);color:var(--bg);font-weight:700}
+.calendar-day.selected{background:var(--accent);color:var(--ink)}
+.calendar-day.has-drop::after{content:'';position:absolute;bottom:6px;width:5px;height:5px;background:var(--accent);border-radius:50%}
+.calendar-day.today.has-drop::after{background:var(--bg)}
+.releases-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.releases-table th{text-align:left;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;padding:var(--space-3);border-bottom:1px solid var(--hair)}
+.releases-table td{padding:var(--space-3);border-bottom:1px solid var(--hair);vertical-align:middle}
+.releases-table tr:last-child td{border-bottom:none}
+.releases-table tbody tr{cursor:pointer;transition:background var(--t-fast)}
+.releases-table tbody tr:hover{background:var(--surface-2)}
+.releases-table tbody tr:active{background:var(--surface-3)}
+.releases-thumb{width:56px;height:42px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.releases-thumb img{width:100%;height:100%;object-fit:cover}
+.releases-brand{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.releases-model{font-size:13px;font-weight:600;color:var(--ink)}
+.releases-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.status-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:3px;display:inline-block}
+.status-tag.drop{background:var(--accent-dim);color:var(--accent)}
+.status-tag.raffle{background:var(--gold-bg);color:var(--gold)}
+.status-tag.soldout{background:var(--down-bg);color:var(--down)}
+
+/* MARKET VIEW */
+.market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:var(--space-6);max-width:var(--max-w);margin-left:auto;margin-right:auto}
+.stat-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);text-align:center}
+.stat-value{font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-bottom:4px}
+.stat-label{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+.stat-value.up{color:var(--up)}
+.stat-value.down{color:var(--down)}
+.movers-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-6);max-width:var(--max-w);margin-left:auto;margin-right:auto}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)}
+.section-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em}
+.movers-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.movers-table th{text-align:left;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;padding:var(--space-3);border-bottom:1px solid var(--hair)}
+.movers-table td{padding:var(--space-3);border-bottom:1px solid var(--hair);vertical-align:middle}
+.movers-table tr:last-child td{border-bottom:none}
+.movers-table tbody tr{transition:background var(--t-fast)}
+.movers-table tbody tr:hover{background:var(--surface-2);cursor:pointer}
+.movers-table tbody tr:active{background:var(--surface-3)}
+.movers-rank{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);width:32px}
+.movers-thumb{width:48px;height:36px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.movers-thumb img{width:100%;height:100%;object-fit:cover}
+.movers-name{font-size:13px;font-weight:600;color:var(--ink)}
+.movers-sub{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.sparkline{width:64px;height:28px}
+.sparkline polyline{fill:none;stroke-width:1.5;stroke-linecap:round}
+.movers-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.movers-pct{font-family:var(--font-mono);font-size:11px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;padding-left:8px}
+.category-strip{display:flex;gap:var(--space-3);margin-bottom:var(--space-6)}
+.category-tile{flex:1;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);text-align:center;cursor:pointer;transition:all var(--t-fast)}
+.category-tile:hover{border-color:var(--ink-2);background:var(--surface-2)}
+.category-tile:active{background:var(--surface-3);border-color:var(--ink-2)}
+.category-tile h4{font-family:var(--font-display);font-size:var(--text-base);font-weight:700;color:var(--ink);margin-bottom:4px}
+.category-tile span{font-size:11px;color:var(--ink-3)}
+
+/* ATHLETES VIEW */
+.athletes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-5);max-width:var(--max-w);margin:0 auto}
+.athlete-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast)}
+.athlete-card:hover{transform:translateY(-3px);border-color:var(--ink-2);box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.athlete-card:active{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.athlete-portrait{height:280px;overflow:hidden;background:var(--surface-2)}
+.athlete-portrait img{width:100%;height:100%;object-fit:cover}
+.athlete-info{padding:var(--space-4)}
+.athlete-name{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink);margin-bottom:4px}
+.athlete-team{font-family:var(--font-serif);font-size:var(--text-sm);color:var(--ink-2);margin-bottom:8px}
+.athlete-stats{display:flex;gap:var(--space-3);padding:var(--space-3) 0;border-top:1px solid var(--hair);margin-top:var(--space-3)}
+.athlete-stat{text-align:center}
+.athlete-stat-val{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.athlete-stat-lbl{font-size:9px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.follow-btn{width:100%;margin-top:var(--space-3);padding:10px;border:1px solid var(--accent);border-radius:var(--radius-full);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--accent);background:transparent;cursor:pointer;transition:all var(--t-fast)}
+.follow-btn:hover,.follow-btn.following{background:var(--accent);color:var(--ink)}
+.follow-btn:active:not(.following){transform:scale(.98)}
+
+/* WATCHLIST VIEW */
+.watchlist-layout{display:grid;grid-template-columns:1fr 360px;gap:var(--space-6);max-width:var(--max-w);margin:0 auto}
+.watchlist-layout>*{min-width:0}
+.portfolio-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-6);max-width:var(--max-w);margin-left:auto;margin-right:auto}
+.portfolio-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)}
+.portfolio-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em}
+.portfolio-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin-bottom:var(--space-5)}
+.metric{text-align:center}
+.metric-val{font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-bottom:4px}
+.metric-val.up{color:var(--up)}
+.metric-lbl{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+.portfolio-chart{height:120px;border:1px solid var(--hair);border-radius:var(--radius-md);overflow:hidden;background:var(--surface-2)}
+.holdings-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.holdings-table th{text-align:left;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;padding:var(--space-3);border-bottom:1px solid var(--hair)}
+.holdings-table td{padding:var(--space-3);border-bottom:1px solid var(--hair);vertical-align:middle}
+.holdings-table tr:last-child td{border-bottom:none}
+.holdings-table tbody tr{transition:background var(--t-fast)}
+.holdings-table tbody tr:hover{background:var(--surface-2);cursor:pointer}
+.holdings-table tbody tr:active{background:var(--surface-3)}
+.holdings-thumb{width:48px;height:36px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair)}
+.holdings-name{font-size:13px;font-weight:600;color:var(--ink)}
+.holdings-sub{font-size:10px;color:var(--ink-3);text-transform:uppercase}
+.holdings-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.holdings-chg{font-family:var(--font-mono);font-size:11px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.alerts-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4)}
+.alert-row{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) 0;border-bottom:1px solid var(--hair)}
+.alert-row:last-child{border-bottom:none}
+.alert-row:active .toggle{transform:scale(.95)}
+.alert-info{flex:1}
+.alert-name{font-size:13px;font-weight:600;color:var(--ink)}
+.alert-threshold{font-size:11px;color:var(--ink-3);font-family:var(--font-mono);margin-top:2px}
+.toggle{width:44px;height:24px;border-radius:12px;background:var(--hair);position:relative;cursor:pointer;transition:background var(--t-fast)}
+.toggle.on{background:var(--accent)}
+.toggle:active::after{width:20px}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--ink);transition:transform var(--t-fast)}
+.toggle.on::after{transform:translateX(20px)}
+
+/* SHOE DETAIL MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center}
+.detail-modal{width:90%;max-width:1100px;height:85vh;background:var(--bg);border-radius:var(--radius-lg);overflow:hidden;display:grid;grid-template-columns:1fr 360px;box-shadow:0 50px 100px rgba(0,0,0,.5)}
+.detail-left{overflow-y:auto;padding:var(--space-6);border-right:1px solid var(--hair);scrollbar-gutter:stable}
+.detail-hero-img{height:380px;overflow:hidden;border-radius:var(--radius-lg);margin-bottom:var(--space-5);background:var(--surface-2)}
+.detail-hero-img img{width:100%;height:100%;object-fit:cover}
+.detail-kicker{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-2)}
+.detail-title{font-family:var(--font-display);font-size:var(--text-3xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-5)}
+.eyntk-section{margin-bottom:var(--space-6)}
+.eyntk-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-3)}
+.eyntk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-5)}
+.eyntk-item{text-align:center;padding:var(--space-4);background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md)}
+.eyntk-label{font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px}
+.eyntk-value{font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.chart-section{margin-bottom:var(--space-6)}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-3)}
+.chart-label{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em}
+.seg-ctrl{display:flex;border:1px solid var(--hair);border-radius:var(--radius-md);overflow:hidden}
+.seg-btn{flex:1;padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:var(--ink-2);background:transparent;border:none;border-right:1px solid var(--hair);cursor:pointer;transition:all var(--t-fast)}
+.seg-btn:last-child{border-right:none}
+.seg-btn:hover{background:var(--surface-2)}
+.seg-btn:active{background:var(--surface-3)}
+.seg-btn.active{background:var(--accent);color:var(--ink)}
+.chart-container{height:200px;border:1px solid var(--hair);border-radius:var(--radius-md);overflow:hidden;background:var(--surface)}
+.chart-svg{width:100%;height:100%}
+.chart-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round}
+.chart-area{fill:rgba(228,87,46,.2)}
+.chart-grid{stroke:var(--hair);stroke-width:1}
+.breakdown-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5)}
+.breakdown-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-4)}
+.breakdown-row{display:flex;justify-content:space-between;padding:var(--space-2) 0;border-bottom:1px solid var(--hair)}
+.breakdown-row:last-child{border-bottom:none}
+.breakdown-label{font-family:var(--font-grotesk);font-size:12px;color:var(--ink-2)}
+.breakdown-value{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.breakdown-estimated{color:var(--ink-3);font-size:10px;font-style:italic}
+.cost-bar-wrap{margin-top:var(--space-4)}
+.cost-bar-head{display:flex;justify-content:space-between;margin-bottom:var(--space-2)}
+.cost-bar-head span{font-size:11px;color:var(--ink-3);text-transform:uppercase;font-weight:600}
+.cost-bar-head strong{font-family:var(--font-mono);font-size:var(--text-sm);color:var(--ink);font-variant-numeric:tabular-nums}
+.cost-bar{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.cost-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width var(--t-slow)}
+.cost-bar-fill:hover{opacity:.8}
+/* SPECS Section */
+.specs-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5)}
+.specs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4)}
+.spec-item{text-align:center;padding:var(--space-3);background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-md)}
+.spec-label{font-size:10px;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px}
+.spec-value{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+/* WHERE IT'S MADE Section */
+.mfg-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5)}
+.mfg-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-4)}
+.mfg-row{display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--hair)}
+.mfg-row:last-child{border-bottom:none}
+.mfg-label{font-family:var(--font-grotesk);font-size:12px;color:var(--ink-2)}
+.mfg-value{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.mfg-site{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);font-weight:400}
+.mfg-summary{font-size:10px;color:var(--ink-3);font-style:italic;margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--hair)}
+.detail-right{padding:var(--space-5);overflow-y:auto;background:var(--surface);scrollbar-gutter:stable}
+.bidask-block{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-5)}
+.bidask-box{background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-4);text-align:center}
+.bidask-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:6px}
+.bidask-value{font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.bidask-box.ask .bidask-value{color:var(--accent)}
+.size-section{margin-bottom:var(--space-5)}
+.size-label{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-3)}
+.size-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
+.size-cell{border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;cursor:pointer;transition:all var(--t-fast)}
+.size-cell:hover{border-color:var(--accent);background:var(--surface-2)}
+.size-cell:active{transform:scale(.96)}
+.size-cell .sz{font-family:var(--font-mono);font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.size-cell .pr{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink);margin-top:4px;font-variant-numeric:tabular-nums}
+.size-cell.selected{border-color:var(--accent);background:var(--accent-dim)}
+.worn-section{margin-bottom:var(--space-5)}
+.worn-label{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-3)}
+.worn-row{display:flex;gap:var(--space-3)}
+.worn-av{text-align:center}
+.worn-av-img{width:48px;height:48px;border-radius:50%;overflow:hidden;margin:0 auto 6px;border:1px solid var(--hair)}
+.worn-av-img img{width:100%;height:100%;object-fit:cover}
+.worn-av .ini{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--ink);background:var(--surface-2);border:1px solid var(--hair);margin:0 auto 6px}
+.worn-name{font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.buy-section{margin-top:var(--space-5)}
+.buy-btn{width:100%;padding:14px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:700;font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:background var(--t-fast),transform var(--t-fast)}
+.buy-btn:hover:not(:disabled){background:var(--accent-hover)}
+.buy-btn:active:not(:disabled){transform:scale(.98)}
+.detail-close{position:absolute;top:var(--space-4);right:var(--space-4);width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;transition:background var(--t-fast)}
+.detail-close:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.detail-close:active{background:var(--surface-3)}
+.detail-close svg{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+
+/* WHERE TO BUY MODAL */
+.wtb-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1100;display:flex;align-items:center;justify-content:center}
+.wtb-panel{width:520px;max-height:70vh;background:var(--bg);border-radius:var(--radius-lg);overflow:hidden}
+.wtb-header{padding:var(--space-5);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center}
+.wtb-title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink)}
+.wtb-close{width:32px;height:32px;border-radius:50%;background:var(--surface);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background var(--t-fast)}
+.wtb-close:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.wtb-close:active{background:var(--surface-3)}
+.wtb-close svg{width:16px;height:16px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+.wtb-content{padding:0;max-height:50vh;overflow-y:auto}
+.retailer-row{display:flex;align-items:center;justify-content:space-between;padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);cursor:pointer;transition:background var(--t-fast)}
+.retailer-row:hover{background:var(--surface-2)}
+.retailer-row:active{background:var(--surface-3)}
+.retailer-info{flex:1}
+.retailer-name{font-weight:600;font-size:13px;color:var(--ink)}
+.retailer-sub{font-size:11px;color:var(--ink-3);margin-top:2px}
+.retailer-right{text-align:right}
+.retailer-price{font-family:var(--font-mono);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.retailer-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-top:2px}
+
+/* CART DRAWER */
+.cart-drawer{position:fixed;top:0;right:-480px;width:480px;height:100vh;background:var(--bg);border-left:1px solid var(--hair);z-index:1050;transition:right var(--t-slow);display:flex;flex-direction:column}
+.cart-drawer.open{right:0}
+.cart-drawer-header{padding:var(--space-5);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center}
+.cart-drawer-title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink)}
+.cart-drawer-count{font-family:var(--font-mono);font-size:12px;color:var(--ink-3)}
+.cart-drawer-close{width:32px;height:32px;border-radius:50%;background:var(--surface);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background var(--t-fast)}
+.cart-drawer-close:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.cart-drawer-close:active{background:var(--surface-3)}
+.cart-items{flex:1;overflow-y:auto;padding:var(--space-4);scrollbar-gutter:stable}
+.cart-item{display:flex;gap:var(--space-3);padding:var(--space-3);border-bottom:1px solid var(--hair)}
+.cart-item:last-child{border-bottom:none}
+.cart-item-thumb{width:72px;height:54px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hair);flex-shrink:0}
+.cart-item-thumb img{width:100%;height:100%;object-fit:cover}
+.cart-item-info{flex:1}
+.cart-item-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.cart-item-meta{font-size:11px;color:var(--ink-3);text-transform:uppercase;margin-bottom:6px}
+.cart-item-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:var(--space-2)}
+.cart-qty-ctrl{display:flex;align-items:center;gap:var(--space-2)}
+.qty-btn{width:28px;height:28px;border:1px solid var(--hair);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:13px;font-weight:700;cursor:pointer;transition:background var(--t-fast)}
+.qty-btn:hover{background:var(--surface-2)}
+.qty-btn:active{background:var(--surface-3)}
+.qty-val{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);width:24px;text-align:center}
+.cart-remove{color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:none;border:none;cursor:pointer;margin-left:var(--space-3);transition:color var(--t-fast)}
+.cart-remove:hover{color:var(--down)}
+.cart-remove:active{color:var(--accent)}
+.cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--ink-3)}
+.cart-empty svg{width:64px;height:64px;stroke:var(--hair);fill:none;stroke-width:1.5;margin-bottom:var(--space-4)}
+.cart-summary{padding:var(--space-5);border-top:1px solid var(--hair);background:var(--surface)}
+.summary-row{display:flex;justify-content:space-between;margin-bottom:var(--space-2);font-size:13px}
+.summary-row .lbl{color:var(--ink-2)}
+.summary-row .val{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.summary-row.total{border-top:1px solid var(--rule);padding-top:var(--space-3);margin-top:var(--space-2)}
+.summary-row.total .lbl{font-size:14px;font-weight:700;color:var(--ink);text-transform:uppercase}
+.summary-row.total .val{font-size:20px;color:var(--accent)}
+.checkout-btn{width:100%;padding:14px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:700;font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;margin-top:var(--space-4);transition:background var(--t-fast),transform var(--t-fast)}
+.checkout-btn:hover{background:var(--accent-hover)}
+.checkout-btn:active{transform:scale(.98)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-3);border:1px solid var(--hair);color:var(--ink);padding:12px 24px;border-radius:var(--radius-md);font-size:13px;font-weight:500;z-index:1200;opacity:0;visibility:hidden;transition:all var(--t-norm);white-space:nowrap}
+.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+
+/* VIEW TRANSITIONS */
+.view-container.active{animation:viewIn var(--t-norm) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* MODAL ANIMATIONS */
+.modal-backdrop{opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--t-norm),visibility var(--t-norm)}
+.modal-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
+.detail-modal{transform:scale(.96) translateY(8px);opacity:0;transition:transform var(--t-slow),opacity var(--t-norm)}
+.modal-backdrop.open .detail-modal{transform:scale(1) translateY(0);opacity:1}
+.wtb-modal{opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--t-norm),visibility var(--t-norm)}
+.wtb-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+.wtb-panel{transform:translateY(12px) scale(.98);opacity:0;transition:transform var(--t-slow),opacity var(--t-norm)}
+.wtb-modal.open .wtb-panel{transform:translateY(0) scale(1);opacity:1}
+
+/* SIDEBAR INDICATOR */
+.nav-item{position:relative}
+.nav-item::before{content:'';position:absolute;left:0;top:50%;bottom:50%;width:3px;background:var(--accent);transform:translateY(-50%);transition:top var(--t-norm),bottom var(--t-norm)}
+.nav-item.active::before{top:0;bottom:0}
+.nav-item.active{animation:navBg var(--t-fast)}
+@keyframes navBg{from{background:transparent}to{background:var(--accent-dim)}}
+
+/* TABLE ROW HOVER ACCENT */
+.movers-table td,.holdings-table td,.releases-table td{transition:box-shadow var(--t-fast)}
+.movers-table tbody tr:hover td:first-child,.holdings-table tbody tr:hover td:first-child,.releases-table tbody tr:hover td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
+
+/* CHART DRAW-IN */
+.chart-line{stroke-dasharray:0;stroke-dashoffset:0;transition:stroke-dashoffset 900ms cubic-bezier(.4,0,.2,1)}
+@keyframes drawLine{to{stroke-dashoffset:0}}
+
+/* COUNT-UP TARGETS */
+.count-up{transition:color var(--t-fast)}
+
+/* EMPTY STATES */
+.empty-state{display:none;text-align:center;padding:var(--space-8);color:var(--ink-3)}
+.empty-state svg{width:64px;height:64px;stroke:var(--hair);fill:none;stroke-width:1;margin-bottom:var(--space-4)}
+.empty-state p:first-of-type{font-size:14px;font-weight:600;margin-bottom:var(--space-2)}
+.empty-state p:last-of-type{font-size:12px}
+
+/* MEDIA CELL */
+.media-cell{display:flex;align-items:center;gap:var(--space-3)}
+
+/* RELEASES CELL INFO */
+.releases-cell-info{margin-top:6px}
+
+/* FOLLOW BUTTON */
+.follow-btn{margin-top:var(--space-3)}
+
+/* BUY BUTTON VARIANTS */
+.buy-btn:disabled{opacity:.5;cursor:not-allowed}
+.buy-btn.secondary{margin-top:var(--space-3);background:var(--surface);color:var(--ink);border:1px solid var(--hair)}
+.buy-btn.secondary:hover{background:var(--surface-2)}
+
+/* SIDEBAR CART COUNT */
+.sidebar-cart-count{font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-left:6px}
+
+/* STAT VALUE GOLD */
+.stat-value.gold{color:var(--gold)}
+
+/* BLOCK TITLE */
+.block-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:var(--space-3)}
+
+/* RELEASES SECTION */
+.releases-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5)}
+
+/* TEXT ALIGN RIGHT UTILITY */
+.ta-right{text-align:right}
+
+/* ATHLETE PLACEHOLDER */
+.athlete-portrait.ph{display:flex;align-items:center;justify-content:center;background:var(--surface-2)}
+.athlete-ph{font-size:48px;font-weight:700;color:var(--ink-3)}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* FOCUS STATES */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+
+/* UTILITY */
+.hidden{display:none!important}
+.text-up{color:var(--up)}
+.text-down{color:var(--down)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h1>HOUSE OF <em>ARTICLES</em></h1>
+  </div>
+  <nav class="nav-primary">
+    <div class="nav-item active" data-view="feed" onclick="switchView('feed')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Feed
+    </div>
+    <div class="nav-item" data-view="drops" onclick="switchView('drops')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      Drops
+    </div>
+    <div class="nav-item" data-view="market" onclick="switchView('market')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Market
+    </div>
+    <div class="nav-item" data-view="athletes" onclick="switchView('athletes')">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Athletes
+    </div>
+    <div class="nav-item" data-view="watchlist" onclick="switchView('watchlist')">
+      <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      Watchlist
+    </div>
+  </nav>
+  <nav class="nav-secondary">
+    <div class="nav-section-label">Account</div>
+    <div class="nav-item" onclick="toggleAppearance()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20z" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+      <span id="appearance-label">Dark</span>
+    </div>
+    <div class="nav-item" onclick="openCart()">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Cart <span id="sidebar-cart-count" class="sidebar-cart-count"></span>
+    </div>
+  </nav>
+</aside>
+
+<!-- MAIN AREA -->
+<main class="main">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <input type="text" class="search-input" placeholder="Search shoes, athletes, brands...">
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="showToast('Notifications coming soon')" aria-label="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge"></span>
+      </button>
+      <button class="icon-btn cart-btn" onclick="openCart()" aria-label="Cart">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="count-badge" id="cart-badge" style="display:none">0</span>
+      </button>
+      <button class="avatar-btn" onclick="showToast('Profile coming soon')">
+        <img src="./assets/athlete-portrait.jpg" alt="Profile">
+      </button>
+    </div>
+  </header>
+
+  <!-- FEED VIEW -->
+  <div class="view-container active" id="view-feed">
+    <div id="feed-skeleton" style="display:none;opacity:.5;pointer-events:none">
+      <div class="feed-layout">
+        <div class="feed-hero"><div class="feed-hero-img" style="background:var(--surface-2);height:340px"></div><div class="feed-hero-content"><div style="height:11px;width:100px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-2)"></div><div style="height:24px;width:80%;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-3)"></div><div style="height:15px;width:90%;background:var(--hair);border-radius:var(--radius-sm)"></div></div></div>
+        <div class="feed-story-grid"><div class="story-card"><div class="story-card-img" style="background:var(--surface-2)"></div><div class="story-card-content"><div style="height:10px;width:80px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:6px"></div><div style="height:17px;width:90%;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:8px"></div><div style="height:13px;width:100%;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-3)"></div></div></div><div class="story-card"><div class="story-card-img" style="background:var(--surface-2)"></div><div class="story-card-content"><div style="height:10px;width:80px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:6px"></div><div style="height:17px;width:90%;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:8px"></div><div style="height:13px;width:100%;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-3)"></div></div></div></div>
+        <aside class="right-rail"><div class="rail-section"><div style="height:10px;width:80px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-3)"></div><div style="height:48px;background:var(--surface-2);border-radius:var(--radius-md);margin-bottom:var(--space-2)"></div><div style="height:48px;background:var(--surface-2);border-radius:var(--radius-md);margin-bottom:var(--space-2)"></div><div style="height:48px;background:var(--surface-2);border-radius:var(--radius-md)"></div></div></aside>
+      </div>
+    </div>
+    <div id="feed-content">
+    <div class="feed-layout">
+      <!-- Hero Story -->
+      <article class="feed-hero" onclick="openDetail('apex-runner-3')">
+        <div class="feed-hero-img">
+          <img src="./assets/hero-basketball.jpg" alt="Apex Runner 3">
+        </div>
+        <div class="feed-hero-content">
+          <div class="feed-hero-kicker">Marcus Vale · 2h ago</div>
+          <h2 class="feed-hero-headline">Vale drops 38 in overtime thriller wearing Apex Runner 3</h2>
+          <p class="feed-hero-deck">The signature midnight colorway sparked instant collector demand as resale climbed 23% within hours of the final buzzer.</p>
+          <div class="feed-hero-meta">
+            <span class="feed-hero-price up">+23%</span>
+            <span>By J. Thompson</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Story Grid -->
+      <div class="feed-story-grid">
+        <article class="story-card" onclick="openDetail('court-legend-1')">
+          <div class="story-card-img">
+            <img src="./assets/runner-supershoe.jpg" alt="Court Legend 1">
+          </div>
+          <div class="story-card-content">
+            <div class="story-card-kicker">Jenna Cruz · 5h ago</div>
+            <h3 class="story-card-headline">Cruz smashes 5K PB in Court Legend 1</h3>
+            <p class="story-card-deck">A personal best and an instant grail: the sunset pack is now commanding 40%+ over retail.</p>
+            <div class="story-card-meta">
+              <span class="text-up">+41%</span>
+              <span>By R. Chen</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-card" onclick="openDetail('velocity-x')">
+          <div class="story-card-img">
+            <img src="./assets/court-lowtop.jpg" alt="Velocity X">
+          </div>
+          <div class="story-card-content">
+            <div class="story-card-kicker">HYROX Pro · 8h ago</div>
+            <h3 class="story-card-headline">Championship win in Velocity X</h3>
+            <p class="story-card-deck">Competition-ready footwear continues to dominate crossover appeal.</p>
+            <div class="story-card-meta">
+              <span class="text-up">+18%</span>
+              <span>By K. Mueller</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-card" onclick="openDetail('street-phoenix')">
+          <div class="story-card-img">
+            <img src="./assets/retro-street.jpg" alt="Street Phoenix">
+          </div>
+          <div class="story-card-content">
+            <div class="story-card-kicker">DeShawn Reid · 1d ago</div>
+            <h3 class="story-card-headline">Reid's buzzer-beater in Street Phoenix</h3>
+            <p class="story-card-deck">Royal accents meet court-ready performance in this instant classic.</p>
+            <div class="story-card-meta">
+              <span class="text-up">+15%</span>
+              <span>By A. Davis</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-card" onclick="openDetail('trail-blazer-2')">
+          <div class="story-card-img">
+            <img src="./assets/hyrox-trainer.jpg" alt="Trail Blazer 2">
+          </div>
+          <div class="story-card-content">
+            <div class="story-card-kicker">Trail Co. · 2d ago</div>
+            <h3 class="story-card-headline">Trail Blazer 2 Arctic drops next week</h3>
+            <p class="story-card-deck">The most anticipated HYROX trainer of the season arrives soon.</p>
+            <div class="story-card-meta">
+              <span class="text-down">-8%</span>
+              <span>Editorial</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-card" onclick="openDetail('night-owl-runner')">
+          <div class="story-card-img">
+            <img src="./assets/retro-street.jpg" alt="Night Owl Runner">
+          </div>
+          <div class="story-card-content">
+            <div class="story-card-kicker">Night Owl · 3d ago</div>
+            <h3 class="story-card-headline">Night Owl Runner "Phantom" teased for Q4</h3>
+            <p class="story-card-deck">Underground favorite gets premium treatment with reflective details and boosted cushioning.</p>
+            <div class="story-card-meta">
+              <span class="text-up">+12%</span>
+              <span>By L. Park</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-card" onclick="openDetail('velocity-enduro')">
+          <div class="story-card-img">
+            <img src="./assets/runner-supershoe.jpg" alt="Velocity Enduro">
+          </div>
+          <div class="story-card-content">
+            <div class="story-card-kicker">Velocity · 4d ago</div>
+            <h3 class="story-card-headline">Enduro Forest colorway spotted on training runs</h3>
+            <p class="story-card-deck">Trail-ready variant of the competition favorite generates early buzz among ultra runners.</p>
+            <div class="story-card-meta">
+              <span class="text-up">+9%</span>
+              <span>By T. Yamamoto</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Right Rail -->
+      <aside class="right-rail">
+        <div class="rail-section">
+          <div class="rail-title">Trending Now</div>
+          <div class="trend-item" onclick="openDetail('apex-runner-3')">
+            <div class="trend-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+            <div class="trend-info">
+              <div class="trend-name">Apex Runner 3</div>
+              <div class="trend-sub">Midnight</div>
+            </div>
+            <div class="trend-right">
+              <div class="trend-price">$285</div>
+              <div class="trend-pct up">+23%</div>
+            </div>
+          </div>
+          <div class="trend-item" onclick="openDetail('court-legend-1')">
+            <div class="trend-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+            <div class="trend-info">
+              <div class="trend-name">Court Legend 1</div>
+              <div class="trend-sub">Sunset</div>
+            </div>
+            <div class="trend-right">
+              <div class="trend-price">$320</div>
+              <div class="trend-pct up">+41%</div>
+            </div>
+          </div>
+          <div class="trend-item" onclick="openDetail('velocity-x')">
+            <div class="trend-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+            <div class="trend-info">
+              <div class="trend-name">Velocity X</div>
+              <div class="trend-sub">Competition</div>
+            </div>
+            <div class="trend-right">
+              <div class="trend-price">$245</div>
+              <div class="trend-pct up">+18%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rail-section">
+          <div class="rail-title">Market Movers</div>
+          <table class="movers-mini">
+            <tr><td class="name">Court L1</td><td class="pct text-up">+41%</td></tr>
+            <tr><td class="name">Apex RN3</td><td class="pct text-up">+23%</td></tr>
+            <tr><td class="name">Velocity X</td><td class="pct text-up">+18%</td></tr>
+            <tr><td class="name">Street Phx</td><td class="pct text-up">+15%</td></tr>
+            <tr><td class="name">Trail BL2</td><td class="pct text-down">-12%</td></tr>
+          </table>
+        </div>
+
+        <div class="rail-section">
+          <div class="rail-title">On This Day · 2019</div>
+          <p style="font-family:var(--font-serif);font-size:13px;color:var(--ink-2);line-height:1.5">The original Apex Runner debuted at NBA All-Star weekend, quietly setting the stage for a decade of signature basketball footwear.</p>
+        </div>
+      </aside>
+    </div>
+    </div>
+    <div id="feed-empty" class="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>No stories yet</p>
+      <p>Check back for the latest updates</p>
+    </div>
+  </div>
+
+  <!-- DROPS VIEW -->
+  <div class="view-container" id="view-drops">
+    <div id="drops-skeleton" style="display:none;opacity:.5;pointer-events:none">
+      <div class="drops-layout">
+        <div class="calendar-card"><div class="calendar-header"><div style="height:24px;width:140px;background:var(--hair);border-radius:var(--radius-sm)"></div><div style="display:flex;gap:var(--space-2)"><div style="width:32px;height:32px;background:var(--hair);border-radius:var(--radius-md)"></div><div style="width:32px;height:32px;background:var(--hair);border-radius:var(--radius-md)"></div></div></div><div class="calendar-grid" style="gap:2px;margin-top:var(--space-4)"></div></div>
+        <div class="releases-section"><div style="height:12px;width:120px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-4)"></div><div class="releases-table"><div style="height:72px;background:var(--surface-2);border-radius:var(--radius-md);margin-bottom:var(--space-3)"></div><div style="height:72px;background:var(--surface-2);border-radius:var(--radius-md);margin-bottom:var(--space-3)"></div><div style="height:72px;background:var(--surface-2);border-radius:var(--radius-md)"></div></div></div>
+      </div>
+    </div>
+    <div id="drops-content">
+    <div class="drops-layout">
+      <div class="calendar-card">
+        <div class="calendar-header">
+          <h3 id="calendar-month">October 2025</h3>
+          <div class="calendar-nav">
+            <button onclick="prevMonth()">&#8249;</button>
+            <button onclick="nextMonth()">&#8250;</button>
+          </div>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-weekday">Sun</div><div class="calendar-weekday">Mon</div><div class="calendar-weekday">Tue</div><div class="calendar-weekday">Wed</div><div class="calendar-weekday">Thu</div><div class="calendar-weekday">Fri</div><div class="calendar-weekday">Sat</div>
+          <div class="calendar-day" style="color:var(--ink-3)">28</div><div class="calendar-day" style="color:var(--ink-3)">29</div><div class="calendar-day" style="color:var(--ink-3)">30</div><div class="calendar-day">1</div><div class="calendar-day">2</div><div class="calendar-day has-drop">3</div><div class="calendar-day">4</div>
+          <div class="calendar-day">5</div><div class="calendar-day">6</div><div class="calendar-day has-drop">7</div><div class="calendar-day">8</div><div class="calendar-day">9</div><div class="calendar-day has-drop">10</div><div class="calendar-day">11</div>
+          <div class="calendar-day">12</div><div class="calendar-day">13</div><div class="calendar-day">14</div><div class="calendar-day has-drop">15</div><div class="calendar-day today">16</div><div class="calendar-day has-drop">17</div><div class="calendar-day">18</div>
+          <div class="calendar-day">19</div><div class="calendar-day">20</div><div class="calendar-day has-drop">21</div><div class="calendar-day">22</div><div class="calendar-day">23</div><div class="calendar-day has-drop">24</div><div class="calendar-day">25</div>
+          <div class="calendar-day">26</div><div class="calendar-day">27</div><div class="calendar-day has-drop">28</div><div class="calendar-day">29</div><div class="calendar-day">30</div><div class="calendar-day">31</div><div class="calendar-day" style="color:var(--ink-3)">1</div>
+        </div>
+      </div>
+
+      <div class="releases-section">
+        <h4 class="block-title">Releases for Oct 16</h4>
+        <table class="releases-table">
+          <thead><tr><th>Shoe</th><th>Price</th><th>Status</th></tr></thead>
+          <tbody>
+          <tr onclick="openDetail('apex-runner-3')">
+              <td>
+                <div class="releases-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+                <div class="releases-cell-info">
+                  <div class="releases-brand">Apex</div>
+                  <div class="releases-model">Runner 3 "Midnight"</div>
+                </div>
+              </td>
+              <td><div class="releases-price">$285</div></td>
+              <td><span class="status-tag drop">Drop</span></td>
+            </tr>
+          <tr onclick="openDetail('court-legend-1')">
+              <td>
+                <div class="releases-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+                <div class="releases-cell-info">
+                  <div class="releases-brand">Court Co.</div>
+                  <div class="releases-model">Legend 1 "Sunset"</div>
+                </div>
+              </td>
+              <td><div class="releases-price">$320</div></td>
+              <td><span class="status-tag raffle">Raffle</span></td>
+            </tr>
+          <tr onclick="openDetail('trail-blazer-2')">
+              <td>
+                <div class="releases-thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div>
+                <div class="releases-cell-info">
+                  <div class="releases-brand">Trail Co.</div>
+                  <div class="releases-model">Blazer 2 "Arctic"</div>
+                </div>
+              </td>
+              <td><div class="releases-price">$175</div></td>
+              <td><span class="status-tag soldout">Sold Out</span></td>
+            </tr>
+          <tr onclick="openDetail('night-owl-runner')">
+              <td>
+                <div class="releases-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+                <div class="releases-cell-info">
+                  <div class="releases-brand">Night Owl</div>
+                  <div class="releases-model">Runner "Phantom"</div>
+                </div>
+              </td>
+              <td><div class="releases-price">$225</div></td>
+              <td><span class="status-tag drop">Drop</span></td>
+            </tr>
+            <tr onclick="openDetail('velocity-enduro')">
+              <td>
+                <div class="releases-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+                <div class="releases-cell-info">
+                  <div class="releases-brand">Velocity</div>
+                  <div class="releases-model">Enduro "Forest"</div>
+                </div>
+              </td>
+              <td><div class="releases-price">$195</div></td>
+              <td><span class="status-tag raffle">Raffle</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+    <div id="drops-empty" class="empty-state">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <p>No releases scheduled</p>
+      <p>Check back for upcoming drops</p>
+    </div>
+  </div>
+
+  <!-- MARKET VIEW -->
+  <div class="view-container" id="view-market">
+    <div id="market-skeleton" style="display:none;opacity:.5;pointer-events:none">
+      <div class="market-stats">
+        <div class="stat-card"><div style="height:32px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:4px"></div><div style="height:10px;width:80%;background:var(--hair);border-radius:var(--radius-sm)"></div></div>
+        <div class="stat-card"><div style="height:32px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:4px"></div><div style="height:10px;width:80%;background:var(--hair);border-radius:var(--radius-sm)"></div></div>
+        <div class="stat-card"><div style="height:32px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:4px"></div><div style="height:10px;width:80%;background:var(--hair);border-radius:var(--radius-sm)"></div></div>
+        <div class="stat-card"><div style="height:32px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:4px"></div><div style="height:10px;width:80%;background:var(--hair);border-radius:var(--radius-sm)"></div></div>
+      </div>
+      <div class="movers-section"><div style="height:12px;width:100px;background:var(--hair);border-radius:var(--radius-sm);margin-bottom:var(--space-4)"></div><div style="height:48px;background:var(--surface-2);border-radius:var(--radius-md);margin-bottom:var(--space-3)"></div><div style="height:48px;background:var(--surface-2);border-radius:var(--radius-md);margin-bottom:var(--space-3)"></div><div style="height:48px;background:var(--surface-2);border-radius:var(--radius-md)"></div></div>
+      <div class="category-strip"><div style="flex:1;height:64px;background:var(--surface-2);border-radius:var(--radius-lg)"></div><div style="flex:1;height:64px;background:var(--surface-2);border-radius:var(--radius-lg)"></div><div style="flex:1;height:64px;background:var(--surface-2);border-radius:var(--radius-lg)"></div><div style="flex:1;height:64px;background:var(--surface-2);border-radius:var(--radius-lg)"></div></div>
+    </div>
+    <div id="market-content">
+    <div class="market-stats">
+      <div class="stat-card">
+        <div class="stat-value text-up count-up">+2.4%</div>
+        <div class="stat-label">24h Change</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value count-up">$247</div>
+        <div class="stat-label">Avg Price</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value gold">High</div>
+        <div class="stat-label">Volatility</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value count-up">1,847</div>
+        <div class="stat-label">Trades Today</div>
+      </div>
+    </div>
+
+    <div class="movers-section">
+      <div class="section-header">
+        <div class="section-title">Top Movers</div>
+        <div class="seg-ctrl" style="width:200px">
+          <button class="seg-btn active">Gainers</button>
+          <button class="seg-btn">Losers</button>
+          <button class="seg-btn">Trending</button>
+        </div>
+      </div>
+      <table class="movers-table">
+        <thead><tr><th>Rank</th><th>Shoe</th><th>Trend</th><th class="ta-right">Price</th><th class="ta-right">24h</th></tr></thead>
+        <tbody>
+              <tr onclick="openDetail('court-legend-1')">
+            <td class="movers-rank">1</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Court Legend 1</div>
+                  <div class="movers-sub">Sunset</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,24 12,22 24,18 36,14 48,8 60,4 64,2" stroke="var(--up)"/></svg></td>
+            <td class="movers-price">$320</td>
+            <td class="movers-pct text-up">+41%</td>
+          </tr>
+              <tr onclick="openDetail('apex-runner-3')">
+            <td class="movers-rank">2</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Apex Runner 3</div>
+                  <div class="movers-sub">Midnight</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,22 12,20 24,16 36,12 48,7 60,3 64,1" stroke="var(--up)"/></svg></td>
+            <td class="movers-price">$285</td>
+            <td class="movers-pct text-up">+23%</td>
+          </tr>
+              <tr onclick="openDetail('velocity-x')">
+            <td class="movers-rank">3</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Velocity X</div>
+                  <div class="movers-sub">Competition</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,20 12,18 24,15 36,11 48,7 60,3 64,1" stroke="var(--up)"/></svg></td>
+            <td class="movers-price">$245</td>
+            <td class="movers-pct text-up">+18%</td>
+          </tr>
+              <tr onclick="openDetail('street-phoenix')">
+            <td class="movers-rank">4</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Street Phoenix</div>
+                  <div class="movers-sub">Royal</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,18 12,16 24,14 36,11 48,8 60,5 64,2" stroke="var(--up)"/></svg></td>
+            <td class="movers-price">$198</td>
+            <td class="movers-pct text-up">+15%</td>
+          </tr>
+              <tr onclick="openDetail('trail-blazer-2')">
+            <td class="movers-rank">5</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Trail Blazer 2</div>
+                  <div class="movers-sub">Arctic</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,4 12,7 24,10 36,13 48,17 60,21 64,24" stroke="var(--down)"/></svg></td>
+            <td class="movers-price">$175</td>
+            <td class="movers-pct text-down">-12%</td>
+          </tr>
+              <tr onclick="openDetail('night-owl-runner')">
+            <td class="movers-rank">6</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Night Owl Runner</div>
+                  <div class="movers-sub">Phantom</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,16 12,14 24,12 36,10 48,9 60,7 64,5" stroke="var(--up)"/></svg></td>
+            <td class="movers-price">$215</td>
+            <td class="movers-pct text-up">+11%</td>
+          </tr>
+          <tr onclick="openDetail('court-legend-2')">
+            <td class="movers-rank">7</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Court Co. Legend 2</div>
+                  <div class="movers-sub">Onyx</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,14 12,13 24,11 36,10 48,9 60,8 64,7" stroke="var(--up)"/></svg></td>
+            <td class="movers-price">$295</td>
+            <td class="movers-pct text-up">+7%</td>
+          </tr>
+          <tr onclick="openDetail('velocity-enduro')">
+            <td class="movers-rank">8</td>
+            <td>
+              <div class="media-cell">
+                <div class="movers-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+                <div>
+                  <div class="movers-name">Velocity Enduro</div>
+                  <div class="movers-sub">Forest</div>
+                </div>
+              </div>
+            </td>
+            <td><svg class="sparkline" viewBox="0 0 64 28"><polyline points="0,6 12,8 24,11 36,14 48,17 60,20 64,23" stroke="var(--down)"/></svg></td>
+            <td class="movers-price">$189</td>
+            <td class="movers-pct text-down">-5%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="category-strip">
+      <div class="category-tile"><h4>Basketball</h4><span>24 models</span></div>
+      <div class="category-tile"><h4>Running</h4><span>18 models</span></div>
+      <div class="category-tile"><h4>Lifestyle</h4><span>32 models</span></div>
+      <div class="category-tile"><h4>HYROX</h4><span>8 models</span></div>
+    </div>
+    </div>
+    <div id="market-empty" class="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      <p>No market data available</p>
+      <p>Check back later for updates</p>
+    </div>
+  </div>
+
+  <!-- ATHLETES VIEW -->
+  <div class="view-container" id="view-athletes">
+    <div id="athletes-content">
+    <div class="athletes-grid">
+      <div class="athlete-card">
+        <div class="athlete-portrait">
+          <img src="./assets/athlete-portrait.jpg" alt="Marcus Vale">
+        </div>
+        <div class="athlete-info">
+          <h3 class="athlete-name">Marcus Vale</h3>
+          <p class="athlete-team">Metro City Ballers · SG</p>
+          <div class="athlete-stats">
+            <div class="athlete-stat"><div class="athlete-stat-val">28.4</div><div class="athlete-stat-lbl">PPG</div></div>
+            <div class="athlete-stat"><div class="athlete-stat-val">6.2</div><div class="athlete-stat-lbl">RPG</div></div>
+            <div class="athlete-stat"><div class="athlete-stat-val">5.8</div><div class="athlete-stat-lbl">APG</div></div>
+          </div>
+          <button class="follow-btn" onclick="this.classList.toggle('following');this.textContent=this.classList.contains('following')?'Following':'Follow'">Follow</button>
+        </div>
+      </div>
+
+      <div class="athlete-card">
+        <div class="athlete-portrait" style="display:flex;align-items:center;justify-content:center;background:var(--surface-2)">
+          <span style="font-size:48px;font-weight:700;color:var(--ink-3)">JC</span>
+        </div>
+        <div class="athlete-info">
+          <h3 class="athlete-name">Jenna Cruz</h3>
+          <p class="athlete-team">Elite Endurance Team</p>
+          <div class="athlete-stats">
+            <div class="athlete-stat"><div class="athlete-stat-val">2:24</div><div class="athlete-stat-lbl">Marathon</div></div>
+            <div class="athlete-stat"><div class="athlete-stat-val">31:42</div><div class="athlete-stat-lbl">10K</div></div>
+            <div class="athlete-stat"><div class="athlete-stat-val">15:08</div><div class="athlete-stat-lbl">5K</div></div>
+          </div>
+          <button class="follow-btn" onclick="this.classList.toggle('following');this.textContent=this.classList.contains('following')?'Following':'Follow'">Follow</button>
+        </div>
+      </div>
+
+      <div class="athlete-card">
+        <div class="athlete-portrait" style="display:flex;align-items:center;justify-content:center;background:var(--surface-2)">
+          <span style="font-size:48px;font-weight:700;color:var(--ink-3)">DR</span>
+        </div>
+        <div class="athlete-info">
+          <h3 class="athlete-name">DeShawn Reid</h3>
+          <p class="athlete-team">Northside United · SF</p>
+          <div class="athlete-stats">
+            <div class="athlete-stat"><div class="athlete-stat-val">24.1</div><div class="athlete-stat-lbl">PPG</div></div>
+            <div class="athlete-stat"><div class="athlete-stat-val">7.8</div><div class="athlete-stat-lbl">RPG</div></div>
+            <div class="athlete-stat"><div class="athlete-stat-val">3.2</div><div class="athlete-stat-lbl">APG</div></div>
+          </div>
+          <button class="follow-btn" onclick="this.classList.toggle('following');this.textContent=this.classList.contains('following')?'Following':'Follow'">Follow</button>
+        </div>
+      </div>
+    </div>
+    <div id="athletes-empty" class="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <p>No athletes found</p>
+      <p>Start following athletes to see them here</p>
+    </div>
+  </div>
+
+  <!-- WATCHLIST VIEW -->
+  <div class="view-container" id="view-watchlist">
+    <div id="watchlist-content">
+    <div class="watchlist-layout">
+      <div>
+        <div class="portfolio-card">
+          <div class="portfolio-header">
+            <div class="portfolio-title">Portfolio Summary</div>
+          </div>
+          <div class="portfolio-metrics">
+            <div class="metric">
+              <div class="metric-val count-up">$3,847</div>
+              <div class="metric-lbl">Cost Basis</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val count-up">$4,412</div>
+              <div class="metric-lbl">Market Value</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val up count-up">+$565</div>
+              <div class="metric-lbl">P/L (+19.8%)</div>
+            </div>
+          </div>
+          <div class="portfolio-chart">
+            <svg class="chart-svg" viewBox="0 0 350 120" preserveAspectRatio="none">
+              <defs><linearGradient id="pg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--up);stop-opacity:.4"/><stop offset="100%" style="stop-color:var(--up);stop-opacity:0"/></linearGradient></defs>
+              <path class="chart-area" d="M0 120 L0 95 L35 90 L70 85 L105 80 L140 72 L175 65 L210 60 L245 55 L280 50 L315 45 L350 40 L350 120 Z" fill="url(#pg)"/>
+              <path class="chart-line" d="M0 95 L35 90 L70 85 L105 80 L140 72 L175 65 L210 60 L245 55 L280 50 L315 45 L350 40" stroke="var(--up)" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="movers-section">
+          <div class="section-header">
+            <div class="section-title">My Holdings</div>
+          </div>
+          <table class="holdings-table">
+            <thead><tr><th>Shoe</th><th style="text-align:right">Price</th><th style="text-align:right">24h</th></tr></thead>
+            <tbody>
+            <tr onclick="openDetail('apex-runner-3')">
+                <td>
+                  <div class="media-cell">
+                    <div class="holdings-thumb"><img src="./assets/hero-basketball.jpg" alt=""></div>
+                    <div>
+                      <div class="holdings-name">Apex Runner 3 "Midnight"</div>
+                      <div class="holdings-sub">APEX</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="holdings-price">$285</td>
+                <td class="holdings-chg text-up">+23%</td>
+              </tr>
+            <tr onclick="openDetail('court-legend-1')">
+                <td>
+                  <div class="media-cell">
+                    <div class="holdings-thumb"><img src="./assets/runner-supershoe.jpg" alt=""></div>
+                    <div>
+                      <div class="holdings-name">Court Legend 1 "Sunset"</div>
+                      <div class="holdings-sub">COURT CO.</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="holdings-price">$320</td>
+                <td class="holdings-chg text-up">+41%</td>
+              </tr>
+          <tr onclick="openDetail('velocity-x')">
+                <td>
+                  <div class="media-cell">
+                    <div class="holdings-thumb"><img src="./assets/court-lowtop.jpg" alt=""></div>
+                    <div>
+                      <div class="holdings-name">Velocity X "Competition"</div>
+                      <div class="holdings-sub">VELOCITY</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="holdings-price">$245</td>
+                <td class="holdings-chg text-up">+18%</td>
+              </tr>
+          <tr onclick="openDetail('street-phoenix')">
+                <td>
+                  <div class="media-cell">
+                    <div class="holdings-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+                    <div>
+                      <div class="holdings-name">Street Phoenix "Royal"</div>
+                      <div class="holdings-sub">PHOENIX</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="holdings-price">$198</td>
+                <td class="holdings-chg text-up">+15%</td>
+              </tr>
+            <tr onclick="openDetail('night-owl-runner')">
+                <td>
+                  <div class="media-cell">
+                    <div class="holdings-thumb"><img src="./assets/retro-street.jpg" alt=""></div>
+                    <div>
+                      <div class="holdings-name">Night Owl Runner "Phantom"</div>
+                      <div class="holdings-sub">NIGHT OWL</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="holdings-price">$215</td>
+                <td class="holdings-chg text-up">+11%</td>
+              </tr>
+            <tr onclick="openDetail('trail-blazer-2')">
+                <td>
+                  <div class="media-cell">
+                    <div class="holdings-thumb"><img src="./assets/hyrox-trainer.jpg" alt=""></div>
+                    <div>
+                      <div class="holdings-name">Trail Blazer 2 "Arctic"</div>
+                      <div class="holdings-sub">TRAIL CO.</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="holdings-price">$175</td>
+                <td class="holdings-chg text-down">-8%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="alerts-section">
+        <div class="rail-title" style="margin-bottom:var(--space-4)">Price Alerts</div>
+        <div class="alert-row">
+          <div class="alert-info">
+            <div class="alert-name">Apex Runner 3</div>
+            <div class="alert-threshold">Alert at $260</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="alert-row">
+          <div class="alert-info">
+            <div class="alert-name">Court Legend 1</div>
+            <div class="alert-threshold">Alert at $300</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="alert-row">
+          <div class="alert-info">
+            <div class="alert-name">Trail Blazer 2</div>
+            <div class="alert-threshold">Alert at $160</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="watchlist-empty" class="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <p>Watchlist is empty</p>
+      <p>Track shoes to monitor their value</p>
+    </div>
+  </div>
+
+</main>
+
+</div>
+
+<!-- SHOE DETAIL MODAL -->
+<div class="modal-backdrop" id="detail-modal">
+  <div class="detail-modal">
+    <button class="detail-close" onclick="closeDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="detail-left">
+      <div class="detail-hero-img">
+        <img id="detail-img" src="./assets/hero-basketball.jpg" alt="">
+      </div>
+      <div class="detail-kicker" id="detail-kicker">APEX</div>
+      <h2 class="detail-title" id="detail-title">Runner 3 "Midnight"</h2>
+
+      <div class="eyntk-section">
+        <div class="eyntk-title">Everything You Need to Know</div>
+        <div class="eyntk-grid">
+          <div class="eyntk-item">
+            <div class="eyntk-label">Release</div>
+            <div class="eyntk-value">Oct 12</div>
+          </div>
+          <div class="eyntk-item">
+            <div class="eyntk-label">SKU</div>
+            <div class="eyntk-value">APX-RN3</div>
+          </div>
+          <div class="eyntk-item">
+            <div class="eyntk-label">Colorway</div>
+            <div class="eyntk-value">Midnight</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="chart-label">Price Trend</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn" onclick="setChart(this,'1m')">1M</button>
+            <button class="seg-btn" onclick="setChart(this,'6m')">6M</button>
+            <button class="seg-btn active" onclick="setChart(this,'1y')">1Y</button>
+            <button class="seg-btn" onclick="setChart(this,'all')">ALL</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <svg class="chart-svg" viewBox="0 0 350 200" preserveAspectRatio="none">
+            <defs><linearGradient id="cg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--accent);stop-opacity:.4"/><stop offset="100%" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs>
+            <line x1="0" y1="50" x2="350" y2="50" class="chart-grid"/><line x1="0" y1="100" x2="350" y2="100" class="chart-grid"/><line x1="0" y1="150" x2="350" y2="150" class="chart-grid"/>
+            <path class="chart-area" d="M0 180 L0 150 L50 140 L100 130 L150 115 L200 100 L250 85 L300 70 L350 55 L350 200 Z"/>
+            <path class="chart-line" d="M0 150 L50 140 L100 130 L150 115 L200 100 L250 85 L300 70 L350 55"/>
+            <text x="10" y="195" fill="var(--ink-3)" font-size="10" font-family="var(--font-mono)">Nov 1</text>
+            <text x="170" y="195" fill="var(--ink-3)" font-size="10" font-family="var(--font-mono)" text-anchor="middle">Dec 1</text>
+            <text x="340" y="195" fill="var(--ink-3)" font-size="10" font-family="var(--font-mono)" text-anchor="end">Jan 1</text>
+          </svg>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-top:var(--space-4)">
+          <div class="eyntk-item">
+            <div class="eyntk-label">Retail</div>
+            <div class="eyntk-value">$180</div>
+          </div>
+          <div class="eyntk-item">
+            <div class="eyntk-label">Market</div>
+            <div class="eyntk-value" style="color:var(--accent)">$248</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown-section">
+        <div class="breakdown-title">The Breakdown</div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Manufacturer</span>
+          <span class="breakdown-value" id="detail-manufacturer">Apex Athletic Manufacturing</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Sourced / Made in</span>
+          <span class="breakdown-value" id="detail-origin">Vietnam · Factory 07</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Materials</span>
+          <span class="breakdown-value" id="detail-materials">Recycled knit · EVA foam · Rubber</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Retail (MSRP)</span>
+          <span class="breakdown-value" id="detail-retail">$180</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Estimated cost to make</span>
+          <span class="breakdown-value" id="detail-estcost">~$74 (41%) <span class="breakdown-estimated">estimated</span></span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Market / Resale</span>
+          <span class="breakdown-value" id="detail-market">$248</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Markup over retail</span>
+          <span class="breakdown-value" id="detail-markup">+38%</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Margin</span>
+          <span class="breakdown-value" id="detail-margin">59%</span>
+        </div>
+        <div class="cost-bar-wrap">
+          <div class="cost-bar-head"><span>Cost vs Margin</span><strong id="detail-margin-pct">59% margin</strong></div>
+          <div class="cost-bar"><div class="cost-bar-fill" id="detail-cost-bar" style="width:41%"></div></div>
+        </div>
+      </div>
+
+      <!-- SPECS Section -->
+      <div class="specs-section" id="detail-specs-section">
+        <div class="breakdown-title">SPECS</div>
+        <div class="specs-grid">
+          <div class="spec-item">
+            <div class="spec-label">Category</div>
+            <div class="spec-value" id="detail-specs-category">Basketball</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Weight</div>
+            <div class="spec-value" id="detail-specs-weight">340g</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">Drop</div>
+            <div class="spec-value" id="detail-specs-drop">10mm</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WHERE IT'S MADE Section -->
+      <div class="mfg-section" id="detail-mfg-section">
+        <div class="mfg-title">WHERE IT'S MADE</div>
+        <div id="detail-mfg-rows">
+          <div class="mfg-row"><span class="mfg-label">Upper · Recycled knit</span><span class="mfg-value mfg-site">Vietnam · Factory 07</span></div>
+          <div class="mfg-row"><span class="mfg-label">Midsole · EVA foam</span><span class="mfg-value mfg-site">China · Factory 12</span></div>
+          <div class="mfg-row"><span class="mfg-label">Outsole · Rubber</span><span class="mfg-value mfg-site">Indonesia · Factory 03</span></div>
+          <div class="mfg-row"><span class="mfg-label">Laces · Recycled polyester</span><span class="mfg-value mfg-site">Vietnam · Factory 09</span></div>
+          <div class="mfg-row"><span class="mfg-label">Insole · Foam</span><span class="mfg-value mfg-site">Taiwan · Factory 21</span></div>
+          <div class="mfg-row"><span class="mfg-label">Final assembly</span><span class="mfg-value mfg-site">Vietnam · Factory 07</span></div>
+        </div>
+        <div class="mfg-summary" id="detail-mfg-summary">6 parts · 4 countries</div>
+      </div>
+    </div>
+
+    <div class="detail-right">
+      <div class="bidask-block">
+        <div class="bidask-box">
+          <div class="bidask-label">Highest Bid</div>
+          <div class="bidask-value">$235</div>
+        </div>
+        <div class="bidask-box ask">
+          <div class="bidask-label">Lowest Ask</div>
+          <div class="bidask-value">$248</div>
+        </div>
+      </div>
+
+      <div class="size-section">
+        <div class="size-label">Select Size (US)</div>
+        <div class="size-grid">
+          <div class="size-cell" onclick="selectSize(this,'US 8')"><div class="sz">8</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 8.5')"><div class="sz">8.5</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 9')"><div class="sz">9</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 9.5')"><div class="sz">9.5</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 10')"><div class="sz">10</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 10.5')"><div class="sz">10.5</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 11')"><div class="sz">11</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 11.5')"><div class="sz">11.5</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 12')"><div class="sz">12</div></div>
+          <div class="size-cell" onclick="selectSize(this,'US 13')"><div class="sz">13</div></div>
+        </div>
+      </div>
+
+      <div class="worn-section">
+        <div class="worn-label">Worn by</div>
+        <div class="worn-row">
+          <div class="worn-av"><div class="worn-av-img"><img src="./assets/athlete-portrait.jpg" alt=""></div><div class="worn-name">M. Vale</div></div>
+          <div class="worn-av"><div class="ini">JC</div><div class="worn-name">J. Cruz</div></div>
+          <div class="worn-av"><div class="ini">DR</div><div class="worn-name">D. Reid</div></div>
+          <div class="worn-av"><div class="ini">TK</div><div class="worn-name">T. Knox</div></div>
+        </div>
+      </div>
+
+      <div class="buy-section">
+        <button class="buy-btn" id="add-to-cart-btn" disabled onclick="addToCart()">Select Size to Add to Cart</button>
+        <button class="buy-btn secondary" onclick="openWTB()">Where to Buy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHERE TO BUY MODAL -->
+<div class="wtb-modal" id="wtb-modal">
+  <div class="wtb-panel">
+    <div class="wtb-header">
+      <h3 class="wtb-title">Where to Buy</h3>
+      <button class="wtb-close" onclick="closeWTB()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="wtb-content">
+      <div class="retailer-row">
+        <div class="retailer-info">
+          <div class="retailer-name">StockX</div>
+          <div class="retailer-sub">Ships in 2-3 days</div>
+        </div>
+        <div class="retailer-right">
+          <div class="retailer-price">$248</div>
+          <div class="retailer-badge">Verified</div>
+        </div>
+      </div>
+      <div class="retailer-row">
+        <div class="retailer-info">
+          <div class="retailer-name">GOAT</div>
+          <div class="retailer-sub">Instant ship available</div>
+        </div>
+        <div class="retailer-right">
+          <div class="retailer-price">$252</div>
+          <div class="retailer-badge">Verified</div>
+        </div>
+      </div>
+      <div class="retailer-row">
+        <div class="retailer-info">
+          <div class="retailer-name">eBay</div>
+          <div class="retailer-sub">Authenticity Guarantee</div>
+        </div>
+        <div class="retailer-right">
+          <div class="retailer-price">$245</div>
+          <div class="retailer-badge">Top Rated</div>
+        </div>
+      </div>
+      <div class="retailer-row">
+        <div class="retailer-info">
+          <div class="retailer-name">FootLocker</div>
+          <div class="retailer-sub">In-store pickup</div>
+        </div>
+        <div class="retailer-right">
+          <div class="retailer-price">$180</div>
+          <div class="retailer-badge">Retail</div>
+        </div>
+      </div>
+      <div class="retailer-row">
+        <div class="retailer-info">
+          <div class="retailer-name">Finish Line</div>
+          <div class="retailer-sub">Free shipping</div>
+        </div>
+        <div class="retailer-right">
+          <div class="retailer-price">$180</div>
+          <div class="retailer-badge">Retail</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CART DRAWER -->
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-drawer-header">
+    <h3 class="cart-drawer-title">Cart</h3>
+    <div class="cart-drawer-count" id="cart-drawer-count">0 items</div>
+    <button class="cart-drawer-close" onclick="closeCart()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <div class="cart-empty">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <p>Your cart is empty</p>
+    </div>
+  </div>
+  <div class="cart-summary" id="cart-summary" style="display:none">
+    <div class="summary-row"><span class="lbl">Subtotal</span><span class="val" id="cart-subtotal">$0</span></div>
+    <div class="summary-row"><span class="lbl">Shipping</span><span class="val">Free</span></div>
+    <div class="summary-row"><span class="lbl">Tax</span><span class="val" id="cart-tax">$0</span></div>
+    <div class="summary-row total"><span class="lbl">Total</span><span class="val" id="cart-total">$0</span></div>
+    <button class="checkout-btn" onclick="checkout()">Checkout</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Added to cart</div>
+
+<script>
+// SHOE DATA - 8 shoes with manufacturing details
+const SHOE_DATA={
+  'apex-runner-3':{brand:'Apex',model:'Runner 3',colorway:'Midnight',sku:'APX-RN3-MID',release:'Oct 12, 2025',retail:180,market:248,bid:232,ask:248,estCost:74,markupPct:38,marginPct:59,category:'Basketball',weight:'340g',drop:'10mm',image:'./assets/hero-basketball.jpg',trend:'+23%',parts:[{part:'Upper',material:'Recycled knit',site:'Vietnam · Factory 07'},{part:'Midsole',material:'EVA foam',site:'China · Factory 12'},{part:'Outsole',material:'Rubber',site:'Indonesia · Factory 03'},{part:'Laces',material:'Recycled polyester',site:'Vietnam · Factory 09'},{part:'Insole',material:'Foam',site:'Taiwan · Factory 21'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 07'}]},
+  'court-legend-1':{brand:'Court Co.',model:'Legend 1',colorway:'Sunset',sku:'CRT-LG1-SUN',release:'Sep 28, 2025',retail:200,market:320,bid:305,ask:320,estCost:82,markupPct:60,marginPct:59,category:'Running',weight:'285g',drop:'8mm',image:'./assets/runner-supershoe.jpg',trend:'+41%',parts:[{part:'Upper',material:'Engineered mesh',site:'Portugal · Factory 04'},{part:'Midsole',material:'PEBA foam',site:'Germany · Factory 02'},{part:'Outsole',material:'Carbon rubber',site:'Vietnam · Factory 11'},{part:'Laces',material:'Nylon',site:'Portugal · Factory 04'},{part:'Insole',material:'OrthoLite',site:'Italy · Factory 08'},{part:'Final assembly',material:'—',site:'Portugal · Factory 04'}]},
+  'velocity-x':{brand:'Velocity',model:'X',colorway:'Competition',sku:'VLC-X-COMP',release:'Aug 15, 2025',retail:165,market:245,bid:230,ask:245,estCost:68,markupPct:48,marginPct:59,category:'Running',weight:'220g',drop:'6mm',image:'./assets/court-lowtop.jpg',trend:'+18%',parts:[{part:'Upper',material:'VaporWeave',site:'Japan · Factory 01'},{part:'Midsole',material:'ZoomX foam',site:'China · Factory 15'},{part:'Outsole',material:'Blown rubber',site:'Vietnam · Factory 06'},{part:'Laces',material:'Recycled nylon',site:'Japan · Factory 01'},{part:'Insole',material:'EVA',site:'Taiwan · Factory 19'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 06'}]},
+  'trail-blazer-2':{brand:'Trail Co.',model:'Blazer 2',colorway:'Arctic',sku:'TRL-BL2-ARC',release:'Jul 22, 2025',retail:150,market:175,bid:165,ask:175,estCost:62,markupPct:17,marginPct:59,category:'HYROX',weight:'310g',drop:'8mm',image:'./assets/hyrox-trainer.jpg',trend:'-12%',parts:[{part:'Upper',material:'Ripstop nylon',site:'Indonesia · Factory 05'},{part:'Midsole',material:'Dual-density EVA',site:'Thailand · Factory 08'},{part:'Outsole',material:'Vibram rubber',site:'Italy · Factory 03'},{part:'Laces',material:'Kevlar blend',site:'Indonesia · Factory 05'},{part:'Insole',material:'Memory foam',site:'China · Factory 14'},{part:'Final assembly',material:'—',site:'Indonesia · Factory 05'}]},
+  'night-owl-runner':{brand:'Night Owl',model:'Runner',colorway:'Phantom',sku:'NTE-RNR-PHM',release:'Jun 10, 2025',retail:140,market:215,bid:205,ask:215,estCost:58,markupPct:54,marginPct:58,category:'Lifestyle',weight:'355g',drop:'10mm',image:'./assets/retro-street.jpg',trend:'+11%',parts:[{part:'Upper',material:'Suede + mesh',site:'China · Factory 09'},{part:'Midsole',material:'Phylon',site:'Vietnam · Factory 14'},{part:'Outsole',material:'Solid rubber',site:'China · Factory 09'},{part:'Laces',material:'Cotton blend',site:'China · Factory 09'},{part:'Insole',material:'EVA',site:'Vietnam · Factory 14'},{part:'Final assembly',material:'—',site:'China · Factory 09'}]},
+  'street-phoenix':{brand:'Street Phoenix',model:'Royal',colorway:'Royal',sku:'ST-PHX-RYL',release:'May 5, 2025',retail:130,market:198,bid:185,ask:198,estCost:54,markupPct:52,marginPct:58,category:'Lifestyle',weight:'380g',drop:'10mm',image:'./assets/retro-street.jpg',trend:'+15%',parts:[{part:'Upper',material:'Leather + synthetic',site:'South Korea · Factory 02'},{part:'Midsole',material:'EVA + Air unit',site:'China · Factory 18'},{part:'Outsole',material:'Gum rubber',site:'Vietnam · Factory 10'},{part:'Laces',material:'Waxed cotton',site:'South Korea · Factory 02'},{part:'Insole',material:'Poron',site:'Japan · Factory 05'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 10'}]},
+  'velocity-enduro':{brand:'Velocity',model:'Enduro',colorway:'Forest',sku:'VLC-END-FST',release:'Apr 18, 2025',retail:155,market:189,bid:178,ask:189,estCost:64,markupPct:22,marginPct:56,category:'Running',weight:'295g',drop:'8mm',image:'./assets/runner-supershoe.jpg',trend:'-5%',parts:[{part:'Upper',material:'Mesh + TPU',site:'Vietnam · Factory 16'},{part:'Midsole',material:'EVA + plate',site:'China · Factory 20'},{part:'Outsole',material:'Trail rubber',site:'Indonesia · Factory 07'},{part:'Laces',material:'Nylon',site:'Vietnam · Factory 16'},{part:'Insole',material:'OrthoLite',site:'Taiwan · Factory 11'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 16'}]},
+  'court-legend-2':{brand:'Court Co.',model:'Legend 2',colorway:'Onyx',sku:'CRT-LG2-ONX',release:'Mar 30, 2025',retail:210,market:295,bid:280,ask:295,estCost:86,markupPct:40,marginPct:58,category:'Basketball',weight:'355g',drop:'10mm',image:'./assets/hero-basketball.jpg',trend:'+7%',parts:[{part:'Upper',material:'Flyknit',site:'Vietnam · Factory 03'},{part:'Midsole',material:'Zoom Air',site:'China · Factory 17'},{part:'Outsole',material:'XDR rubber',site:'Vietnam · Factory 03'},{part:'Laces',material:'Recycled polyester',site:'Vietnam · Factory 03'},{part:'Insole',material:'Foam',site:'Taiwan · Factory 09'},{part:'Final assembly',material:'—',site:'Vietnam · Factory 03'}]}
+};
+
+// STATE
+let cartState={items:[],count:0};
+let selectedSize=null;
+let currentShoe={name:'',price:0,image:''};
+let currentShoeKey=null;
+let isLightTheme=false;
+const prefersReduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// CHART DRAW-IN
+function runChartDraw(scope){
+  if(prefersReduced)return;
+  scope.querySelectorAll('.chart-line').forEach(function(p){
+    var len=0;
+    try{len=p.getTotalLength();}catch(e){return;}
+    p.style.transition='none';
+    p.style.strokeDasharray=len;
+    p.style.strokeDashoffset=len;
+    p.getBoundingClientRect();
+    p.style.transition='stroke-dashoffset 900ms cubic-bezier(.4,0,.2,1)';
+    p.style.strokeDashoffset='0';
+  });
+}
+
+// COUNT-UP ANIMATION
+function countUp(el){
+  if(prefersReduced)return;
+  var finalText=el.textContent.trim();
+  var m=finalText.match(/-?[\d,]+(?:\.\d+)?/);
+  if(!m)return;
+  var raw=m[0];
+  var hasComma=raw.indexOf(',')>-1;
+  var dec=(raw.split('.')[1]||'').length;
+  var target=parseFloat(raw.replace(/,/g,''));
+  var idx=m.index;
+  var before=finalText.slice(0,idx);
+  var after=finalText.slice(idx+raw.length);
+  var start=null,dur=850;
+  function fmt(v){var s=v.toFixed(dec);if(hasComma){var parts=s.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');s=parts.join('.');}return before+s+after;}
+  function step(ts){if(!start)start=ts;var pr=Math.min((ts-start)/dur,1);var eased=1-Math.pow(1-pr,3);el.textContent=fmt(target*eased);if(pr<1){requestAnimationFrame(step);}else{el.textContent=finalText;}}
+  requestAnimationFrame(step);
+}
+
+// ANIMATE VIEW ON ACTIVATE
+function animateView(view){
+  var el=document.getElementById('view-'+view);
+  if(!el)return;
+  runChartDraw(el);
+  el.querySelectorAll('.count-up').forEach(countUp);
+}
+
+
+// VIEW SWITCHING
+function switchView(view){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector('.nav-item[data-view="'+view+'"]').classList.add('active');
+  document.querySelectorAll('.view-container').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  animateView(view);
+}
+
+// CALENDAR
+let currentMonth='October 2025';
+const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function prevMonth(){
+  const idx=months.indexOf(currentMonth.split(' ')[0]);
+  const prevIdx=(idx-1+12)%12;
+  currentMonth=months[prevIdx]+' 2025';
+  document.getElementById('calendar-month').textContent=currentMonth;
+}
+function nextMonth(){
+  const idx=months.indexOf(currentMonth.split(' ')[0]);
+  const nextIdx=(idx+1)%12;
+  currentMonth=months[nextIdx]+' 2025';
+  document.getElementById('calendar-month').textContent=currentMonth;
+}
+
+// CHART SEGMENTS
+function setChart(btn,range){
+  btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// DETAIL MODAL - DATA DRIVEN from SHOE_DATA
+function openDetail(shoeKey,title,img){
+  // Support legacy call: openDetail('Apex Runner 3','Midnight',img) - find matching shoe
+  if(typeof shoeKey==='string'&&!shoeKey.includes('-')&&title){
+    const found=Object.entries(SHOE_DATA).find(([k,v])=>(v.brand+' '+v.model).toLowerCase().includes(shoeKey.toLowerCase())||v.model.toLowerCase()===shoeKey.toLowerCase());
+    if(found)shoeKey=found[0];
+    else shoeKey='apex-runner-3';
+  }
+  
+  const shoe=SHOE_DATA[shoeKey]||SHOE_DATA['apex-runner-3'];
+  currentShoeKey=shoeKey;
+  currentShoe={name:shoe.brand+' '+shoe.model,price:shoe.ask,image:shoe.image};
+  
+  // Hero
+  document.getElementById('detail-kicker').textContent=shoe.brand.toUpperCase();
+  document.getElementById('detail-title').textContent=shoe.model+' "'+shoe.colorway+'"';
+  document.getElementById('detail-img').src=shoe.image;
+  
+  // Bid/Ask
+  const bidAskBlock=document.querySelector('.bidask-block');
+  if(bidAskBlock){
+    bidAskBlock.innerHTML='<div class="bidask-box"><div class="bidask-label">Highest Bid</div><div class="bidask-value">$'+shoe.bid+'</div></div><div class="bidask-box ask"><div class="bidask-label">Lowest Ask</div><div class="bidask-value">$'+shoe.ask+'</div></div>';
+  }
+  
+  // Breakdown
+  document.getElementById('detail-manufacturer').textContent=shoe.brand+' Athletic';
+  const firstPart=shoe.parts[0];
+  document.getElementById('detail-origin').textContent=firstPart.site;
+  const materials=[...new Set(shoe.parts.map(p=>p.material))].join(' · ');
+  document.getElementById('detail-materials').textContent=materials;
+  document.getElementById('detail-retail').textContent='$'+shoe.retail;
+  const costPct=Math.round((shoe.estCost/shoe.retail)*100);
+  document.getElementById('detail-estcost').innerHTML='~$'+shoe.estCost+' <span class="breakdown-estimated">('+costPct+'%)</span>';
+  document.getElementById('detail-market').textContent='$'+shoe.market;
+  document.getElementById('detail-markup').textContent='+'+shoe.markupPct+'%';
+  document.getElementById('detail-margin').textContent=shoe.marginPct+'%';
+  document.getElementById('detail-margin-pct').textContent=shoe.marginPct+'% margin';
+  document.getElementById('detail-cost-bar').style.width=costPct+'%';
+  
+  // SPECS
+  document.getElementById('detail-specs-category').textContent=shoe.category;
+  document.getElementById('detail-specs-weight').textContent=shoe.weight;
+  document.getElementById('detail-specs-drop').textContent=shoe.drop;
+  
+  // WHERE IT'S MADE - build rows dynamically
+  const mfgRows=document.getElementById('detail-mfg-rows');
+  if(mfgRows){
+    mfgRows.innerHTML=shoe.parts.map(p=>'<div class="mfg-row"><span class="mfg-label">'+p.part+' · '+p.material+'</span><span class="mfg-value mfg-site">'+p.site+'</span></div>').join('');
+  }
+  // Count unique countries
+  const countries=[...new Set(shoe.parts.map(p=>p.site.split('·')[0].trim()))];
+  document.getElementById('detail-mfg-summary').textContent=shoe.parts.length+' parts · '+countries.length+' countr'+(countries.length===1?'y':'ies');
+  
+  // Size grid - generate prices based on market
+  const sizeGrid=document.querySelector('.size-grid');
+  if(sizeGrid){
+    const sizes=['US 8','US 8.5','US 9','US 9.5','US 10','US 10.5','US 11','US 11.5','US 12','US 13'];
+    const basePrice=shoe.market;
+    const variations=[-12,-8,-5,+3,0,+6,+11,+18,+24,+30];
+    sizeGrid.innerHTML=sizes.map((s,i)=>'<div class="size-cell" onclick="selectSize(this,\'US '+s.split(' ')[1]+'\')"><div class="sz">'+s.split(' ')[1]+'</div><div class="pr">$'+(basePrice+variations[i])+'</div></div>').join('');
+  }
+  
+  document.getElementById('detail-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+  selectedSize=null;
+  updateAddToCartBtn();
+  setTimeout(function(){runChartDraw(document.getElementById('detail-modal'));},40);
+}
+function closeDetail(){
+  document.getElementById('detail-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// SIZE SELECTION
+function selectSize(el,size){
+  document.querySelectorAll('.size-cell').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSize=size;
+  updateAddToCartBtn();
+}
+
+function updateAddToCartBtn(){
+  const btn=document.getElementById('add-to-cart-btn');
+  if(selectedSize){
+    btn.disabled=false;
+    btn.style.opacity='1';
+    btn.style.cursor='pointer';
+    btn.textContent='Add to Cart — $'+currentShoe.price;
+  }else{
+    btn.disabled=true;
+    btn.style.opacity='.5';
+    btn.style.cursor='not-allowed';
+    btn.textContent='Select Size to Add to Cart';
+  }
+}
+
+// WHERE TO BUY
+function openWTB(){document.getElementById('wtb-modal').classList.add('open')}
+function closeWTB(){document.getElementById('wtb-modal').classList.remove('open')}
+
+// CART - prices from SHOE_DATA
+const shoePrices={'Apex Runner 3':248,'Court Legend 1':320,'Velocity X':245,'Street Phoenix':198,'Trail Blazer 2':175,'Night Owl Runner':215,'Velocity Enduro':189,'Court Co. Legend 2':295};
+
+function addToCart(){
+  if(!selectedSize||!currentShoe.name)return;
+  const existing=cartState.items.find(i=>i.name===currentShoe.name&&i.size===selectedSize);
+  if(existing){existing.qty++}else{
+    cartState.items.push({name:currentShoe.name,size:selectedSize,price:currentShoe.price,qty:1,image:currentShoe.image});
+  }
+  cartState.count=cartState.items.reduce((sum,i)=>sum+i.qty,0);
+  updateCartBadge();
+  renderCart();
+  showToast('Added to cart');
+  closeDetail();
+  selectedSize=null;
+  updateAddToCartBtn();
+}
+
+function updateCartBadge(){
+  const badge=document.getElementById('cart-badge');
+  const sidebarCount=document.getElementById('sidebar-cart-count');
+  const drawerCount=document.getElementById('cart-drawer-count');
+  if(badge){
+    badge.textContent=cartState.count;
+    badge.style.display=cartState.count>0?'block':'none';
+  }
+  if(sidebarCount){sidebarCount.textContent=cartState.count>0?'('+cartState.count+')':''}
+  if(drawerCount){drawerCount.textContent=cartState.count+' item'+(cartState.count!==1?'s':'')}
+}
+
+function renderCart(){
+  const container=document.getElementById('cart-items');
+  const summary=document.getElementById('cart-summary');
+  if(cartState.items.length===0){
+    container.innerHTML='<div class="cart-empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><p>Your cart is empty</p></div>';
+    summary.style.display='none';
+    return;
+  }
+  summary.style.display='block';
+  container.innerHTML=cartState.items.map((item,idx)=>`
+    <div class="cart-item">
+      <div class="cart-item-thumb"><img src="${item.image}" alt="${item.name}"></div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-meta">Size: ${item.size}</div>
+        <div class="cart-item-price">$${item.price}</div>
+        <div class="cart-qty-ctrl">
+          <button class="qty-btn" onclick="updateQty(${idx},-1)">-</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="updateQty(${idx},1)">+</button>
+          <button class="cart-remove" onclick="removeItem(${idx})">Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  const subtotal=cartState.items.reduce((sum,i)=>sum+(i.price*i.qty),0);
+  const tax=Math.round(subtotal*0.08);
+  const total=subtotal+tax;
+  document.getElementById('cart-subtotal').textContent='$'+subtotal.toFixed(2);
+  document.getElementById('cart-tax').textContent='$'+tax.toFixed(2);
+  document.getElementById('cart-total').textContent='$'+total.toFixed(2);
+}
+
+function updateQty(idx,delta){
+  const item=cartState.items[idx];
+  if(!item)return;
+  item.qty+=delta;
+  if(item.qty<=0){cartState.items.splice(idx,1)}
+  cartState.count=cartState.items.reduce((sum,i)=>sum+i.qty,0);
+  updateCartBadge();
+  renderCart();
+}
+
+function removeItem(idx){
+  cartState.items.splice(idx,1);
+  cartState.count=cartState.items.reduce((sum,i)=>sum+i.qty,0);
+  updateCartBadge();
+  renderCart();
+}
+
+function openCart(){document.getElementById('cart-drawer').classList.add('open');renderCart()}
+function closeCart(){document.getElementById('cart-drawer').classList.remove('open')}
+
+function checkout(){
+  showToast('Checkout coming soon');
+  cartState={items:[],count:0};
+  updateCartBadge();
+  closeCart();
+}
+
+// TOAST
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// APPEARANCE TOGGLE
+function toggleAppearance(){
+  isLightTheme=!isLightTheme;
+  const app=document.getElementById('app');
+  const label=document.getElementById('appearance-label');
+  if(isLightTheme){
+    app.classList.add('light');
+    label.textContent='Light';
+  }else{
+    app.classList.remove('light');
+    label.textContent='Dark';
+  }
+}
+
+// SKELETON LOADERS - hide skeletons after brief delay
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+    ['feed','drops','market'].forEach(function(v){
+      var skel=document.getElementById(v+'-skeleton');
+      var content=document.getElementById(v+'-content');
+      if(skel)skel.style.display='none';
+      if(content)content.style.display='block';
+    });
+    animateView('feed');
+  },600);
+});
+</script>
+</body>
+</html>
