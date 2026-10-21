@@ -25,6 +25,74 @@ The two builds are optimized for different screen sizes but share the same core 
 - **Persistence:** Demo data is stored in browser localStorage using the keys shown above.
 - **Assets:** Large image assets are embedded as base64 data URIs within the JavaScript.
 
+## Optional Backend (Zero-Dependency Python)
+
+An optional Python stdlib backend provides server-side persistence while keeping the front-end files **byte-pristine** (never modified on disk).
+
+### Run the Backend
+
+```bash
+python apps\peers\server\server.py
+```
+
+This serves both the API and the static front-end on `http://127.0.0.1:8788/`.
+
+**CLI Options:**
+- `--port 8788` — Custom port (default: 8788)
+- `--host 127.0.0.1` — Custom host (default: 127.0.0.1)
+- `--no-browser` — Do not open browser on start
+
+**Environment:**
+- `PEERS_DB` — Override database path (default: `apps\peers\server\data\peers.db`)
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check: `{"status":"ok","app":"peers","version":"1.0"}` |
+| `GET` | `/api/state` | Get full state document |
+| `PUT` | `/api/state` | Replace entire state (body: JSON object) |
+| `POST` | `/api/reset` | Reset to seed state |
+| `POST` | `/api/auth/signup` | Create user: `{action:"signup",email,password,name}` |
+| `POST` | `/api/auth/signin` | Login: `{action:"signin",email,password}` |
+| `POST` | `/api/auth/logout` | Logout: `{action:"logout"}` |
+| `OPTIONS` | `/api/*` | CORS preflight (204) |
+
+All responses include `Access-Control-Allow-Origin: *`.
+
+### Serve-Time HTML Injection (Key Design)
+
+The backend **never modifies** `web/index.html` or `web/mobile.html` on disk. Instead, when serving these files:
+
+1. The server reads the HTML file from disk
+2. It injects a small `<script>` shim **immediately before** the first `<script>` tag
+3. The injected HTML is served to the browser
+
+The shim does two things:
+
+**(a) Hydrate at boot:** Synchronously sets `localStorage.setItem(KEY, <server state>)` before the app's own `loadState()` runs, so the app reads server state on startup.
+
+**(b) Sync on write:** Wraps `Storage.prototype.setItem` and `removeItem` to fire-and-forget `fetch('/api/state', {method:'PUT', ...})` after every localStorage write, keeping the server in sync.
+
+The shim uses the correct localStorage key for each file:
+- `index.html` → `peers_demo_v3`
+- `mobile.html` → `peers_mobile_v1`
+
+**Why this matters:**
+- Front-end files remain **byte-pristine** (verified by `test_static_integrity.py`)
+- No build step required
+- Offline mode still works (double-click HTML files directly)
+- Server adds persistence as an optional enhancement
+
+### Offline Guarantee
+
+The app works **completely offline** when opened directly via `file://`:
+- No backend required
+- All state stored in browser localStorage
+- No external dependencies
+
+The backend is an **optional enhancement** for server-side persistence. It does not break offline mode.
+
 ## Documentation
 
 Product documentation and screenshots are located in the `docs/` folder:
@@ -34,7 +102,9 @@ Product documentation and screenshots are located in the `docs/` folder:
 - `screenshots/` — Desktop screenshots
 - `screenshots-mobile/` — Mobile screenshots
 
-## Static Integrity Tests
+## Tests
+
+### Static Integrity Tests
 
 Run the static integrity tests to verify the HTML builds have not been corrupted:
 
@@ -50,32 +120,40 @@ The test checks:
 - No absolute-root asset references (`src="/`, `href="/`)
 - No `<base>` tag
 
-## Roadmap
+### API Verification Tests
 
-### Current State (v0.6)
-- [x] Single-file HTML builds (desktop + mobile)
-- [x] Client-side localStorage persistence
-- [x] Static integrity tests
-- [ ] Backend persistence layer (planned)
+Run the hermetic API tests (spawns server with temp DB, free port):
 
-### Future: Optional Backend
+```bash
+python apps\peers\tests\verify_api.py
+```
 
-A stdlib-based persistence backend **may** be added in the future under `server/`. This would provide:
-- Server-side storage for demo data
-- API endpoints for CRUD operations on photos
-- Optional synchronization across devices
-
-**Note:** The backend is **not yet present**. The app currently runs entirely client-side with localStorage. When a backend is added, it will be designed as an optional enhancement that does not break the existing client-only mode.
+Tests cover:
+- Health endpoint
+- State GET/PUT round-trip
+- Reset endpoint
+- Auth signup/signin/logout
+- CORS headers
+- OPTIONS preflight
+- 404 for unknown routes
+- 400 for malformed JSON
+- HTML injection (shim present, precedes original script)
 
 ## Directory Structure
 
 ```
 apps/peers/
   web/
-    index.html        # Desktop build
-    mobile.html       # Mobile build
+    index.html        # Desktop build (5,468,126 bytes)
+    mobile.html       # Mobile build (5,477,175 bytes)
+  server/
+    server.py         # Zero-dependency Python backend
+    seed_state.json   # Seed state documentation
+    data/
+      peers.db        # SQLite database (created on first run)
   tests/
     test_static_integrity.py
+    verify_api.py
   docs/
     Peers App.md
     Peers-Master-Product-Guide-v0.6.pdf
@@ -83,3 +161,13 @@ apps/peers/
     screenshots-mobile/
   README.md
 ```
+
+## Roadmap
+
+### Current State (v0.6)
+- [x] Single-file HTML builds (desktop + mobile)
+- [x] Client-side localStorage persistence
+- [x] Static integrity tests
+- [x] Backend persistence layer (optional, zero-dependency)
+- [x] Serve-time HTML injection (byte-pristine front-ends)
+- [x] Hermetic API tests

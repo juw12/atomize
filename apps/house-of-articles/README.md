@@ -136,6 +136,45 @@ python -m http.server 8000 --directory web
 
 No backend, no build step, no dependencies.
 
+## Optional Read-Only API
+
+A zero-dependency Python stdlib API server is available for programmatic access to the catalog data.
+
+### Run the server
+
+```bash
+python server/server.py
+```
+
+Options:
+- `--port` (default: 8789)
+- `--host` (default: 127.0.0.1)
+- `--no-browser` (do not auto-open browser)
+- `HOA_DB` env var to override database path (default: `server/data/hoa.db`)
+
+The server seeds a SQLite database from `data/data-spine.json` on first run. **The data spine is the single source of truth** — the served catalog is always derived from it.
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | `{"status":"ok","app":"house-of-articles","version":"1.0"}` |
+| `GET` | `/api/brands` | List of brands `[{id, name, country}]` |
+| `GET` | `/api/sneakers` | List of sneakers with brand + market data |
+| `GET` | `/api/sneakers/{id}` | Sneaker detail with colorways and parts |
+| `GET` | `/api/sneakers/{id}/prices?range=1m|6m|1y|all` | Deterministic synthesized price time series |
+| `OPTIONS` | `/api/*` | CORS preflight → `204` |
+
+All responses include `Access-Control-Allow-Origin: *`. Errors return `{"error": "..."}` JSON.
+
+### Static files
+
+The server also serves static files from `web/`:
+- `GET /` → `index.html`
+- `GET /index.html`, `/desktop.html`, `/assets/*.jpg`, etc.
+
+Access to `/data/` is blocked for security.
+
 ## Trademark Caveat
 
 **"House of Articles"** is a working name pending trademark clearance vs. **"House of Highlights"** (ESPN/Complex). The name and branding should be reviewed before public release.
