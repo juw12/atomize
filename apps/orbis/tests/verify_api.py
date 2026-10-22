@@ -1,213 +1,342 @@
 #!/usr/bin/env python3
-"""End-to-end API test for the Orbis prototype server.
+"""Hermetic API verification tests for the OrbisWork server.
 
-Standard library only. The test starts its own server instance on a free port
-with an isolated temporary database, then exercises the full API surface:
-health, state, collection GET/PUT round-trip, audit append, export headers,
-reset, CORS headers and error handling.
+This test suite:
+1. Spawns the server on a free port with a temp database
+2. Runs API tests (health, state, reset, auth, CORS, OPTIONS, 404, 400)
+3. Verifies HTML injection (shim present, precedes original script)
+4. Cleans up and exits 0 on success, 1 on failure
 
-Run:
-    python tests/verify_api.py
+OrbisWork is the merged app: it combines the Orbis and Loker collections under
+a single backend, so its state carries 27 top-level keys.
 """
 
-from __future__ import annotations
-
+import http.client
 import json
 import os
-import shutil
 import socket
 import subprocess
 import sys
 import tempfile
 import time
-import urllib.error
-import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-SERVER = ROOT / "server" / "server.py"
+BASE_DIR = Path(__file__).resolve().parent.parent
+SERVER_SCRIPT = BASE_DIR / "server" / "server.py"
+WEB_DIR = BASE_DIR / "web"
 
-PASSED = 0
-FAILED = 0
-
-
-def check(condition, label):
-    global PASSED, FAILED
-    if condition:
-        PASSED += 1
-        print("  ok  - %s" % label)
-    else:
-        FAILED += 1
-        print("  FAIL - %s" % label)
+REQUIRED_STATE_KEYS = [
+    "me", "role", "employers", "jobs", "chats", "saved",
+    "notifications", "filters", "auth", "onboarded", "lang", "accounts",
+    "mode", "applications", "privacy", "vip", "candidates",
+    "queue", "commitments", "summaries", "drafts", "aura", "culture",
+    "growth", "sources", "audit", "settings",
+]
 
 
-def free_port():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(("127.0.0.1", 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
 
 
-def request(method, url, data=None, headers=None):
-    """Return (status, headers_dict, body_text). Never raises for HTTP errors."""
-    body = None
-    hdrs = dict(headers or {})
-    if data is not None:
-        body = json.dumps(data).encode("utf-8")
-        hdrs["Content-Type"] = "application/json"
-    req = urllib.request.Request(url, data=body, headers=hdrs, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return resp.status, dict(resp.headers), resp.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        return exc.code, dict(exc.headers), exc.read().decode("utf-8")
-
-
-def wait_for_health(base, timeout=15.0):
-    deadline = time.time() + timeout
-    while time.time() < deadline:
+def wait_for_server(host, port, timeout=10):
+    start = time.time()
+    while time.time() - start < timeout:
         try:
-            status, _, body = request("GET", base + "/api/health")
-            if status == 200:
-                return json.loads(body)
-        except (urllib.error.URLError, ConnectionError, OSError):
+            conn = http.client.HTTPConnection(host, port, timeout=1)
+            conn.request("GET", "/api/health")
+            resp = conn.getresponse()
+            if resp.status == 200:
+                conn.close()
+                return True
+            conn.close()
+        except Exception:
             pass
-        time.sleep(0.25)
-    return None
+        time.sleep(0.2)
+    return False
 
 
-def main():
-    tmp_dir = tempfile.mkdtemp(prefix="orbis-test-")
-    env = dict(os.environ)
-    env["ORBIS_DB"] = str(Path(tmp_dir) / "orbis-test.db")
-    env["PYTHONUNBUFFERED"] = "1"
+def run_tests():
+    all_passed = True
 
-    port = free_port()
-    base = "http://127.0.0.1:%d" % port
+    port = find_free_port()
+    host = "127.0.0.1"
+
+    temp_db_dir = tempfile.mkdtemp()
+    temp_db = os.path.join(temp_db_dir, "test_orbiswork.db")
+
+    env = os.environ.copy()
+    env["ORBIS_DB"] = temp_db
+
+    print(f"Starting server on {host}:{port} with temp DB {temp_db}")
 
     proc = subprocess.Popen(
-        [sys.executable, str(SERVER), "--port", str(port), "--no-browser"],
-        cwd=str(ROOT),
+        [sys.executable, str(SERVER_SCRIPT), "--port", str(port), "--host", host, "--no-browser"],
         env=env,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stderr=subprocess.PIPE,
     )
 
     try:
-        health = wait_for_health(base)
-        if health is None:
-            print("Server did not become healthy.")
-            try:
-                out, _ = proc.communicate(timeout=5)
-                print(out.decode("utf-8", "replace"))
-            except Exception:
-                pass
+        if not wait_for_server(host, port):
+            print("FAIL - server did not start in time")
             return 1
 
-        print("Testing %s (pid %s)" % (base, proc.pid))
+        print("Server started successfully\n")
 
-        # 1. health
-        check(health.get("status") == "ok", "health.status == ok")
-        check(health.get("app") == "orbis", "health.app == orbis")
-        check(health.get("version") == "1.0", "health.version == 1.0")
+        def get(path):
+            conn = http.client.HTTPConnection(host, port, timeout=5)
+            conn.request("GET", path)
+            return conn.getresponse()
 
-        # 2. state has every collection
-        status, headers, body = request("GET", base + "/api/state")
-        state = json.loads(body)
-        check(status == 200, "state returns 200")
-        expected = ["queue", "commitments", "aura", "culture", "growth",
-                    "sources", "audit", "settings", "work"]
-        check(all(k in state for k in expected), "state contains all collections")
-        check(len(state["queue"]) == 5, "state.queue seeded with 5 items")
-        check(len(state["commitments"]) == 5, "state.commitments seeded with 5 items")
+        def put(path, body):
+            conn = http.client.HTTPConnection(host, port, timeout=5)
+            conn.request("PUT", path, body=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+            return conn.getresponse()
 
-        # 3. GET a single collection
-        status, _, body = request("GET", base + "/api/queue")
-        queue_val = json.loads(body)
-        check(status == 200 and isinstance(queue_val, list) and len(queue_val) == 5,
-              "GET /api/queue returns seeded list")
+        def post(path, body):
+            conn = http.client.HTTPConnection(host, port, timeout=5)
+            conn.request("POST", path, body=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+            return conn.getresponse()
 
-        # 4. PUT round-trip
-        new_queue = [{"id": 99, "type": "reply", "subject": "Round trip",
-                      "reason": "test", "source": "test", "confidence": "Suggested - inferred",
-                      "committed": False, "snoozed": False, "dismissed": False,
-                      "hasDate": False}]
-        status, _, body = request("PUT", base + "/api/queue", data=new_queue)
-        put_resp = json.loads(body)
-        check(status == 200, "PUT collection returns 200")
-        check(put_resp.get("ok") is True, "PUT response ok == true")
-        check(put_resp.get("collection") == "queue", "PUT response echoes collection")
-        check(put_resp.get("value") == new_queue, "PUT response echoes saved value")
+        def options(path):
+            conn = http.client.HTTPConnection(host, port, timeout=5)
+            conn.request("OPTIONS", path)
+            return conn.getresponse()
 
-        status, _, body = request("GET", base + "/api/queue")
-        check(json.loads(body) == new_queue, "GET reflects PUT (round-trip)")
+        # Test 1: Health endpoint
+        print("Test 1: GET /api/health")
+        resp = get("/api/health")
+        if resp.status == 200:
+            data = json.loads(resp.read())
+            if data.get("status") == "ok" and data.get("app") == "orbis" and data.get("version") == "1.0":
+                print("  ok - health endpoint returns correct response")
+            else:
+                print(f"  FAIL - unexpected health response: {data}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        # 5. audit: PUT above appended an event, plus an explicit POST
-        status, _, body = request("POST", base + "/api/audit",
-                                  data={"actor": "you", "action": "reviewed",
-                                        "object": "queue"})
-        created = json.loads(body)
-        check(status == 200, "POST /api/audit returns 200")
-        check(created.get("action") == "reviewed", "POST audit returns created event")
-        check("time" in created and "T" in created["time"], "audit event has ISO time")
+        # Test 2: GET /api/state has all required keys
+        print("\nTest 2: GET /api/state")
+        resp = get("/api/state")
+        if resp.status == 200:
+            data = json.loads(resp.read())
+            missing = [k for k in REQUIRED_STATE_KEYS if k not in data]
+            if not missing:
+                print(f"  ok - state has all {len(REQUIRED_STATE_KEYS)} required top-level keys")
+            else:
+                print(f"  FAIL - missing keys: {missing}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        status, _, body = request("GET", base + "/api/audit")
-        events = json.loads(body)
-        check(status == 200 and isinstance(events, list), "GET /api/audit returns list")
-        check(events and events[0]["action"] == "reviewed",
-              "GET /api/audit is newest-first")
+        # Test 3: PUT /api/state round-trip
+        print("\nTest 3: PUT /api/state")
+        test_state = {"testKey": "testValue", "role": "test_role"}
+        resp = put("/api/state", test_state)
+        if resp.status == 200:
+            resp2 = get("/api/state")
+            data = json.loads(resp2.read())
+            if data.get("testKey") == "testValue" and data.get("role") == "test_role":
+                print("  ok - PUT /api/state round-trip works")
+            else:
+                print(f"  FAIL - state not updated correctly: {data}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        # 6. export headers
-        status, headers, body = request("GET", base + "/api/export")
-        disposition = headers.get("Content-Disposition", "")
-        check(status == 200, "GET /api/export returns 200")
-        check('attachment; filename="orbis-export.json"' == disposition,
-              "export sets Content-Disposition attachment")
-        check(json.loads(body).get("settings") is not None,
-              "export body contains full state")
+        # Test 4: POST /api/reset reseeds
+        print("\nTest 4: POST /api/reset")
+        resp = post("/api/reset", {})
+        if resp.status == 200:
+            resp2 = get("/api/state")
+            data = json.loads(resp2.read())
+            if "me" in data and "employers" in data:
+                print("  ok - reset reseeds the database")
+            else:
+                print(f"  FAIL - state after reset missing keys: {list(data.keys())}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        # 7. CORS headers
-        _, headers, _ = request("GET", base + "/api/health")
-        check(headers.get("Access-Control-Allow-Origin") == "*",
-              "CORS origin header present on API")
+        # Test 5: Auth signup
+        print("\nTest 5: POST /api/auth signup")
+        resp = post("/api/auth", {"action": "signup", "email": "test@example.com", "password": "password123", "name": "Test User"})
+        if resp.status == 200:
+            data = json.loads(resp.read())
+            if data.get("ok") and data.get("user"):
+                print("  ok - signup returns user object")
+            else:
+                print(f"  FAIL - signup response: {data}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        # 8. OPTIONS preflight
-        status, headers, _ = request("OPTIONS", base + "/api/queue")
-        methods = headers.get("Access-Control-Allow-Methods", "")
-        check(status == 204, "OPTIONS returns 204")
-        check("PUT" in methods and "DELETE" in methods and "OPTIONS" in methods,
-              "OPTIONS advertises allowed methods")
-        check(headers.get("Access-Control-Allow-Headers") == "Content-Type",
-              "OPTIONS advertises allowed headers")
+        # Test 6: Auth signin
+        print("\nTest 6: POST /api/auth signin")
+        resp = post("/api/auth", {"action": "signin", "email": "test@example.com", "password": "password123"})
+        if resp.status == 200:
+            data = json.loads(resp.read())
+            if data.get("ok") and data.get("user"):
+                print("  ok - signin returns user object")
+            else:
+                print(f"  FAIL - signin response: {data}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        # 9. error handling
-        status, _, body = request("GET", base + "/api/nope")
-        check(status == 404 and "error" in json.loads(body),
-              "unknown collection GET -> 404 JSON error")
+        # Test 7: Auth logout
+        print("\nTest 7: POST /api/auth logout")
+        resp = post("/api/auth", {"action": "logout"})
+        if resp.status == 200:
+            data = json.loads(resp.read())
+            if data.get("ok"):
+                print("  ok - logout returns ok")
+            else:
+                print(f"  FAIL - logout response: {data}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        status, _, body = request("PUT", base + "/api/nope", data={})
-        check(status == 404 and "error" in json.loads(body),
-              "unknown collection PUT -> 404 JSON error")
+        # Test 8: CORS headers
+        print("\nTest 8: CORS headers")
+        resp = get("/api/health")
+        cors = resp.getheader("Access-Control-Allow-Origin")
+        if cors == "*":
+            print("  ok - Access-Control-Allow-Origin: * present")
+        else:
+            print(f"  FAIL - CORS header: {cors}")
+            all_passed = False
 
-        req = urllib.request.Request(
-            base + "/api/queue", data=b"{not valid json",
-            headers={"Content-Type": "application/json"}, method="PUT")
-        try:
-            urllib.request.urlopen(req, timeout=10)
-            status = 200
-        except urllib.error.HTTPError as exc:
-            status = exc.code
-        check(status == 400, "malformed JSON body -> 400")
+        # Test 9: OPTIONS /api/*
+        print("\nTest 9: OPTIONS /api/state")
+        resp = options("/api/state")
+        if resp.status == 204:
+            methods = resp.getheader("Access-Control-Allow-Methods")
+            headers = resp.getheader("Access-Control-Allow-Headers")
+            if methods and "PUT" in methods and "POST" in methods and "GET" in methods:
+                if headers and "Content-Type" in headers:
+                    print("  ok - OPTIONS returns 204 with correct headers")
+                else:
+                    print(f"  FAIL - missing Content-Type in Access-Control-Allow-Headers: {headers}")
+                    all_passed = False
+            else:
+                print(f"  FAIL - missing methods: {methods}")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
 
-        # 10. reset reseeds
-        status, _, body = request("POST", base + "/api/reset")
-        check(status == 200 and json.loads(body).get("ok") is True,
-              "POST /api/reset returns ok")
-        status, _, body = request("GET", base + "/api/state")
-        state = json.loads(body)
-        check(len(state["queue"]) == 5, "reset restores queue seed")
-        check(len(state["audit"]) == 5, "reset restores audit seed")
+        # Test 10: Unknown route 404
+        print("\nTest 10: GET /api/unknown")
+        resp = get("/api/unknown")
+        if resp.status == 404:
+            print("  ok - unknown route returns 404")
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
+
+        # Test 11: Malformed JSON 400
+        print("\nTest 11: PUT /api/state with malformed JSON")
+        conn = http.client.HTTPConnection(host, port, timeout=5)
+        conn.request("PUT", "/api/state", body="not valid json{", headers={"Content-Type": "application/json"})
+        resp = conn.getresponse()
+        if resp.status == 400:
+            print("  ok - malformed JSON returns 400")
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
+
+        # Test 12: GET /app.html has injected shim
+        print("\nTest 12: GET /app.html injection")
+        resp = get("/app.html")
+        if resp.status == 200:
+            html = resp.read().decode("utf-8")
+            if '<script>' in html and 'var KEY="orbiswork_demo_v1"' in html:
+                print("  ok - app.html contains injected shim with correct LS key")
+            else:
+                print("  FAIL - app.html missing shim or wrong LS key")
+                all_passed = False
+
+            if html.count('<script>') >= 2:
+                first_script = html.find('<script>')
+                shim_check = html.find('var KEY="orbiswork_demo_v1"')
+                if shim_check != -1 and shim_check < first_script + 500:
+                    print("  ok - shim appears before original app script")
+                else:
+                    print("  FAIL - shim position incorrect")
+                    all_passed = False
+            else:
+                print("  FAIL - expected multiple script tags")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
+
+        # Test 13: GET /app-mobile.html has injected shim
+        print("\nTest 13: GET /app-mobile.html injection")
+        resp = get("/app-mobile.html")
+        if resp.status == 200:
+            html = resp.read().decode("utf-8")
+            if '<script>' in html and 'var KEY="orbiswork_mobile_v1"' in html:
+                print("  ok - app-mobile.html contains injected shim with correct LS key")
+            else:
+                print("  FAIL - app-mobile.html missing shim or wrong LS key")
+                all_passed = False
+
+            if html.count('<script>') >= 2:
+                first_script = html.find('<script>')
+                shim_check = html.find('var KEY="orbiswork_mobile_v1"')
+                if shim_check != -1 and shim_check < first_script + 500:
+                    print("  ok - shim appears before original app script")
+                else:
+                    print("  FAIL - shim position incorrect")
+                    all_passed = False
+            else:
+                print("  FAIL - expected multiple script tags")
+                all_passed = False
+        else:
+            print(f"  FAIL - status {resp.status}")
+            all_passed = False
+
+        # Test 14: Verify shim precedes first <script of original
+        print("\nTest 14: Shim precedes original <script tag")
+        with open(WEB_DIR / "app.html", "r", encoding="utf-8") as f:
+            original_html = f.read()
+        original_first_script = original_html.find("<script")
+
+        resp = get("/app.html")
+        served_html = resp.read().decode("utf-8")
+        served_first_script = served_html.find("<script")
+        served_second_script = served_html.find("<script", served_first_script + 1)
+
+        # The shim is injected before the first <script>, so served should have the shim content
+        # before where the original first script tag content begins
+        shim_marker = 'var KEY="orbiswork_demo_v1"'
+        shim_pos = served_html.find(shim_marker)
+
+        if shim_pos != -1 and shim_pos < served_second_script:
+            print("  ok - shim injected before original app script")
+        else:
+            print(f"  FAIL - shim not found or in wrong position (shim_pos:{shim_pos}, second_script:{served_second_script})")
+            all_passed = False
+
+        print("\n" + "=" * 50)
+        if all_passed:
+            print("SUMMARY: ALL TESTS PASSED")
+            return 0
+        else:
+            print("SUMMARY: SOME TESTS FAILED")
+            return 1
 
     finally:
         proc.terminate()
@@ -215,11 +344,13 @@ def main():
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
-        shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    print("\n%d passed, %d failed" % (PASSED, FAILED))
-    return 0 if FAILED == 0 else 1
+        if os.path.exists(temp_db):
+            os.remove(temp_db)
+        if os.path.isdir(temp_db_dir):
+            os.rmdir(temp_db_dir)
+        print(f"\nCleaned up temp DB: {temp_db}")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run_tests())

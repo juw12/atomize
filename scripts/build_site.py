@@ -67,18 +67,6 @@ APPS = [
         "desktop": "house-of-articles/desktop.html",
         "mobile": "house-of-articles/",
     },
-    {
-        "name": "Loker",
-        "desc": "Chat-first jobs with verified employers",
-        "desktop": "loker/",
-        "mobile": "loker/mobile.html",
-    },
-    {
-        "name": "Orbis Work",
-        "desc": "Identity, communication and hiring in one app",
-        "desktop": "orbis-work/",
-        "mobile": "orbis-work/mobile.html",
-    },
 ]
 
 
@@ -210,7 +198,7 @@ def generate_index(out_dir, repo_name):
 <body>
   <div class="container">
     <h1>{repo_name}</h1>
-    <p class="subtitle">Five product projects — each with a desktop and a mobile build</p>
+    <p class="subtitle">Three product projects — each with a desktop and a mobile build</p>
 
     <div class="grid">
 {cards_html}
@@ -248,8 +236,6 @@ def main():
         ("orbis", "orbis"),
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
-        ("loker", "loker"),
-        ("orbis-work", "orbis-work"),
     ]
 
     for app_name, site_subdir in apps_config:

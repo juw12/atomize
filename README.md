@@ -1,15 +1,13 @@
 # apps/
 
-A monorepo for five product projects, each promoted from prototype to a real,
+A monorepo for three product projects, each promoted from prototype to a real,
 runnable, deployable project.
 
 | Project | What it is | Stack |
 | --- | --- | --- |
-| [`apps/orbis`](apps/orbis) | Communication, identity and protection in one app | Zero-dependency Python stdlib server + SQLite + static PWA |
+| [`apps/orbis`](apps/orbis) | Communication, identity, protection — and hiring (Orbis Work) — in one app | Zero-dependency Python stdlib server + SQLite + static PWA |
 | [`apps/peers`](apps/peers) | Verified reviews for food, travel and products | Single-file web app + optional stdlib persistence backend |
 | [`apps/house-of-articles`](apps/house-of-articles) | Athlete-moment sneaker news + live market feed | Static prototype + versioned data spine |
-| [`apps/loker`](apps/loker) | Chat-first jobs for Indonesia with verified employers | Zero-dependency Python stdlib server + SQLite + static PWA |
-| [`apps/orbis-work`](apps/orbis-work) | Identity, communication and hiring in one app | Zero-dependency Python stdlib server + SQLite + static PWA |
 
 Each project follows the same shape:
 
@@ -59,7 +57,7 @@ python scripts/run_all_tests.py
 
 ## Live site
 
-`.github/workflows/pages.yml` builds a static site from the five `web/`
+`.github/workflows/pages.yml` builds a static site from the three `web/`
 directories (`scripts/build_site.py`) and deploys it with GitHub Pages. A
 `scripts/check_site.py` validator blocks the two failures that pass locally but
 break on Pages: **absolute paths** and filename **case** mismatches.

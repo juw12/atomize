@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static integrity tests for Loker app HTML builds."""
+"""Static integrity tests for Orbis app HTML builds."""
 
 import os
 import re
@@ -10,12 +10,12 @@ WEB_DIR = os.path.join(BASE_DIR, "web")
 
 TESTS = [
     {
-        "file": "index.html",
-        "localStorage_key": "loker_demo_v1",
+        "file": "app.html",
+        "localStorage_key": "orbiswork_demo_v1",
     },
     {
-        "file": "mobile.html",
-        "localStorage_key": "loker_mobile_v1",
+        "file": "app-mobile.html",
+        "localStorage_key": "orbiswork_mobile_v1",
     },
 ]
 

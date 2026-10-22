@@ -149,3 +149,15 @@ Collections: `queue, commitments, summaries, drafts, aura, culture, growth, sour
 ---
 
 > *Draft for founder review. Designed-to statements; legal points need counsel confirmation.*
+
+---
+
+## 2026-10-22 — Orbis Work is now BUILT (integrated)
+
+**Orbis Work is no longer planned — it is built and merged into Orbis.**
+
+- The app (`web/app.html` desktop, `web/app-mobile.html` mobile) is now the **unified Orbis app**: the job marketplace (**Discover · Candidates · Chats · Saved · company pages**) **plus** Orbis's modules (Today, Commitments, Summaries, Drafts, Aura, Growth, Culture, Privacy).
+- **Bridge:** **Aura** is the candidate résumé; `verificationLevel` drives trust on cards; every apply/chat logs to the **audit** trail; applying adds a **Commitment** + a **Today** follow-up; matching is **skills-only** (never personality/Aura).
+- Merged from the former `loker` and `orbis-work` apps, which have been **removed** (originals remain in git history).
+- Run: `python apps/orbis/server/server.py` → `http://127.0.0.1:8765/` (demo `demo@orbiswork.app` / `demo123`, or Continue as guest).
+- State model: 27 top-level keys (job data at `jobs/employers/candidates/chats/saved`; Orbis at `queue/commitments/summaries/drafts/aura/culture/growth/sources/audit/settings`).
