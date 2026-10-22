@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ailene Open — Belajar AI Netral Vendor</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #06b6d4;
+      --accent: #f59e0b;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-elevated: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: #475569;
+      --success: #10b981;
+      --gradient-1: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .lang-toggle {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.5rem 0;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-icon { font-size: 1.25rem; }
+
+    /* Main */
+    .main { padding: 1rem; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .hero h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn {
+      padding: 0.875rem 1.5rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    .btn-primary {
+      background: var(--gradient-1);
+      color: white;
+    }
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    /* Level Cards */
+    .level-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .level-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .level-badge {
+      background: var(--gradient-1);
+      color: white;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+    .level-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .level-desc {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .module-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+    }
+    .module-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .lesson-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .lesson-item:last-child { border-bottom: none; }
+    .lesson-check {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lesson-check.completed {
+      background: var(--success);
+      border-color: var(--success);
+    }
+    .lesson-check.completed::after {
+      content: '✓';
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .lesson-title {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .lesson-preview {
+      font-size: 0.8rem;
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: flex-end;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+    }
+    .modal-title { font-size: 1.125rem; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      padding: 0.25rem;
+    }
+    .modal-body { padding: 1.25rem; }
+    .concept-text {
+      background: var(--bg-elevated);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--primary);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+    .prompt-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .prompt-task { font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
+    .prompt-core {
+      background: var(--bg-dark);
+      padding: 0.875rem;
+      border-radius: var(--radius-sm);
+      font-family: monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+    }
+    .adaptation-item {
+      background: var(--bg-dark);
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    .adaptation-model {
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 0.8rem;
+      margin-bottom: 0.35rem;
+    }
+    .adaptation-text { font-size: 0.8rem; color: var(--text-secondary); }
+    .copy-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      width: 100%;
+      margin-top: 0.75rem;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .source-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .source-item:last-child { border-bottom: none; }
+    .source-title { font-weight: 600; margin-bottom: 0.2rem; }
+    .source-citation { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* Quiz */
+    .quiz-intro { text-align: center; padding: 2rem 0; }
+    .quiz-intro h2 { font-size: 1.5rem; margin-bottom: 0.75rem; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .quiz-intro p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+    .quiz-question {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .quiz-question.active { display: block; }
+    .question-text { font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; }
+    .option-item {
+      padding: 0.875rem 1rem;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .option-item.selected { border-color: var(--primary); background: rgba(99,102,241,0.1); }
+    .quiz-progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+    }
+    .quiz-nav { display: flex; gap: 0.5rem; }
+    .quiz-nav button { padding: 0.5rem 1rem; font-size: 0.85rem; }
+    .quiz-result {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.25rem;
+      text-align: center;
+      display: none;
+    }
+    .quiz-result.active { display: block; }
+    .result-type { font-size: 1.75rem; font-weight: 700; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.75rem; }
+    .result-desc { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .result-tips {
+      text-align: left;
+      background: var(--bg-elevated);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-top: 1.25rem;
+    }
+    .result-tips h4 { margin-bottom: 0.75rem; font-size: 0.95rem; }
+    .result-tips ul { list-style: none; }
+    .result-tips li { padding: 0.4rem 0; padding-left: 1.25rem; position: relative; color: var(--text-secondary); font-size: 0.85rem; }
+    .result-tips li::before { content: '→'; position: absolute; left: 0; color: var(--primary); }
+
+    /* Safety */
+    .safety-list { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+    .safety-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.875rem 0; border-bottom: 1px solid var(--border); }
+    .safety-item:last-child { border-bottom: none; }
+    .safety-check {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 5px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .safety-check.checked { background: var(--success); border-color: var(--success); }
+    .safety-check.checked::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
+    .safety-text { font-size: 0.9rem; color: var(--text-secondary); }
+
+    /* Progress */
+    .progress-summary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.25rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .progress-number { font-size: 3rem; font-weight: 700; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+    .progress-label { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem; }
+
+    /* Footer badges */
+    .footer-badges {
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      pointer-events: none;
+    }
+    .badge {
+      background: rgba(30,41,59,0.9);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <span class="logo">Ailene Open</span>
+      <button class="lang-toggle" id="langToggle" onclick="toggleLanguage()">EN/ID</button>
+    </div>
+  </header>
+
+  <!-- BEGIN:CURRICULUM_DATA -->
+  <script id="curriculum-data" type="application/json">
+  {"version":1,"metadata":{"title":{"en":"Ailene Open — Vendor-Neutral AI Learning","id":"Ailene Open — Belajar AI Netral Vendor"},"description":{"en":"Learn AI concepts, not vendor lock-in. Free, open, bilingual curriculum with model-agnostic prompts.","id":"Belajar konsep AI, bukan keterikatan vendor. Kurikulum gratis, terbuka, bilingual dengan prompt netral model."}},"strings":{"nav_home":{"en":"Home","id":"Beranda"},"nav_curriculum":{"en":"Curriculum","id":"Kurikulum"},"nav_quiz":{"en":"AI Type Quiz","id":"Kuis Tipe AI"},"nav_prompt_library":{"en":"Prompt Library","id":"Perpustakaan Prompt"},"nav_safety":{"en":"Safety Checklist","id":"Daftar Keamanan"},"nav_progress":{"en":"My Progress","id":"Kemajuan Saya"},"btn_start":{"en":"Start","id":"Mulai"},"btn_continue":{"en":"Continue","id":"Lanjutkan"},"btn_complete":{"en":"Complete","id":"Selesai"},"btn_reset":{"en":"Reset Progress","id":"Reset Kemajuan"},"btn_take_quiz":{"en":"Take Quiz","id":"Ikuti Kuis"},"btn_retake":{"en":"Retake Quiz","id":"Ikuti Ulang"},"btn_copy":{"en":"Copy Prompt","id":"Salin Prompt"},"btn_copied":{"en":"Copied!","id":"Tersalin!"},"toggle_lang":{"en":"Switch to Indonesian","id":"Beralih ke Bahasa Inggris"},"label_level":{"en":"Level","id":"Tingkat"},"label_module":{"en":"Module","id":"Modul"},"label_lesson":{"en":"Lesson","id":"Pelajaran"},"label_concept":{"en":"Core Concept","id":"Konsep Inti"},"label_prompt":{"en":"Model-Agnostic Prompt","id":"Prompt Netral Model"},"label_adaptations":{"en":"Per-Model Adaptations","id":"Adaptasi Per-Model"},"label_sources":{"en":"Sources","id":"Sumber"},"label_quiz_result":{"en":"Your AI Type","id":"Tipe AI Anda"},"label_progress":{"en":"Progress","id":"Kemajuan"},"label_completed":{"en":"Completed","id":"Selesai"},"label_not_starts":{"en":"Not Started","id":"Belum Dimulai"},"quiz_intro_title":{"en":"What's Your AI Type?","id":"Apa Tipe AI Anda?"},"quiz_intro_desc":{"en":"Answer 12 questions to discover your AI interaction style. No login required.","id":"Jawab 12 pertanyaan untuk menemukan gaya interaksi AI Anda. Tanpa login."},"quiz_q1":{"en":"When learning something new, you prefer to:","id":"Saat mempelajari hal baru, Anda lebih suka:"},"quiz_q1_a":{"en":"Read documentation thoroughly first","id":"Baca dokumentasi lengkap dulu"},"quiz_q1_b":{"en":"Jump in and experiment","id":"Langsung mencoba dan bereksperimen"},"quiz_q1_c":{"en":"Watch tutorials or examples","id":"Tonton tutorial atau contoh"},"quiz_q1_d":{"en":"Ask someone to explain it","id":"Minta seseorang menjelaskannya"},"quiz_q2":{"en":"Your ideal AI assistant is:","id":"Asisten AI ideal Anda adalah:"},"quiz_q2_a":{"en":"Precise and accurate","id":"Presisi dan akurat"},"quiz_q2_b":{"en":"Fast and practical","id":"Cepat dan praktis"},"quiz_q2_c":{"en":"Creative and exploratory","id":"Kreatif dan eksploratif"},"quiz_q2_d":{"en":"Cautious and safety-focused","id":"Hati-hati dan berfokus pada keamanan"},"quiz_q3":{"en":"When AI gives wrong output, you:","id":"Ketika AI memberikan output yang salah, Anda:"},"quiz_q3_a":{"en":"Analyze why it went wrong","id":"Menganalisis mengapa itu salah"},"quiz_q3_b":{"en":"Try a different approach immediately","id":"Mencoba pendekatan berbeda segera"},"quiz_q3_c":{"en":"Ask AI to explain its reasoning","id":"Meminta AI menjelaskan alasannya"},"quiz_q3_d":{"en":"Double-check with another source","id":"Memeriksa ulang dengan sumber lain"},"quiz_result_professor":{"en":"The Professor — You value depth, accuracy, and structured learning. Best with: detailed explanations, citations, step-by-step reasoning.","id":"The Professor — Anda menghargai kedalaman, akurasi, dan pembelajaran terstruktur. Terbaik dengan: penjelasan detail, sitasi, penalaran langkah demi langkah."},"quiz_result_builder":{"en":"The Builder — You learn by doing. Best with: code examples, templates, quick iterations, practical outputs.","id":"The Builder — Anda belajar dengan melakukan. Terbaik dengan: contoh kode, template, iterasi cepat, output praktis."},"quiz_result_detective":{"en":"The Detective — You question everything. Best with: transparency, alternative viewpoints, uncertainty flags, source verification.","id":"The Detective — Anda mempertanyakan segalanya. Terbaik dengan: transparansi, sudut pandang alternatif, flag ketidakpastian, verifikasi sumber."},"quiz_result_guardian":{"en":"The Guardian — Safety and ethics first. Best with: harm warnings, bias checks, privacy reminders, responsible use guidelines.","id":"The Guardian — Keamanan dan etika pertama. Terbaik dengan: peringatan bahaya, pemeriksaan bias, pengingat privasi, panduan penggunaan bertanggung jawab."},"quiz_result_all_rounder":{"en":"The All-Rounder — Adaptable across contexts. Best with: flexible prompts, multi-modal approaches, balanced depth/speed.","id":"The All-Rounder — Adaptif di berbagai konteks. Terbaik dengan: prompt fleksibel, pendekatan multi-modal, keseimbangan kedalaman/kecepatan."},"safety_title":{"en":"AI Safety & Evaluation Checklist","id":"Daftar Keamanan & Evaluasi AI"},"safety_intro":{"en":"Before deploying AI outputs in production or sharing publicly, verify:","id":"Sebelum menerapkan output AI di produksi atau berbagi secara publik, verifikasi:"},"safety_item_1":{"en":"Factual accuracy — cross-check claims with authoritative sources","id":"Akurasi faktual — periksa klaim dengan sumber otoritatif"},"safety_item_2":{"en":"No hallucinated citations — verify all references exist","id":"Tidak ada sitasi halusinasi — verifikasi semua referensi ada"},"safety_item_3":{"en":"Bias check — review for cultural, gender, or demographic bias","id":"Pemeriksaan bias — tinjau bias budaya, gender, atau demografis"},"safety_item_4":{"en":"Privacy — no PII (personally identifiable information) in prompts or outputs","id":"Privasi — tidak ada PII (informasi pengenal pribadi) di prompt atau output"},"safety_item_5":{"en":"Security — no secrets, API keys, or credentials in prompts","id":"Keamanan — tidak ada rahasia, kunci API, atau kredensial di prompt"},"safety_item_6":{"en":"Copyright — outputs do not reproduce copyrighted material verbatim","id":"Hak cipta — output tidak mereproduksi materi berhak cipta secara verbatim"},"safety_item_7":{"en":"Context appropriateness — tone and content match audience and purpose","id":"Kesesuaian konteks — nada dan konten sesuai dengan audiens dan tujuan"},"safety_item_8":{"en":"Human review — critical outputs reviewed by domain expert before use","id":"Tinjauan manusia — output kritis ditinjau oleh ahli domain sebelum digunakan"},"prompt_lib_intro":{"en":"Vendor-neutral prompt templates. Each includes a core concept explanation and per-model adaptations.","id":"Template prompt netral vendor. Setiap mencakup penjelasan konsep inti dan adaptasi per-model."},"model_claude":{"en":"Claude","id":"Claude"},"model_gpt":{"en":"GPT","id":"GPT"},"model_gemini":{"en":"Gemini","id":"Gemini"},"model_local":{"en":"Local (Llama/Mistral)","id":"Lokal (Llama/Mistral)"},"progress_title":{"en":"Your Learning Progress","id":"Kemajuan Belajar Anda"},"progress_intro":{"en":"Progress is stored locally in your browser. No login required.","id":"Kemajuan disimpan secara lokal di browser Anda. Tanpa login diperlukan."},"progress_summary":{"en":"{completed} of {total} lessons completed ({percent}%)","id":"{completed} dari {total} pelajaran selesai ({percent}%)"}},"levels":[{"id":"level-01","title":{"en":"AI Fundamentals","id":"Dasar-Dasar AI"},"description":{"en":"Core concepts every AI user should understand — from tokens to temperature.","id":"Konsep inti yang harus dipahami setiap pengguna AI — dari token hingga temperature."},"modules":[{"id":"mod-01-tokens","title":{"en":"Understanding Tokens","id":"Memahami Token"},"lessons":[{"id":"les-01-what-are-tokens","title":{"en":"What Are Tokens?","id":"Apa Itu Token?"},"concept":{"en":"Tokens are the basic units of text that language models process. They can be words, subwords, or even characters. Understanding tokens helps you predict costs, optimize prompts, and debug model behavior.","id":"Token adalah unit dasar teks yang diproses oleh model bahasa. Mereka bisa berupa kata, sub-kata, atau bahkan karakter. Memahami token membantu Anda memprediksi biaya, mengoptimalkan prompt, dan men-debug perilaku model."},"prompts":[{"task":{"en":"Explain this technical concept to a beginner","id":"Jelaskan konsep teknis ini kepada pemula"},"core_prompt":{"en":"Explain [CONCEPT] to someone with no background in [FIELD]. Use a concrete analogy from everyday life. Limit to 150 words. After the explanation, provide one practical example.","id":"Jelaskan [KONSEP] kepada seseorang tanpa latar belakang di [BIDANG]. Gunakan analogi konkret dari kehidupan sehari-hari. Batasi 150 kata. Setelah penjelasan, berikan satu contoh praktis."},"adaptations":{"claude":{"en":"Add: 'Think step-by-step about what a complete beginner needs to know first. Avoid jargon entirely.'","id":"Tambahkan: 'Pikirkan langkah demi langkah tentang apa yang perlu diketahui pemula terlebih dahulu. Hindari jargon sepenuhnya.'"},"gpt":{"en":"Add: 'Use the Feynman technique: if you can't explain it simply, you don't understand it well enough.'","id":"Tambahkan: 'Gunakan teknik Feynman: jika Anda tidak bisa menjelaskannya dengan sederhana, Anda tidak cukup memahaminya.'"},"gemini":{"en":"Add: 'Provide a visual metaphor if possible. Structure the explanation with clear headings.'","id":"Tambahkan: 'Berikan metafora visual jika memungkinkan. Struktur penjelasan dengan heading yang jelas.'"},"local":{"en":"Add: 'Keep sentences short. Repeat the key point in different words at the end.'","id":"Tambahkan: 'Jaga kalimat tetap pendek. Ulangi poin kunci dengan kata berbeda di akhir.'"}}]}],"sources":[{"title":{"en":"Tokenization in NLP","id":"Tokenisasi dalam NLP"},"url":"https://en.wikipedia.org/wiki/Tokenization_(linguistics)","citation":{"en":"Wikipedia contributors. Tokenization (linguistics). Wikipedia, The Free Encyclopedia.","id":"Kontributor Wikipedia. Tokenisasi (linguistik). Wikipedia, Ensiklopedia Bebas."}},{"title":{"en":"How LLMs Process Text","id":"Bagaimana LLM Memproses Teks"},"url":"https://huggingface.co/course/chapter2/2","citation":{"en":"Hugging Face Course — Chapter 2: From Tokens to Embeddings","id":"Kursus Hugging Face — Bab 2: Dari Token ke Embeddings"}}]}]}]}}
+  </script>
+  <!-- END:CURRICULUM_DATA -->
+
+  <main class="main">
+    <!-- Home -->
+    <div id="view-home" class="view active">
+      <section class="hero">
+        <h1>Learn AI Concepts, Not Vendor Lock-in</h1>
+        <p>Free, open, bilingual curriculum with model-agnostic prompts.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="showView('curriculum')">Start Learning</button>
+          <button class="btn btn-secondary" onclick="showView('quiz')">AI Type Quiz</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Curriculum -->
+    <div id="view-curriculum" class="view">
+      <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Curriculum</h2>
+      <div id="curriculum-grid"></div>
+    </div>
+
+    <!-- Quiz -->
+    <div id="view-quiz" class="view">
+      <div id="quiz-intro" class="quiz-intro">
+        <h2>What's Your AI Type?</h2>
+        <p>Answer 12 questions to discover your AI interaction style.</p>
+        <button class="btn btn-primary" onclick="startQuiz()">Take Quiz</button>
+      </div>
+      <div id="quiz-questions"></div>
+      <div id="quiz-result" class="quiz-result"></div>
+    </div>
+
+    <!-- Prompts -->
+    <div id="view-prompts" class="view">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Prompt Library</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Vendor-neutral templates with per-model adaptations.</p>
+      <div id="prompt-lib-grid"></div>
+    </div>
+
+    <!-- Safety -->
+    <div id="view-safety" class="view">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Safety Checklist</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Verify before deploying AI outputs:</p>
+      <div id="safety-list" class="safety-list"></div>
+    </div>
+
+    <!-- Progress -->
+    <div id="view-progress" class="view">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Your Progress</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Stored locally. No login required.</p>
+      <div id="progress-summary" class="progress-summary"></div>
+      <button class="btn btn-secondary" onclick="resetProgress()">Reset Progress</button>
+    </div>
+  </main>
+
+  <!-- Lesson Modal -->
+  <div id="lesson-modal" class="modal-overlay" onclick="if(event.target === this) closeLesson()">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title"></h3>
+        <button class="modal-close" onclick="closeLesson()">&times;</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="home" onclick="showView('home')">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-view="curriculum" onclick="showView('curriculum')">
+      <span class="nav-icon">📚</span>
+      <span>Learn</span>
+    </button>
+    <button class="nav-item" data-view="quiz" onclick="showView('quiz')">
+      <span class="nav-icon">🎯</span>
+      <span>Quiz</span>
+    </button>
+    <button class="nav-item" data-view="prompts" onclick="showView('prompts')">
+      <span class="nav-icon">💡</span>
+      <span>Prompts</span>
+    </button>
+    <button class="nav-item" data-view="safety" onclick="showView('safety')">
+      <span class="nav-icon">✓</span>
+      <span>Safety</span>
+    </button>
+    <button class="nav-item" data-view="progress" onclick="showView('progress')">
+      <span class="nav-icon">📊</span>
+      <span>Progress</span>
+    </button>
+  </nav>
+
+  <div class="footer-badges">
+    <span class="badge">Offline-First</span>
+    <span class="badge">Bilingual</span>
+    <span class="badge">Open</span>
+  </div>
+
+  <script>
+    let currentLang = 'en';
+    let currentQuestion = 0;
+    let quizAnswers = [];
+    let progress = JSON.parse(localStorage.getItem('ailene_open_v1') || '{}');
+    const curriculum = JSON.parse(document.getElementById('curriculum-data').textContent);
+
+    function init() {
+      renderCurriculum();
+      renderSafetyList();
+      updateProgress();
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'id' : 'en';
+      document.querySelectorAll('[data-view="home"] span:last-child').forEach(el => el.textContent = currentLang === 'en' ? 'Home' : 'Beranda');
+      document.querySelectorAll('[data-view="curriculum"] span:last-child').forEach(el => el.textContent = currentLang === 'en' ? 'Learn' : 'Kurikulum');
+      document.querySelectorAll('[data-view="quiz"] span:last-child').forEach(el => el.textContent = currentLang === 'en' ? 'Quiz' : 'Kuis');
+      document.querySelectorAll('[data-view="prompts"] span:last-child').forEach(el => el.textContent = currentLang === 'en' ? 'Prompts' : 'Prompt');
+      document.querySelectorAll('[data-view="safety"] span:last-child').forEach(el => el.textContent = currentLang === 'en' ? 'Safety' : 'Keamanan');
+      document.querySelectorAll('[data-view="progress"] span:last-child').forEach(el => el.textContent = currentLang === 'en' ? 'Progress' : 'Kemajuan');
+      renderCurriculum();
+      renderSafetyList();
+      renderPromptLibrary();
+      updateProgress();
+    }
+
+    function t(key, params = {}) {
+      const str = curriculum.strings[key]?.[currentLang] || key;
+      return str.replace(/{(\w+)}/g, (_, k) => params[k] || '');
+    }
+
+    function showView(viewName) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      document.querySelector(`[data-view="${viewName}"]`)?.classList.add('active');
+      if (viewName === 'prompts') renderPromptLibrary();
+      if (viewName === 'progress') updateProgress();
+    }
+
+    function renderCurriculum() {
+      const grid = document.getElementById('curriculum-grid');
+      grid.innerHTML = curriculum.levels.map((level, li) => `
+        <div class="level-card">
+          <div class="level-header">
+            <span class="level-badge">${li + 1}</span>
+            <span class="level-title">${level.title[currentLang]}</span>
+          </div>
+          <p class="level-desc">${level.description[currentLang]}</p>
+          ${level.modules.map(module => `
+            <div class="module-card">
+              <h4 class="module-title">${module.title[currentLang]}</h4>
+              ${module.lessons.map(lesson => {
+                const completed = progress[lesson.id] ? 'completed' : '';
+                return `
+                  <div class="lesson-item">
+                    <div class="lesson-check ${completed}" onclick="toggleLesson('${lesson.id}', this)"></div>
+                    <div style="flex:1">
+                      <div class="lesson-title">${lesson.title[currentLang]}</div>
+                      <span class="lesson-preview" onclick="openLesson('${lesson.id}')">Preview</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    }
+
+    function openLesson(lessonId) {
+      const lesson = findLesson(lessonId);
+      if (!lesson) return;
+      document.getElementById('modal-title').textContent = lesson.title[currentLang];
+      document.getElementById('modal-body').innerHTML = `
+        <div class="section-label">${t('label_concept')}</div>
+        <div class="concept-text">${lesson.concept[currentLang]}</div>
+        ${lesson.prompts.map(prompt => `
+          <div class="section-label">${t('label_prompt')}</div>
+          <div class="prompt-card">
+            <div class="prompt-task">${prompt.task[currentLang]}</div>
+            <div class="prompt-core">${prompt.core_prompt[currentLang]}</div>
+            <div class="section-label">${t('label_adaptations')}</div>
+            ${Object.entries(prompt.adaptations).map(([model, a]) => `
+              <div class="adaptation-item">
+                <div class="adaptation-model">${t('model_' + model)}</div>
+                <div class="adaptation-text">${a[currentLang]}</div>
+              </div>
+            `).join('')}
+            <button class="copy-btn" onclick="copyPrompt(this, '${escapeHtml(prompt.core_prompt[currentLang])}')">${t('btn_copy')}</button>
+          </div>
+        `).join('')}
+        <div class="section-label">${t('label_sources')}</div>
+        ${lesson.sources.map(s => `
+          <div class="source-item">
+            <div class="source-title">${s.title[currentLang]}</div>
+            <div class="source-citation">${s.citation[currentLang]}</div>
+          </div>
+        `).join('')}
+      `;
+      document.getElementById('lesson-modal').classList.add('active');
+    }
+
+    function closeLesson() { document.getElementById('lesson-modal').classList.remove('active'); }
+    function findLesson(lessonId) {
+      for (const level of curriculum.levels) {
+        for (const mod of level.modules) {
+          for (const lesson of mod.lessons) {
+            if (lesson.id === lessonId) return lesson;
+          }
+        }
+      }
+      return null;
+    }
+
+    function toggleLesson(lessonId, el) {
+      progress[lessonId] = !progress[lessonId];
+      localStorage.setItem('ailene_open_v1', JSON.stringify(progress));
+      el.classList.toggle('completed');
+      updateProgress();
+    }
+
+    function copyPrompt(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = t('btn_copied');
+        setTimeout(() => btn.textContent = t('btn_copy'), 2000);
+      });
+    }
+
+    function escapeHtml(text) { return text.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    function renderSafetyList() {
+      const list = document.getElementById('safety-list');
+      const items = [t('safety_item_1'), t('safety_item_2'), t('safety_item_3'), t('safety_item_4'), t('safety_item_5'), t('safety_item_6'), t('safety_item_7'), t('safety_item_8')];
+      list.innerHTML = items.map(text => `
+        <div class="safety-item">
+          <div class="safety-check" onclick="this.classList.toggle('checked')"></div>
+          <div class="safety-text">${text}</div>
+        </div>
+      `).join('');
+    }
+
+    function startQuiz() {
+      currentQuestion = 0;
+      quizAnswers = [];
+      document.getElementById('quiz-intro').style.display = 'none';
+      document.getElementById('quiz-result').classList.remove('active');
+      renderQuizQuestions();
+      showQuestion(0);
+    }
+
+    function renderQuizQuestions() {
+      document.getElementById('quiz-questions').innerHTML = `
+        <div class="quiz-progress">
+          <span>${currentQuestion + 1}/${curriculum.quiz_questions.length}</span>
+          <div class="quiz-nav">
+            <button class="btn btn-secondary" onclick="prevQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>Back</button>
+            <button class="btn btn-primary" onclick="nextQuestion()">${currentQuestion === curriculum.quiz_questions.length - 1 ? 'Finish' : 'Next'}</button>
+          </div>
+        </div>
+        ${curriculum.quiz_questions.map((q, i) => `
+          <div class="quiz-question ${i === 0 ? 'active' : ''}" data-index="${i}">
+            <div class="question-text">${q.question[currentLang]}</div>
+            ${q.options.map((opt, oi) => `
+              <div class="option-item" onclick="selectOption(${i}, ${oi}, '${opt.type}')">${opt.text[currentLang]}</div>
+            `).join('')}
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function showQuestion(index) {
+      document.querySelectorAll('.quiz-question').forEach((el, i) => el.classList.toggle('active', i === index));
+      document.querySelector('.quiz-progress span').textContent = `${index + 1}/${curriculum.quiz_questions.length}`;
+      const btn = document.querySelector('.quiz-nav .btn-primary');
+      btn.textContent = index === curriculum.quiz_questions.length - 1 ? 'Finish' : 'Next';
+    }
+
+    function selectOption(qIndex, oIndex, type) {
+      quizAnswers[qIndex] = type;
+      document.querySelectorAll(`.quiz-question[data-index="${qIndex}"] .option-item`).forEach((el, i) => el.classList.toggle('selected', i === oIndex));
+    }
+
+    function nextQuestion() {
+      if (quizAnswers[currentQuestion] === undefined) { alert('Select an answer'); return; }
+      if (currentQuestion < curriculum.quiz_questions.length - 1) { currentQuestion++; showQuestion(currentQuestion); }
+      else finishQuiz();
+    }
+
+    function prevQuestion() { if (currentQuestion > 0) { currentQuestion--; showQuestion(currentQuestion); } }
+
+    function finishQuiz() {
+      const counts = {};
+      quizAnswers.forEach(a => counts[a] = (counts[a] || 0) + 1);
+      const resultType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+      const result = curriculum.quiz_results[resultType];
+      document.getElementById('quiz-result').innerHTML = `
+        <h3 class="result-type">${result.title[currentLang]}</h3>
+        <p class="result-desc">${result.description[currentLang]}</p>
+        <div class="result-tips">
+          <h4>Tips:</h4>
+          ${result.tips.map(tip => `<div>→ ${tip[currentLang]}</div>`).join('')}
+        </div>
+        <button class="btn btn-secondary" onclick="startQuiz()" style="margin-top: 1.25rem; width: 100%;">${t('btn_retake')}</button>
+      `;
+      document.getElementById('quiz-intro').style.display = 'none';
+      document.getElementById('quiz-questions').innerHTML = '';
+      document.getElementById('quiz-result').classList.add('active');
+    }
+
+    function renderPromptLibrary() {
+      const grid = document.getElementById('prompt-lib-grid');
+      const prompts = [];
+      curriculum.levels.forEach(level => {
+        level.modules.forEach(module => {
+          module.lessons.forEach(lesson => {
+            lesson.prompts.forEach(prompt => prompts.push({ lesson: lesson.title[currentLang], ...prompt }));
+          });
+        });
+      });
+      grid.innerHTML = prompts.map(prompt => `
+        <div class="prompt-card" style="margin-bottom: 0.75rem;">
+          <div class="prompt-task">${prompt.task[currentLang]}</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">${prompt.lesson}</div>
+          <button class="copy-btn" onclick="copyPrompt(this, '${escapeHtml(prompt.core_prompt[currentLang])}')">${t('btn_copy')}</button>
+        </div>
+      `).join('');
+    }
+
+    function updateProgress() {
+      let total = 0, completed = 0;
+      curriculum.levels.forEach(level => {
+        level.modules.forEach(module => {
+          module.lessons.forEach(lesson => { total++; if (progress[lesson.id]) completed++; });
+        });
+      });
+      const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+      document.getElementById('progress-summary').innerHTML = `
+        <div class="progress-number">${completed}/${total}</div>
+        <div class="progress-label">${t('progress_summary', { completed, total, percent })}</div>
+      `;
+    }
+
+    function resetProgress() {
+      if (confirm('Reset all progress?')) {
+        progress = {};
+        localStorage.setItem('ailene_open_v1', JSON.stringify(progress));
+        updateProgress();
+        renderCurriculum();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

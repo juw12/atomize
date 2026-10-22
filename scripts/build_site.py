@@ -67,6 +67,12 @@ APPS = [
         "desktop": "house-of-articles/desktop.html",
         "mobile": "house-of-articles/",
     },
+    {
+        "name": "Ailene Open",
+        "desc": "Open, vendor-neutral AI learning — offline-first and bilingual",
+        "desktop": "ailene-open/index.html",
+        "mobile": "ailene-open/mobile.html",
+    },
 ]
 
 
@@ -198,7 +204,7 @@ def generate_index(out_dir, repo_name):
 <body>
   <div class="container">
     <h1>{repo_name}</h1>
-    <p class="subtitle">Three product projects — each with a desktop and a mobile build</p>
+    <p class="subtitle">Product projects — each with a desktop and a mobile build</p>
 
     <div class="grid">
 {cards_html}
@@ -236,6 +242,7 @@ def main():
         ("orbis", "orbis"),
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
+        ("ailene-open", "ailene-open"),
     ]
 
     for app_name, site_subdir in apps_config:
