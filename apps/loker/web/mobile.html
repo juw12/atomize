@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0E7C66">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Loker - Chat Langsung dengan Bos</title>
+  <style>
+    :root {
+      --primary: #0E7C66; --primary-dark: #0A5C4A; --primary-light: #14B8A6;
+      --accent: #D97706; --accent-hover: #B45309;
+      --bg: #FAFAF9; --surface: #FFFFFF; --text: #1C1917; --text-muted: #78716C;
+      --border: #E7E5E4; --success: #059669; --warning: #D97706; --error: #DC2626;
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
+      --text-xs: 11px; --text-sm: 12px; --text-base: 14px; --text-lg: 16px; --text-xl: 18px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+      --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .app-container { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + var(--safe-top)) 16px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--primary); }
+    .logo svg { width: 28px; height: 28px; }
+    .header-actions { display: flex; gap: 8px; }
+    .icon-btn { width: 36px; height: 36px; border: none; background: var(--bg); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.15s; }
+    .icon-btn:hover { background: var(--primary); color: white; }
+    .icon-btn svg { width: 20px; height: 20px; fill: currentColor; color: var(--text-muted); }
+    .badge-unread { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--error); border-radius: 50%; border: 2px solid var(--surface); }
+    .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .view { display: none; padding-bottom: 80px; }
+    .view.active { display: block; }
+    .view.active.full-height { padding-bottom: 0; }
+    .auth-view { display: none; flex-direction: column; padding: 24px; overflow-y: auto; }
+    .auth-view.active { display: flex; }
+    .auth-card { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; margin-top: 20px; }
+    .auth-logo { width: 56px; height: 56px; background: var(--primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .auth-logo svg { width: 28px; height: 28px; fill: white; }
+    .auth-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .auth-subtitle { text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+    .auth-tabs { display: flex; background: var(--bg); padding: 4px; border-radius: var(--radius-md); margin-bottom: 16px; }
+    .auth-tab { flex: 1; padding: 8px; border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.15s; }
+    .auth-tab.active { background: var(--primary); color: white; }
+    .auth-form { display: flex; flex-direction: column; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 500; color: var(--text); }
+    .form-input { padding: 11px 12px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 15px; transition: border-color 0.15s; }
+    .form-input:focus { outline: none; border-color: var(--primary); }
+    .form-input.error { border-color: var(--error); }
+    .form-error { font-size: 11px; color: var(--error); display: none; }
+    .form-error.visible { display: block; }
+    .password-row { position: relative; }
+    .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; }
+    .btn-auth { width: 100%; padding: 13px 20px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; position: relative; }
+    .btn-auth:hover { background: var(--primary-dark); }
+    .btn-auth:disabled { background: var(--border); cursor: not-allowed; }
+    .btn-auth.loading { color: transparent; pointer-events: none; }
+    .btn-auth.loading::after { content: ''; position: absolute; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; top: 50%; left: 50%; margin: -9px 0 0 -9px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-guest { width: 100%; padding: 11px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; margin-top: 14px; }
+    .btn-guest:hover { background: var(--border); }
+    .auth-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--text-muted); font-size: 12px; }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .auth-hint { background: rgba(14,124,102,0.06); border: 1px solid rgba(14,124,102,0.15); border-radius: var(--radius-md); padding: 12px; margin-top: 14px; }
+    .auth-hint-title { font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
+    .auth-hint-text { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+    .auth-hint-creds { font-family: monospace; font-size: 10px; background: var(--bg); padding: 4px 6px; border-radius: 4px; margin-top: 4px; color: var(--text); }
+    .onboarding-view { display: none; flex-direction: column; min-height: 100%; padding: 24px; justify-content: center; }
+    .onboarding-view.active { display: flex; }
+    .onboarding-logo { width: 72px; height: 72px; background: var(--primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .onboarding-logo svg { width: 40px; height: 40px; fill: white; }
+    .onboarding-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+    .onboarding-desc { text-align: center; color: var(--text-muted); font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+    .role-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .role-card { display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: all 0.15s; }
+    .role-card:hover { border-color: var(--primary-light); }
+    .role-card.selected { border-color: var(--primary); background: rgba(14,124,102,0.06); }
+    .role-icon { width: 44px; height: 44px; background: var(--primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .role-icon svg { width: 22px; height: 22px; fill: white; }
+    .role-title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+    .role-desc { font-size: 12px; color: var(--text-muted); }
+    .name-input { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 16px; margin-bottom: 14px; background: var(--surface); transition: border-color 0.15s; }
+    .name-input:focus { outline: none; border-color: var(--primary); }
+    .btn-primary { width: 100%; padding: 14px 24px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .trust-block { background: linear-gradient(135deg, rgba(14,124,102,0.08), rgba(20,184,166,0.08)); border: 1px solid rgba(14,124,102,0.2); border-radius: var(--radius-md); padding: 16px; margin-top: 20px; }
+    .trust-title { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--primary); font-size: 14px; margin-bottom: 6px; }
+    .trust-title svg { width: 18px; height: 18px; fill: var(--primary); }
+    .trust-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .discover-filters { padding: 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0; margin-bottom: 8px; }
+    .filter-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .filter-label { font-size: var(--text-xs); font-weight: 500; color: var(--text-muted); white-space: nowrap; }
+    .filter-select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-size: var(--text-xs); cursor: pointer; white-space: nowrap; }
+    .filter-clear { font-size: var(--text-xs); color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; white-space: nowrap; }
+    .category-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; }
+    .category-tab { padding: 6px 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg); font-size: var(--text-xs); font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.15s; color: var(--text-muted); flex-shrink: 0; }
+    .category-tab:hover { border-color: var(--primary-light); color: var(--primary); }
+    .category-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .search-input { width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 14px; margin-bottom: 0; background: var(--bg); }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+    .jobs-feed { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .job-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; transition: all 0.2s; cursor: pointer; }
+    .job-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--primary-light); }
+    .job-card.skeleton { pointer-events: none; }
+    .job-card.skeleton .job-title, .job-card.skeleton .job-salary { background: var(--bg); border-radius: 4px; color: transparent; }
+    .job-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .match-chip { background: linear-gradient(135deg, var(--accent), #F59E0B); color: white; padding: 3px 6px; border-radius: 10px; font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 2px; }
+    .match-chip svg { width: 10px; height: 10px; fill: white; }
+    .job-title { font-size: var(--text-base); font-weight: 600; margin-bottom: 4px; }
+    .job-salary-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .job-salary { font-size: var(--text-sm); font-weight: 600; color: var(--primary); }
+    .job-bonus { font-size: 10px; color: var(--text-muted); }
+    .job-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+    .tag { background: var(--bg); color: var(--text-muted); padding: 2px 6px; border-radius: 6px; font-size: 10px; }
+    .job-commute { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 3px; }
+    .employer-row { display: flex; align-items: center; gap: 8px; }
+    .employer-logo { width: 28px; height: 28px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 10px; flex-shrink: 0; }
+    .employer-info { flex: 1; min-width: 0; }
+    .employer-name-row { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
+    .employer-name { font-size: var(--text-sm); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .employer-meta { font-size: 10px; color: var(--text-muted); }
+    .verified-badge { display: inline-flex; align-items: center; gap: 2px; background: rgba(5,150,105,0.12); color: var(--success); padding: 1px 4px; border-radius: 6px; font-size: 9px; font-weight: 600; flex-shrink: 0; }
+    .verified-badge svg { width: 8px; height: 8px; fill: currentColor; }
+    .recruiter-row { display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid var(--border); margin-top: 6px; }
+    .recruiter-info { display: flex; align-items: center; gap: 4px; }
+    .recruiter-name { font-size: 10px; font-weight: 500; color: var(--text); }
+    .recruiter-role { font-size: 10px; color: var(--text-muted); }
+    .online-dot { width: 5px; height: 5px; background: var(--success); border-radius: 50%; display: inline-block; }
+    .online-dot.offline { background: var(--text-muted); }
+    .response-rate { font-size: 10px; color: var(--success); font-weight: 500; }
+    .job-meta { display: flex; gap: 8px; font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+    .job-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .btn-sm { flex: 1; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+    .btn-outline { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-chat { background: var(--primary); color: white; }
+    .btn-chat:hover { background: var(--primary-dark); }
+    .btn-save { background: var(--bg); color: var(--text-muted); flex: 0 0 auto; padding: 8px 10px; }
+    .btn-save:hover, .btn-save.saved { background: var(--accent); color: white; }
+    .detail-view { padding: 0; }
+    .detail-header { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; z-index: 10; }
+    .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--text); cursor: pointer; font-size: 15px; font-weight: 500; }
+    .back-btn:hover { color: var(--primary); }
+    .back-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .detail-content { padding: 16px; }
+    .detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+    .detail-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .detail-salary { font-size: 17px; font-weight: 600; color: var(--primary); margin-bottom: 12px; }
+    .employer-card { display: flex; gap: 12px; padding: 14px; background: var(--bg); border-radius: var(--radius-md); margin-bottom: 12px; }
+    .employer-card .employer-logo { width: 48px; height: 48px; font-size: 16px; }
+    .employer-details { flex: 1; min-width: 0; }
+    .employer-details h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .employer-about { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px; }
+    .employer-meta { font-size: 12px; color: var(--text-muted); }
+    .response-rate { color: var(--success); font-weight: 500; }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+    .detail-section p { color: var(--text-muted); line-height: 1.6; font-size: 14px; }
+    .company-header { display: flex; gap: 12px; padding: 16px; background: var(--bg); border-radius: var(--radius-lg); margin-bottom: 16px; }
+    .company-logo { width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+    .company-info { flex: 1; min-width: 0; }
+    .company-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .company-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); margin-top: 6px; flex-wrap: wrap; }
+    .company-rating { display: flex; align-items: center; gap: 4px; font-weight: 600; color: var(--warning); }
+    .company-about { margin-bottom: 16px; }
+    .company-about h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .company-about p { color: var(--text-muted); line-height: 1.5; }
+    .review-card { background: var(--bg); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; }
+    .review-author { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+    .review-stars { color: var(--warning); font-size: 12px; margin-bottom: 4px; }
+    .review-text { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .chat-list { display: flex; flex-direction: column; }
+    .chat-item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: background 0.15s; }
+    .chat-item:hover { background: var(--bg); }
+    .chat-avatar { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+    .chat-content { flex: 1; min-width: 0; }
+    .chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .chat-employer { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+    .chat-time { font-size: 11px; color: var(--text-muted); }
+    .chat-preview { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-item.unread .chat-preview { color: var(--text); font-weight: 500; }
+    .unread-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .chat-view { display: none; flex-direction: column; height: 100%; padding-bottom: 0; }
+    .chat-view.active { display: flex; }
+    .chat-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .chat-header-info { flex: 1; min-width: 0; }
+    .chat-header-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-header-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+    .message { max-width: 80%; padding: 10px 14px; border-radius: var(--radius-md); font-size: 14px; line-height: 1.4; opacity: 0; transform: translateY(10px); animation: messageIn 0.3s ease forwards; }
+    @keyframes messageIn { to { opacity: 1; transform: translateY(0); } }
+    .message.boss { background: var(--surface); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .message.me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .message-time { font-size: 10px; opacity: 0.7; margin-top: 4px; }
+    .typing-indicator { display: none; align-items: center; gap: 4px; padding: 10px 14px; background: var(--surface); border-radius: var(--radius-md); border-bottom-left-radius: 4px; align-self: flex-start; max-width: 80%; }
+    .typing-indicator.visible { display: flex; }
+    .typing-dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: typingBounce 1.4s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+    .chat-input-area { padding: 10px 16px calc(10px + var(--safe-bottom)); border-top: 1px solid var(--border); background: var(--surface); }
+    .quick-replies { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    .quick-reply { background: var(--bg); border: 1px solid var(--border); padding: 6px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+    .quick-reply:hover { border-color: var(--primary); background: rgba(14,124,102,0.08); }
+    .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+    .chat-input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; resize: none; max-height: 80px; background: var(--bg); font-family: inherit; transition: border-color 0.15s; }
+    .chat-input:focus { outline: none; border-color: var(--primary); }
+    .send-btn { width: 40px; height: 40px; background: var(--primary); border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+    .send-btn:hover { background: var(--primary-dark); }
+    .send-btn svg { width: 20px; height: 20px; fill: white; }
+    .profile-view { padding: 16px; }
+    .profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .profile-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700; flex-shrink: 0; }
+    .profile-info h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .profile-info p { color: var(--text-muted); font-size: 13px; }
+    .profile-account-info { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .profile-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+    .profile-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .progress-bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 3px; transition: width 0.3s; }
+    .progress-text { font-size: 12px; color: var(--text-muted); }
+    .skills-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill-tag { background: rgba(14,124,102,0.1); color: var(--primary); padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+    .toggle-label { font-size: 14px; font-weight: 500; }
+    .toggle-switch { width: 44px; height: 24px; background: var(--border); border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-switch.active { background: var(--primary); }
+    .toggle-knob { width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
+    .toggle-switch.active .toggle-knob { transform: translateX(20px); }
+    .btn-logout { width: 100%; padding: 11px 16px; background: var(--bg); color: var(--error); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; margin-top: 8px; }
+    .btn-logout:hover { background: var(--error); color: white; border-color: var(--error); }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+    .empty-state svg { width: 56px; height: 56px; fill: var(--border); margin-bottom: 12px; }
+    .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-state p { font-size: 13px; line-height: 1.5; }
+    .bottom-nav { display: flex; justify-content: space-around; padding: 8px 0 calc(8px + var(--safe-bottom)); background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 12px; border: none; background: none; cursor: pointer; color: var(--text-muted); min-width: 60px; transition: color 0.15s; }
+    .nav-item:hover { color: var(--primary); }
+    .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+    .nav-item span { font-size: 11px; font-weight: 500; }
+    .nav-item.active { color: var(--primary); }
+    .nav-badge { position: absolute; top: 4px; right: 8px; width: 8px; height: 8px; background: var(--error); border-radius: 50%; border: 2px solid var(--surface); }
+    .nav-item-wrapper { position: relative; }
+    .notif-panel { position: absolute; top: calc(50px + var(--safe-top)); right: 12px; width: 320px; max-width: calc(100vw - 24px); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 200; display: none; max-height: 360px; overflow-y: auto; }
+    .notif-panel.visible { display: block; }
+    .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-bottom: 1px solid var(--border); }
+    .notif-header h3 { font-size: 15px; font-weight: 600; }
+    .notif-mark-read { font-size: 11px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; }
+    .notif-mark-read:hover { text-decoration: underline; }
+    .notif-item { padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item.unread { background: rgba(14,124,102,0.04); }
+    .notif-item-text { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+    .notif-item-time { font-size: 10px; color: var(--text-muted); }
+    .notif-empty { padding: 28px 14px; text-align: center; color: var(--text-muted); }
+    .view-enter { animation: viewEnter 0.25s ease; }
+    @keyframes viewEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    .lang-segment { transition: all 0.15s; }
+    .lang-segment:hover { border-color: var(--primary-light); }
+    .lang-segment:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header" id="appHeader" style="display:none;">
+      <div class="logo">
+        <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M8 12h4v8H8v-8zm6 0h4v8h-4v-8zm6 0h4v8h-4v-8z" fill="white"/></svg>
+        Loker
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="modeToggle" onclick="toggleMode()" title="Toggle mode" style="margin-right:4px;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </button>
+        <button class="icon-btn" id="notifBtn">
+          <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <span class="badge-unread" id="notifBadge" style="display:none;"></span>
+        </button>
+      </div>
+    </header>
+    <div class="notif-panel" id="notifPanel">
+      <div class="notif-header">
+        <h3 data-i18n="notif_title">Notifikasi</h3>
+        <button class="notif-mark-read" onclick="markAllRead()" data-i18n="notif_mark_read">Tandai semua dibaca</button>
+      </div>
+      <div id="notifList"></div>
+    </div>
+    <div class="content" id="mainContent">
+      <div class="auth-view" id="authView">
+        <div class="auth-card">
+          <div class="auth-logo"><svg viewBox="0 0 32 32" fill="none"><path d="M8 12h4v8H8v-8zm6 0h4v8h-4v-8zm6 0h4v8h-4v-8z" fill="white"/></svg></div>
+          <h1 class="auth-title" data-i18n="auth_title">Masuk ke Loker</h1>
+          <p class="auth-subtitle" data-i18n="auth_subtitle">Lanjutkan dari tempat kamu berhenti.</p>
+          <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px;">
+            <button class="lang-segment" id="langId" onclick="setLang('id')" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:12px;font-weight:500;">Bahasa Indonesia</button>
+            <button class="lang-segment" id="langEn" onclick="setLang('en')" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--text-muted);">English</button>
+          </div>
+          <div class="auth-tabs">
+            <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')" data-i18n="auth_login">Masuk</button>
+            <button class="auth-tab" id="signupTab" onclick="switchAuthTab('signup')" data-i18n="auth_signup">Daftar</button>
+          </div>
+          <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label class="form-label" data-i18n="auth_email">Email</label>
+              <input type="email" class="form-input" id="loginEmail" required data-i18n-ph="auth_email_ph" placeholder="nama@email.com">
+              <span class="form-error" id="loginEmailError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="auth_password">Kata Sandi</label>
+              <div class="password-row">
+                <input type="password" class="form-input" id="loginPass" required data-i18n-ph="auth_password_ph" placeholder="••••••••">
+                <button type="button" class="password-toggle" onclick="togglePassword('loginPass')">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+              </div>
+              <span class="form-error" id="loginPassError"></span>
+            </div>
+            <button type="submit" class="btn-auth" id="loginBtn" data-i18n="auth_login_btn">Masuk</button>
+          </form>
+          <form class="auth-form" id="signupForm" style="display:none;" onsubmit="handleSignup(event)">
+            <div class="form-group">
+              <label class="form-label" data-i18n="auth_name">Nama</label>
+              <input type="text" class="form-input" id="signupName" required data-i18n-ph="auth_name_ph" placeholder="Nama Lengkap">
+              <span class="form-error" id="signupNameError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="auth_email">Email</label>
+              <input type="email" class="form-input" id="signupEmail" required data-i18n-ph="auth_email_ph" placeholder="nama@email.com">
+              <span class="form-error" id="signupEmailError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="auth_password">Kata Sandi</label>
+              <div class="password-row">
+                <input type="password" class="form-input" id="signupPass" required minlength="6" data-i18n-ph="auth_password_ph" placeholder="••••••••">
+                <button type="button" class="password-toggle" onclick="togglePassword('signupPass')">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+              </div>
+              <span class="form-error" id="signupPassError"></span>
+            </div>
+            <button type="submit" class="btn-auth" id="signupBtn" data-i18n="auth_signup_btn">Daftar</button>
+          </form>
+          <div class="auth-divider" data-i18n="auth_or">atau</div>
+          <button class="btn-guest" onclick="continueAsGuest()" data-i18n="auth_guest">Lanjut sebagai Tamu</button>
+          <div class="auth-hint">
+            <div class="auth-hint-title" data-i18n="auth_hint_title">💡 Demo Credentials</div>
+            <div class="auth-hint-text" data-i18n="auth_hint_text">Gunakan kredensial demo ini untuk mencoba:</div>
+            <div class="auth-hint-creds">demo@loker.app / demo123</div>
+          </div>
+        </div>
+      </div>
+      <div class="onboarding-view" id="onboardingView">
+        <div class="onboarding-logo"><svg viewBox="0 0 32 32" fill="none"><path d="M8 12h4v8H8v-8zm6 0h4v8h-4v-8zm6 0h4v8h-4v-8z" fill="white"/></svg></div>
+        <h1 class="onboarding-title" data-i18n="onboarding_title">Selamat datang di Loker</h1>
+        <p class="onboarding-desc" data-i18n="onboarding_desc">Platform lowongan kerja dimana kamu bisa chat langsung dengan pemilik usaha. Tanpa HR, tanpa perantara.</p>
+        <div class="role-cards" id="roleCards">
+          <div class="role-card selected" data-role="seeker">
+            <div class="role-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="white"/></svg></div>
+            <div>
+              <div class="role-title" data-i18n="role_seeker_title">Saya pencari kerja</div>
+              <div class="role-desc" data-i18n="role_seeker_desc">Cari pekerjaan dan chat langsung dengan bos</div>
+            </div>
+          </div>
+          <div class="role-card" data-role="employer">
+            <div class="role-icon" style="background: var(--accent);"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" fill="white"/></svg></div>
+            <div>
+              <div class="role-title" data-i18n="role_employer_title">Saya pemilik usaha</div>
+              <div class="role-desc" data-i18n="role_employer_desc">Pasang lowongan dan rekrut langsung</div>
+            </div>
+          </div>
+        </div>
+        <input type="text" class="name-input" id="nameInput" data-i18n-ph="name_input_ph" placeholder="Masukkan nama kamu" value="Andi Pratama">
+        <button class="btn-primary" id="startBtn" data-i18n="btn_start">Mulai</button>
+        <div class="trust-block">
+          <div class="trust-title">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+            <span data-i18n="why_loker">Kenapa Loker?</span>
+          </div>
+          <p class="trust-desc" data-i18n="trust_desc">Semua employer diverifikasi identitasnya. Tidak ada penipuan, tidak ada calo. Kamu chat langsung dengan bos yang punya usaha asli.</p>
+        </div>
+      </div>
+      <div class="view active" id="discoverView">
+        <div class="discover-filters">
+          <input type="text" class="search-input" id="jobSearch" oninput="filterJobs()" data-i18n-ph="search_jobs_ph" placeholder="Cari pekerjaan atau perusahaan...">
+          <div class="filter-bar" id="filterBar">
+            <div class="filter-group">
+              <label class="filter-label" data-i18n="filter_city">Kota</label>
+              <select class="filter-select" id="filterCity" onchange="filterJobs()">
+                <option value="" data-i18n="filter_all">Semua</option>
+                <option value="Jakarta">Jakarta</option>
+                <option value="Bandung">Bandung</option>
+                <option value="Yogyakarta">Yogyakarta</option>
+                <option value="Tangerang">Tangerang</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label" data-i18n="filter_experience">Pengalaman</label>
+              <select class="filter-select" id="filterExperience" onchange="filterJobs()">
+                <option value="" data-i18n="filter_all">Semua</option>
+                <option value="Tanpa pengalaman" data-i18n="exp_no_exp">Tanpa pengalaman</option>
+                <option value="0-1 tahun" data-i18n="exp_0_1">0-1 tahun</option>
+                <option value="1-3 tahun" data-i18n="exp_1_3">1-3 tahun</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label" data-i18n="filter_education">Pendidikan</label>
+              <select class="filter-select" id="filterEducation" onchange="filterJobs()">
+                <option value="" data-i18n="filter_all">Semua</option>
+                <option value="SMA/SMK" data-i18n="edu_sma">SMA/SMK</option>
+                <option value="D3/S1" data-i18n="edu_d3">D3/S1</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label" data-i18n="filter_type">Tipe</label>
+              <select class="filter-select" id="filterType" onchange="filterJobs()">
+                <option value="" data-i18n="type_all">Semua</option>
+                <option value="Penuh waktu" data-i18n="type_full">Penuh waktu</option>
+                <option value="Paruh waktu" data-i18n="type_part">Paruh waktu</option>
+                <option value="Kontrak" data-i18n="type_contract">Kontrak</option>
+                <option value="Magang" data-i18n="type_intern">Magang</option>
+              </select>
+            </div>
+            <button class="filter-clear" onclick="clearFilters()" data-i18n="filter_clear">Bersihkan</button>
+          </div>
+          <div class="category-tabs" id="categoryTabs">
+            <button class="category-tab active" data-category="all" onclick="setCategory('all')" data-i18n="category_all">Semua</button>
+            <button class="category-tab" data-category="fnb" onclick="setCategory('fnb')" data-i18n="category_fnb">F&B</button>
+            <button class="category-tab" data-category="retail" onclick="setCategory('retail')" data-i18n="category_retail">Retail</button>
+            <button class="category-tab" data-category="logistics" onclick="setCategory('logistics')" data-i18n="category_logistics">Logistik</button>
+          </div>
+        </div>
+        <div class="jobs-feed" id="jobsFeed"></div>
+      </div>
+      <div class="view detail-view" id="detailView">
+        <div class="detail-header">
+          <button class="back-btn" onclick="showView('discover')">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            <span data-i18n="btn_back">Kembali</span>
+          </button>
+        </div>
+        <div class="detail-content" id="detailContent"></div>
+      </div>
+      <div class="view detail-view" id="companyView">
+        <div class="detail-header">
+          <button class="back-btn" onclick="showView('discover')">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            <span data-i18n="btn_back">Kembali</span>
+          </button>
+        </div>
+        <div class="detail-content" id="companyContent"></div>
+      </div>
+      <div class="view chat-view" id="chatView">
+        <div class="chat-header">
+          <button class="back-btn" onclick="showView('chats')" style="margin:0;">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          </button>
+          <div class="chat-header-info">
+            <div class="chat-header-name" id="chatHeaderName"></div>
+            <div class="chat-header-sub" id="chatHeaderSub"></div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="typing-indicator" id="typingIndicator">
+          <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+        </div>
+        <div class="chat-input-area">
+          <div class="quick-replies" id="quickReplies"></div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;">
+            <button class="quick-reply" onclick="insertTemplate(t('chat_template_1'))" data-i18n="chat_template_1">Pengalaman cocok</button>
+            <button class="quick-reply" onclick="insertTemplate(t('chat_template_2'))" data-i18n="chat_template_2">Kagum perusahaan</button>
+            <button class="quick-reply" onclick="insertTemplate(t('chat_template_3'))" data-i18n="chat_template_3">Jadwal interview?</button>
+            <button class="quick-reply" onclick="insertTemplate(t('chat_template_4'))" data-i18n="chat_template_4">Jam kerja?</button>
+            <button class="quick-reply" onclick="insertTemplate(t('chat_template_5'))" data-i18n="chat_template_5">Ada benefit?</button>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chatInput" data-i18n-ph="chat_input_ph" placeholder="Ketik..." rows="1"></textarea>
+            <button class="send-btn" onclick="sendMessage()">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);overflow-x:auto;">
+            <button class="btn-sm btn-outline" onclick="chatAction('call')" data-i18n="chat_action_call">Telepon</button>
+            <button class="btn-sm btn-outline" onclick="chatAction('contact')" data-i18n="chat_action_contact">Kontak</button>
+            <button class="btn-sm btn-outline" onclick="chatAction('resume')" data-i18n="chat_action_resume">Kirim CV</button>
+            <button class="btn-sm btn-outline" onclick="chatAction('not_interested')" data-i18n="chat_action_not_interested">Tidak tertarik</button>
+          </div>
+        </div>
+      </div>
+      <div class="view" id="chatsView">
+        <div class="chat-list">
+          <div class="filter-bar" style="padding:8px;border-bottom:1px solid var(--border);background:var(--bg);margin-bottom:0;">
+            <button class="category-tab active" data-chat-filter="all" onclick="setChatFilter('all')" data-i18n="chat_tabs_all">Semua</button>
+            <button class="category-tab" data-chat-filter="unread" onclick="setChatFilter('unread')"><span data-i18n="chat_tabs_unread">Belum Dibaca</span><span id="unreadCount" style="margin-left:4px;background:var(--error);color:white;padding:1px 4px;border-radius:8px;font-size:9px;display:none;">0</span></button>
+            <button class="category-tab" data-chat-filter="new" onclick="setChatFilter('new')" data-i18n="chat_tabs_new">Baru</button>
+            <button class="category-tab" data-chat-filter="interview" onclick="setChatFilter('interview')" data-i18n="chat_tabs_interview">Interview</button>
+            <button class="category-tab" data-chat-filter="not_interested" onclick="setChatFilter('not_interested')" data-i18n="chat_tabs_not_interested">Tidak tertarik</button>
+          </div>
+          <div id="chatsList"></div>
+        </div>
+      </div>
+      <div class="view" id="savedView">
+        <div class="jobs-feed" id="savedFeed"></div>
+      </div>
+      <div class="view" id="candidatesView">
+        <div class="discover-filters">
+          <h2 data-i18n="candidate_feed_heading" style="margin-bottom:12px;">Kandidat</h2>
+        </div>
+        <div class="jobs-feed" id="candidatesFeed"></div>
+      </div>
+      <div class="view profile-view" id="profileView">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">A</div>
+          <div class="profile-info">
+            <h2 id="profileName">Andi Pratama</h2>
+            <p id="profileHeadline">Barista & Pelayanan • 2 tahun pengalaman</p>
+            <p class="profile-account-info" id="profileAccountInfo"></p>
+          </div>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="resume_completeness">Kelengkapan</h3>
+          <div class="progress-bar"><div class="progress-fill" id="profileProgress" style="width: 80%;"></div></div>
+          <p class="progress-text" id="progressText">80%</p>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="resume_headline">Headline</h3>
+          <p id="profileHeadlineDetail" style="color:var(--text-muted);font-size:13px;"></p>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="resume_city">Kota</h3>
+          <p id="profileCityDetail" style="color:var(--text-muted);font-size:13px;"></p>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="resume_expected_salary">Gaji</h3>
+          <p id="profileSalaryDetail" style="color:var(--text-muted);font-size:13px;"></p>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="profile_experience">Pengalaman</h3>
+          <p id="profileExperienceDetail" style="color:var(--text-muted);font-size:13px;"></p>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="profile_education">Pendidikan</h3>
+          <p id="profileEducationDetail" style="color:var(--text-muted);font-size:13px;"></p>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="profile_skills">Keahlian</h3>
+          <div class="skills-list" id="skillsList"></div>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="resume_response_rate">Tingkat Balasan</h3>
+          <p id="profileResponseRate" style="color:var(--success);font-size:13px;font-weight:600;"></p>
+        </div>
+        <div class="profile-section" id="applicationsSection" style="display:none;">
+          <h3 data-i18n="applications_title">Lamaran</h3>
+          <div id="applicationsList"></div>
+        </div>
+        <div class="profile-section" id="privacySection">
+          <h3 data-i18n="privacy_hide">Privasi</h3>
+          <div class="toggle-row">
+            <span class="toggle-label" data-i18n="privacy_hide">Sembunyi dari perekrut</span>
+            <div class="toggle-switch" id="privacyHideToggle" onclick="togglePrivacyHide()"><div class="toggle-knob"></div></div>
+          </div>
+          <div style="margin-top:8px;">
+            <span class="toggle-label" data-i18n="privacy_blocked">Perusahaan diblokir</span>
+            <div id="blockedCompaniesList" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+          </div>
+        </div>
+        <div class="profile-section" id="vipSection" style="background:linear-gradient(135deg, rgba(217,119,6,0.1), rgba(180,83,9,0.1));border:2px solid var(--accent);">
+          <h3 data-i18n="vip_title" style="color:var(--accent);">🌟 Loker VIP</h3>
+          <p data-i18n="vip_desc" style="color:var(--text-muted);font-size:12px;margin-bottom:6px;">Boost visibilitas + lihat viewer</p>
+          <p style="color:var(--accent);font-weight:700;font-size:14px;" data-i18n="vip_price">Rp49rb/bln</p>
+          <button class="btn-primary" onclick="upgradeVIP()" data-i18n="vip_upgrade" style="margin-top:8px;background:var(--accent);padding:10px;">Upgrade VIP</button>
+        </div>
+        <div class="profile-section">
+          <h3 data-i18n="lang_label">Bahasa</h3>
+          <div style="display:flex;gap:8px;">
+            <button class="lang-segment" id="profileLangId" onclick="setLang('id')" style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;">Bahasa Indonesia</button>
+            <button class="lang-segment" id="profileLangEn" onclick="setLang('en')" style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--bg);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);">English</button>
+          </div>
+        </div>
+        <div class="profile-section">
+          <div class="toggle-row">
+            <span class="toggle-label" data-i18n="profile_active">Profil aktif</span>
+            <div class="toggle-switch active" id="profileToggle" onclick="toggleProfileActive()"><div class="toggle-knob"></div></div>
+          </div>
+        </div>
+        <div class="profile-section" id="logoutSection" style="display:none;">
+          <button class="btn-logout" onclick="confirmLogout()" data-i18n="btn_logout">Keluar</button>
+        </div>
+      </div>
+    </div>
+    <nav class="bottom-nav" id="bottomNav" style="display:none;">
+      <div class="nav-item-wrapper">
+        <button class="nav-item active" data-view="discover">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span data-i18n="nav_discover">Temukan</span>
+        </button>
+      </div>
+      <div class="nav-item-wrapper" id="candidatesNav" style="display:none;">
+        <button class="nav-item" data-view="candidates">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          <span data-i18n="candidate_feed_heading">Kandidat</span>
+        </button>
+      </div>
+      <div class="nav-item-wrapper">
+        <button class="nav-item" data-view="chats">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          <span data-i18n="nav_chats">Chat</span>
+        </button>
+        <span class="nav-badge" id="navBadge" style="display:none;"></span>
+      </div>
+      <div class="nav-item-wrapper">
+        <button class="nav-item" data-view="saved">
+          <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+          <span data-i18n="nav_saved">Disimpan</span>
+        </button>
+      </div>
+      <div class="nav-item-wrapper">
+        <button class="nav-item" data-view="profile">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span data-i18n="nav_profile">Profil</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <script>
+    const APP_KEY = 'loker_mobile_v1';
+    let state = null, currentChatId = null, selectedRole = 'seeker', currentAuthTab = 'login', currentCategory = 'all', currentChatFilter = 'all';
+
+    function simpleHash(str) { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i); return h >>> 0; }
+
+    const I18N = {
+      id: {
+        app_name: 'Loker', nav_discover: 'Temukan', nav_chats: 'Chat', nav_saved: 'Disimpan', nav_profile: 'Profil',
+        auth_title: 'Masuk ke Loker', auth_subtitle: 'Lanjutkan dari tempat kamu berhenti.', auth_login: 'Masuk', auth_signup: 'Daftar',
+        auth_email: 'Email', auth_email_ph: 'nama@email.com', auth_password: 'Kata Sandi', auth_password_ph: '••••••••',
+        auth_name: 'Nama', auth_name_ph: 'Nama Lengkap', auth_login_btn: 'Masuk', auth_signup_btn: 'Daftar',
+        auth_or: 'atau', auth_guest: 'Lanjut sebagai Tamu', auth_hint_title: '💡 Demo Credentials', auth_hint_text: 'Gunakan kredensial demo ini untuk mencoba:',
+        auth_error_required: 'Wajib diisi', auth_error_invalid_email: 'Email tidak valid', auth_error_wrong_credentials: 'Email atau kata sandi salah',
+        auth_error_email_exists: 'Email sudah terdaftar', auth_error_password_short: 'Kata sandi minimal 6 karakter',
+        auth_welcome_back: 'Selamat datang kembali, ', auth_welcome: 'Selamat datang, ',
+        notif_title: 'Notifikasi', notif_mark_read: 'Tandai semua dibaca', notif_empty: 'Belum ada notifikasi',
+        search_jobs_ph: 'Cari pekerjaan atau perusahaan...', filter_all: 'Semua', filter_clear: 'Bersihkan', filter_city: 'Kota', filter_experience: 'Pengalaman', filter_education: 'Pendidikan', filter_salary: 'Gaji', filter_type: 'Tipe',
+        type_all: 'Semua', type_full: 'Penuh waktu', type_part: 'Paruh waktu', type_contract: 'Kontrak', type_intern: 'Magang',
+        exp_no_exp: 'Tanpa pengalaman', exp_0_1: '0-1 tahun', exp_1_3: '1-3 tahun', edu_sma: 'SMA/SMK', edu_d3: 'D3/S1',
+        salary_2: '≥ Rp2 jt', salary_3: '≥ Rp3 jt', salary_4: '≥ Rp4 jt',
+        category_all: 'Semua', category_fnb: 'F&B', category_retail: 'Retail', category_logistics: 'Logistik', category_manufacturing: 'Manufaktur', category_services: 'Jasa', category_hospitality: 'Hospitality',
+        filters_active: 'filter aktif', job_empty: 'Tidak ada pekerjaan yang cocok',
+        btn_logout: 'Keluar', logout_confirm: 'Yakin ingin keluar?',
+        onboarding_title: 'Selamat datang di Loker', onboarding_desc: 'Platform lowongan kerja dimana kamu bisa chat langsung dengan pemilik usaha.',
+        role_seeker_title: 'Saya pencari kerja', role_seeker_desc: 'Cari pekerjaan dan chat langsung dengan bos',
+        role_employer_title: 'Saya pemilik usaha', role_employer_desc: 'Pasang lowongan dan rekrut langsung',
+        name_input_ph: 'Masukkan nama kamu', btn_start: 'Mulai',
+        why_loker: 'Kenapa Loker?', trust_desc: 'Semua employer diverifikasi identitasnya.',
+        trust_verified: 'Terverifikasi', trust_chat: 'Chat Langsung', trust_chat_desc: 'Tidak ada HR atau perantara.',
+        trust_ai: 'AI Match', trust_ai_desc: 'Setiap lowongan punya skor kecocokan.',
+        btn_back: 'Kembali', btn_chat: 'Chat', btn_save: 'Simpan', btn_saved: 'Disimpan', btn_detail: 'Detail', btn_chat_boss: 'Chat dengan bos',
+        job_desc: 'Deskripsi Pekerjaan', job_qual: 'Kualifikasi',
+        empty_chats_title: 'Belum ada chat', empty_chats_desc: 'Mulai chat dari halaman Temukan',
+        empty_saved_title: 'Belum menyimpan lowongan', empty_saved_desc: 'Klik "Simpan" pada lowongan yang menarik',
+        profile_complete: 'Kelengkapan Profil', profile_skills: 'Keahlian', profile_active: 'Profil aktif',
+        chat_input_ph: 'Ketik pesan...', quick_1: 'Halo, masih dibuka?', quick_2: 'Detail pekerjaannya?', quick_3: 'Kapan mulai?', quick_4: 'Ada tunjangan?',
+        lang_label: 'Bahasa', job_type_full: 'Penuh waktu', job_type_part: 'Paruh waktu',
+        tag_no_exp: 'Tanpa pengalaman', tag_student: 'Bisa sambil kuliah', tag_night: 'Shift malam', tag_friendly: 'Ramah',
+        tag_motor: 'Punya motor', tag_license: 'SIM C', tag_sma: 'SMA/SMK', tag_comm: 'Komunikatif', tag_meals: 'Makan 2x', tag_excel: 'Microsoft Excel', tag_detail: 'Teliti',
+        industry_fnb: 'F&B', industry_retail: 'Retail', industry_logistics: 'Logistik',
+        emp_about_001: 'Rantai kedai kopi lokal dengan 30+ cabang.', emp_about_002: 'Toko elektronik keluarga sejak 1998.',
+        emp_about_003: 'Jasa pengiriman ekspres dengan 500+ kurir.', emp_about_004: 'Warung sate legendaris, 3 cabang.',
+        job_title_001: 'Barista', job_title_002: 'Kasir (Part-time)', job_title_003: 'Kurir Motor', job_title_004: 'Pramuniaga', job_title_005: 'Pelayan Restoran', job_title_006: 'Admin Gudang',
+        job_desc_001: 'Membuat kopi, melayani pelanggan.', job_desc_002: 'Melayani pembayaran.', job_desc_003: 'Mengantar paket.', job_desc_004: 'Menjaga display produk.', job_desc_005: 'Menyajikan pesanan.', job_desc_006: 'Mencatat stok.',
+        reply_thanks: 'Terima kasih sudah menghubungi.', reply_ok: 'Baik, nanti kami kabari.', reply_question: 'Siap, ada pertanyaan lain?', reply_next: 'Oke, kita lanjut ke tahap berikutnya.',
+        reply_info: 'Makasih infonya.', reply_cv: 'Bisa kirim CV ke email kami?', reply_flex: 'Jam kerja fleksibel.', reply_nego: 'Gaji bisa nego.',
+        typing_indicator: 'sedang mengetik...',
+        company_verified: 'Terverifikasi', company_size: 'Ukuran', company_funding: 'Pendanaan', company_rating: 'Rating', company_reviews: 'Ulasan', company_about: 'Tentang', company_openings: 'Lowongan',
+        company_page_title: 'Profil Perusahaan', company_jobs_heading: 'Lowongan Terbuka', company_reviews_heading: 'Ulasan Karyawan',
+        job_bonus: 'Bonus', job_commute: 'Komuter', job_applicants: 'Pelamar', job_posted: 'Diposting',
+        recruiter_online: 'Online', recruiter_offline: 'Offline', recruiter_response_rate: 'Tingkat balasan',
+        skeleton_loading: 'Memuat...',
+        chat_tabs_all: 'Semua', chat_tabs_unread: 'Belum Dibaca', chat_tabs_new: 'Baru', chat_tabs_interview: 'Interview', chat_tabs_not_interested: 'Tidak tertarik',
+        chat_templates_label: 'Template', chat_template_1: 'Pengalaman saya cocok', chat_template_2: 'Saya kagum dengan perusahaan', chat_template_3: 'Bisa jadwal interview?', chat_template_4: 'Jam kerja?', chat_template_5: 'Ada benefit?',
+        chat_action_call: 'Telepon', chat_action_contact: 'Kontak', chat_action_resume: 'Kirim CV', chat_action_not_interested: 'Tidak tertarik',
+        mode_seeker: 'Pencari kerja', mode_recruiter: 'Perekrut',
+        candidate_feed_heading: 'Kandidat', candidate_match: 'Match', candidate_chat: 'Chat',
+        resume_headline: 'Headline', resume_city: 'Kota', resume_expected_salary: 'Gaji', resume_education: 'Pendidikan', resume_experience: 'Pengalaman', resume_skills: 'Keahlian', resume_response_rate: 'Balasan', resume_completeness: 'Kelengkapan',
+        mass_apply: 'Lamar banyak', mass_apply_confirm: 'Lamar {count} lowongan?', mass_apply_success: 'Melamar {count} lowongan',
+        privacy_hide: 'Sembunyi dari perekrut', privacy_blocked: 'Perusahaan diblokir', privacy_block_add: 'Tambah',
+        vip_title: 'Loker VIP', vip_desc: 'Boost visibilitas + lihat viewer', vip_price: 'Rp49rb/bln', vip_upgrade: 'Upgrade VIP',
+        applications_title: 'Lamaran', applications_status_pending: 'Menunggu', applications_status_viewed: 'Dilihat', applications_status_rejected: 'Ditolak',
+        profile_education: 'Pendidikan', profile_experience: 'Pengalaman', profile_expected_salary: 'Gaji'
+      },
+      en: {
+        app_name: 'Loker', nav_discover: 'Discover', nav_chats: 'Chats', nav_saved: 'Saved', nav_profile: 'Profile',
+        auth_title: 'Sign in to Loker', auth_subtitle: 'Continue where you left off', auth_login: 'Sign In', auth_signup: 'Sign Up',
+        auth_email: 'Email', auth_email_ph: 'name@email.com', auth_password: 'Password', auth_password_ph: '••••••••',
+        auth_name: 'Name', auth_name_ph: 'Full Name', auth_login_btn: 'Sign In', auth_signup_btn: 'Sign Up',
+        auth_or: 'or', auth_guest: 'Continue as Guest', auth_hint_title: '💡 Demo Credentials', auth_hint_text: 'Use these demo credentials:',
+        auth_error_required: 'Required', auth_error_invalid_email: 'Invalid email', auth_error_wrong_credentials: 'Incorrect credentials',
+        auth_error_email_exists: 'Email registered', auth_error_password_short: 'Min 6 characters',
+        auth_welcome_back: 'Welcome back, ', auth_welcome: 'Welcome, ',
+        notif_title: 'Notifications', notif_mark_read: 'Mark all read', notif_empty: 'No notifications',
+        search_jobs_ph: 'Search jobs or companies...', filter_all: 'All', filter_clear: 'Clear', filter_city: 'City', filter_experience: 'Experience', filter_education: 'Education', filter_salary: 'Salary', filter_type: 'Type',
+        type_all: 'All', type_full: 'Full-time', type_part: 'Part-time', type_contract: 'Contract', type_intern: 'Internship',
+        exp_no_exp: 'No experience', exp_0_1: '0-1 year', exp_1_3: '1-3 years', edu_sma: 'High school', edu_d3: 'Diploma',
+        salary_2: '≥ Rp2M', salary_3: '≥ Rp3M', salary_4: '≥ Rp4M',
+        category_all: 'All', category_fnb: 'F&B', category_retail: 'Retail', category_logistics: 'Logistics', category_manufacturing: 'Manufacturing', category_services: 'Services', category_hospitality: 'Hospitality',
+        filters_active: 'active filters', job_empty: 'No jobs match',
+        btn_logout: 'Sign Out', logout_confirm: 'Sign out?',
+        onboarding_title: 'Welcome to Loker', onboarding_desc: 'Chat directly with business owners.',
+        role_seeker_title: 'Job seeker', role_seeker_desc: 'Find jobs and chat with bosses',
+        role_employer_title: 'Business owner', role_employer_desc: 'Post jobs and hire',
+        name_input_ph: 'Enter your name', btn_start: 'Get Started',
+        why_loker: 'Why Loker?', trust_desc: 'All employers verified.',
+        trust_verified: 'Verified', trust_chat: 'Direct Chat', trust_chat_desc: 'No middlemen.',
+        trust_ai: 'AI Match', trust_ai_desc: 'Match scores on jobs.',
+        btn_back: 'Back', btn_chat: 'Chat', btn_save: 'Save', btn_saved: 'Saved', btn_detail: 'Details', btn_chat_boss: 'Chat with boss',
+        job_desc: 'Description', job_qual: 'Qualifications',
+        empty_chats_title: 'No chats', empty_chats_desc: 'Start chatting from Discover',
+        empty_saved_title: 'No saved jobs', empty_saved_desc: 'Save jobs you like',
+        profile_complete: 'Profile', profile_skills: 'Skills', profile_active: 'Profile active',
+        chat_input_ph: 'Type...', quick_1: 'Hi, still available?', quick_2: 'More details?', quick_3: 'When start?', quick_4: 'Any benefits?',
+        lang_label: 'Language', job_type_full: 'Full-time', job_type_part: 'Part-time',
+        tag_no_exp: 'No experience', tag_student: 'Students OK', tag_night: 'Night shift', tag_friendly: 'Friendly',
+        tag_motor: 'Has motorbike', tag_license: 'License', tag_sma: 'High school', tag_comm: 'Communicative', tag_meals: 'Meals', tag_excel: 'Excel', tag_detail: 'Detail-oriented',
+        industry_fnb: 'F&B', industry_retail: 'Retail', industry_logistics: 'Logistics',
+        emp_about_001: 'Coffee chain 30+ outlets.', emp_about_002: 'Electronics store since 1998.', emp_about_003: 'Express delivery 500+ couriers.', emp_about_004: 'Satay eatery 3 outlets.',
+        job_title_001: 'Barista', job_title_002: 'Cashier (PT)', job_title_003: 'Courier', job_title_004: 'Sales', job_title_005: 'Server', job_title_006: 'Warehouse Admin',
+        job_desc_001: 'Make coffee, serve.', job_desc_002: 'Handle payments.', job_desc_003: 'Deliver packages.', job_desc_004: 'Product display.', job_desc_005: 'Serve orders.', job_desc_006: 'Track stock.',
+        reply_thanks: 'Thanks for reaching out.', reply_ok: 'We\'ll get back.', reply_question: 'Other questions?', reply_next: 'Next stage.',
+        reply_info: 'Thanks.', reply_cv: 'Send CV to email?', reply_flex: 'Flexible hours.', reply_nego: 'Negotiable.',
+        typing_indicator: 'typing...',
+        company_verified: 'Verified', company_size: 'Size', company_funding: 'Funding', company_rating: 'Rating', company_reviews: 'Reviews', company_about: 'About', company_openings: 'Openings',
+        company_page_title: 'Company', company_jobs_heading: 'Open Jobs', company_reviews_heading: 'Reviews',
+        job_bonus: 'Bonus', job_commute: 'Commute', job_applicants: 'Applicants', job_posted: 'Posted',
+        recruiter_online: 'Online', recruiter_offline: 'Offline', recruiter_response_rate: 'Response rate',
+        skeleton_loading: 'Loading...',
+        chat_tabs_all: 'All', chat_tabs_unread: 'Unread', chat_tabs_new: 'New', chat_tabs_interview: 'Interview', chat_tabs_not_interested: 'Not interested',
+        chat_templates_label: 'Templates', chat_template_1: 'Experience matches', chat_template_2: 'Admire company', chat_template_3: 'Schedule interview?', chat_template_4: 'Working hours?', chat_template_5: 'Any benefits?',
+        chat_action_call: 'Call', chat_action_contact: 'Contact', chat_action_resume: 'Send CV', chat_action_not_interested: 'Not interested',
+        mode_seeker: 'Job seeker', mode_recruiter: 'Recruiter',
+        candidate_feed_heading: 'Candidates', candidate_match: 'Match', candidate_chat: 'Chat',
+        resume_headline: 'Headline', resume_city: 'City', resume_expected_salary: 'Salary', resume_education: 'Education', resume_experience: 'Experience', resume_skills: 'Skills', resume_response_rate: 'Response', resume_completeness: 'Complete',
+        mass_apply: 'Mass apply', mass_apply_confirm: 'Apply to {count} jobs?', mass_apply_success: 'Applied to {count}',
+        privacy_hide: 'Hide from employers', privacy_blocked: 'Blocked companies', privacy_block_add: 'Add',
+        vip_title: 'Loker VIP', vip_desc: 'Boost visibility + see viewers', vip_price: 'Rp49k/mo', vip_upgrade: 'Upgrade VIP',
+        applications_title: 'Applications', applications_status_pending: 'Pending', applications_status_viewed: 'Viewed', applications_status_rejected: 'Rejected',
+        profile_education: 'Education', profile_experience: 'Experience', profile_expected_salary: 'Salary'
+      }
+    };
+
+    function t(key) { return (I18N[state.lang] && I18N[state.lang][key]) || I18N.id[key] || key; }
+    function getLocalized(obj, field) { if (state.lang === 'en' && obj[field + '_en']) return obj[field + '_en']; return obj[field]; }
+
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.getAttribute('data-i18n')));
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.getAttribute('data-i18n-ph')));
+      updateLangButtons();
+    }
+    function updateLangButtons() {
+      ['langId','langEn','profileLangId','profileLangEn'].forEach(id => {
+        const el = document.getElementById(id); if (el) {
+          const isId = id.includes('Id'), active = state.lang === (isId ? 'id' : 'en');
+          el.style.background = active ? 'var(--primary)' : 'var(--bg)';
+          el.style.color = active ? 'white' : 'var(--text-muted)';
+          el.style.borderColor = active ? 'var(--primary)' : 'var(--border)';
+        }
+      });
+    }
+    function setLang(lang) {
+      state.lang = lang; saveState(); applyI18n();
+      const view = document.querySelector('.view.active, .onboarding-view.active, .auth-view.active');
+      if (view?.id === 'discoverView') renderJobs();
+      if (view?.id === 'chatsView') renderChatsList();
+      if (view?.id === 'savedView') renderSavedJobs();
+      if (view?.id === 'profileView') renderProfile();
+      if (view?.id === 'detailView') { const j = document.getElementById('detailContent')?.querySelector('[data-job-id]'); if (j) showJobDetail(j.dataset.jobId); }
+      if (view?.id === 'chatView') renderChatMessages();
+      if (view?.id === 'companyView') { const e = document.getElementById('companyContent')?.dataset.empId; if (e) showCompanyPage(e); }
+    }
+
+    const seedData = {
+      mode: 'seeker',
+      applications: [],
+      privacy: { hideProfile: false, blockedCompanies: [] },
+      vip: false,
+      candidates: [
+        { id: 'cand_001', name: 'Dina K.', headline: 'Barista', headline_en: 'Barista', location: 'Jakarta', skills: ['Barista'], experience: '2 th', experience_en: '2 yrs', education: 'SMA', education_en: 'High school', expectedSalary: 'Rp3,5 jt', match: 94, note: 'Aktif', note_en: 'Active', avatar: '' },
+        { id: 'cand_002', name: 'Rudi H.', headline: 'Kurir', headline_en: 'Courier', location: 'Tangerang', skills: ['SIM C'], experience: '3 th', experience_en: '3 yrs', education: 'SMA', education_en: 'High school', expectedSalary: 'Rp4 jt', match: 88, note: 'Siap', note_en: 'Ready', avatar: '' },
+        { id: 'cand_003', name: 'Siti N.', headline: 'Kasir', headline_en: 'Cashier', location: 'Bandung', skills: ['Kasir'], experience: '1 th', experience_en: '1 yr', education: 'D3', education_en: 'Diploma', expectedSalary: 'Rp3 jt', match: 82, note: 'Part-time', note_en: 'Part-time', avatar: '' },
+        { id: 'cand_004', name: 'Ahmad F.', headline: 'Pelayan', headline_en: 'Server', location: 'Yogya', skills: ['Service'], experience: '1 th', experience_en: '1 yr', education: 'SMA', education_en: 'High school', expectedSalary: 'Rp2,8 jt', match: 79, note: 'Fleksibel', note_en: 'Flexible', avatar: '' },
+        { id: 'cand_005', name: 'Maya S.', headline: 'Sales', headline_en: 'Sales', location: 'Jakarta', skills: ['Sales'], experience: '4 th', experience_en: '4 yrs', education: 'S1', education_en: 'Bachelor', expectedSalary: 'Rp5 jt', match: 75, note: 'Perlu visa', note_en: 'Needs visa', avatar: '' }
+      ],
+      me: { id: 'me_001', name: 'Andi Pratama', headline: 'Barista • 2 tahun', headline_en: 'Barista • 2 years', location: 'Jakarta Selatan', avatar: '', completeness: 80, skills: ['Barista', 'Service'], verified: true, responseRate: 95, expectedSalary: 'Rp3,5 jt', education: 'SMA/SMK', education_en: 'High school', experience: '2 tahun', experience_en: '2 years', city: 'Jakarta Selatan' },
+      role: 'seeker',
+      employers: [
+        { id: 'emp_001', name: 'Kopi Nusantara', industry: 'F&B', industry_en: 'F&B', location: 'Jakarta Selatan', verified: true, responseRate: 96, logoColor: '#0E7C66', about: 'Kedai kopi 30+ cabang.', about_en: 'Coffee chain 30+ outlets.', size: '50-100', size_en: '50-100 emp', funding: 'Keluarga', funding_en: 'Family', rating: 4.6, reviewCount: 128, openings: 2, reviews: [{ author: 'Budi', rating: 5, text: 'Bagus.', text_en: 'Good.' }, { author: 'Sari', rating: 4, text: 'OK.', text_en: 'OK.' }] },
+        { id: 'emp_002', name: 'Elektronik Jaya', industry: 'Retail', industry_en: 'Retail', location: 'Bandung', verified: false, responseRate: 58, logoColor: '#B45309', about: 'Toko elektronik.', about_en: 'Electronics store.', size: '1-10', size_en: '1-10 emp', funding: 'Keluarga', funding_en: 'Family', rating: 3.9, reviewCount: 24, openings: 1, reviews: [{ author: 'Ahmad', rating: 4, text: 'OK.', text_en: 'OK.' }] },
+        { id: 'emp_003', name: 'PT Kirim Cepat', industry: 'Logistik', industry_en: 'Logistics', location: 'Tangerang', verified: true, responseRate: 88, logoColor: '#1D4ED8', about: 'Pengiriman ekspres.', about_en: 'Express delivery.', size: '500+', size_en: '500+ emp', funding: 'Seri A', funding_en: 'Series A', rating: 4.2, reviewCount: 310, openings: 2, reviews: [{ author: 'Joko', rating: 5, text: 'Besar.', text_en: 'Large.' }] },
+        { id: 'emp_004', name: 'Sate Pak Kumis', industry: 'F&B', industry_en: 'F&B', location: 'Yogyakarta', verified: true, responseRate: 92, logoColor: '#B91C1C', about: 'Sate legendaris.', about_en: 'Legendary satay.', size: '10-50', size_en: '10-50 emp', funding: 'Keluarga', funding_en: 'Family', rating: 4.8, reviewCount: 96, openings: 1, reviews: [{ author: 'Yanto', rating: 5, text: 'Enak.', text_en: 'Tasty.' }] }
+      ],
+      jobs: [
+        { id: 'job_001', employerId: 'emp_001', title: 'Barista', title_en: 'Barista', salaryMin: 3000000, salaryMax: 4000000, salaryLabel: 'Rp3–4 jt', location: 'Jakarta Selatan', type: 'Penuh waktu', type_en: 'Full-time', tags: [], tags_en: [], description: 'Membuat kopi.', description_en: 'Make coffee.', match: 92, verified: true, posted: '2026-10-20', experience: 'Tanpa pengalaman', experience_en: 'No exp', education: 'SMA/SMK', education_en: 'High school', bonus: 'THR', bonus_en: 'THR', commute: '5 mnt MRT', commute_en: '5min MRT', city: 'Jakarta', category: 'fnb', applicants: 12, postedAgo: '2 hari', postedAgo_en: '2 days', recruiter: { name: 'Bu Sari', role: 'Pemilik', role_en: 'Owner', online: true, responseRate: 96 } },
+        { id: 'job_002', employerId: 'emp_001', title: 'Kasir (PT)', title_en: 'Cashier (PT)', salaryMin: 2000000, salaryMax: 2600000, salaryLabel: 'Rp2–2,6 jt', location: 'Jakarta Selatan', type: 'Paruh waktu', type_en: 'Part-time', tags: ['Malam'], tags_en: ['Night'], description: 'Kasir.', description_en: 'Cashier.', match: 85, verified: true, posted: '2026-10-19', experience: '0-1 tahun', experience_en: '0-1 yr', education: 'SMA/SMK', education_en: 'High school', bonus: 'Makan', bonus_en: 'Meal', commute: '10 mnt kota', commute_en: '10min city', city: 'Jakarta', category: 'fnb', applicants: 8, postedAgo: '1 hari', postedAgo_en: '1 day', recruiter: { name: 'Bu Sari', role: 'Pemilik', role_en: 'Owner', online: true, responseRate: 96 } },
+        { id: 'job_003', employerId: 'emp_003', title: 'Kurir', title_en: 'Courier', salaryMin: 3500000, salaryMax: 5000000, salaryLabel: 'Rp3,5–5 jt', location: 'Tangerang', type: 'Penuh waktu', type_en: 'Full-time', tags: ['SIM C'], tags_en: ['License'], description: 'Antar paket.', description_en: 'Deliver.', match: 78, verified: true, posted: '2026-10-18', experience: 'Tanpa pengalaman', experience_en: 'No exp', education: 'SMA/SMK', education_en: 'High school', bonus: 'Insentif', bonus_en: 'Incentive', commute: 'Pool', commute_en: 'Hub', city: 'Tangerang', category: 'logistics', applicants: 34, postedAgo: '3 hari', postedAgo_en: '3 days', recruiter: { name: 'Pak Budi', role: 'Manager', role_en: 'Manager', online: false, responseRate: 88 } },
+        { id: 'job_004', employerId: 'emp_002', title: 'Sales', title_en: 'Sales', salaryMin: 2800000, salaryMax: 3200000, salaryLabel: 'Rp2,8–3,2 jt', location: 'Bandung', type: 'Penuh waktu', type_en: 'Full-time', tags: ['Komunikatif'], tags_en: ['Communicative'], description: 'Jaga toko.', description_en: 'Store.', match: 70, verified: false, posted: '2026-10-17', experience: '0-1 tahun', experience_en: '0-1 yr', education: 'SMA/SMK', education_en: 'High school', bonus: '—', bonus_en: '—', commute: 'Stasiun', commute_en: 'Station', city: 'Bandung', category: 'retail', applicants: 5, postedAgo: '5 hari', postedAgo_en: '5 days', recruiter: { name: 'Pak Anton', role: 'Pemilik', role_en: 'Owner', online: false, responseRate: 58 } },
+        { id: 'job_005', employerId: 'emp_004', title: 'Pelayan', title_en: 'Server', salaryMin: 2500000, salaryMax: 3000000, salaryLabel: 'Rp2,5–3 jt', location: 'Yogyakarta', type: 'Penuh waktu', type_en: 'Full-time', tags: [], tags_en: [], description: 'Saji pesanan.', description_en: 'Serve.', match: 88, verified: true, posted: '2026-10-16', experience: 'Tanpa pengalaman', experience_en: 'No exp', education: 'SMA/SMK', education_en: 'High school', bonus: 'Tips', bonus_en: 'Tips', commute: 'Pusat', commute_en: 'Center', city: 'Yogyakarta', category: 'fnb', applicants: 15, postedAgo: '4 hari', postedAgo_en: '4 days', recruiter: { name: 'Mas Joko', role: 'Pemilik', role_en: 'Owner', online: true, responseRate: 92 } },
+        { id: 'job_006', employerId: 'emp_003', title: 'Admin', title_en: 'Admin', salaryMin: 4000000, salaryMax: 4800000, salaryLabel: 'Rp4–4,8 jt', location: 'Tangerang', type: 'Penuh waktu', type_en: 'Full-time', tags: ['Excel'], tags_en: ['Excel'], description: 'Stok.', description_en: 'Stock.', match: 65, verified: true, posted: '2026-10-15', experience: '1-3 tahun', experience_en: '1-3 yrs', education: 'D3/S1', education_en: 'Diploma', bonus: 'BPJS', bonus_en: 'BPJS', commute: 'Industri', commute_en: 'Industrial', city: 'Tangerang', category: 'logistics', applicants: 21, postedAgo: '6 hari', postedAgo_en: '6 days', recruiter: { name: 'Pak Budi', role: 'Manager', role_en: 'Manager', online: false, responseRate: 88 } }
+      ],
+      chats: [{ id: 'chat_001', employerId: 'emp_001', jobId: 'job_001', unread: 1, tag: '', messages: [{ from: 'boss', text: 'Halo!', text_en: 'Hi!', ts: '2026-10-20T09:10:00Z' }, { from: 'me', text: 'Halo!', text_en: 'Hi!', ts: '2026-10-20T09:15:00Z' }, { from: 'boss', text: 'OK', text_en: 'OK', ts: '2026-10-20T09:22:00Z' }] }],
+      saved: ['job_005'],
+      notifications: [{ id: 'n1', type: 'chat', text: 'Balasan', text_en: 'Reply', ts: '2026-10-20T09:22:00Z', read: false }, { id: 'n2', type: 'match', text: '3 lowongan', text_en: '3 jobs', ts: '2026-10-20T08:00:00Z', read: true }],
+      filters: { city: '', experience: '', education: '', salary: '', type: '', category: 'all' },
+      auth: { loggedIn: false, email: '', name: '' },
+      accounts: [{ email: 'demo@loker.app', name: 'Demo', pass: simpleHash('demo123'), created: new Date().toISOString() }],
+      onboarded: false,
+      lang: 'id'
+    };
+
+    function loadState() {
+      const s = localStorage.getItem(APP_KEY);
+      if (s) { try { state = JSON.parse(s); if (!state.lang) state.lang = 'id'; if (!state.filters) state.filters = { city: '', experience: '', education: '', salary: '', type: '', category: 'all' }; if (state.filters.type === undefined) state.filters.type = ''; } catch { state = JSON.parse(JSON.stringify(seedData)); } }
+      else state = JSON.parse(JSON.stringify(seedData));
+    }
+    function saveState() { localStorage.setItem(APP_KEY, JSON.stringify(state)); }
+
+    function switchAuthTab(tab) {
+      currentAuthTab = tab;
+      document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+      document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'flex' : 'none';
+      document.getElementById('signupForm').style.display = tab === 'signup' ? 'flex' : 'none';
+    }
+    function togglePassword(id) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; }
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase(), pass = document.getElementById('loginPass').value;
+      const acc = state.accounts.find(a => a.email === email);
+      if (acc && acc.pass === simpleHash(pass)) {
+        state.auth = { loggedIn: true, email: acc.email, name: acc.name }; saveState();
+        if (!state.onboarded) { document.getElementById('nameInput').value = acc.name; showOnboarding(); } else showMainApp();
+      }
+    }
+    function handleSignup(e) {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value.trim(), email = document.getElementById('signupEmail').value.trim().toLowerCase(), pass = document.getElementById('signupPass').value;
+      if (!state.accounts.find(a => a.email === email) && pass.length >= 6) {
+        state.accounts.push({ email, name, pass: simpleHash(pass), created: new Date().toISOString() });
+        state.auth = { loggedIn: true, email, name }; saveState();
+        document.getElementById('nameInput').value = name; showOnboarding();
+      }
+    }
+    function continueAsGuest() { state.auth = { loggedIn: false, email: '', name: '' }; saveState(); if (!state.onboarded) showOnboarding(); else showMainApp(); }
+    function confirmLogout() { if (confirm(t('logout_confirm'))) { state.auth = { loggedIn: false, email: '', name: '' }; saveState(); showAuth(); } }
+
+    function showAuth() { document.getElementById('authView').classList.add('active'); document.getElementById('onboardingView').classList.remove('active'); document.getElementById('appHeader').style.display = 'none'; document.getElementById('bottomNav').style.display = 'none'; }
+    function showOnboarding() { document.getElementById('authView').classList.remove('active'); document.getElementById('onboardingView').classList.add('active'); document.getElementById('appHeader').style.display = 'none'; document.getElementById('bottomNav').style.display = 'none'; initOnboarding(); }
+    function showMainApp() { document.getElementById('authView').classList.remove('active'); document.getElementById('onboardingView').classList.remove('active'); document.getElementById('appHeader').style.display = 'flex'; document.getElementById('bottomNav').style.display = 'flex'; initNav(); showView('discover'); }
+
+    function toggleNotifPanel() { const p = document.getElementById('notifPanel'); p.classList.toggle('visible'); if (p.classList.contains('visible')) renderNotifications(); }
+    function renderNotifications() {
+      const l = document.getElementById('notifList'), n = state.notifications.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+      l.innerHTML = n.length ? n.map(x => '<div class="notif-item' + (x.read ? '' : ' unread') + '" onclick="handleNotifClick(\'' + x.id + '\')"><div class="notif-item-text">' + getLocalized(x, 'text') + '</div></div>').join('') : '<div class="notif-empty">' + t('notif_empty') + '</div>';
+    }
+    function markAllRead() { state.notifications.forEach(n => n.read = true); saveState(); renderNotifications(); updateNavBadge(); }
+    function handleNotifClick(id) { const n = state.notifications.find(x => x.id === id); if (n) { n.read = true; saveState(); updateNavBadge(); showView(n.type === 'chat' ? 'chats' : 'discover'); } document.getElementById('notifPanel').classList.remove('visible'); }
+    function updateNavBadge() { const u = state.notifications.filter(n => !n.read).length; document.getElementById('navBadge').style.display = u > 0 ? 'block' : 'none'; document.getElementById('notifBadge').style.display = u > 0 ? 'block' : 'none'; }
+
+    function showView(name) {
+      document.querySelectorAll('.view, .onboarding-view, .auth-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      const v = document.getElementById(name + 'View'); if (v) { v.classList.add('active'); if (name === 'chat') v.classList.add('full-height'); }
+      const n = document.querySelector('.nav-item[data-view="' + name + '"]'); if (n) n.classList.add('active');
+      if (name === 'discover') renderJobs(); if (name === 'candidates') renderCandidates(); if (name === 'chats') renderChatsList(); if (name === 'saved') renderSavedJobs(); if (name === 'profile') renderProfile();
+      updateNavBadge(); document.getElementById('notifPanel').classList.remove('visible');
+      updateModeToggle();
+      // Show/hide candidates nav based on mode
+      const candNav = document.getElementById('candidatesNav');
+      if (candNav) candNav.style.display = state.mode === 'recruiter' ? 'block' : 'none';
+    }
+
+    function setCategory(c) { currentCategory = c; document.querySelectorAll('.category-tab').forEach(t => t.classList.toggle('active', t.dataset.category === c)); filterJobs(); }
+    function clearFilters() {
+      state.filters = { city: '', experience: '', education: '', salary: '', type: '', category: 'all' };
+      document.getElementById('filterCity').value = ''; document.getElementById('filterExperience').value = ''; document.getElementById('filterEducation').value = ''; document.getElementById('filterType').value = '';
+      currentCategory = 'all'; document.querySelectorAll('.category-tab').forEach(t => t.classList.toggle('active', t.dataset.category === 'all'));
+      filterJobs();
+    }
+    function filterJobs() {
+      state.filters.city = document.getElementById('filterCity').value;
+      state.filters.experience = document.getElementById('filterExperience').value;
+      state.filters.education = document.getElementById('filterEducation').value;
+      state.filters.type = document.getElementById('filterType').value;
+      saveState(); renderJobs();
+    }
+
+    function renderJobs() {
+      const f = document.getElementById('jobsFeed'); if (!f) return;
+      f.innerHTML = '<div class="empty-state"><h3>' + t('skeleton_loading') + '</h3></div>';
+      setTimeout(() => {
+        const q = (document.getElementById('jobSearch')?.value || '').toLowerCase();
+        let jobs = state.jobs.filter(j => {
+          const e = state.employers.find(x => x.id === j.employerId);
+          const match = !q || getLocalized(j, 'title').toLowerCase().includes(q) || e.name.toLowerCase().includes(q);
+          const f = !state.filters.city || j.city === state.filters.city;
+          const fe = !state.filters.experience || j.experience === state.filters.experience;
+          const fed = !state.filters.education || j.education === state.filters.education;
+          const ft = !state.filters.type || j.type === state.filters.type;
+          const fc = currentCategory === 'all' || j.category === currentCategory;
+          return match && f && fe && fed && ft && fc;
+        });
+        f.innerHTML = jobs.length ? jobs.map((j, i) => { const e = state.employers.find(x => x.id === j.employerId); return renderJobCard(j, e, state.saved.includes(j.id)).replace('job-card"', 'job-card" style="animation-delay:' + (i * 0.05) + 's"'); }).join('') : '<div class="empty-state"><h3>' + t('job_empty') + '</h3></div>';
+      }, 200);
+    }
+
+    function dedupeTags(list) {
+      const seen = {};
+      return list.filter(function(x) {
+        if (!x || x === '—') return false;
+        const k = x.toLowerCase();
+        if (seen[k]) return false;
+        seen[k] = true;
+        return true;
+      });
+    }
+
+    function renderJobCard(job, emp, saved) {
+      const ini = emp.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+      const jobTitle = getLocalized(job, 'title'), bonus = getLocalized(job, 'bonus'), commute = getLocalized(job, 'commute');
+      const exp = getLocalized(job, 'experience'), edu = getLocalized(job, 'education');
+      const tags = state.lang === 'en' && job.tags_en ? job.tags_en : job.tags;
+      const r = job.recruiter, rRole = getLocalized(r, 'role'), posted = getLocalized(job, 'postedAgo');
+      const ind = getLocalized(emp, 'industry'), sz = getLocalized(emp, 'size');
+      return '<div class="job-card" onclick="showJobDetail(\'' + job.id + '\')">' +
+        '<div class="job-card-header"><div class="match-chip">' + job.match + '%</div></div>' +
+        '<h3 class="job-title">' + jobTitle + '</h3>' +
+        '<div class="job-salary-row"><span class="job-salary">' + job.salaryLabel + '</span>' + (bonus !== '—' && bonus ? '<span class="job-bonus">+ ' + bonus + '</span>' : '') + '</div>' +
+        '<div class="job-tags">' + dedupeTags([exp, edu].concat(tags)).map(x => '<span class="tag">' + x + '</span>').join('') + '</div>' +
+        '<div class="job-commute">📍 ' + commute + '</div>' +
+        '<div class="employer-row"><div class="employer-logo" style="background:' + emp.logoColor + '">' + ini + '</div>' +
+        '<div class="employer-info"><div class="employer-name-row"><span class="employer-name" onclick="event.stopPropagation();showCompanyPage(\'' + emp.id + '\')">' + emp.name + (emp.verified ? '<span class="verified-badge">✓</span>' : '') + '</span></div>' +
+        '<div class="employer-meta">' + ind + ' • ' + sz + '</div></div></div>' +
+        '<div class="recruiter-row"><div class="recruiter-info"><span class="recruiter-name">' + r.name + '</span><span class="recruiter-role">, ' + rRole + '</span>' +
+        '<span class="online-dot' + (r.online ? '' : ' offline') + '"></span></div>' +
+        '<span class="response-rate">' + r.responseRate + '%</span></div>' +
+        '<div class="job-meta"><span>📅 ' + posted + '</span><span>👥 ' + job.applicants + '</span></div>' +
+        '<div class="job-actions"><button class="btn-sm btn-chat" onclick="startChat(\'' + emp.id + '\',\'' + job.id + '\')">' + t('btn_chat') + '</button>' +
+        '<button class="btn-sm btn-outline" onclick="showJobDetail(\'' + job.id + '\')">' + t('btn_detail') + '</button>' +
+        '<button class="btn-sm btn-save' + (saved ? ' saved' : '') + '" onclick="toggleSave(\'' + job.id + '\',this)">' + (saved ? t('btn_saved') : t('btn_save')) + '</button></div></div>';
+    }
+
+    function showJobDetail(id) {
+      const j = state.jobs.find(x => x.id === id); if (!j) return;
+      const e = state.employers.find(x => x.id === j.employerId), ini = e.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+      const jobTitle = getLocalized(j, 'title'), desc = getLocalized(j, 'description'), tags = state.lang === 'en' && j.tags_en ? j.tags_en : j.tags;
+      const about = getLocalized(e, 'about'), bonus = getLocalized(j, 'bonus'), commute = getLocalized(j, 'commute');
+      const exp = getLocalized(j, 'experience'), edu = getLocalized(j, 'education'), r = j.recruiter, rRole = getLocalized(r, 'role'), posted = getLocalized(j, 'postedAgo');
+      const similar = state.jobs.filter(x => x.id !== id && x.category === j.category && x.type === j.type);
+      const massBtn = similar.length ? '<button class="btn-sm btn-outline" onclick="massApply(\'' + id + '\')" style="margin-left:8px;">' + t('mass_apply') + '</button>' : '';
+      document.getElementById('detailContent').innerHTML =
+        '<div class="detail-card"><h1 class="detail-title" data-job-id="' + id + '">' + jobTitle + '</h1>' +
+        '<div class="detail-salary">' + j.salaryLabel + (bonus !== '—' && bonus ? ' + ' + bonus : '') + '</div>' +
+        '<div class="job-meta"><span>📍 ' + j.location + '</span><span>⏰ ' + getLocalized(j, 'type') + '</span><span>👥 ' + j.applicants + '</span><span>📅 ' + posted + '</span></div></div>' +
+        '<div class="employer-card"><div class="employer-logo" style="background:' + e.logoColor + '">' + ini + '</div>' +
+        '<div class="employer-details"><h4>' + e.name + (e.verified ? '<span class="verified-badge">✓</span>' : '') + '</h4>' +
+        '<p class="employer-about">' + about + '</p><div class="employer-meta">⚡ ' + r.responseRate + '% | ' + r.name + ' (' + rRole + ')</div>' +
+        '<div>📍 ' + commute + ' | 🎓 ' + edu + ' | 💼 ' + exp + '</div></div></div>' +
+        '<div style="display:flex;margin-bottom:12px;"><button class="btn-primary" onclick="startChat(\'' + e.id + '\',\'' + j.id + '\')">' + t('btn_chat_boss') + '</button>' + massBtn + '</div>' +
+        '<div class="detail-section"><h3>' + t('job_desc') + '</h3><p>' + desc + '</p></div>' +
+        '<div class="detail-section"><h3>' + t('job_qual') + '</h3><div class="job-tags">' + tags.map(x => '<span class="tag">' + x + '</span>').join('') + '</div></div>';
+      showView('detail');
+    }
+
+    function massApply(id) {
+      const j = state.jobs.find(x => x.id === id); if (!j) return;
+      const similar = state.jobs.filter(x => x.id !== id && x.category === j.category && x.type === j.type);
+      const count = similar.length + 1;
+      if (confirm(t('mass_apply_confirm').replace('{count}', count))) {
+        [j, ...similar].forEach(x => { if (!state.applications.find(a => a.jobId === x.id)) state.applications.push({ jobId: x.id, ts: new Date().toISOString(), status: 'pending' }); });
+        saveState();
+        showToast(t('mass_apply_success').replace('{count}', count));
+      }
+    }
+
+    function showCompanyPage(empId) {
+      const e = state.employers.find(x => x.id === empId); if (!e) return;
+      const ini = e.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+      const jobs = state.jobs.filter(j => j.employerId === empId);
+      const ind = getLocalized(e, 'industry'), sz = getLocalized(e, 'size'), fund = getLocalized(e, 'funding'), about = getLocalized(e, 'about');
+      document.getElementById('companyContent').dataset.empId = empId;
+      document.getElementById('companyContent').innerHTML =
+        '<div class="company-header"><div class="company-logo" style="background:' + e.logoColor + '">' + ini + '</div>' +
+        '<div class="company-info"><div class="company-name">' + e.name + (e.verified ? '<span class="verified-badge">✓</span>' : '') + '</div>' +
+        '<div class="company-meta"><span>🏢 ' + ind + '</span><span>👥 ' + sz + '</span><span>💰 ' + fund + '</span>' +
+        '<span class="company-rating">⭐ ' + e.rating + ' (' + e.reviewCount + ')</span></div></div></div>' +
+        '<div class="company-about"><h3>' + t('company_about') + '</h3><p>' + about + '</p></div>' +
+        '<h3 style="margin:16px 0;">' + t('company_jobs_heading') + '</h3><div class="jobs-feed">' + jobs.map(j => renderJobCard(j, e, state.saved.includes(j.id))).join('') + '</div>' +
+        '<h3 style="margin:16px 0;">' + t('company_reviews_heading') + '</h3>' + e.reviews.map(r => '<div class="review-card"><div class="review-author">' + r.author + ' ⭐'.repeat(Math.round(r.rating)) + '</div><div class="review-text">' + getLocalized(r, 'text') + '</div></div>').join('');
+      showView('company');
+    }
+
+    function renderChatsList() {
+      const l = document.getElementById('chatsList'); if (!l) return;
+      
+      // Update unread count
+      const unreadCount = state.chats.filter(c => c.unread > 0).length;
+      const badge = document.getElementById('unreadCount');
+      if (badge) { badge.textContent = unreadCount; badge.style.display = unreadCount > 0 ? 'inline' : 'none'; }
+      
+      // Filter chats
+      let filtered = state.chats;
+      if (currentChatFilter === 'unread') filtered = state.chats.filter(c => c.unread > 0);
+      else if (currentChatFilter === 'new') filtered = state.chats.filter(c => !c.tag || c.tag === '');
+      else if (currentChatFilter === 'interview') filtered = state.chats.filter(c => c.tag === 'interview');
+      else if (currentChatFilter === 'not_interested') filtered = state.chats.filter(c => c.tag === 'not_interested');
+      
+      if (!filtered.length) { l.innerHTML = '<div class="empty-state"><h3>' + t('empty_chats_title') + '</h3></div>'; return; }
+      l.innerHTML = filtered.map(c => {
+        const e = state.employers.find(x => x.id === c.employerId), ini = e.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+        const m = c.messages[c.messages.length - 1], time = new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const tagLabel = c.tag === 'interview' ? '🎤 ' : c.tag === 'not_interested' ? '❌ ' : '';
+        return '<div class="chat-item' + (c.unread ? ' unread' : '') + '" onclick="openChat(\'' + c.id + '\')">' +
+          '<div class="chat-avatar" style="background:' + e.logoColor + '">' + ini + '</div>' +
+          '<div class="chat-content"><div class="chat-top"><span class="chat-employer">' + tagLabel + e.name + '</span><span class="chat-time">' + time + '</span></div>' +
+          '<div class="chat-preview">' + (m.from === 'me' ? 'Kamu: ' : '') + getLocalized(m, 'text') + '</div></div>' +
+          (c.unread ? '<div class="unread-dot"></div>' : '') + '</div>';
+      }).join('');
+    }
+
+    function openChat(id) {
+      const c = state.chats.find(x => x.id === id); if (!c) return;
+      currentChatId = id; const e = state.employers.find(x => x.id === c.employerId);
+      document.getElementById('chatHeaderName').textContent = e.name;
+      document.getElementById('chatHeaderSub').textContent = e.responseRate + '% ' + t('recruiter_response_rate');
+      c.unread = 0; saveState(); renderChatMessages(); showView('chat');
+    }
+
+    function renderChatMessages() {
+      const c = state.chats.find(x => x.id === currentChatId); if (!c) return;
+      const container = document.getElementById('chatMessages');
+      container.innerHTML = c.messages.map(m => '<div class="message ' + m.from + '">' + getLocalized(m, 'text') + '<div class="message-time">' + new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</div></div>').join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendMessage(txt) {
+      const input = document.getElementById('chatInput'), msg = txt || input.value.trim();
+      if (!msg || !currentChatId) return;
+      const c = state.chats.find(x => x.id === currentChatId); if (!c) return;
+      c.messages.push({ from: 'me', text: msg, ts: new Date().toISOString() }); input.value = ''; saveState(); renderChatMessages();
+      setTimeout(() => {
+        const replies = ['reply_thanks', 'reply_ok', 'reply_question', 'reply_next'];
+        c.messages.push({ from: 'boss', text: t(replies[Math.floor(Math.random() * replies.length)]), ts: new Date().toISOString() });
+        saveState(); renderChatMessages();
+      }, 1000 + Math.random() * 1000);
+    }
+    function sendQuickReply(t) { sendMessage(t); }
+
+    function insertTemplate(text) {
+      const input = document.getElementById('chatInput');
+      if (input) { input.value = text; input.focus(); }
+    }
+
+    function chatAction(action) {
+      const chat = state.chats.find(c => c.id === currentChatId);
+      if (!chat) return;
+      const actions = {
+        call: { text: '📞 Memanggil...', text_en: '📞 Calling...' },
+        contact: { text: '📇 Bagi kontak', text_en: '📇 Sharing contact' },
+        resume: { text: '📄 Kirim CV', text_en: '📄 Sending CV' },
+        not_interested: { text: '❌ Tidak tertarik', text_en: '❌ Not interested' }
+      };
+      const act = actions[action];
+      chat.messages.push({ from: 'system', text: act.text, text_en: act.text_en, ts: new Date().toISOString() });
+      if (action === 'not_interested') { chat.tag = 'not_interested'; }
+      saveState();
+      renderChatMessages();
+      renderChatsList();
+    }
+
+    function setChatFilter(filter) {
+      currentChatFilter = filter;
+      document.querySelectorAll('[data-chat-filter]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.chatFilter === filter);
+      });
+      renderChatsList();
+    }
+
+    function startChat(eid, jid) {
+      let c = state.chats.find(x => x.employerId === eid && x.jobId === jid);
+      if (!c) { c = { id: 'chat_' + Date.now(), employerId: eid, jobId: jid, unread: 0, messages: [] }; state.chats.push(c); saveState(); }
+      openChat(c.id);
+    }
+
+    function toggleSave(id, btn) {
+      const i = state.saved.indexOf(id);
+      if (i === -1) { state.saved.push(id); btn.classList.add('saved'); btn.textContent = t('btn_saved'); }
+      else { state.saved.splice(i, 1); btn.classList.remove('saved'); btn.textContent = t('btn_save'); }
+      saveState();
+    }
+
+    function renderSavedJobs() {
+      const f = document.getElementById('savedFeed'); if (!f) return;
+      const jobs = state.jobs.filter(j => state.saved.includes(j.id));
+      f.innerHTML = jobs.length ? jobs.map(j => { const e = state.employers.find(x => x.id === j.employerId); return renderJobCard(j, e, true); }).join('') : '<div class="empty-state"><h3>' + t('empty_saved_title') + '</h3></div>';
+    }
+
+    function renderProfile() {
+      const me = state.me, hl = getLocalized(me, 'headline');
+      document.getElementById('profileName').textContent = state.auth.loggedIn ? state.auth.name : me.name;
+      document.getElementById('profileHeadline').textContent = hl;
+      document.getElementById('profileHeadlineDetail').textContent = hl;
+      document.getElementById('profileCityDetail').textContent = me.city || me.location;
+      document.getElementById('profileSalaryDetail').textContent = me.expectedSalary;
+      document.getElementById('profileExperienceDetail').textContent = getLocalized(me, 'experience');
+      document.getElementById('profileEducationDetail').textContent = getLocalized(me, 'education');
+      document.getElementById('profileResponseRate').textContent = (me.responseRate || 0) + '%';
+      document.getElementById('profileAvatar').textContent = (state.auth.loggedIn ? state.auth.name : me.name)[0].toUpperCase();
+      document.getElementById('profileProgress').style.width = me.completeness + '%';
+      document.getElementById('progressText').textContent = me.completeness + '%';
+      document.getElementById('skillsList').innerHTML = me.skills.map(s => '<span class="skill-tag">' + s + '</span>').join('');
+      const ai = document.getElementById('profileAccountInfo');
+      if (state.auth.loggedIn && state.auth.email) { ai.textContent = state.auth.email; ai.style.display = 'block'; document.getElementById('logoutSection').style.display = 'block'; }
+      else { ai.style.display = 'none'; document.getElementById('logoutSection').style.display = 'none'; }
+      
+      // Privacy toggle
+      document.getElementById('privacyHideToggle').classList.toggle('active', state.privacy.hideProfile);
+      
+      // Blocked companies
+      const blockedList = document.getElementById('blockedCompaniesList');
+      if (blockedList) {
+        blockedList.innerHTML = state.privacy.blockedCompanies.length 
+          ? state.privacy.blockedCompanies.map(c => '<span class="tag" style="background:var(--error);color:white;">' + c + '</span>').join('')
+          : '<span style="color:var(--text-muted);font-size:12px;">Belum ada</span>';
+      }
+      
+      // VIP section visibility
+      const vipSection = document.getElementById('vipSection');
+      if (vipSection) vipSection.style.display = state.vip ? 'none' : 'block';
+    }
+    function toggleProfileActive() { document.getElementById('profileToggle').classList.toggle('active'); }
+
+    function togglePrivacyHide() {
+      state.privacy.hideProfile = !state.privacy.hideProfile;
+      document.getElementById('privacyHideToggle').classList.toggle('active', state.privacy.hideProfile);
+      saveState();
+    }
+
+    function upgradeVIP() {
+      state.vip = true;
+      saveState();
+      showToast('VIP upgraded!');
+      renderProfile();
+    }
+
+    function toggleMode() {
+      state.mode = state.mode === 'seeker' ? 'recruiter' : 'seeker';
+      saveState();
+      const currentView = document.querySelector('.view.active');
+      if (currentView?.id === 'discoverView' || currentView?.id === 'candidatesView') {
+        if (state.mode === 'recruiter') {
+          showView('candidates');
+        } else {
+          showView('discover');
+        }
+      }
+      updateModeToggle();
+    }
+
+    function updateModeToggle() {
+      const btn = document.getElementById('modeToggle');
+      if (btn) {
+        btn.title = state.mode === 'seeker' ? 'Switch to Recruiter' : 'Switch to Seeker';
+        btn.style.background = state.mode === 'recruiter' ? 'var(--accent)' : 'var(--bg)';
+        btn.style.color = state.mode === 'recruiter' ? 'white' : 'var(--text-muted)';
+      }
+    }
+
+    function renderCandidates() {
+      const f = document.getElementById('candidatesFeed'); if (!f) return;
+      if (!state.candidates || !state.candidates.length) { f.innerHTML = '<div class="empty-state"><h3>Belum ada kandidat</h3></div>'; return; }
+      f.innerHTML = state.candidates.map((c, i) => {
+        const hl = getLocalized(c, 'headline'), exp = getLocalized(c, 'experience'), edu = getLocalized(c, 'education'), note = getLocalized(c, 'note');
+        return '<div class="job-card" style="animation-delay:' + (i * 0.05) + 's">' +
+          '<div class="job-card-header"><div class="match-chip">' + c.match + '%</div></div>' +
+          '<h3 class="job-title">' + c.name + '</h3>' +
+          '<div class="job-salary-row"><span class="job-salary">' + hl + '</span></div>' +
+          '<div class="job-tags">' + c.skills.map(s => '<span class="tag">' + s + '</span>').join('') + '</div>' +
+          '<div class="job-meta"><span>💼 ' + exp + '</span><span>🎓 ' + edu + '</span><span>💰 ' + c.expectedSalary + '</span></div>' +
+          '<div class="job-meta" style="margin-top:4px;"><span>📝 ' + note + '</span></div>' +
+          '<div class="job-actions"><button class="btn-sm btn-chat" onclick="candidateChat(\'' + c.id + '\')">' + t('candidate_chat') + '</button></div></div>';
+      }).join('');
+    }
+
+    function candidateChat(id) {
+      const c = state.candidates.find(x => x.id === id);
+      if (c) showToast('Chat dengan ' + c.name);
+    }
+
+    function initOnboarding() {
+      document.querySelectorAll('.role-card').forEach(c => c.addEventListener('click', () => {
+        document.querySelectorAll('.role-card').forEach(x => x.classList.remove('selected'));
+        c.classList.add('selected'); selectedRole = c.dataset.role;
+      }));
+      document.getElementById('startBtn').addEventListener('click', () => {
+        const name = document.getElementById('nameInput').value.trim();
+        if (name) { state.me.name = name; state.role = selectedRole; state.onboarded = true; if (state.auth.loggedIn) { const a = state.accounts.find(x => x.email === state.auth.email); if (a) a.name = name; state.auth.name = name; } saveState(); showMainApp(); }
+      });
+    }
+    function initNav() { document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => showView(n.dataset.view))); }
+    document.getElementById('notifBtn').addEventListener('click', toggleNotifPanel);
+    document.addEventListener('click', e => {
+      const p = document.getElementById('notifPanel'), b = document.getElementById('notifBtn');
+      if (p?.classList.contains('visible') && !p.contains(e.target) && !b.contains(e.target)) p.classList.remove('visible');
+    });
+
+    function initApp() {
+      loadState(); applyI18n();
+      if (!state.auth.loggedIn) showAuth(); else if (!state.onboarded) showOnboarding(); else showMainApp();
+    }
+    initApp();
+  </script>
+</body>
+</html>
