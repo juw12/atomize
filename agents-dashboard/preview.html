@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agents Dashboard — Preview</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #111823;
+      --bg-tertiary: #1a2332;
+      --text-primary: #e8eef6;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --glow-green: rgba(16, 185, 129, 0.4);
+      --glow-blue: rgba(59, 130, 246, 0.3);
+      --border-color: #2d3a4f;
+      --font-mono: 'SF Mono', 'Fira Code', Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      gap: 1px;
+      background: var(--border-color);
+    }
+
+    /* Header */
+    .header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .preview-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-dot.live {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--glow-green);
+    }
+
+    .status-dot.offline {
+      background: var(--accent-red);
+    }
+
+    .status-dot.recorded {
+      background: var(--accent-amber);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--text-muted);
+    }
+
+    .btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    .btn-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Main viewport */
+    .viewport {
+      position: relative;
+      background: var(--bg-primary);
+      overflow: hidden;
+    }
+
+    .viewport.recorded-mode::before {
+      content: 'RECORDED';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      font-size: 72px;
+      font-weight: 900;
+      color: rgba(245, 158, 11, 0.08);
+      pointer-events: none;
+      z-index: 100;
+      letter-spacing: 0.1em;
+      border: 4px solid rgba(245, 158, 11, 0.15);
+      padding: 20px 40px;
+      border-radius: 8px;
+    }
+
+    #scene-canvas-2d,
+    #scene-canvas-3d {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #scene-canvas-2d {
+      z-index: 1;
+    }
+
+    #scene-canvas-3d {
+      z-index: 2;
+    }
+
+    #scene-canvas-2d.hidden,
+    #scene-canvas-3d.hidden {
+      display: none;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    /* Event log */
+    .event-log-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .event-log {
+      flex: 1;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.6;
+      padding: 0 16px 16px;
+    }
+
+    .event-entry {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .event-ts {
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+
+    .event-agent {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .event-agent.leader { color: var(--accent-purple); }
+    .event-agent.media { color: var(--accent-red); }
+    .event-agent.coder { color: var(--accent-blue); }
+    .event-agent.tester { color: var(--accent-green); }
+    .event-agent.checker { color: var(--accent-amber); }
+    .event-agent.explore { color: #ec4899; }
+
+    .event-phase {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-right: 6px;
+    }
+
+    .event-phase.start { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+    .event-phase.tool { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+    .event-phase.end { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+
+    .event-detail {
+      color: var(--text-secondary);
+    }
+
+    .event-goal {
+      color: var(--text-muted);
+      margin-left: 8px;
+    }
+
+    /* Bot legend */
+    .bot-legend {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .bot-legend-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .bot-legend-shape {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 6px;
+    }
+
+    .bot-legend-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <div class="header-left">
+        <span class="title">AI Agents Dashboard</span>
+        <span class="preview-badge">Preview — Simulated Data</span>
+      </div>
+      <div class="header-right">
+        <div class="status-indicator">
+          <span class="status-dot live" id="status-dot"></span>
+          <span id="status-text">LIVE</span>
+        </div>
+        <div class="controls">
+          <button class="btn btn-toggle" id="mode-toggle">
+            <span id="mode-label">Mode: Isometric</span>
+          </button>
+          <button class="btn" id="play-pause">⏸ Pause</button>
+          <button class="btn" id="recorded-toggle">Recorded</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="viewport" id="viewport">
+      <canvas id="scene-canvas-2d"></canvas>
+      <canvas id="scene-canvas-3d" class="hidden"></canvas>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Agents</div>
+        <div class="bot-legend">
+          <div class="bot-legend-item">
+            <div class="bot-legend-shape" style="background: #8b5cf6; clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+            <span class="bot-legend-name">Leader</span>
+          </div>
+          <div class="bot-legend-item">
+            <div class="bot-legend-shape" style="background: #ef4444; clip-path: circle(50%);"></div>
+            <span class="bot-legend-name">Media</span>
+          </div>
+          <div class="bot-legend-item">
+            <div class="bot-legend-shape" style="background: #3b82f6; clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);"></div>
+            <span class="bot-legend-name">Coder</span>
+          </div>
+          <div class="bot-legend-item">
+            <div class="bot-legend-shape" style="background: #10b981; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);"></div>
+            <span class="bot-legend-name">Tester</span>
+          </div>
+          <div class="bot-legend-item">
+            <div class="bot-legend-shape" style="background: #f59e0b; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);"></div>
+            <span class="bot-legend-name">Checker</span>
+          </div>
+          <div class="bot-legend-item">
+            <div class="bot-legend-shape" style="background: #ec4899; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+            <span class="bot-legend-name">Explore</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Statistics</div>
+        <div class="stats-row">
+          <span class="stat-label">Events Processed</span>
+          <span class="stat-value" id="event-count">0</span>
+        </div>
+        <div class="stats-row">
+          <span class="stat-label">Last Event</span>
+          <span class="stat-value" id="last-event-time">--:--:--</span>
+        </div>
+      </div>
+
+      <div class="event-log-container">
+        <div class="sidebar-section" style="flex-shrink: 0;">
+          <div class="section-title">Event Log</div>
+        </div>
+        <div class="event-log" id="event-log">
+          <!-- Events populate here -->
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Three.js UMD build - NO modules, NO importmap -->
+  <script src="vendor/three.min.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ============================================
+    // EVENT FEED ABSTRACTION
+    // ============================================
+    // This abstraction allows swapping between mock data and real SSE.
+    // The interface is: .subscribe(callback), .start(), .stop()
+
+    const EventContract = {
+      // ts: ISO timestamp
+      // session_id: string
+      // agent: 'leader' | 'media' | 'coder' | 'tester' | 'checker' | 'explore'
+      // phase: 'start' | 'tool' | 'end'
+      // tool: string | null
+      // detail: string | null
+      // goal_id: string | null
+    };
+
+    // MockFeed: Scripted timeline for preview/demo
+    class MockFeed {
+      constructor() {
+        this.subscribers = [];
+        this.timerId = null;
+        this.eventIndex = 0;
+        this.isPlaying = false;
+        this.eventDelay = 1500; // ms between events
+
+        // Scripted event timeline matching the real contract
+        this.events = [
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'leader', phase: 'start', tool: null, detail: 'Initiating sprint planning', goal_id: 'goal-001' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'coder', phase: 'start', tool: null, detail: 'Starting feature implementation', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'coder', phase: 'tool', tool: 'file_write', detail: 'Writing auth module', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'tester', phase: 'start', tool: null, detail: 'Preparing test cases', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'coder', phase: 'tool', tool: 'git_commit', detail: 'Commit: Add auth handlers', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'tester', phase: 'tool', tool: 'run_tests', detail: 'Running unit tests', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'coder', phase: 'end', tool: null, detail: 'Feature complete', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'tester', phase: 'end', tool: null, detail: 'All tests passing', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'media', phase: 'start', tool: null, detail: 'Creating assets', goal_id: 'goal-003' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'explore', phase: 'start', tool: null, detail: 'Researching alternatives', goal_id: 'goal-004' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'media', phase: 'tool', tool: 'image_gen', detail: 'Generating hero image', goal_id: 'goal-003' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'explore', phase: 'tool', tool: 'web_search', detail: 'Searching best practices', goal_id: 'goal-004' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'checker', phase: 'start', tool: null, detail: 'Code review started', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'checker', phase: 'tool', tool: 'review_diff', detail: 'Reviewing auth module', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'media', phase: 'end', tool: null, detail: 'Assets delivered', goal_id: 'goal-003' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'checker', phase: 'end', tool: null, detail: 'Review approved', goal_id: 'goal-002' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'explore', phase: 'end', tool: null, detail: 'Research complete', goal_id: 'goal-004' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'leader', phase: 'tool', tool: 'sync', detail: 'Team sync complete', goal_id: 'goal-001' },
+          { ts: new Date().toISOString(), session_id: 'sess-001', agent: 'leader', phase: 'end', tool: null, detail: 'Sprint planning complete', goal_id: 'goal-001' }
+        ];
+      }
+
+      subscribe(callback) {
+        this.subscribers.push(callback);
+        return () => {
+          const idx = this.subscribers.indexOf(callback);
+          if (idx > -1) this.subscribers.splice(idx, 1);
+        };
+      }
+
+      start() {
+        if (this.isPlaying) return;
+        this.isPlaying = true;
+        this.eventIndex = 0;
+        this.emitNext();
+      }
+
+      stop() {
+        this.isPlaying = false;
+        if (this.timerId) {
+          clearTimeout(this.timerId);
+          this.timerId = null;
+        }
+      }
+
+      emitNext() {
+        if (!this.isPlaying || this.eventIndex >= this.events.length) {
+          // Loop back for continuous demo
+          this.eventIndex = 0;
+        }
+
+        const event = { ...this.events[this.eventIndex], ts: new Date().toISOString() };
+        this.subscribers.forEach(cb => cb(event));
+        this.eventIndex++;
+
+        this.timerId = setTimeout(() => this.emitNext(), this.eventDelay);
+      }
+
+      reset() {
+        this.stop();
+        this.eventIndex = 0;
+      }
+    }
+
+    // ============================================
+    // SSE Feed Stub (for future real implementation)
+    // ============================================
+    // To use real Server-Sent Events:
+    // 1. Replace `new MockFeed()` with `new SSEFeed('/events')`
+    // 2. The SSEFeed class below handles the EventSource connection
+    /*
+    class SSEFeed {
+      constructor(url) {
+        this.url = url;
+        this.subscribers = [];
+        this.source = null;
+      }
+
+      subscribe(callback) {
+        this.subscribers.push(callback);
+        return () => {
+          const idx = this.subscribers.indexOf(callback);
+          if (idx > -1) this.subscribers.splice(idx, 1);
+        };
+      }
+
+      start() {
+        if (this.source) return;
+        this.source = new EventSource(this.url);
+        this.source.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          this.subscribers.forEach(cb => cb(data));
+        };
+        this.source.onerror = () => {
+          console.error('SSE connection error');
+          this.stop();
+        };
+      }
+
+      stop() {
+        if (this.source) {
+          this.source.close();
+          this.source = null;
+        }
+      }
+    }
+    */
+
+    // ============================================
+    // BOT CONFIGURATION
+    // ============================================
+    const BOT_CONFIG = {
+      leader: {
+        name: 'Leader',
+        color: '#8b5cf6',
+        shape: 'triangle',
+        size: 1.2,
+        class: 'leader'
+      },
+      media: {
+        name: 'Media',
+        color: '#ef4444',
+        shape: 'circle',
+        size: 0.9,
+        class: 'media'
+      },
+      coder: {
+        name: 'Coder',
+        color: '#3b82f6',
+        shape: 'square',
+        size: 0.9,
+        class: 'coder'
+      },
+      tester: {
+        name: 'Tester',
+        color: '#10b981',
+        shape: 'diamond',
+        size: 0.9,
+        class: 'tester'
+      },
+      checker: {
+        name: 'Checker',
+        color: '#f59e0b',
+        shape: 'trapezoid',
+        size: 0.9,
+        class: 'checker'
+      },
+      explore: {
+        name: 'Explore',
+        color: '#ec4899',
+        shape: 'star',
+        size: 0.9,
+        class: 'explore'
+      }
+    };
+
+    // Bot positions on grid (isometric layout)
+    // Leader at center, others arranged around
+    const BOT_POSITIONS = {
+      leader: { x: 0, y: 0 },
+      media: { x: -2, y: -1 },
+      coder: { x: 2, y: -1 },
+      tester: { x: -2, y: 1 },
+      checker: { x: 2, y: 1 },
+      explore: { x: 0, y: -2.5 }
+    };
+
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    const state = {
+      mode: 'isometric', // 'isometric' or '3d'
+      isPlaying: true,
+      isRecorded: false,
+      eventCount: 0,
+      lastEventTime: null,
+      bots: {}
+    };
+
+    // Initialize bot states
+    Object.keys(BOT_CONFIG).forEach(key => {
+      state.bots[key] = {
+        state: 'idle', // 'idle' | 'working' | 'done'
+        tool: null,
+        detail: null,
+        goalId: null,
+        pulsePhase: Math.random() * Math.PI * 2
+      };
+    });
+
+    // ============================================
+    // RENDERER 1: ISOMETRIC (Canvas 2D)
+    // ============================================
+    class IsometricRenderer {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+      }
+
+      resize() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.canvas.width = rect.width * window.devicePixelRatio;
+        this.canvas.height = rect.height * window.devicePixelRatio;
+        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        this.width = rect.width;
+        this.height = rect.height;
+      }
+
+      // Convert grid coordinates to isometric screen coordinates
+      toIso(x, y) {
+        const tileW = 60;
+        const tileH = 30;
+        const centerX = this.width / 2;
+        const centerY = this.height / 3;
+        return {
+          x: centerX + (x - y) * tileW,
+          y: centerY + (x + y) * tileH
+        };
+      }
+
+      drawGrid() {
+        const ctx = this.ctx;
+        const gridSize = 6;
+        const tileW = 60;
+        const tileH = 30;
+
+        ctx.strokeStyle = 'rgba(45, 58, 79, 0.5)';
+        ctx.lineWidth = 1;
+
+        for (let i = -gridSize; i <= gridSize; i++) {
+          const start = this.toIso(i, -gridSize);
+          const end = this.toIso(i, gridSize);
+          ctx.beginPath();
+          ctx.moveTo(start.x, start.y);
+          ctx.lineTo(end.x, end.y);
+          ctx.stroke();
+
+          const start2 = this.toIso(-gridSize, i);
+          const end2 = this.toIso(gridSize, i);
+          ctx.beginPath();
+          ctx.moveTo(start2.x, start2.y);
+          ctx.lineTo(end2.x, end2.y);
+          ctx.stroke();
+        }
+      }
+
+      drawBot(key, botState, time) {
+        const config = BOT_CONFIG[key];
+        const pos = BOT_POSITIONS[key];
+        const screenPos = this.toIso(pos.x, pos.y);
+        const baseSize = 20 * config.size;
+
+        const ctx = this.ctx;
+        const pulse = Math.sin(time * 0.003 + botState.pulsePhase) * 0.1 + 1;
+        let size = baseSize;
+        let glow = 0;
+
+        if (botState.state === 'working') {
+          size = baseSize * 1.2 * pulse;
+          glow = 15;
+        } else if (botState.state === 'done') {
+          // Flash effect handled separately
+        }
+
+        // Glow
+        if (glow > 0) {
+          const gradient = ctx.createRadialGradient(
+            screenPos.x, screenPos.y, 0,
+            screenPos.x, screenPos.y, size + glow
+          );
+          gradient.addColorStop(0, config.color + '40');
+          gradient.addColorStop(1, 'transparent');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(screenPos.x, screenPos.y, size + glow, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Bot shape
+        ctx.fillStyle = config.color;
+        this.drawShape(ctx, config.shape, screenPos.x, screenPos.y, size);
+
+        // Label
+        ctx.fillStyle = '#e8eef6';
+        ctx.font = '11px SF Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(config.name, screenPos.x, screenPos.y + size + 18);
+
+        // Tool label
+        if (botState.tool && botState.state === 'working') {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '10px SF Mono, monospace';
+          ctx.fillText(botState.tool, screenPos.x, screenPos.y + size + 32);
+        }
+      }
+
+      drawShape(ctx, shape, x, y, size) {
+        ctx.beginPath();
+        switch (shape) {
+          case 'circle':
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            break;
+          case 'square':
+            ctx.rect(x - size, y - size, size * 2, size * 2);
+            break;
+          case 'triangle':
+            ctx.moveTo(x, y - size * 1.3);
+            ctx.lineTo(x + size * 1.2, y + size);
+            ctx.lineTo(x - size * 1.2, y + size);
+            ctx.closePath();
+            break;
+          case 'diamond':
+            ctx.moveTo(x, y - size * 1.2);
+            ctx.lineTo(x + size * 1.2, y);
+            ctx.lineTo(x, y + size * 1.2);
+            ctx.lineTo(x - size * 1.2, y);
+            ctx.closePath();
+            break;
+          case 'trapezoid':
+            ctx.moveTo(x - size * 0.8, y - size * 0.8);
+            ctx.lineTo(x + size * 0.8, y - size * 0.8);
+            ctx.lineTo(x + size * 1.2, y + size * 0.8);
+            ctx.lineTo(x - size * 1.2, y + size * 0.8);
+            ctx.closePath();
+            break;
+          case 'star':
+            for (let i = 0; i < 5; i++) {
+              const outerAngle = (i * 72 - 90) * Math.PI / 180;
+              const innerAngle = ((i * 72) + 36 - 90) * Math.PI / 180;
+              const ox = x + Math.cos(outerAngle) * size;
+              const oy = y + Math.sin(outerAngle) * size;
+              const ix = x + Math.cos(innerAngle) * size * 0.5;
+              const iy = y + Math.sin(innerAngle) * size * 0.5;
+              if (i === 0) ctx.moveTo(ox, oy);
+              else ctx.lineTo(ox, oy);
+              ctx.lineTo(ix, iy);
+            }
+            ctx.closePath();
+            break;
+        }
+        ctx.fill();
+      }
+
+      drawConnections(time) {
+        const ctx = this.ctx;
+        const leaderPos = this.toIso(0, 0);
+
+        Object.keys(state.bots).forEach(key => {
+          if (key === 'leader') return;
+          const botState = state.bots[key];
+          if (botState.state === 'working') {
+            const pos = this.toIso(BOT_POSITIONS[key].x, BOT_POSITIONS[key].y);
+            const pulse = Math.sin(time * 0.005) * 0.3 + 0.7;
+
+            ctx.strokeStyle = BOT_CONFIG[key].color;
+            ctx.globalAlpha = pulse;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(leaderPos.x, leaderPos.y);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1;
+          }
+        });
+      }
+
+      render(time) {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
+
+        // Background
+        ctx.fillStyle = '#0a0e14';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        this.drawGrid();
+        this.drawConnections(time);
+
+        // Draw bots
+        Object.keys(state.bots).forEach(key => {
+          this.drawBot(key, state.bots[key], time);
+        });
+      }
+    }
+
+    // ============================================
+    // RENDERER 2: 3D (Three.js)
+    // ============================================
+    class ThreeDRenderer {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x0a0e14);
+
+        // Camera
+        this.camera = new THREE.PerspectiveCamera(
+          45,
+          canvas.parentElement.clientWidth / canvas.parentElement.clientHeight,
+          0.1,
+          1000
+        );
+        this.camera.position.set(8, 6, 8);
+        this.camera.lookAt(0, 0, 0);
+
+        // Renderer
+        this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+        this.scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 8, 5);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        this.scene.add(dirLight);
+
+        // Grid floor
+        const gridHelper = new THREE.GridHelper(12, 12, 0x2d3a4f, 0x1a2332);
+        this.scene.add(gridHelper);
+
+        const planeGeo = new THREE.PlaneGeometry(12, 12);
+        const planeMat = new THREE.MeshStandardMaterial({
+          color: 0x0a0e14,
+          roughness: 0.8,
+          metalness: 0.2
+        });
+        const plane = new THREE.Mesh(planeGeo, planeMat);
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -0.01;
+        plane.receiveShadow = true;
+        this.scene.add(plane);
+
+        // Bot meshes
+        this.botMeshes = {};
+        this.botLights = {};
+        this.createBots();
+
+        // Resize handler
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        // Custom orbit controls
+        this.setupOrbitControls();
+      }
+
+      resize() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.camera.aspect = rect.width / rect.height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(rect.width, rect.height);
+      }
+
+      createBots() {
+        Object.keys(BOT_CONFIG).forEach(key => {
+          const config = BOT_CONFIG[key];
+          const pos = BOT_POSITIONS[key];
+
+          let geometry;
+          switch (config.shape) {
+            case 'circle':
+              geometry = new THREE.SphereGeometry(0.4 * config.size, 16, 16);
+              break;
+            case 'square':
+              geometry = new THREE.BoxGeometry(0.7 * config.size, 0.7 * config.size, 0.7 * config.size);
+              break;
+            case 'triangle':
+              geometry = new THREE.ConeGeometry(0.5 * config.size, 0.9 * config.size, 3);
+              break;
+            case 'diamond':
+              geometry = new THREE.OctahedronGeometry(0.5 * config.size);
+              break;
+            case 'trapezoid':
+              geometry = new THREE.CylinderGeometry(0.3 * config.size, 0.6 * config.size, 0.5 * config.size, 4);
+              break;
+            case 'star':
+              geometry = new THREE.IcosahedronGeometry(0.5 * config.size, 0);
+              break;
+            default:
+              geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+          }
+
+          const material = new THREE.MeshStandardMaterial({
+            color: config.color,
+            roughness: 0.3,
+            metalness: 0.7,
+            emissive: config.color,
+            emissiveIntensity: 0.2
+          });
+
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(pos.x, 0.5 * config.size, pos.y);
+          mesh.castShadow = true;
+          this.scene.add(mesh);
+          this.botMeshes[key] = mesh;
+
+          // Point light for glow effect
+          const light = new THREE.PointLight(config.color, 0, 3);
+          light.position.set(pos.x, 1, pos.y);
+          this.scene.add(light);
+          this.botLights[key] = light;
+        });
+      }
+
+      setupOrbitControls() {
+        // Custom minimal orbit controls
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+        let sphericalTheta = Math.PI / 4; // Vertical angle
+        let sphericalPhi = Math.PI / 4;   // Horizontal angle
+        let radius = 12;
+
+        const canvas = this.canvas;
+
+        canvas.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          previousMouseX = e.clientX;
+          previousMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+
+          const deltaX = e.clientX - previousMouseX;
+          const deltaY = e.clientY - previousMouseY;
+
+          sphericalPhi -= deltaX * 0.01;
+          sphericalTheta -= deltaY * 0.01;
+
+          // Clamp vertical angle
+          sphericalTheta = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, sphericalTheta));
+
+          this.updateCameraPosition(sphericalTheta, sphericalPhi, radius);
+
+          previousMouseX = e.clientX;
+          previousMouseY = e.clientY;
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          radius += e.deltaY * 0.01;
+          radius = Math.max(5, Math.min(25, radius));
+          this.updateCameraPosition(sphericalTheta, sphericalPhi, radius);
+        }, { passive: false });
+
+        this.updateCameraPosition(sphericalTheta, sphericalPhi, radius);
+      }
+
+      updateCameraPosition(theta, phi, r) {
+        this.camera.position.x = r * Math.sin(theta) * Math.sin(phi);
+        this.camera.position.y = r * Math.cos(theta);
+        this.camera.position.z = r * Math.sin(theta) * Math.cos(phi);
+        this.camera.lookAt(0, 0.5, 0);
+      }
+
+      render(time) {
+        // Update bot states
+        Object.keys(this.botMeshes).forEach(key => {
+          const mesh = this.botMeshes[key];
+          const light = this.botLights[key];
+          const botState = state.bots[key];
+          const config = BOT_CONFIG[key];
+
+          const pulse = Math.sin(time * 0.003 + botState.pulsePhase) * 0.1 + 1;
+
+          if (botState.state === 'working') {
+            mesh.scale.setScalar(1.2 * pulse);
+            mesh.material.emissiveIntensity = 0.6;
+            light.intensity = 2;
+            mesh.rotation.y += 0.02;
+          } else if (botState.state === 'done') {
+            mesh.material.emissiveIntensity = 0.3;
+            light.intensity = 0.5;
+            mesh.scale.setScalar(1);
+          } else {
+            mesh.scale.setScalar(1);
+            mesh.material.emissiveIntensity = 0.2;
+            light.intensity = 0;
+          }
+        });
+
+        this.renderer.render(this.scene, this.camera);
+      }
+
+      dispose() {
+        Object.values(this.botMeshes).forEach(mesh => {
+          mesh.geometry.dispose();
+          mesh.material.dispose();
+        });
+        this.renderer.dispose();
+      }
+    }
+
+    // ============================================
+    // UI CONTROLLER
+    // ============================================
+    class UIController {
+      constructor() {
+        this.eventLogEl = document.getElementById('event-log');
+        this.eventCountEl = document.getElementById('event-count');
+        this.lastEventTimeEl = document.getElementById('last-event-time');
+        this.statusDotEl = document.getElementById('status-dot');
+        this.statusTextEl = document.getElementById('status-text');
+        this.viewportEl = document.getElementById('viewport');
+        this.modeToggleBtn = document.getElementById('mode-toggle');
+        this.modeLabelEl = document.getElementById('mode-label');
+        this.playPauseBtn = document.getElementById('play-pause');
+        this.recordedToggleBtn = document.getElementById('recorded-toggle');
+
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        this.modeToggleBtn.addEventListener('click', () => {
+          state.mode = state.mode === 'isometric' ? '3d' : 'isometric';
+          this.modeLabelEl.textContent = `Mode: ${state.mode === 'isometric' ? 'Isometric' : '3D'}`;
+          this.modeToggleBtn.classList.toggle('active');
+          window.dispatchEvent(new CustomEvent('mode-change', { detail: { mode: state.mode } }));
+        });
+
+        this.playPauseBtn.addEventListener('click', () => {
+          state.isPlaying = !state.isPlaying;
+          this.playPauseBtn.textContent = state.isPlaying ? '⏸ Pause' : '▶ Play';
+          window.dispatchEvent(new CustomEvent('play-pause', { detail: { playing: state.isPlaying } }));
+        });
+
+        this.recordedToggleBtn.addEventListener('click', () => {
+          state.isRecorded = !state.isRecorded;
+          this.recordedToggleBtn.classList.toggle('active');
+          this.viewportEl.classList.toggle('recorded-mode', state.isRecorded);
+          this.updateStatus();
+          window.dispatchEvent(new CustomEvent('recorded-change', { detail: { recorded: state.isRecorded } }));
+        });
+      }
+
+      updateStatus() {
+        if (state.isRecorded) {
+          this.statusDotEl.className = 'status-dot recorded';
+          this.statusTextEl.textContent = 'RECORDED';
+        } else if (state.isPlaying) {
+          this.statusDotEl.className = 'status-dot live';
+          this.statusTextEl.textContent = 'LIVE';
+        } else {
+          this.statusDotEl.className = 'status-dot offline';
+          this.statusTextEl.textContent = 'OFFLINE';
+        }
+      }
+
+      logEvent(event) {
+        state.eventCount++;
+        state.lastEventTime = new Date(event.ts);
+
+        this.eventCountEl.textContent = state.eventCount;
+        this.lastEventTimeEl.textContent = state.lastEventTime.toLocaleTimeString();
+
+        const entry = document.createElement('div');
+        entry.className = 'event-entry';
+
+        const timeStr = new Date(event.ts).toLocaleTimeString();
+        const agentClass = BOT_CONFIG[event.agent]?.class || '';
+
+        entry.innerHTML = `
+          <span class="event-ts">${timeStr}</span>
+          <span class="event-agent ${agentClass}">${event.agent}</span>
+          <span class="event-phase ${event.phase}">${event.phase}</span>
+          <span class="event-detail">${event.tool || event.detail || ''}</span>
+          <span class="event-goal">${event.goal_id || ''}</span>
+        `;
+
+        this.eventLogEl.insertBefore(entry, this.eventLogEl.firstChild);
+
+        // Limit log entries
+        while (this.eventLogEl.children.length > 50) {
+          this.eventLogEl.removeChild(this.eventLogEl.lastChild);
+        }
+      }
+
+      updateBotState(agent, phase, tool, detail, goalId) {
+        if (!state.bots[agent]) return;
+
+        const bot = state.bots[agent];
+
+        if (phase === 'start') {
+          bot.state = 'working';
+          bot.tool = null;
+          bot.detail = detail;
+          bot.goalId = goalId;
+        } else if (phase === 'tool') {
+          bot.state = 'working';
+          bot.tool = tool;
+          bot.detail = detail;
+          bot.goalId = goalId;
+        } else if (phase === 'end') {
+          bot.state = 'done';
+          bot.tool = null;
+          bot.detail = null;
+          bot.goalId = null;
+
+          // Return to idle after brief delay
+          setTimeout(() => {
+            if (state.bots[agent] && state.bots[agent].state === 'done') {
+              state.bots[agent].state = 'idle';
+            }
+          }, 2000);
+        }
+      }
+    }
+
+    // ============================================
+    // MAIN APPLICATION
+    // ============================================
+    class DashboardApp {
+      constructor() {
+        this.canvas2d = document.getElementById('scene-canvas-2d');
+        this.canvas3d = document.getElementById('scene-canvas-3d');
+        this.ui = new UIController();
+        this.feed = new MockFeed();
+        this.currentRenderer = null;
+        this.animationId = null;
+
+        this.initRenderer();
+        this.setupFeed();
+        this.startRenderLoop();
+      }
+
+      initRenderer() {
+        // Clean up existing renderer
+        if (this.currentRenderer) {
+          if (this.currentRenderer.dispose) {
+            this.currentRenderer.dispose();
+          }
+        }
+
+        // Toggle canvas visibility and create appropriate renderer based on mode
+        if (state.mode === '3d') {
+          this.canvas2d.classList.add('hidden');
+          this.canvas3d.classList.remove('hidden');
+          this.currentRenderer = new ThreeDRenderer(this.canvas3d);
+        } else {
+          this.canvas3d.classList.add('hidden');
+          this.canvas2d.classList.remove('hidden');
+          this.currentRenderer = new IsometricRenderer(this.canvas2d);
+        }
+      }
+
+      setupFeed() {
+        this.feed.subscribe((event) => {
+          if (!state.isPlaying) return;
+
+          this.ui.logEvent(event);
+          this.ui.updateBotState(event.agent, event.phase, event.tool, event.detail, event.goal_id);
+          this.ui.updateStatus();
+        });
+
+        this.feed.start();
+
+        // Listen for control events
+        window.addEventListener('play-pause', (e) => {
+          if (e.detail.playing) {
+            this.feed.start();
+          } else {
+            this.feed.stop();
+          }
+        });
+      }
+
+      startRenderLoop() {
+        const animate = (time) => {
+          this.animationId = requestAnimationFrame(animate);
+
+          if (this.currentRenderer) {
+            this.currentRenderer.render(time);
+          }
+        };
+
+        animate(0);
+      }
+
+      dispose() {
+        if (this.animationId) {
+          cancelAnimationFrame(this.animationId);
+        }
+        this.feed.stop();
+        if (this.currentRenderer && this.currentRenderer.dispose) {
+          this.currentRenderer.dispose();
+        }
+      }
+    }
+
+    // ============================================
+    // MODE SWITCHING HANDLER
+    // ============================================
+    let app = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new DashboardApp();
+    });
+
+    window.addEventListener('mode-change', (e) => {
+      // Reinitialize renderer with new mode
+      if (app) {
+        app.initRenderer();
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (app) {
+        app.dispose();
+      }
+    });
+
+  })();
+  </script>
+</body>
+</html>

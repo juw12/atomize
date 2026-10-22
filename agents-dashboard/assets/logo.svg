@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Isometric office building base -->
+  <path d="M32 4L56 18L32 32L8 18L32 4Z" fill="#1a2332" stroke="#2d3a4f" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M8 18L8 46L32 60L32 32L8 18Z" fill="#161e2a" stroke="#2d3a4f" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M56 18L56 46L32 60L32 32L56 18Z" fill="#1f2a3a" stroke="#2d3a4f" stroke-width="1.5" stroke-linejoin="round"/>
+  
+  <!-- Windows on front face -->
+  <rect x="14" y="24" width="6" height="6" rx="1" fill="#3b82f6" opacity="0.9"/>
+  <rect x="22" y="28" width="6" height="6" rx="1" fill="#10b981" opacity="0.9"/>
+  <rect x="14" y="36" width="6" height="6" rx="1" fill="#8b5cf6" opacity="0.9"/>
+  <rect x="22" y="40" width="6" height="6" rx="1" fill="#f59e0b" opacity="0.9"/>
+  
+  <!-- Windows on side face -->
+  <rect x="34" y="24" width="6" height="6" rx="1" fill="#ef4444" opacity="0.8"/>
+  <rect x="42" y="28" width="6" height="6" rx="1" fill="#3b82f6" opacity="0.8"/>
+  <rect x="34" y="36" width="6" height="6" rx="1" fill="#10b981" opacity="0.8"/>
+  <rect x="42" y="40" width="6" height="6" rx="1" fill="#8b5cf6" opacity="0.8"/>
+  
+  <!-- Door entrance -->
+  <path d="M28 52L32 54L32 60L28 58L28 52Z" fill="#0a0e14" stroke="#2d3a4f" stroke-width="1"/>
+  
+  <!-- Bot agent cluster inside (visible through windows) -->
+  <circle cx="32" cy="28" r="3" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="32" cy="28" r="1.5" fill="#10b981">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Connection beam from building to bot -->
+  <line x1="32" y1="32" x2="32" y2="40" stroke="#2d3a4f" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  
+  <!-- Floating bot icon above building -->
+  <g transform="translate(32, 16)">
+    <path d="M0-4L1.2-1.2L4 0L1.2 1.2L0 4L-1.2 1.2L-4 0L-1.2-1.2L0-4Z" fill="#8b5cf6" stroke="#2d3a4f" stroke-width="0.5">
+      <animateTransform attributeName="transform" type="translate" values="32,16;32,14;32,16" dur="1.5s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  
+  <!-- Subtle glow effect -->
+  <ellipse cx="32" cy="58" rx="12" ry="4" fill="#10b981" opacity="0.1">
+    <animate attributeName="opacity" values="0.1;0.2;0.1" dur="3s" repeatCount="indefinite"/>
+  </ellipse>
+</svg>

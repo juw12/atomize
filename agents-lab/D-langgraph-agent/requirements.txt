@@ -1,0 +1,7 @@
+langgraph>=0.2
+langchain-core>=0.3
+langchain-ollama>=0.2
+typing-extensions>=4.8
+langgraph-checkpoint-sqlite>=2.0
+mcp>=1.0
+langchain-mcp-adapters>=0.1
