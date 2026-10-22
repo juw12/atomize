@@ -125,6 +125,48 @@ Ailene Open is a free, open, bilingual AI learning platform that teaches fundame
 
 **Offline:** Yes — localStorage is client-side
 
+### 6. Dashboard (Home View)
+**What:** Default landing view showing learning overview, streak, tips, and quick actions
+
+**Components:**
+- **Greeting card:** "Halo, Learner!" + overall progress bar + lessons left
+- **7-Day Streak widget:** Day-of-week chips showing activity, current streak count, and record
+- **Tip of the Day:** Rotating bilingual tip from `tips` array (deterministic by day-of-week)
+- **Learning Passport strip:** All 4 levels visible with FREE badge — complete-able, not locked
+- **Module progress list:** Per-module progress bars with percentage
+- **Quick actions:** Cards linking to Quiz / Prompt Library / Glossary / Safety
+
+**Streak data key:** `ailene_open_streak_v1`
+**Data shape:** `{ "dates": ["2026-10-01", ...], "record": 7 }`
+
+**Notes key:** `ailene_open_notes_v1`
+**Data shape:** `{ "les-01-what-are-tokens": "My note text", ... }`
+
+**Differentiator vs ailene.id:** All levels in the passport are FREE and open — no locked tiers.
+
+**Offline:** Yes — all from localStorage + inline curriculum data
+
+### 7. Glossary
+**What:** Bilingual AI term definitions
+
+**Features:**
+- Term + definition pairs from `glossary` array
+- 10+ key AI terms (token, context window, temperature, system prompt, few-shot, chain-of-thought, hallucination, PII, bias, self-correction)
+- All bilingual ID/EN
+
+**Offline:** Yes — rendered from inline data
+
+### 8. Per-Lesson Notes
+**What:** Private notes capability per lesson
+
+**Features:**
+- Each lesson has a textarea in Notes view
+- Notes saved per lesson ID in localStorage
+- Stored under `ailene_open_notes_v1` key
+- No account, no sync — fully private
+
+**Offline:** Yes — localStorage is client-side
+
 ## Content Structure
 
 ### Level 01: AI Fundamentals

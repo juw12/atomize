@@ -190,8 +190,198 @@
     "footer_offline": {
       "en": "Offline-First",
       "id": "Offline-First"
-    }
+    },
+    "nav_dashboard": { "en": "Dashboard", "id": "Dasbor" },
+    "nav_glossary": { "en": "Glossary", "id": "Glosarium" },
+    "nav_notes": { "en": "My Notes", "id": "Catatan Saya" },
+    "dashboard_greeting": { "en": "Halo, Learner!", "id": "Halo, Learner!" },
+    "dashboard_progress_title": { "en": "Your Learning Progress", "id": "Kemajuan Belajar Anda" },
+    "dashboard_lessons_left": { "en": "{count} lessons left in {module}", "id": "{count} pelajaran tersisa di {module}" },
+    "dashboard_passport_title": { "en": "Learning Passport", "id": "Paspor Belajar" },
+    "dashboard_passport_desc": { "en": "All levels are FREE and open — no paywalls, no lock-in.", "id": "Semua tingkat GRATIS dan terbuka — tanpa paywall, tanpa lock-in." },
+    "dashboard_passport_level": { "en": "Level {n}", "id": "Tingkat {n}" },
+    "dashboard_passport_complete": { "en": "Complete", "id": "Selesai" },
+    "dashboard_passport_in_progress": { "en": "In Progress", "id": "Sedang Berjalan" },
+    "dashboard_passport_locked": { "en": "Locked", "id": "Terkunci" },
+    "dashboard_streak_title": { "en": "7-Day Streak", "id": "Streak 7 Hari" },
+    "dashboard_streak_current": { "en": "Current: {days} days", "id": "Saat ini: {days} hari" },
+    "dashboard_streak_record": { "en": "Record: {days} days", "id": "Rekor: {days} hari" },
+    "dashboard_tip_title": { "en": "Tip of the Day", "id": "Tip Hari Ini" },
+    "dashboard_quick_actions": { "en": "Quick Actions", "id": "Aksi Cepat" },
+    "dashboard_action_quiz": { "en": "Take AI Type Quiz", "id": "Ikuti Kuis Tipe AI" },
+    "dashboard_action_prompts": { "en": "Browse Prompt Library", "id": "Jelajahi Perpustakaan Prompt" },
+    "dashboard_action_glossary": { "en": "View Glossary", "id": "Lihat Glosarium" },
+    "dashboard_action_safety": { "en": "Safety Checklist", "id": "Daftar Keamanan" },
+    "dashboard_guest_banner": { "en": "Learning as guest — progress saved locally. No login required!", "id": "Belajar sebagai tamu — kemajuan disimpan lokal. Tanpa login!" },
+    "dashboard_celebrate": { "en": "🎉 You're learning freely — no paywalls, no gates!", "id": "🎉 Anda belajar dengan bebas — tanpa paywall, tanpa gerbang!" },
+    "glossary_term": { "en": "Term", "id": "Istilah" },
+    "glossary_definition": { "en": "Definition", "id": "Definisi" },
+    "glossary_empty": { "en": "No glossary terms yet.", "id": "Belum ada istilah glosarium." },
+    "notes_title": { "en": "My Notes", "id": "Catatan Saya" },
+    "notes_intro": { "en": "Private notes per lesson — stored locally in your browser.", "id": "Catatan pribadi per pelajaran — disimpan lokal di browser Anda." },
+    "notes_save": { "en": "Save Note", "id": "Simpan Catatan" },
+    "notes_saved": { "en": "Note saved!", "id": "Catatan tersimpan!" },
+    "notes_placeholder": { "en": "Write your note here...", "id": "Tulis catatan Anda di sini..." },
+    "btn_view_notes": { "en": "View Notes", "id": "Lihat Catatan" },
+    "btn_add_note": { "en": "Add Note", "id": "Tambah Catatan" },
+    "label_streak": { "en": "Streak", "id": "Streak" },
+    "label_today": { "en": "Today", "id": "Hari Ini" },
+    "label_day": { "en": "Day", "id": "Hari" }
   },
+  "tips": [
+    {
+      "id": "tip-01",
+      "text": {
+        "en": "Start with a clear role: 'You are an expert [role]. Help me [task].' This sets context immediately.",
+        "id": "Mulai dengan peran yang jelas: 'Anda adalah ahli [peran]. Bantu saya [tugas].' Ini mengatur konteks segera."
+      }
+    },
+    {
+      "id": "tip-02",
+      "text": {
+        "en": "Use 'Think step-by-step' for complex problems. It triggers chain-of-thought reasoning.",
+        "id": "Gunakan 'Pikirkan langkah demi langkah' untuk masalah kompleks. Ini memicu penalaran chain-of-thought."
+      }
+    },
+    {
+      "id": "tip-03",
+      "text": {
+        "en": "Provide examples: 'Like this: [example]' is more reliable than describing what you want.",
+        "id": "Berikan contoh: 'Seperti ini: [contoh]' lebih andal daripada menggambarkan apa yang Anda inginkan."
+      }
+    },
+    {
+      "id": "tip-04",
+      "text": {
+        "en": "Set constraints early: word limits, format, tone. 'Keep it under 100 words' works better than editing later.",
+        "id": "Atur batasan sejak awal: batas kata, format, nada. 'Jaga di bawah 100 kata' lebih baik daripada mengedit nanti."
+      }
+    },
+    {
+      "id": "tip-05",
+      "text": {
+        "en": "Ask AI to critique itself: 'Review your answer for errors' catches mistakes before you deploy.",
+        "id": "Minta AI mengkritik dirinya sendiri: 'Tinjau jawaban Anda untuk kesalahan' menangkap kesalahan sebelum Anda menerapkan."
+      }
+    },
+    {
+      "id": "tip-06",
+      "text": {
+        "en": "Temperature matters: low (0.0-0.3) for accuracy, high (0.7-1.0) for creativity.",
+        "id": "Temperature penting: rendah (0,0-0,3) untuk akurasi, tinggi (0,7-1,0) untuk kreativitas."
+      }
+    },
+    {
+      "id": "tip-07",
+      "text": {
+        "en": "Never share PII (personally identifiable information) with AI. Assume everything you type could become public.",
+        "id": "Jangan pernah berbagi PII (informasi pengenal pribadi) dengan AI. Asumsikan semua yang Anda ketik bisa menjadi publik."
+      }
+    },
+    {
+      "id": "tip-08",
+      "text": {
+        "en": "Verify citations independently. AI can hallucinate references that look real but don't exist.",
+        "id": "Verifikasi sitasi secara independen. AI bisa berhalusinasi referensi yang terlihat nyata tetapi tidak ada."
+      }
+    },
+    {
+      "id": "tip-09",
+      "text": {
+        "en": "Use few-shot prompting: show 2-3 input/output examples to teach the AI your desired pattern.",
+        "id": "Gunakan few-shot prompting: tunjukkan 2-3 contoh input/output untuk mengajarkan AI pola yang Anda inginkan."
+      }
+    },
+    {
+      "id": "tip-10",
+      "text": {
+        "en": "For model-agnostic prompts, add per-model adaptations. Claude likes detailed context, GPT wants structure, Gemini handles multimodal well.",
+        "id": "Untuk prompt netral model, tambahkan adaptasi per-model. Claude suka konteks detail, GPT ingin struktur, Gemini menangani multimodal dengan baik."
+      }
+    }
+  ],
+  "glossary": [
+    {
+      "id": "term-token",
+      "term": { "en": "Token", "id": "Token" },
+      "definition": {
+        "en": "The basic unit of text that language models process. Tokens can be words, subwords, or characters. Understanding tokens helps predict costs and optimize prompts.",
+        "id": "Unit dasar teks yang diproses oleh model bahasa. Token bisa berupa kata, sub-kata, atau karakter. Memahami token membantu memprediksi biaya dan mengoptimalkan prompt."
+      }
+    },
+    {
+      "id": "term-context-window",
+      "term": { "en": "Context Window", "id": "Jendela Konteks" },
+      "definition": {
+        "en": "The maximum amount of text (in tokens) a model can process at once, including both input and output. Larger windows allow longer documents and more conversation history.",
+        "id": "Jumlah maksimum teks (dalam token) yang dapat diproses model sekaligus, termasuk input dan output. Jendela lebih besar memungkinkan dokumen lebih panjang dan riwayat percakapan lebih banyak."
+      }
+    },
+    {
+      "id": "term-temperature",
+      "term": { "en": "Temperature", "id": "Temperature" },
+      "definition": {
+        "en": "A setting that controls randomness in AI outputs. Low temperature (0.0-0.3) makes outputs deterministic; high temperature (0.7-1.0+) increases creativity.",
+        "id": "Pengaturan yang mengontrol keacakan dalam output AI. Temperature rendah (0,0-0,3) membuat output deterministik; temperature tinggi (0,7-1,0+) meningkatkan kreativitas."
+      }
+    },
+    {
+      "id": "term-system-prompt",
+      "term": { "en": "System Prompt", "id": "System Prompt" },
+      "definition": {
+        "en": "Instructions that set the AI's behavior, role, and constraints for the entire conversation. More powerful than user prompts because they establish the 'rules of engagement'.",
+        "id": "Instruksi yang menetapkan perilaku, peran, dan batasan AI untuk seluruh percakapan. Lebih kuat dari prompt pengguna karena menetapkan 'aturan keterlibatan'."
+      }
+    },
+    {
+      "id": "term-few-shot",
+      "term": { "en": "Few-Shot Prompting", "id": "Few-Shot Prompting" },
+      "definition": {
+        "en": "Providing examples within the prompt to teach the AI a pattern. More reliable than describing what you want — show, don't just tell.",
+        "id": "Menyediakan contoh dalam prompt untuk mengajarkan AI sebuah pola. Lebih andal daripada menggambarkan apa yang Anda inginkan — tunjukkan, jangan hanya beritahu."
+      }
+    },
+    {
+      "id": "term-chain-of-thought",
+      "term": { "en": "Chain of Thought (CoT)", "id": "Chain of Thought (CoT)" },
+      "definition": {
+        "en": "A prompting technique that asks AI to show its reasoning before giving a final answer. Improves accuracy on complex tasks and makes errors easier to spot.",
+        "id": "Teknik prompting yang meminta AI untuk menunjukkan penalarannya sebelum memberikan jawaban akhir. Meningkatkan akurasi pada tugas kompleks dan membuat kesalahan lebih mudah dikenali."
+      }
+    },
+    {
+      "id": "term-hallucination",
+      "term": { "en": "Hallucination", "id": "Halusinasi" },
+      "definition": {
+        "en": "When AI generates false or fabricated information that sounds plausible. Always verify facts and citations independently.",
+        "id": "Ketika AI menghasilkan informasi palsu atau direkayasa yang terdengar masuk akal. Selalu verifikasi fakta dan sitasi secara independen."
+      }
+    },
+    {
+      "id": "term-pii",
+      "term": { "en": "PII (Personally Identifiable Information)", "id": "PII (Informasi Pengenal Pribadi)" },
+      "definition": {
+        "en": "Data that can identify a specific person: names, addresses, phone numbers, email addresses, ID numbers, financial data, health records. Never share PII with AI services.",
+        "id": "Data yang dapat mengidentifikasi orang tertentu: nama, alamat, nomor telepon, alamat email, nomor ID, data keuangan, catatan kesehatan. Jangan pernah berbagi PII dengan layanan AI."
+      }
+    },
+    {
+      "id": "term-bias",
+      "term": { "en": "AI Bias", "id": "Bias AI" },
+      "definition": {
+        "en": "Systematic errors or unfair assumptions in AI outputs, often reflecting biases in training data. Common types: cultural, gender, demographic, confirmation bias.",
+        "id": "Kesalahan sistematis atau asumsi tidak adil dalam output AI, sering mencerminkan bias dalam data pelatihan. Jenis umum: budaya, gender, demografis, bias konfirmasi."
+      }
+    },
+    {
+      "id": "term-self-correction",
+      "term": { "en": "Self-Correction", "id": "Koreksi Diri" },
+      "definition": {
+        "en": "Asking AI to review and improve its own output. Effective self-correction requires specific criteria, permission to admit mistakes, and structured feedback format.",
+        "id": "Meminta AI untuk meninjau dan meningkatkan outputnya sendiri. Koreksi diri yang efektif memerlukan kriteria spesifik, izin untuk mengakui kesalahan, dan format umpan balik terstruktur."
+      }
+    }
+  ],
   "levels": [
     {
       "id": "level-01",
@@ -199,6 +389,11 @@
       "description": {
         "en": "Core concepts every AI user should understand — from tokens to temperature.",
         "id": "Konsep inti yang harus dipahami setiap pengguna AI — dari token hingga temperature."
+      },
+      "passport": {
+        "level_number": 1,
+        "name": { "en": "Foundation", "id": "Dasar" },
+        "icon": "🌱"
       },
       "modules": [
         {
@@ -383,6 +578,11 @@
         "en": "Systematic techniques for reliable, reproducible AI outputs.",
         "id": "Teknik sistematis untuk output AI yang andal dan dapat direproduksi."
       },
+      "passport": {
+        "level_number": 2,
+        "name": { "en": "Practitioner", "id": "Praktisi" },
+        "icon": "🔧"
+      },
       "modules": [
         {
           "id": "mod-03-system-prompts",
@@ -514,6 +714,11 @@
       "description": {
         "en": "Responsible AI use: bias, privacy, misinformation, and harm reduction.",
         "id": "Penggunaan AI yang bertanggung jawab: bias, privasi, misinformasi, dan pengurangan bahaya."
+      },
+      "passport": {
+        "level_number": 3,
+        "name": { "en": "Guardian", "id": "Penjaga" },
+        "icon": "🛡️"
       },
       "modules": [
         {
@@ -654,6 +859,11 @@
       "description": {
         "en": "Chain-of-thought, self-correction, tool use, and multi-turn strategies.",
         "id": "Chain-of-thought, koreksi diri, penggunaan alat, dan strategi multi-turn."
+      },
+      "passport": {
+        "level_number": 4,
+        "name": { "en": "Master", "id": "Ahli" },
+        "icon": "🎓"
       },
       "modules": [
         {

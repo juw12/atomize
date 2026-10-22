@@ -73,6 +73,12 @@ APPS = [
         "desktop": "ailene-open/index.html",
         "mobile": "ailene-open/mobile.html",
     },
+    {
+        "name": "Sneaker Ledger",
+        "desc": "Offline data-integrity & price-provenance console for the House of Articles sneaker catalog.",
+        "desktop": "sneaker-ledger/",
+        "mobile": "sneaker-ledger/",
+    },
 ]
 
 
@@ -243,6 +249,7 @@ def main():
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
         ("ailene-open", "ailene-open"),
+        ("sneaker-ledger", "sneaker-ledger"),
     ]
 
     for app_name, site_subdir in apps_config:

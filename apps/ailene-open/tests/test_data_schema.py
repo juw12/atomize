@@ -172,6 +172,54 @@ def main():
                     all_pass = False
     print("OK: All 5 quiz result types present")
     
+    # Validate tips array (new for dashboard)
+    if 'tips' not in data:
+        print("FAIL: Missing 'tips' array")
+        all_pass = False
+    else:
+        tips = data['tips']
+        if not isinstance(tips, list) or len(tips) == 0:
+            print("FAIL: 'tips' should be a non-empty array")
+            all_pass = False
+        else:
+            for i, tip in enumerate(tips):
+                if 'id' not in tip:
+                    print(f"FAIL: Tip {i+1} missing 'id'")
+                    all_pass = False
+                if 'text' not in tip:
+                    print(f"FAIL: Tip {i+1} missing 'text'")
+                    all_pass = False
+                else:
+                    if 'en' not in tip['text'] or 'id' not in tip['text']:
+                        print(f"FAIL: Tip {i+1} 'text' not bilingual")
+                        all_pass = False
+            print(f"OK: {len(tips)} tips validated (bilingual)")
+    
+    # Validate glossary array (new for dashboard)
+    if 'glossary' not in data:
+        print("FAIL: Missing 'glossary' array")
+        all_pass = False
+    else:
+        glossary = data['glossary']
+        if not isinstance(glossary, list) or len(glossary) == 0:
+            print("FAIL: 'glossary' should be a non-empty array")
+            all_pass = False
+        else:
+            for i, term in enumerate(glossary):
+                for field in ['id', 'term', 'definition']:
+                    if field not in term:
+                        print(f"FAIL: Glossary term {i+1} missing '{field}'")
+                        all_pass = False
+                
+                if 'en' not in term.get('term', {}) or 'id' not in term.get('term', {}):
+                    print(f"FAIL: Glossary term {i+1} 'term' not bilingual")
+                    all_pass = False
+                
+                if 'en' not in term.get('definition', {}) or 'id' not in term.get('definition', {}):
+                    print(f"FAIL: Glossary term {i+1} 'definition' not bilingual")
+                    all_pass = False
+            print(f"OK: {len(glossary)} glossary terms validated (bilingual)")
+    
     # Check HTML files exist and have no fetch/XMLHttpRequest
     for html_file in [index_html, mobile_html]:
         if not html_file.exists():

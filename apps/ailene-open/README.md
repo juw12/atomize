@@ -13,6 +13,8 @@ Both files work completely offline in any modern browser — no server, no login
 
 ## Key Features
 
+**Navigation:** Dashboard (default), Curriculum, Quiz, Prompt Library, Glossary, Notes, Safety, Progress
+
 ### 🎯 Vendor-Neutral Learning
 - **Core concept first**: Each lesson teaches the underlying AI concept, not platform-specific features
 - **Model-agnostic prompts**: Every prompt includes per-model adaptations for Claude, GPT, Gemini, and local models (Llama/Mistral)
@@ -35,6 +37,15 @@ Every lesson includes:
 - Per-model adaptations (Claude/GPT/Gemini/Local)
 - Citable sources for verification
 
+### 🎛️ Dashboard
+A polished landing view that replaces the old Home:
+- **Greeting + overall progress** (X/Y lessons, %)
+- **Per-level and per-module progress bars**
+- **7-day learning streak** widget (day-of-week chips, current streak, record)
+- **Learning Passport**: 4-level progression strip — all levels complete-able and FREE
+- **Rotating tip of the day** (deterministic by day-of-week)
+- **Quick-action cards** to Quiz / Prompt Library / Glossary / Safety
+
 ### 🧠 AI Type Quiz
 12-question assessment to discover your AI interaction style:
 - **The Professor** — Values depth, accuracy, structured learning
@@ -54,8 +65,21 @@ Every lesson includes:
 - Context appropriateness
 - Human review for critical outputs
 
+### 📖 Glossary
+Bilingual AI term definitions:
+- 10+ key terms: token, context window, temperature, system prompt, few-shot, chain-of-thought, hallucination, PII, bias, self-correction
+- Each term has bilingual definition (ID/EN)
+
+### 📝 Per-Lesson Notes
+Private notes capability:
+- Each lesson has a dedicated note field
+- Stored locally in localStorage (key: `ailene_open_notes_v1`)
+- No account, no sync — fully private
+
 ### 💾 Offline-First Progress
 - Progress stored in `localStorage` under key `ailene_open_v1`
+- Streak data stored under `ailene_open_streak_v1`
+- Notes stored under `ailene_open_notes_v1`
 - No login required
 - Works from `file://` protocol
 
