@@ -79,7 +79,7 @@ The app shows a badge in the top bar: **"Saved to server"** (green) or **"Local 
 | **Culture** | Optional company working rules, admin/member view. |
 | **Growth** | After-work layer: 5-stage method, curriculum, key results, session log, weekly review, metrics, progress card, export. |
 | **Privacy** | Principles, data-by-category, source consent, AI kill switch, audit log, retention, sensitive-content warning, export/delete. |
-| **Orbis Work** | *Planned* job module: profile → role → match on skills → introduce → chat → decide (human review). |
+| **Orbis Work** | **Built.** Job marketplace in the `work` view: skills-matched roles, filters (city/type/category), candidates, and **Apply → Commitment + Today** (consent-logged). |
 
 ## Sign-in (both apps)
 
@@ -154,10 +154,10 @@ Collections: `queue, commitments, summaries, drafts, aura, culture, growth, sour
 
 ## 2026-10-22 — Orbis Work is now BUILT (integrated)
 
-**Orbis Work is no longer planned — it is built and merged into Orbis.**
+**Orbis Work is no longer planned, and Orbis keeps its original app.** The job marketplace is integrated **into Orbis's own app** (`web/app.html` desktop, `web/app-mobile.html` mobile):
 
-- The app (`web/app.html` desktop, `web/app-mobile.html` mobile) is now the **unified Orbis app**: the job marketplace (**Discover · Candidates · Chats · Saved · company pages**) **plus** Orbis's modules (Today, Commitments, Summaries, Drafts, Aura, Growth, Culture, Privacy).
-- **Bridge:** **Aura** is the candidate résumé; `verificationLevel` drives trust on cards; every apply/chat logs to the **audit** trail; applying adds a **Commitment** + a **Today** follow-up; matching is **skills-only** (never personality/Aura).
-- Merged from the former `loker` and `orbis-work` apps, which have been **removed** (originals remain in git history).
-- Run: `python apps/orbis/server/server.py` → `http://127.0.0.1:8765/` (demo `demo@orbiswork.app` / `demo123`, or Continue as guest).
-- State model: 27 top-level keys (job data at `jobs/employers/candidates/chats/saved`; Orbis at `queue/commitments/summaries/drafts/aura/culture/growth/sources/audit/settings`).
+- **`work` view** = a real marketplace: **Open roles** (dense cards: salary, tags, city · type, match %, **Verified** badge) + **filters** (city / type / category chips) + **Candidates** (recruiter view). Orbis's look is unchanged (indigo/teal).
+- **Bridge (wired):** **Apply** → adds a **Commitment**, a **Today** follow-up, and an **audit** entry (consent); `verificationLevel` drives the Verified badge; matching is **skills-only** (never personality/Aura).
+- **Server:** the `work` collection now holds roles(6) + employers(4) + candidates(5); Orbis's original collection API is intact.
+- Merged from the former `loker` / `orbis-work` apps, now removed (originals in git history).
+- Run: `python apps/orbis/server/server.py` → `http://127.0.0.1:8765/`
