@@ -2319,6 +2319,10 @@
           'learn.hub.toolsDesc': 'Helper & praktik',
           'learn.hub.community': 'Komunitas',
           'learn.hub.communityDesc': 'Diskusi & berbagi',
+          'learn.hub.heading': 'Pusat Belajar',
+          'learn.hub.notesDesc': 'Catatan saya',
+          'learn.hub.glossaryDesc': 'Istilah',
+          'learn.hub.workMapDesc': 'Pencari tugas AI',
           'learn.workMap.title': 'Peta Kerja AI',
           'learn.workMap.intro': 'Deskripsikan minggu kerjamu → temukan tugas yang bisa dibantu AI',
           'learn.workMap.field': 'Bidang Pekerjaan',
@@ -2413,6 +2417,10 @@
           'learn.hub.toolsDesc': 'Helpers & practice',
           'learn.hub.community': 'Community',
           'learn.hub.communityDesc': 'Discuss & share',
+          'learn.hub.heading': 'Learning Hub',
+          'learn.hub.notesDesc': 'My notes',
+          'learn.hub.glossaryDesc': 'Terms',
+          'learn.hub.workMapDesc': 'AI task finder',
           'learn.workMap.title': 'Work Map (AI)',
           'learn.workMap.intro': 'Describe your work week → find AI-helpable tasks',
           'learn.workMap.field': 'Field of Work',
@@ -4701,7 +4709,7 @@
       container.innerHTML = `
         <!-- Multi-Product Hub -->
         <div class="card" style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 16px;">Learning Hub</h2>
+          <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="learn.hub.heading">Learning Hub</h2>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
             <div class="card" style="margin:0; cursor:pointer;" onclick="navigateTo('learn'); document.getElementById('learnAcademy').scrollIntoView({behavior:'smooth'})">
               <div style="font-size:24px;margin-bottom:8px;">📚</div>
@@ -4726,7 +4734,7 @@
             <div class="card" style="margin:0; cursor:pointer;" onclick="document.getElementById('learnWorkMap').scrollIntoView({behavior:'smooth'})">
               <div style="font-size:24px;margin-bottom:8px;">🗺️</div>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.workMap.title">Work Map</div>
-              <div style="font-size:12px;color:var(--muted);">AI task finder</div>
+              <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.workMapDesc">AI task finder</div>
             </div>
             <div class="card" style="margin:0; cursor:pointer;">
               <div style="font-size:24px;margin-bottom:8px;">👥</div>

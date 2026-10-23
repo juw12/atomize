@@ -2579,6 +2579,10 @@
           'learn.hub.toolsDesc': 'Helper & praktik',
           'learn.hub.community': 'Komunitas',
           'learn.hub.communityDesc': 'Diskusi & berbagi',
+          'learn.hub.heading': 'Pusat Belajar',
+          'learn.hub.notesDesc': 'Catatan saya',
+          'learn.hub.glossaryDesc': 'Istilah',
+          'learn.hub.workMapDesc': 'Pencari tugas AI',
           'learn.workMap.title': 'Peta Kerja AI',
           'learn.workMap.intro': 'Deskripsikan minggu kerjamu → temukan tugas yang bisa dibantu AI',
           'learn.workMap.field': 'Bidang Pekerjaan',
@@ -2673,6 +2677,10 @@
           'learn.hub.toolsDesc': 'Helpers & practice',
           'learn.hub.community': 'Community',
           'learn.hub.communityDesc': 'Discuss & share',
+          'learn.hub.heading': 'Learning Hub',
+          'learn.hub.notesDesc': 'My notes',
+          'learn.hub.glossaryDesc': 'Terms',
+          'learn.hub.workMapDesc': 'AI task finder',
           'learn.workMap.title': 'Work Map (AI)',
           'learn.workMap.intro': 'Describe your work week → find AI-helpable tasks',
           'learn.workMap.field': 'Field of Work',
@@ -4688,15 +4696,15 @@
       }
       container.innerHTML = `
         <div class="card" style="margin-bottom: 16px;">
-          <h2 style="font-size:18px;margin-bottom:12px;" data-i18n="learn.hub.academy">Learning Hub</h2>
+          <h2 style="font-size:18px;margin-bottom:12px;" data-i18n="learn.hub.heading">Learning Hub</h2>
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
             <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('learnAcademy').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">📚</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.academy">Academy</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.academyDesc">Structured learning path</div></div>
             <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('aiTypeCard').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">🧠</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.aiType">AI Type</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.aiTypeDesc">Know your learning style</div></div>
-            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openNotesPanel()"><div style="font-size:20px;margin-bottom:4px;">📝</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.notes">Notes</div><div style="font-size:11px;color:var(--muted);">My notes</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openNotesPanel()"><div style="font-size:20px;margin-bottom:4px;">📝</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.notes">Notes</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.notesDesc">My notes</div></div>
             <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openPromptLibrary()"><div style="font-size:20px;margin-bottom:4px;">📖</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.promptLibrary">Prompt Library</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.promptsDesc">Ready-to-use templates</div></div>
-            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openGlossaryPanel()"><div style="font-size:20px;margin-bottom:4px;">🔤</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.glossary">Glossary</div><div style="font-size:11px;color:var(--muted);">Terms</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openGlossaryPanel()"><div style="font-size:20px;margin-bottom:4px;">🔤</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.glossary">Glossary</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.glossaryDesc">Terms</div></div>
             <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openSafetyChecklist()"><div style="font-size:20px;margin-bottom:4px;">🛡️</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.safety">Safety Checklist</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.safetyDesc">Check before deploy</div></div>
-            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('learnWorkMap').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">🗺️</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.workMap.title">Work Map (AI)</div><div style="font-size:11px;color:var(--muted);">Task finder</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('learnWorkMap').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">🗺️</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.workMap.title">Work Map (AI)</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.workMapDesc">Task finder</div></div>
             <div class="card" style="margin:0;padding:12px;cursor:pointer;"><div style="font-size:20px;margin-bottom:4px;">👥</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.community">Community</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.communityDesc">Discuss & share</div></div>
           </div>
         </div>
