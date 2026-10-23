@@ -1,0 +1,16 @@
+{
+  "name": "Lingua — Live-translated captions",
+  "short_name": "Lingua",
+  "description": "Screen-read the Teams caption strip, OCR it, translate it as the speaker talks. Browser-only PWA.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "categories": ["productivity", "utilities"]
+}

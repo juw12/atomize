@@ -21,8 +21,11 @@ import tkinter as tk
 from typing import TYPE_CHECKING
 
 # Ensure UTF-8 stdout/stderr on Windows PowerShell.
-sys.stdout.reconfigure(encoding="utf-8")
-sys.stderr.reconfigure(encoding="utf-8")
+# Under pythonw.exe (no console) these can be None, so guard against that.
+if sys.stdout is not None:
+    sys.stdout.reconfigure(encoding="utf-8")
+if sys.stderr is not None:
+    sys.stderr.reconfigure(encoding="utf-8")
 
 if TYPE_CHECKING:
     from engine.maas import MaasClient
