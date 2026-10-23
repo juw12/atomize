@@ -18,10 +18,9 @@ export const LANGUAGES = {
 };
 
 export const MODELS = [
-  "MiniMax-M3",
-  "Pega-Chat",
-  "GLM-5.3-Flash",
-  "Gemma4-31B",
+  "translate-default",
+  "translate-fast",
+  "translate-quality",
 ];
 
 // The set of characters that mark a line as a completed sentence in the
@@ -360,11 +359,11 @@ export function changeHash(imageDataOrCanvas) {
 // ------------------------------------------------------------------ settings
 
 export const DEFAULT_SETTINGS = {
-  gatewayOcrBase: "http://aicc-gateway.pegatroncorp.com/ocr/v1",
-  gatewayLlmBase: "http://aicc-gateway.pegatroncorp.com/pegaai/v1",
+  gatewayOcrBase: "https://gateway.example.com/ocr/v1",
+  gatewayLlmBase: "https://gateway.example.com/llm/v1",
   apiKey: "",
   ocrModel: "deepseek-ai/DeepSeek-OCR-2",
-  llmModel: "MiniMax-M3",
+  llmModel: "translate-default",
   sourceLang: "Auto (detect)",
   targetLang: "繁體中文",
   pollMs: 200,
