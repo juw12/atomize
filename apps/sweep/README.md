@@ -1,10 +1,18 @@
 # apps/sweep
 
-The **`/sweep`** pipeline: **validate first, then sync** — run the repo's checks,
-commit & push to GitHub, and mirror a summary note into the Obsidian vault. One
-command, repeatable. (Renamed from the old `/update`.)
+The **`/sweep`** pipeline — one command, two modes. (Renamed from the old `/update`.)
 
-## What it does
+- **Mode A — `/sweep <app idea>`**: the full **idea → shipped app** pipeline
+  (recall memory → brief + Go/No-Go gate → capability matrix → scaffold →
+  analyse → build with checkpoints → verify for real → sync GitHub + Obsidian,
+  rollback-safe).
+- **Mode B — `/sweep` (no idea)**: just **sync** — validate → commit → push →
+  Obsidian note; reports **"nothing to sweep"** when the tree is clean and in sync.
+
+Command: [`../../.opencode/command/sweep.md`](../../.opencode/command/sweep.md).
+Product plan (PRD + architecture + MVP): [`docs/Sweep-App-Plan.md`](docs/Sweep-App-Plan.md).
+
+## Mode B — sync (what the script does)
 
 1. **Validates first** (never push a failing state): `scripts/build_site.py`,
    `scripts/check_site.py`, and `scripts/run_all_tests.py` (whichever exist) must
@@ -15,16 +23,41 @@ command, repeatable. (Renamed from the old `/update`.)
 5. Writes a note to the Obsidian vault (`Update Log/<date> <repo>.md`).
 6. Prints a JSON report: repo, branch, commit, changed count, push status, note path.
 
+## Mode A — idea → app (the pipeline)
+
+Driven by the command file, not the script:
+
+1. **Recall memory** — read the Obsidian project notes + latest `Update Log` + the
+   repo `docs/`/`README` so nothing is duplicated.
+2. **Brief + Go/No-Go gate** — write `docs/BRIEF.md` (problem, user, job-to-be-done,
+   non-goals, 2–4 concrete success checks, overlap vs existing `apps/*`) and ask up
+   to 2 sharp questions if anything is ambiguous.
+3. **Capability matrix** — derive scope per idea instead of defaulting every feature
+   on. **Auth defaults OFF** (only ships with a scrypt/session threat model), and
+   `server/` presence drives the deploy target (static → Pages; server → a host).
+4. **Scaffold + build with checkpoints** — create `apps/<kebab-name>/` in the
+   monorepo shape, analyse (`/rea` only when the idea references an existing
+   artifact), and commit a checkpoint after each major piece.
+5. **Register** the app on the projects site (`scripts/build_site.py`).
+6. **Verify for real** (the commit gate, not exit-0): server smoke (`/` + `/health`
+   → 200), Playwright screenshots at desktop + mobile widths, an acceptance test of
+   the primary flow, the repo checks, and a secret/endpoint scan. Any failure
+   **stops the commit**.
+7. **Sync rollback-safe** — `sweep.ps1` (commit + push + Obsidian note), a fixed
+   memory schema (`id, app, type, status, date, tags, links`), and a `git revert`
+   recipe if the push is bad.
+
 ## Use it in chat
 
 ```
-/sweep fix: tidy the build_site validator
+/sweep                              # Mode B — sync only
+/sweep fix: tidy the build_site validator   # Mode B — sync with your message
+/sweep a habit tracker with streaks  # Mode A — build the whole app from the idea
 ```
 
-Anything after `/sweep` becomes the commit message. With no arguments it uses
-`sweep: sync projects (<timestamp>)`.
-
-The command lives at [`../../.opencode/command/sweep.md`](../../.opencode/command/sweep.md).
+In **Mode B**, whatever follows `/sweep` becomes the commit message (with no
+argument the script uses `sweep: sync projects (<timestamp>)`). In **Mode A**,
+whatever follows is treated as the app idea and runs the full pipeline.
 
 ## Use the script directly
 
