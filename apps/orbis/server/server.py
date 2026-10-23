@@ -49,6 +49,7 @@ COLLECTIONS = [
     "audit",
     "settings",
     "work",
+    "learn",
 ]
 
 # The database location can be overridden with the ORBIS_DB environment
@@ -154,6 +155,7 @@ def build_seeds() -> dict:
                 {"title": "Senior Product Designer at Northwind Studio",
                  "link": "https://northwind.example", "shared": True},
             ],
+            "aiType": None,  # AI Type test result (private, never shared)
         },
         "culture": {
             "workspace": "Northwind Studio",
@@ -278,6 +280,36 @@ def build_seeds() -> dict:
             ],
             "interests": [],
             "applications": [],
+        },
+        "learn": {
+            "modules": [
+                {"id": "mod-01", "title": {"en": "AI Fundamentals", "id": "Dasar-Dasar AI"}, "desc": {"en": "Core concepts: tokens, context, temperature.", "id": "Konsep inti: token, konteks, temperature."}, "duration": 15, "status": "available", "lessons": [
+                    {"id": "les-01-01", "title": {"en": "What Are Tokens?", "id": "Apa Itu Token?"}, "concept": {"en": "Tokens are basic text units AI processes.", "id": "Token adalah unit teks dasar yang AI proses."}, "prompt": {"en": "Explain [CONCEPT] to a beginner using an everyday analogy.", "id": "Jelaskan [KONSEP] kepada pemula menggunakan analogi sehari-hari."}},
+                    {"id": "les-01-02", "title": {"en": "Context Windows", "id": "Jendela Konteks"}, "concept": {"en": "Context window is max text AI can process at once.", "id": "Jendela konteks adalah teks maksimal yang AI bisa proses sekaligus."}, "prompt": {"en": "Summarize this in [N] words, preserving key facts.", "id": "Ringkas ini dalam [N] kata, pertahankan fakta kunci."}}
+                ]},
+                {"id": "mod-02", "title": {"en": "Prompt Engineering", "id": "Rekayasa Prompt"}, "desc": {"en": "System prompts, few-shot learning.", "id": "System prompt, few-shot learning."}, "duration": 20, "status": "available", "lessons": [
+                    {"id": "les-02-01", "title": {"en": "System Prompts", "id": "System Prompt"}, "concept": {"en": "System prompts set AI behavior for entire conversation.", "id": "System prompt menetapkan perilaku AI untuk seluruh percakapan."}, "prompt": {"en": "You are [ROLE]. Task: [TASK]. Rules: [RULES].", "id": "Anda adalah [PERAN]. Tugas: [TUGAS]. Aturan: [ATURAN]."}},
+                    {"id": "les-02-02", "title": {"en": "Few-Shot Learning", "id": "Few-Shot Learning"}, "concept": {"en": "Provide examples in prompt to teach AI a pattern.", "id": "Berikan contoh dalam prompt untuk mengajarkan AI pola."}, "prompt": {"en": "Transform input following these examples.", "id": "Transformasi input mengikuti contoh ini."}}
+                ]},
+                {"id": "mod-03", "title": {"en": "AI Safety", "id": "Keamanan AI"}, "desc": {"en": "Bias, privacy, hallucinations, verification.", "id": "Bias, privasi, halusinasi, verifikasi."}, "duration": 18, "status": "available", "lessons": [
+                    {"id": "les-03-01", "title": {"en": "Understanding Bias", "id": "Memahami Bias"}, "concept": {"en": "AI can reproduce training data biases.", "id": "AI bisa mereproduksi bias data pelatihan."}, "prompt": {"en": "Review this text for biases and suggest revisions.", "id": "Tinjau teks ini untuk bias dan sarankan revisi."}},
+                    {"id": "les-03-02", "title": {"en": "Privacy & PII", "id": "Privasi & PII"}, "concept": {"en": "Never share PII with AI services.", "id": "Jangan pernah berbagi PII dengan layanan AI."}, "prompt": {"en": "Replace all PII with placeholders.", "id": "Ganti semua PII dengan placeholder."}}
+                ]},
+                {"id": "mod-04", "title": {"en": "Advanced Techniques", "id": "Teknik Lanjutan"}, "desc": {"en": "Chain-of-thought, self-correction.", "id": "Chain-of-thought, koreksi diri."}, "duration": 25, "status": "locked", "lessons": []},
+                {"id": "mod-05", "title": {"en": "Model Adaptations", "id": "Adaptasi Model"}, "desc": {"en": "Claude, GPT, Gemini, Local tips.", "id": "Tips Claude, GPT, Gemini, Lokal."}, "duration": 22, "status": "locked", "lessons": []},
+                {"id": "mod-06", "title": {"en": "Real Workflows", "id": "Workflow Nyata"}, "desc": {"en": "Email, docs, code, research.", "id": "Email, dokumen, kode, riset."}, "duration": 30, "status": "locked", "lessons": []},
+                {"id": "mod-07", "title": {"en": "Team Collaboration", "id": "Kolaborasi Tim"}, "desc": {"en": "Shared prompts, guidelines.", "id": "Prompt bersama, panduan."}, "duration": 20, "status": "locked", "lessons": []},
+                {"id": "mod-08", "title": {"en": "Capstone Project", "id": "Proyek Akhir"}, "desc": {"en": "Build a complete AI-assisted project.", "id": "Bangun proyek lengkap dibantu AI."}, "duration": 60, "status": "locked", "lessons": []}
+            ],
+            "progress": {},
+            "quizProgress": {},
+            "streak": {"count": 0, "lastDay": "", "record": 0, "days": []},
+            "badges": [],
+            "notes": [],
+            "glossarySeen": [],
+            "tipIndex": 0,
+            "lastActivity": 0,
+            "workMaps": []
         },
     }
 

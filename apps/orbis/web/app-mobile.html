@@ -1319,6 +1319,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
           <span>Orbis Work</span>
         </a>
+        <a class="nav-item" data-view="learn" href="#learn" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span data-i18n="nav.learn">Learn</span>
+        </a>
         <a class="nav-item" data-view="account" href="#account" role="button" tabindex="0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Account</span>
@@ -1502,6 +1506,67 @@
             </div>
             <button type="submit" class="btn btn-primary">Save Aura</button>
           </form>
+
+          <!-- AI Type Test Card -->
+          <div class="card" id="aiTypeCard" style="margin-top: 24px; border-left: 4px solid var(--brand-600);">
+            <div class="card-header">
+              <h2 class="card-title" data-i18n="aiType.title">AI Type — Know how you work with AI</h2>
+              <button class="btn btn-sm btn-secondary" id="aiTypeLangToggle" style="min-height:32px;" title="Switch language">EN</button>
+            </div>
+            <div class="aura-note" style="margin-bottom: 16px;">
+              <strong data-i18n="aiType.privacy">Privasi:</strong> <span data-i18n="aiType.privacyText">Hasil tes ini bersifat pribadi, disimpan di Aura Anda, tidak pernah dibagikan ke employer, dan tidak digunakan untuk matching pekerjaan.</span>
+            </div>
+            
+            <!-- Quiz Not Started State -->
+            <div id="aiTypeNotStarted">
+              <p style="margin-bottom: 16px;" data-i18n="aiType.intro">Tes mandiri untuk mengenali bagaimana Anda bekerja dengan AI. 15 situasi → 5 tipe: Professor, Builder, Detective, Guardian, atau All-Rounder.</p>
+              <button class="btn btn-primary" id="startAiTypeBtn" data-i18n="aiType.startBtn">Mulai Tes</button>
+            </div>
+
+            <!-- Quiz In Progress State -->
+            <div id="aiTypeQuiz" style="display: none;">
+              <div class="progress-bar" style="margin-bottom: 12px;">
+                <div class="progress-fill" id="aiTypeProgress" style="width: 0%;"></div>
+              </div>
+              <div style="font-size: 13px; color: var(--muted); margin-bottom: 16px;" id="aiTypeCounter">Situasi 1 dari 15</div>
+              <div id="aiTypeQuestion" style="margin-bottom: 16px;">
+                <p style="font-weight: 600; margin-bottom: 12px;" id="aiTypeScenarioText"></p>
+                <div id="aiTypeOptions" style="display: flex; flex-direction: column; gap: 8px;"></div>
+              </div>
+            </div>
+
+            <!-- Quiz Result State -->
+            <div id="aiTypeResult" style="display: none;">
+              <div style="padding: 16px; background: var(--brand-50); border: 1px solid var(--brand-600); border-radius: var(--radius-sm); margin-bottom: 16px;">
+                <div style="font-size: 13px; color: var(--muted); margin-bottom: 4px;" data-i18n="aiType.resultLabel">Tipe AI Anda:</div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--brand-600); margin-bottom: 8px;" id="aiTypePrimaryName"></div>
+                <div style="font-size: 14px; color: var(--muted); margin-bottom: 12px;" id="aiTypeSecondaryName"></div>
+                <div style="font-size: 14px; line-height: 1.6;" id="aiTypeStrengths"></div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                  <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;" data-i18n="aiType.watchOut">Watch-out:</div>
+                  <div style="font-size: 13px;" id="aiTypeWatchOut"></div>
+                </div>
+                <div style="padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                  <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;" data-i18n="aiType.nextStep">Next step:</div>
+                  <div style="font-size: 13px;" id="aiTypeNextStep"></div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;" data-i18n="aiType.suggestedArchetype">Suggested archetype colour:</div>
+                <div class="archetype-swatch" id="aiTypeSuggestedSwatch" style="width: 48px; height: 48px; border-radius: var(--radius-sm);"></div>
+              </div>
+
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="aiTypeUseArchetypeBtn" data-i18n="aiType.useArchetypeBtn">Use this archetype</button>
+                <button class="btn btn-secondary" id="aiTypeCopyResultBtn" data-i18n="aiType.copyResultBtn">Copy result</button>
+                <button class="btn btn-ghost" id="aiTypeRetakeBtn" data-i18n="aiType.retakeBtn">Retake test</button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- CULTURE VIEW -->
@@ -1961,6 +2026,7 @@
                 <option value="">All types</option>
               </select>
               <div id="workCategoryChips" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+              <button class="btn btn-secondary btn-sm" onclick="massApplyWork()">Apply to all shown</button>
             </div>
           </div>
 
@@ -2013,10 +2079,30 @@
             <div id="workRolesList"></div>
           </div>
 
-          <div class="card">
+          <div class="card" style="margin-bottom: 24px;">
             <h2 style="font-size: 18px; margin-bottom: 16px;">Candidates</h2>
             <div id="workCandidatesList"></div>
           </div>
+
+          <div class="card" style="margin-bottom: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Companies</h2>
+            <div id="workCompaniesList"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Messages</h2>
+            <div id="workChatList"></div>
+            <div id="workChatThread"></div>
+          </div>
+        </section>
+
+        <!-- LEARN VIEW -->
+        <section id="learn" class="view" role="region" aria-labelledby="learn-title">
+          <div class="view-header">
+            <h1 class="view-title" id="learn-title" data-i18n="learn.title">Learn</h1>
+            <p class="view-intro" data-i18n="learn.intro">Master AI with an open curriculum — no paywalls, no lock-in.</p>
+          </div>
+          <div id="learnContent"></div>
         </section>
 
         <section id="account" class="view" role="region" aria-labelledby="account-title">
@@ -2200,7 +2286,7 @@
         <h2 class="modal-title" id="modalTitle">Edit Draft</h2>
         <button class="modal-close" id="modalClose" aria-label="Close modal">×</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="modalBody">
         <div class="form-group">
           <label class="form-label" for="draftText">Draft content</label>
           <textarea class="form-textarea" id="draftText" rows="8"></textarea>
@@ -2398,6 +2484,12 @@
           { id: 3, name: 'PT Kirim Cepat', industry: 'Logistics', size: '500+ employees', funding: 'Series A funded', rating: 4.2, verified: true },
           { id: 4, name: 'Sate Pak Kumis', industry: 'F&B', size: '10-50 employees', funding: 'Family business', rating: 4.8, verified: true }
         ],
+        companies: [
+          { id: 1, name: 'Kopi Nusantara', industry: 'F&B', size: '50-100 employees', funding: 'Family business', rating: 4.6, reviews: 128, verified: true, description: 'A growing coffee chain focused on quality and community.', openRoles: 2, logo: '☕' },
+          { id: 2, name: 'Elektronik Jaya', industry: 'Retail', size: '1-10 employees', funding: 'Family business', rating: 3.9, reviews: 42, verified: false, description: 'Local electronics retailer serving Bandung area.', openRoles: 1, logo: '📱' },
+          { id: 3, name: 'PT Kirim Cepat', industry: 'Logistics', size: '500+ employees', funding: 'Series A funded', rating: 4.2, reviews: 312, verified: true, description: 'Fast and reliable delivery service across Indonesia.', openRoles: 2, logo: '📦' },
+          { id: 4, name: 'Sate Pak Kumis', industry: 'F&B', size: '10-50 employees', funding: 'Family business', rating: 4.8, reviews: 89, verified: true, description: 'Traditional Indonesian cuisine with modern service.', openRoles: 1, logo: '🍢' }
+        ],
         candidates: [
           { id: 1, name: 'Dina Kusuma', headline: 'Experienced barista', location: 'Jakarta Selatan', match: 94, skills: ['Barista', 'Customer Service'], expectedSalary: 'Rp3.5 jt' },
           { id: 2, name: 'Rudi Hartono', headline: 'Motorbike courier', location: 'Tangerang', match: 88, skills: ['SIM C', 'Navigation'], expectedSalary: 'Rp4 jt' },
@@ -2405,10 +2497,255 @@
           { id: 4, name: 'Ahmad Fauzi', headline: 'Restaurant server', location: 'Yogyakarta', match: 79, skills: ['Service', 'Communication'], expectedSalary: 'Rp2.8 jt' },
           { id: 5, name: 'Maya Sari', headline: 'Sales & marketing', location: 'Jakarta', match: 75, skills: ['Sales', 'Communication'], expectedSalary: 'Rp5 jt' }
         ],
+        chats: [
+          { id: 1, companyId: 1, companyName: 'Kopi Nusantara', unread: 2, lastMessage: 'When can you start?', lastTime: '10:30 AM', messages: [{ from: 'them', text: 'Hi! We reviewed your application.', time: 'Yesterday' }, { from: 'me', text: 'Great! Looking forward to hearing from you.', time: 'Yesterday' }, { from: 'them', text: 'When can you start?', time: '10:30 AM' }] },
+          { id: 2, companyId: 3, companyName: 'PT Kirim Cepat', unread: 0, lastMessage: 'Thanks for your interest', lastTime: 'Yesterday', messages: [{ from: 'them', text: 'Thanks for your interest', time: 'Yesterday' }] },
+          { id: 3, companyId: 4, companyName: 'Sate Pak Kumis', unread: 1, lastMessage: 'Can you work weekends?', lastTime: '2 days ago', messages: [{ from: 'them', text: 'Can you work weekends?', time: '2 days ago' }] }
+        ],
         interests: [],
         applications: []
       }
     };
+
+    // === I18N ===
+    const I18N = {
+      currentLang: 'id',
+      dictionaries: {
+        id: {
+          'aiType.title': 'AI Type — Kenali cara kerjamu dengan AI',
+          'aiType.privacy': 'Privasi:',
+          'aiType.privacyText': 'Hasil tes ini bersifat pribadi, disimpan di Aura Anda, tidak pernah dibagikan ke employer, dan tidak digunakan untuk matching pekerjaan.',
+          'aiType.intro': 'Tes mandiri untuk mengenali bagaimana Anda bekerja dengan AI. 15 situasi → 5 tipe: Professor, Builder, Detective, Guardian, atau All-Rounder.',
+          'aiType.startBtn': 'Mulai Tes',
+          'aiType.progress': 'Situasi {n} dari {m}',
+          'aiType.resultLabel': 'Tipe AI Anda:',
+          'aiType.watchOut': 'Watch-out:',
+          'aiType.nextStep': 'Next step:',
+          'aiType.suggestedArchetype': 'Suggested archetype colour:',
+          'aiType.useArchetypeBtn': 'Use this archetype',
+          'aiType.copyResultBtn': 'Copy result',
+          'aiType.retakeBtn': 'Retake test',
+          'aiType.secondary': 'dengan streak {type}',
+          'aiType.copyTitle': 'Hasil AI Type Test - Orbis',
+          'aiType.copied': 'Hasil disalin ke clipboard!',
+          // Learn section
+          'nav.learn': 'Belajar',
+          'learn.title': 'Belajar',
+          'learn.intro': 'Kuasai AI dengan kurikulum terbuka — tanpa paywall, tanpa lock-in.',
+          'learn.greeting': 'Halo, {name}!',
+          'learn.nudge': '{lessons} pelajaran tersisa di Modul {module}',
+          'learn.nudgeStart': 'Mulai dari Modul 1',
+          'learn.progressTitle': 'Kemajuan Belajar',
+          'learn.progressSummary': '{completed} dari {total} pelajaran selesai ({percent}%)',
+          'learn.statsLessons': 'Pelajaran',
+          'learn.statsTime': 'Waktu',
+          'learn.statsStreak': 'Streak',
+          'learn.statsLast': 'Terakhir',
+          'learn.streakTitle': 'Streak 7 Hari',
+          'learn.streakCurrent': 'Saat ini: {days} hari',
+          'learn.streakRecord': 'Rekor: {record} hari',
+          'learn.streakGoal': 'Menuju {goal} hari',
+          'learn.streakToday': 'Hari ini',
+          'learn.tipTitle': 'Tip Hari Ini',
+          'learn.continueBtn': 'Lanjutkan Belajar',
+          'learn.startBtn': 'Mulai Belajar',
+          'learn.completeBtn': 'Tandai Selesai',
+          'learn.completed': 'Selesai',
+          'learn.locked': 'Terkunci',
+          'learn.available': 'Tersedia',
+          'learn.duration': '{mins} menit',
+          'learn.moduleQuiz': 'Kuis Modul',
+          'learn.badge': 'Lencana',
+          'learn.badges': 'Lencana',
+          'learn.badge.firstLesson': 'Pelajaran Pertama',
+          'learn.badge.module1': 'Modul 1 Selesai',
+          'learn.badge.streak3': 'Streak 3 Hari',
+          'learn.badge.fundamentals': 'Dasar Selesai',
+          'learn.notes': 'Catatan',
+          'learn.promptLibrary': 'Perpustakaan Prompt',
+          'learn.glossary': 'Glosarium',
+          'learn.practice': 'Praktik',
+          'learn.challenges': 'Tantangan',
+          'learn.community': 'Komunitas',
+          'learn.hub.academy': 'Academy',
+          'learn.hub.academyDesc': 'Jalur pembelajaran terstruktur',
+          'learn.hub.aiType': 'Tipe AI',
+          'learn.hub.aiTypeDesc': 'Kenali gaya belajarmu',
+          'learn.hub.prompts': 'Prompt Library',
+          'learn.hub.promptsDesc': 'Template siap pakai',
+          'learn.hub.safety': 'Safety Checklist',
+          'learn.hub.safetyDesc': 'Periksa sebelum deploy',
+          'learn.hub.tools': 'Tools',
+          'learn.hub.toolsDesc': 'Helper & praktik',
+          'learn.hub.community': 'Komunitas',
+          'learn.hub.communityDesc': 'Diskusi & berbagi',
+          'learn.workMap.title': 'Peta Kerja AI',
+          'learn.workMap.intro': 'Deskripsikan minggu kerjamu → temukan tugas yang bisa dibantu AI',
+          'learn.workMap.field': 'Bidang Pekerjaan',
+          'learn.workMap.fieldPlaceholder': 'Pilih bidang...',
+          'learn.workMap.description': 'Deskripsikan Minggumu',
+          'learn.workMap.descriptionPlaceholder': 'Apa yang kamu lakukan, seberapa sering, apa yang paling menyita waktu? (min. 80 karakter)',
+          'learn.workMap.tools': 'Tools yang Digunakan',
+          'learn.workMap.privacyNote': 'Semua diproses di perangkatmu; tidak ada yang dikirim ke mana pun.',
+          'learn.workMap.analyze': 'Analisis',
+          'learn.workMap.results': 'Hasil',
+          'learn.workMap.totalHours': '≈ {hours} jam/minggu bisa dihemat',
+          'learn.workMap.task': 'Tugas',
+          'learn.workMap.hoursSaved': '≈ {hours} jam/minggu',
+          'learn.workMap.prompt': 'Prompt Siap Copy',
+          'learn.workMap.learnMore': 'Pelajari Lebih Lanjut →',
+          'learn.workMap.copyPrompt': 'Salin Prompt',
+          'learn.workMap.copied': 'Prompt disalin!',
+          'learn.workMap.why': 'Mengapa ini muncul',
+          'learn.workMap.adopted': 'Sudah Dicoba',
+          'learn.workMap.save': 'Simpan',
+          'learn.workMap.export': 'Ekspor',
+          'learn.workMap.edit': 'Edit',
+          'learn.workMap.privacy': 'Privasi',
+          'aiType.langToggle': 'EN',
+          'aiType.langSwitching': 'Switching to {lang}...'
+        },
+        en: {
+          'aiType.title': 'AI Type — Know how you work with AI',
+          'aiType.privacy': 'Privacy:',
+          'aiType.privacyText': 'This test result is private, stored in your Aura, never shared with employers, and never used for job matching.',
+          'aiType.intro': 'Self-discovery quiz to understand how you work with AI. 15 situations → 5 types: Professor, Builder, Detective, Guardian, or All-Rounder.',
+          'aiType.startBtn': 'Start Test',
+          'aiType.progress': 'Situation {n} of {m}',
+          'aiType.resultLabel': 'Your AI Type:',
+          'aiType.watchOut': 'Watch-out:',
+          'aiType.nextStep': 'Next step:',
+          'aiType.suggestedArchetype': 'Suggested archetype colour:',
+          'aiType.useArchetypeBtn': 'Use this archetype',
+          'aiType.copyResultBtn': 'Copy result',
+          'aiType.retakeBtn': 'Retake test',
+          'aiType.secondary': 'with a streak of {type}',
+          'aiType.copyTitle': 'AI Type Test Result - Orbis',
+          'aiType.copied': 'Result copied to clipboard!',
+          // Learn section
+          'nav.learn': 'Learn',
+          'learn.title': 'Learn',
+          'learn.intro': 'Master AI with an open curriculum — no paywalls, no lock-in.',
+          'learn.greeting': 'Halo, {name}!',
+          'learn.nudge': '{lessons} lessons left in Module {module}',
+          'learn.nudgeStart': 'Start with Module 1',
+          'learn.progressTitle': 'Learning Progress',
+          'learn.progressSummary': '{completed} of {total} lessons completed ({percent}%)',
+          'learn.statsLessons': 'Lessons',
+          'learn.statsTime': 'Time',
+          'learn.statsStreak': 'Streak',
+          'learn.statsLast': 'Last',
+          'learn.streakTitle': '7-Day Streak',
+          'learn.streakCurrent': 'Current: {days} days',
+          'learn.streakRecord': 'Record: {record} days',
+          'learn.streakGoal': 'Toward {goal} days',
+          'learn.streakToday': 'Today',
+          'learn.tipTitle': 'Tip of the Day',
+          'learn.continueBtn': 'Continue Learning',
+          'learn.startBtn': 'Start Learning',
+          'learn.completeBtn': 'Mark Complete',
+          'learn.completed': 'Complete',
+          'learn.locked': 'Locked',
+          'learn.available': 'Available',
+          'learn.duration': '{mins} min',
+          'learn.moduleQuiz': 'Module Quiz',
+          'learn.badge': 'Badge',
+          'learn.badges': 'Badges',
+          'learn.badge.firstLesson': 'First Lesson',
+          'learn.badge.module1': 'Module 1 Complete',
+          'learn.badge.streak3': '3-Day Streak',
+          'learn.badge.fundamentals': 'Fundamentals Complete',
+          'learn.notes': 'Notes',
+          'learn.promptLibrary': 'Prompt Library',
+          'learn.glossary': 'Glossary',
+          'learn.practice': 'Practice',
+          'learn.challenges': 'Challenges',
+          'learn.community': 'Community',
+          'learn.hub.academy': 'Academy',
+          'learn.hub.academyDesc': 'Structured learning path',
+          'learn.hub.aiType': 'AI Type',
+          'learn.hub.aiTypeDesc': 'Know your learning style',
+          'learn.hub.prompts': 'Prompt Library',
+          'learn.hub.promptsDesc': 'Ready-to-use templates',
+          'learn.hub.safety': 'Safety Checklist',
+          'learn.hub.safetyDesc': 'Check before deploy',
+          'learn.hub.tools': 'Tools',
+          'learn.hub.toolsDesc': 'Helpers & practice',
+          'learn.hub.community': 'Community',
+          'learn.hub.communityDesc': 'Discuss & share',
+          'learn.workMap.title': 'Work Map (AI)',
+          'learn.workMap.intro': 'Describe your work week → find AI-helpable tasks',
+          'learn.workMap.field': 'Field of Work',
+          'learn.workMap.fieldPlaceholder': 'Select field...',
+          'learn.workMap.description': 'Describe Your Week',
+          'learn.workMap.descriptionPlaceholder': 'What do you do, how often, what takes most time? (min. 80 chars)',
+          'learn.workMap.tools': 'Tools You Use',
+          'learn.workMap.privacyNote': 'Everything is computed on your device; nothing is sent anywhere.',
+          'learn.workMap.analyze': 'Analyze',
+          'learn.workMap.results': 'Results',
+          'learn.workMap.totalHours': '≈ {hours} hrs/week you could reclaim',
+          'learn.workMap.task': 'Task',
+          'learn.workMap.hoursSaved': '≈ {hours} hrs/week',
+          'learn.workMap.prompt': 'Copy-Ready Prompt',
+          'learn.workMap.learnMore': 'Learn More →',
+          'learn.workMap.copyPrompt': 'Copy Prompt',
+          'learn.workMap.copied': 'Prompt copied!',
+          'learn.workMap.why': 'Why this appeared',
+          'learn.workMap.adopted': 'Tried',
+          'learn.workMap.save': 'Save',
+          'learn.workMap.export': 'Export',
+          'learn.workMap.edit': 'Edit',
+          'learn.workMap.privacy': 'Privacy',
+          'aiType.langToggle': 'ID',
+          'aiType.langSwitching': 'Switching to {lang}...'
+        }
+      }
+    };
+
+    function t(key, params = {}) {
+      const dict = I18N.dictionaries[I18N.currentLang] || I18N.dictionaries.id;
+      let text = dict[key] || I18N.dictionaries.id[key] || key;
+      Object.keys(params).forEach(p => {
+        text = text.replace(`{${p}}`, params[p]);
+      });
+      return text;
+    }
+
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+      });
+    }
+
+    // === AI TYPE TEST DATA ===
+    const AI_TYPE_SCENARIOS = [
+      { id: 1, aspect: 'fondasi', text_id: 'Sebelum menggunakan AI untuk tugas penting, Anda biasanya:', text_en: 'Before using AI for an important task, you:', options: [ { text_id: 'Mempelajari bagaimana model bekerja dan batasannya', text_en: 'Study how the model works and its limitations', type: 'professor' }, { text_id: 'Langsung mencoba dengan prompt sederhana', text_en: 'Jump in with a simple prompt', type: 'builder' }, { text_id: 'Mencari contoh prompt dari orang lain', text_en: 'Look for prompt examples from others', type: 'allrounder' }, { text_id: 'Memeriksa apakah data yang akan dimasukkan aman', text_en: 'Check if the data to input is safe', type: 'guardian' } ] },
+      { id: 2, aspect: 'praktik', text_id: 'AI memberikan jawaban yang terdengar meyakinkan. Anda:', text_en: 'AI gives an answer that sounds convincing. You:', options: [ { text_id: 'Menerima jawaban tersebut', text_en: 'Accept the answer', type: 'allrounder' }, { text_id: 'Meminta AI menjelaskan langkah-langkahnya', text_en: 'Ask AI to explain the steps', type: 'detective' }, { text_id: 'Mencoba prompt yang sama dengan variasi berbeda', text_en: 'Try the same prompt with variations', type: 'builder' }, { text_id: 'Memverifikasi dengan sumber eksternal', text_en: 'Verify with external sources', type: 'professor' } ] },
+      { id: 3, aspect: 'evaluasi', text_id: 'Anda menemukan inkonsistensi dalam output AI. Anda:', text_en: 'You find an inconsistency in AI output. You:', options: [ { text_id: 'Melaporkan bug ke penyedia AI', text_en: 'Report the bug to the AI provider', type: 'guardian' }, { text_id: 'Mencoba memahami mengapa ini terjadi', text_en: 'Try to understand why this happened', type: 'professor' }, { text_id: 'Mencoba prompt ulang dengan instruksi lebih jelas', text_en: 'Retry with clearer instructions', type: 'builder' }, { text_id: 'Meminta AI memeriksa ulang jawabannya', text_en: 'Ask AI to double-check its answer', type: 'detective' } ] },
+      { id: 4, aspect: 'etika', text_id: 'Rekan meminta bantuan Anda menggunakan AI untuk tugas yang ambigu secara etika. Anda:', text_en: 'A colleague asks for help using AI on an ethically ambiguous task. You:', options: [ { text_id: 'Membantu tanpa pertanyaan', text_en: 'Help without questions', type: 'allrounder' }, { text_id: 'Menanyakan tujuan dan konteksnya', text_en: 'Ask about the purpose and context', type: 'guardian' }, { text_id: 'Menjelaskan risiko potensial terlebih dahulu', text_en: 'Explain potential risks first', type: 'professor' }, { text_id: 'Menyarankan alternatif yang lebih aman', text_en: 'Suggest safer alternatives', type: 'detective' } ] },
+      { id: 5, aspect: 'praktik', text_id: 'Ketika belajar fitur AI baru, pendekatan Anda:', text_en: 'When learning a new AI feature, your approach:', options: [ { text_id: 'Membaca dokumentasi resmi', text_en: 'Read official documentation', type: 'professor' }, { text_id: 'Eksperimen langsung dengan kasus nyata', text_en: 'Experiment with real cases', type: 'builder' }, { text_id: 'Menonton tutorial dari praktisi', text_en: 'Watch tutorials from practitioners', type: 'allrounder' }, { text_id: 'Memahami batasan dan risiko keamanan', text_en: 'Understand limitations and security risks', type: 'guardian' } ] },
+      { id: 6, aspect: 'evaluasi', text_id: 'Output AI terlihat sempurna tapi Anda ragu. Anda:', text_en: 'AI output looks perfect but you are doubtful. You:', options: [ { text_id: 'Membandingkan dengan referensi tepercaya', text_en: 'Compare with trusted references', type: 'detective' }, { text_id: 'Menerima karena sudah terlihat bagus', text_en: 'Accept since it looks good', type: 'allrounder' }, { text_id: 'Menganalisis struktur dan logika', text_en: 'Analyze structure and logic', type: 'professor' }, { text_id: 'Menggunakan output dengan hati-hati', text_en: 'Use the output cautiously', type: 'guardian' } ] },
+      { id: 7, aspect: 'fondasi', text_id: 'Pendapat Anda tentang hallucination AI:', text_en: 'Your view on AI hallucinations:', options: [ { text_id: 'Wajar, asal kita tahu cara mendeteksinya', text_en: 'Normal, as long as we know how to detect', type: 'detective' }, { text_id: 'Masalah serius yang perlu dipahami', text_en: 'Serious issue to understand', type: 'professor' }, { text_id: 'Bisa diminimalkan dengan prompt yang tepat', text_en: 'Can be minimized with right prompts', type: 'builder' }, { text_id: 'Alasan untuk selalu verifikasi output', text_en: 'Reason to always verify output', type: 'guardian' } ] },
+      { id: 8, aspect: 'praktik', text_id: 'Dalam proyek tim, Anda biasanya:', text_en: 'In a team project, you usually:', options: [ { text_id: 'Membagi tugas AI untuk efisiensi', text_en: 'Divide AI tasks for efficiency', type: 'allrounder' }, { text_id: 'Memastikan semua memahami cara pakai AI', text_en: 'Ensure everyone understands AI usage', type: 'professor' }, { text_id: 'Membuat template prompt untuk tim', text_en: 'Create prompt templates for team', type: 'builder' }, { text_id: 'Menetapkan guideline penggunaan AI', text_en: 'Set AI usage guidelines', type: 'guardian' } ] },
+      { id: 9, aspect: 'evaluasi', text_id: 'Ketika AI salah, reaksi pertama Anda:', text_en: 'When AI is wrong, your first reaction:', options: [ { text_id: 'Mencari tahu akar penyebabnya', text_en: 'Find the root cause', type: 'professor' }, { text_id: 'Mencoba prompt yang berbeda', text_en: 'Try different prompts', type: 'builder' }, { text_id: 'Memeriksa asumsi input', text_en: 'Check input assumptions', type: 'detective' }, { text_id: 'Mencatat untuk referensi masa depan', text_en: 'Note for future reference', type: 'guardian' } ] },
+      { id: 10, aspect: 'etika', text_id: 'Pendapat Anda tentang penggunaan AI untuk konten kreatif:', text_en: 'Your view on using AI for creative content:', options: [ { text_id: 'Alat bantu, tapi kredit harus jelas', text_en: 'Tool, but credit must be clear', type: 'guardian' }, { text_id: 'Boleh asal ada sentuhan manusia', text_en: 'OK as long as there is human touch', type: 'allrounder' }, { text_id: 'Perlu memahami proses kreatif AI', text_en: 'Need to understand AI creative process', type: 'professor' }, { text_id: 'Eksperimen untuk temuan menarik', text_en: 'Experiment for interesting findings', type: 'builder' } ] },
+      { id: 11, aspect: 'fondasi', text_id: 'Ketika memilih model AI, prioritas Anda:', text_en: 'When choosing an AI model, your priority:', options: [ { text_id: 'Akurasi dan benchmark', text_en: 'Accuracy and benchmarks', type: 'professor' }, { text_id: 'Kemudahan integrasi', text_en: 'Ease of integration', type: 'builder' }, { text_id: 'Rekomendasi komunitas', text_en: 'Community recommendations', type: 'allrounder' }, { text_id: 'Kebijakan privasi dan keamanan', text_en: 'Privacy and security policies', type: 'guardian' } ] },
+      { id: 12, aspect: 'praktik', text_id: 'Workflow Anda dengan AI:', text_en: 'Your workflow with AI:', options: [ { text_id: 'Terstruktur dengan dokumentasi', text_en: 'Structured with documentation', type: 'professor' }, { text_id: 'Iteratif dan eksperimental', text_en: 'Iterative and experimental', type: 'builder' }, { text_id: 'Fleksibel sesuai kebutuhan', text_en: 'Flexible as needed', type: 'allrounder' }, { text_id: 'Dengan checkpoint verifikasi', text_en: 'With verification checkpoints', type: 'detective' } ] },
+      { id: 13, aspect: 'evaluasi', text_id: 'Ketika AI memberikan solusi tak terduga:', text_en: 'When AI gives an unexpected solution:', options: [ { text_id: 'Mengeksplorasi lebih lanjut', text_en: 'Explore further', type: 'builder' }, { text_id: 'Memvalidasi kebenarannya', text_en: 'Validate its correctness', type: 'detective' }, { text_id: 'Memahami logika di baliknya', text_en: 'Understand the logic behind', type: 'professor' }, { text_id: 'Menilai risiko implementasi', text_en: 'Assess implementation risks', type: 'guardian' } ] },
+      { id: 14, aspect: 'etika', text_id: 'Sikap Anda terhadap bias dalam AI:', text_en: 'Your attitude toward bias in AI:', options: [ { text_id: 'Aktif mencari dan mengoreksi', text_en: 'Actively seek and correct', type: 'detective' }, { text_id: 'Memahami sumber bias', text_en: 'Understand sources of bias', type: 'professor' }, { text_id: 'Menghindari penggunaan yang berisiko', text_en: 'Avoid risky usage', type: 'guardian' }, { text_id: 'Aware tapi tetap gunakan', text_en: 'Aware but still use', type: 'allrounder' } ] },
+      { id: 15, aspect: 'fondasi', text_id: 'Definisi Anda tentang "menggunakan AI dengan baik":', text_en: 'Your definition of "using AI well":', options: [ { text_id: 'Mencapai hasil dengan etis', text_en: 'Achieve results ethically', type: 'guardian' }, { text_id: 'Memahami kapan dan bagaimana pakai', text_en: 'Understand when and how to use', type: 'professor' }, { text_id: 'Bisa menghasilkan output berkualitas', text_en: 'Can produce quality output', type: 'builder' }, { text_id: 'Tahu cara verifikasi dan validasi', text_en: 'Know how to verify and validate', type: 'detective' } ] }
+    ];
+
+    const AI_TYPES = {
+      professor: { name_id: 'The Professor', name_en: 'The Professor', nickname_id: 'Sang Cendekia (Burung Hantu)', nickname_en: 'The Scholar (Owl)', oneliner_id: 'Memahami cara kerja AI sebelum mempercayainya', oneliner_en: 'Understands how AI works before trusting it', strengths_id: ['Analitis dan mendalam', 'Fokus pada pemahaman konseptual', 'Selalu verifikasi sumber'], strengths_en: ['Analytical and deep', 'Focus on conceptual understanding', 'Always verifies sources'], watchout_id: 'Bisa terlalu banyak analisis sebelum action', watchout_en: 'Can over-analyze before taking action', nextstep_id: 'Praktikkan "cukup baik" untuk tugas rutin', nextstep_en: 'Practice "good enough" for routine tasks', archetype: 'Indigo', archetypeColor: '#4F46E5' },
+      builder: { name_id: 'The Builder', name_en: 'The Builder', nickname_id: 'Sang Perakit (Lebah)', nickname_en: 'The Assembler (Bee)', oneliner_id: 'Belajar dengan membuat sesuatu yang nyata', oneliner_en: 'Learns by making real things', strengths_id: ['Praktis dan hasil-oriented', 'Cepat beradaptasi dengan tool baru', 'Fokus pada aplikasi nyata'], strengths_en: ['Practical and results-oriented', 'Quick to adapt to new tools', 'Focus on real applications'], watchout_id: 'Bisa melewatkan pemahaman mendalam', watchout_en: 'May skip deep understanding', nextstep_id: 'Luangkan waktu untuk refleksi setelah build', nextstep_en: 'Take time to reflect after building', archetype: 'Jade', archetypeColor: '#16A34A' },
+      detective: { name_id: 'The Detective', name_en: 'The Detective', nickname_id: 'Sang Penyidik (Kancil)', nickname_en: 'The Investigator (Mouse Deer)', oneliner_id: 'Memverifikasi, cross-check, berburu hallucination', oneliner_en: 'Verifies, cross-checks, hunts hallucinations', strengths_id: ['Detil dan teliti', 'Skeptis sehat', 'Ahli menemukan inkonsistensi'], strengths_en: ['Detailed and meticulous', 'Healthy skepticism', 'Expert at finding inconsistencies'], watchout_id: 'Bisa terlalu skeptis sampai lamban', watchout_en: 'Can be too skeptical, slowing down', nextstep_id: 'Trust pada area yang sudah terverifikasi', nextstep_en: 'Trust in verified areas', archetype: 'Cerulean', archetypeColor: '#0284C7' },
+      guardian: { name_id: 'The Guardian', name_en: 'The Guardian', nickname_id: 'Sang Penjaga (Komodo)', nickname_en: 'The Keeper (Komodo)', oneliner_id: 'Menjaga data, etika, dan penggunaan aman', oneliner_en: 'Guards data, ethics, and safe use', strengths_id: ['Etis dan bertanggung jawab', 'Aware risiko dan privasi', 'Melindungi tim dari bahaya'], strengths_en: ['Ethical and responsible', 'Aware of risks and privacy', 'Protects team from harm'], watchout_id: 'Bisa terlalu hati-hati sampai tidak action', watchout_en: 'Can be too cautious to act', nextstep_id: 'Balance risiko dengan opportunity', nextstep_en: 'Balance risk with opportunity', archetype: 'Stone', archetypeColor: '#64748B' },
+      allrounder: { name_id: 'The All-Rounder', name_en: 'The All-Rounder', nickname_id: 'Sang Serba-bisa (Monyet)', nickname_en: 'The Versatile (Monkey)', oneliner_id: 'Pakai AI untuk segala hal; balance speed & care', oneliner_en: 'Uses AI across everything; balances speed & care', strengths_id: ['Fleksibel dan adaptif', 'Bisa di banyak konteks', 'Natural collaborator'], strengths_en: ['Flexible and adaptive', 'Capable in many contexts', 'Natural collaborator'], watchout_id: 'Bisa kurang spesialisasi', watchout_en: 'May lack specialization', nextstep_id: 'Pilih 1-2 area untuk deep expertise', nextstep_en: 'Pick 1-2 areas for deep expertise', archetype: 'Teal', archetypeColor: '#0D9488' }
+    };
+
+    let aiTypeQuizState = { currentIndex: 0, answers: [], scores: { professor: 0, builder: 0, detective: 0, guardian: 0, allrounder: 0 } };
 
     // === UTILS ===
     const $ = (sel) => document.querySelector(sel);
@@ -3012,6 +3349,130 @@
       }
     }
 
+    // === AI TYPE QUIZ FUNCTIONS ===
+    function renderAiTypeQuiz() {
+      const notStarted = $('#aiTypeNotStarted');
+      const quiz = $('#aiTypeQuiz');
+      const result = $('#aiTypeResult');
+      if (state.aura?.aiType?.completed) { notStarted.style.display = 'none'; quiz.style.display = 'none'; result.style.display = 'block'; showAiTypeResult(state.aura.aiType); return; }
+      if (aiTypeQuizState.answers.length === 0) { notStarted.style.display = 'block'; quiz.style.display = 'none'; result.style.display = 'none'; } else { notStarted.style.display = 'none'; quiz.style.display = 'block'; result.style.display = 'none'; renderAiTypeQuestion(); }
+    }
+
+    function renderAiTypeQuestion() {
+      const scenario = AI_TYPE_SCENARIOS[aiTypeQuizState.currentIndex];
+      const text = I18N.currentLang === 'id' ? scenario.text_id : scenario.text_en;
+      $('#aiTypeScenarioText').textContent = text;
+      $('#aiTypeCounter').textContent = t('aiType.progress', { n: aiTypeQuizState.currentIndex + 1, m: AI_TYPE_SCENARIOS.length });
+      $('#aiTypeProgress').style.width = `${((aiTypeQuizState.currentIndex) / AI_TYPE_SCENARIOS.length) * 100}%`;
+      const optionsContainer = $('#aiTypeOptions');
+      optionsContainer.innerHTML = '';
+      scenario.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-secondary';
+        btn.style.justifyContent = 'flex-start';
+        btn.style.textAlign = 'left';
+        btn.style.whiteSpace = 'normal';
+        btn.textContent = I18N.currentLang === 'id' ? opt.text_id : opt.text_en;
+        btn.onclick = () => answerAiType(opt.type);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function startAiTypeQuiz() {
+      aiTypeQuizState = { currentIndex: 0, answers: [], scores: { professor: 0, builder: 0, detective: 0, guardian: 0, allrounder: 0 } };
+      $('#aiTypeNotStarted').style.display = 'none';
+      $('#aiTypeResult').style.display = 'none';
+      $('#aiTypeQuiz').style.display = 'block';
+      renderAiTypeQuestion();
+    }
+
+    function answerAiType(type) {
+      aiTypeQuizState.answers.push(type);
+      aiTypeQuizState.scores[type]++;
+      aiTypeQuizState.currentIndex++;
+      if (aiTypeQuizState.currentIndex >= AI_TYPE_SCENARIOS.length) { const result = calculateAiTypeResult(); state.aura.aiType = result; persist('aura'); renderAiTypeQuiz(); } else { renderAiTypeQuestion(); }
+    }
+
+    function calculateAiTypeResult() {
+      const scores = aiTypeQuizState.scores;
+      const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+      const primary = sorted[0][0];
+      const secondary = sorted[1][1] > 0 ? sorted[1][0] : null;
+      let primaryType = primary;
+      if (sorted[0][1] === sorted[1][1]) {
+        const aspectScores = { professor: 0, builder: 0, detective: 0, guardian: 0, allrounder: 0 };
+        aiTypeQuizState.answers.forEach((answer, idx) => { if (idx < AI_TYPE_SCENARIOS.length) { aspectScores[answer]++; } });
+        const aspectSorted = Object.entries(aspectScores).sort((a, b) => b[1] - a[1]);
+        primaryType = aspectSorted[0][0];
+      }
+      return { completed: true, primary: primaryType, secondary: secondary, scores: scores, completedAt: Date.now(), lang: I18N.currentLang };
+    }
+
+    function showAiTypeResult(result) {
+      const primary = AI_TYPES[result.primary];
+      const secondary = result.secondary ? AI_TYPES[result.secondary] : null;
+      const lang = result.lang || 'id';
+      $('#aiTypePrimaryName').innerHTML = `${lang === 'id' ? primary.name_id : primary.name_en}<br><span style="font-size: 14px; font-weight: 400; color: var(--muted);">${lang === 'id' ? primary.nickname_id : primary.nickname_en}</span>`;
+      if (secondary) { $('#aiTypeSecondaryName').textContent = t('aiType.secondary', { type: lang === 'id' ? secondary.name_id : secondary.name_en }); $('#aiTypeSecondaryName').style.display = 'block'; } else { $('#aiTypeSecondaryName').style.display = 'none'; }
+      const strengths = lang === 'id' ? primary.strengths_id : primary.strengths_en;
+      $('#aiTypeStrengths').innerHTML = `<strong>${lang === 'id' ? primary.oneliner_id : primary.oneliner_en}</strong><br><br>${strengths.map(s => '• ' + s).join('<br>')}`;
+      $('#aiTypeWatchOut').textContent = lang === 'id' ? primary.watchout_id : primary.watchout_en;
+      $('#aiTypeNextStep').textContent = lang === 'id' ? primary.nextstep_id : primary.nextstep_en;
+      const swatch = $('#aiTypeSuggestedSwatch');
+      swatch.style.background = primary.archetypeColor;
+      swatch.setAttribute('aria-label', primary.archetype);
+      swatch.dataset.color = primary.archetypeColor;
+      swatch.dataset.name = primary.archetype;
+    }
+
+    function useAiTypeArchetype() {
+      const swatch = $('#aiTypeSuggestedSwatch');
+      const color = swatch.dataset.color;
+      const name = swatch.dataset.name;
+      if (!state.aura) state.aura = {};
+      state.aura.archetype = { name, color };
+      $$('.archetype-swatch').forEach(s => { const isSelected = s.dataset.name === name; s.classList.toggle('selected', isSelected); s.setAttribute('aria-checked', isSelected ? 'true' : 'false'); });
+      $('#archetypeName').textContent = name;
+      persist('aura');
+      showToast(I18N.currentLang === 'id' ? 'Archetype diterapkan!' : 'Archetype applied!');
+    }
+
+    function copyAiTypeResult() {
+      const result = state.aura?.aiType;
+      if (!result) return;
+      const primary = AI_TYPES[result.primary];
+      const secondary = result.secondary ? AI_TYPES[result.secondary] : null;
+      const lang = result.lang || 'id';
+      let text = `${t('aiType.copyTitle')}\n\n`;
+      text += `${lang === 'id' ? 'Tipe AI' : 'AI Type'}: ${lang === 'id' ? primary.name_id : primary.name_en} (${lang === 'id' ? primary.nickname_id : primary.nickname_en})\n`;
+      if (secondary) { text += `${t('aiType.secondary', { type: lang === 'id' ? secondary.name_id : secondary.name_en })}\n\n`; }
+      text += `\n${lang === 'id' ? primary.oneliner_id : primary.oneliner_en}\n\n`;
+      text += `${lang === 'id' ? 'Kekuatan:' : 'Strengths:'}\n`;
+      (lang === 'id' ? primary.strengths_id : primary.strengths_en).forEach(s => { text += `• ${s}\n`; });
+      text += `\n${lang === 'id' ? 'Watch-out:' : 'Watch-out:'} ${lang === 'id' ? primary.watchout_id : primary.watchout_en}\n`;
+      text += `${lang === 'id' ? 'Next step:' : 'Next step:'} ${lang === 'id' ? primary.nextstep_id : primary.nextstep_en}\n`;
+      text += `\nvia Orbis`;
+      navigator.clipboard.writeText(text).then(() => { showToast(t('aiType.copied')); });
+    }
+
+    function retakeAiTypeQuiz() {
+      if (state.aura?.aiType) { state.aura.aiType = null; }
+      aiTypeQuizState = { currentIndex: 0, answers: [], scores: { professor: 0, builder: 0, detective: 0, guardian: 0, allrounder: 0 } };
+      renderAiTypeQuiz();
+    }
+
+    function initAiTypeQuiz() {
+      const startBtn = $('#startAiTypeBtn');
+      const useArchetypeBtn = $('#aiTypeUseArchetypeBtn');
+      const copyResultBtn = $('#aiTypeCopyResultBtn');
+      const retakeBtn = $('#aiTypeRetakeBtn');
+      if (startBtn) startBtn.onclick = startAiTypeQuiz;
+      if (useArchetypeBtn) useArchetypeBtn.onclick = useAiTypeArchetype;
+      if (copyResultBtn) copyResultBtn.onclick = copyAiTypeResult;
+      if (retakeBtn) retakeBtn.onclick = retakeAiTypeQuiz;
+      renderAiTypeQuiz();
+    }
+
     function workFilteredRoles() {
       const city = ($('#workFilterCity') && $('#workFilterCity').value) || '';
       const type = ($('#workFilterType') && $('#workFilterType').value) || '';
@@ -3102,6 +3563,9 @@
               </div>
             `).join('');
       }
+
+      renderWorkCompanies();
+      renderWorkChat();
     }
 
     function applyWork(roleId) {
@@ -3123,6 +3587,226 @@
       persist('audit');
       showToast('Applied — added to your commitments and Today');
       renderWork();
+    }
+
+    function massApplyWork() {
+      const roles = workFilteredRoles();
+      const applied = state.work?.applications || [];
+      let count = 0;
+      roles.forEach(r => {
+        if (!applied.includes(r.id)) {
+          state.work.applications.push(r.id);
+          const stamp = Date.now() + r.id;
+          state.commitments = state.commitments || [];
+          state.commitments.push({ id: 'c' + stamp, text: 'Application: ' + r.title + ' at ' + r.company, with: r.company, date: '', status: 'open', confidence: 'established', source: 'Orbis Work' });
+          state.todayItems = state.todayItems || [];
+          state.todayItems.push({ id: 'q' + stamp, type: 'commitment', subject: 'Follow up: ' + r.title + ' at ' + r.company, reason: 'You applied via Orbis Work', source: r.company, confidence: 'Suggested — explicit', committed: false, snoozed: false, dismissed: false, hasDate: false });
+          state.auditLog = state.auditLog || [];
+          state.auditLog.unshift({ actor: 'you', action: 'mass-applied to role', object: r.title + ' @ ' + r.company, time: new Date().toISOString() });
+          count++;
+        }
+      });
+      if (count > 0) {
+        persist('work');
+        persist('commitments');
+        persist('queue');
+        persist('audit');
+        showToast('Applied to ' + count + ' role' + (count === 1 ? '' : 's') + ' — added to commitments and Today');
+        renderWork();
+      } else {
+        showToast('Already applied to all shown roles');
+      }
+    }
+
+    function renderWorkCompanies() {
+      const container = $('#workCompaniesList');
+      if (!container) return;
+      const companies = state.work?.companies || [];
+      container.innerHTML = companies.length === 0
+        ? '<div style="color: var(--muted);">No companies yet.</div>'
+        : companies.map(c => `
+            <div class="card" style="margin-bottom: 12px; cursor: pointer;" onclick="openCompanyPage(${c.id})">
+              <div class="card-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="font-size: 28px;">${c.logo || '🏢'}</div>
+                  <div>
+                    <div class="card-title">${escapeHtml(c.name)}${c.verified ? ' <span class="badge badge-established">✓ Verified</span>' : ''}</div>
+                    <div class="card-subtitle">${escapeHtml(c.industry)} · ${escapeHtml(c.size)} · ⭐ ${c.rating} (${c.reviews} reviews)</div>
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 12px; color: var(--brand); font-weight: 600;">${c.openRoles} open role${c.openRoles === 1 ? '' : 's'}</div>
+                  <div style="font-size: 11px; color: var(--muted);">${escapeHtml(c.funding)}</div>
+                </div>
+              </div>
+              <p style="font-size: 14px; color: var(--muted);">${escapeHtml(c.description || '')}</p>
+            </div>
+          `).join('');
+    }
+
+    function openCompanyPage(companyId) {
+      const company = (state.work?.companies || []).find(c => c.id === companyId);
+      if (!company) return;
+      const openRoles = (state.work?.roles || []).filter(r => r.company === company.name);
+      $('#modalTitle').textContent = company.name;
+      $('#modalBody').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+          <div style="font-size: 48px;">${company.logo || '🏢'}</div>
+          <div>
+            <div style="font-size: 20px; font-weight: 700;">${escapeHtml(company.name)}${company.verified ? ' <span class="badge badge-established">✓ Verified</span>' : ''}</div>
+            <div style="font-size: 14px; color: var(--muted);">${escapeHtml(company.industry)} · ${escapeHtml(company.size)} · ${escapeHtml(company.funding)}</div>
+            <div style="font-size: 14px; color: var(--muted);">⭐ ${company.rating} (${company.reviews} reviews)</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">About</label>
+          <p style="font-size: 14px; line-height: 1.6;">${escapeHtml(company.description || '')}</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Open Roles (${openRoles.length})</label>
+          ${openRoles.length === 0 ? '<p style="font-size: 14px; color: var(--muted);">No open roles at this company.</p>' : openRoles.map(r => `
+            <div class="card" style="margin-bottom: 8px;">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">${escapeHtml(r.title)}</div>
+                  <div class="card-subtitle">${escapeHtml(r.location)} · ${escapeHtml(r.type)}</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-weight: 700; color: var(--brand);">${escapeHtml(r.salary || '')}</div>
+                  <div style="font-size: 12px; color: var(--muted);">${r.match || 0}% match</div>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="applyWork(${r.id}); closeModal();">Apply</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      openModal();
+    }
+
+    let currentChatFilter = 'All';
+    let currentChatId = null;
+
+    function renderWorkChat() {
+      const container = $('#workChatList');
+      if (!container) return;
+      const chats = state.work?.chats || [];
+      const filtered = currentChatFilter === 'All' ? chats :
+                       currentChatFilter === 'Unread' ? chats.filter(c => c.unread > 0) :
+                       currentChatFilter === 'New' ? chats.filter(c => c.messages.length <= 2) :
+                       chats.filter(c => c.messages.some(m => m.text.toLowerCase().includes('interview')));
+      container.innerHTML = `
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+          <button class="badge ${currentChatFilter === 'All' ? 'badge-established' : 'badge-proposed'}" style="cursor:pointer;" onclick="setChatFilter('All')">All</button>
+          <button class="badge ${currentChatFilter === 'Unread' ? 'badge-established' : 'badge-proposed'}" style="cursor:pointer;" onclick="setChatFilter('Unread')">Unread</button>
+          <button class="badge ${currentChatFilter === 'New' ? 'badge-established' : 'badge-proposed'}" style="cursor:pointer;" onclick="setChatFilter('New')">New</button>
+          <button class="badge ${currentChatFilter === 'Interview' ? 'badge-established' : 'badge-proposed'}" style="cursor:pointer;" onclick="setChatFilter('Interview')">Interview</button>
+        </div>
+        ${filtered.length === 0 ? '<div style="color: var(--muted); padding: 12px;">No conversations match this filter.</div>' : filtered.map(c => `
+          <div class="card" style="margin-bottom: 12px; cursor: pointer; ${c.unread > 0 ? 'border-left: 3px solid var(--brand-600);' : ''}" onclick="openChatThread(${c.id})">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${escapeHtml(c.companyName)}${c.unread > 0 ? ' <span class="badge badge-proposed">' + c.unread + ' new</span>' : ''}</div>
+                <div class="card-subtitle">${escapeHtml(c.lastMessage || 'No messages yet')}</div>
+              </div>
+              <div style="text-align: right; font-size: 12px; color: var(--muted);">${escapeHtml(c.lastTime || '')}</div>
+            </div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function setChatFilter(filter) {
+      currentChatFilter = filter;
+      renderWorkChat();
+    }
+
+    const chatTemplates = [
+      'Thank you for reaching out!',
+      'I am available for an interview.',
+      'Could you share more details about the role?',
+      'What is the expected start date?',
+      'I am interested in learning more.'
+    ];
+
+    function openChatThread(chatId) {
+      currentChatId = chatId;
+      const chat = (state.work?.chats || []).find(c => c.id === chatId);
+      if (!chat) return;
+      chat.unread = 0;
+      persist('work');
+      const thread = $('#workChatThread');
+      if (!thread) return;
+      thread.innerHTML = `
+        <div class="card" style="margin-top: 12px;">
+          <div class="card-header">
+            <div class="card-title">Chat with ${escapeHtml(chat.companyName)}</div>
+            <button class="btn btn-ghost btn-sm" onclick="closeChatThread()">×</button>
+          </div>
+          <div style="max-height: 300px; overflow-y: auto; margin-bottom: 12px; padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm);">
+            ${(chat.messages || []).map(m => `
+              <div style="margin-bottom: 8px; ${m.from === 'me' ? 'text-align: right;' : ''}">
+                <span style="display: inline-block; padding: 8px 12px; background: ${m.from === 'me' ? 'var(--brand-50)' : 'var(--surface)'}; border-radius: var(--radius-sm); font-size: 14px;">${escapeHtml(m.text)}</span>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">${escapeHtml(m.time)}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+            ${chatTemplates.map(t => `<button class="badge badge-proposed" style="cursor:pointer;" onclick="sendChatMessage('${t.replace(/'/g, "\\'")}')">${escapeHtml(t)}</button>`).join('')}
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="chatMessageInput" placeholder="Type a message..." style="flex: 1;">
+            <button class="btn btn-primary btn-sm" onclick="sendChatMessageFromInput()">Send</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="chatAction('call')">📞 Call</button>
+            <button class="btn btn-secondary btn-sm" onclick="chatAction('share')">📤 Share contact</button>
+            <button class="btn btn-secondary btn-sm" onclick="chatAction('resume')">📄 Send résumé</button>
+            <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="chatAction('not-interested')">Not interested</button>
+          </div>
+        </div>
+      `;
+      renderWorkChat();
+    }
+
+    function closeChatThread() {
+      currentChatId = null;
+      const thread = $('#workChatThread');
+      if (thread) thread.innerHTML = '';
+    }
+
+    function sendChatMessage(text) {
+      if (!currentChatId || !text) return;
+      const chat = (state.work?.chats || []).find(c => c.id === currentChatId);
+      if (!chat) return;
+      chat.messages.push({ from: 'me', text: text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+      chat.lastMessage = text;
+      chat.lastTime = 'Just now';
+      persist('work');
+      openChatThread(currentChatId);
+      showToast('Message sent');
+    }
+
+    function sendChatMessageFromInput() {
+      const input = $('#chatMessageInput');
+      if (input && input.value.trim()) {
+        sendChatMessage(input.value.trim());
+        input.value = '';
+      }
+    }
+
+    function chatAction(action) {
+      if (!currentChatId) return;
+      const chat = (state.work?.chats || []).find(c => c.id === currentChatId);
+      if (!chat) return;
+      const stamp = Date.now();
+      state.auditLog = state.auditLog || [];
+      state.auditLog.unshift({ actor: 'you', action: 'chat action: ' + action, object: chat.companyName, time: new Date().toISOString() });
+      persist('audit');
+      showToast('Action recorded: ' + action);
+      if (action === 'not-interested') {
+        closeChatThread();
+      }
     }
 
     function renderPrivacy() {
@@ -3587,17 +4271,20 @@
     }
 
     // === MODAL ===
+    function openModal() {
+      $('#modalOverlay').classList.add('show');
+    }
+
+    function closeModal() {
+      $('#modalOverlay').classList.remove('show');
+    }
+
     function initModal() {
       const overlay = $('#modalOverlay');
       const closeBtn = $('#modalClose');
       const cancelBtn = $('#modalCancel');
       const copyBtn = $('#modalCopy');
       const sendBtn = $('#modalSend');
-
-      function closeModal() {
-        overlay.classList.remove('show');
-        currentDraftId = null;
-      }
 
       closeBtn.addEventListener('click', closeModal);
       cancelBtn.addEventListener('click', closeModal);
@@ -3916,8 +4603,297 @@
       }
     }
 
+    // === LEARN SECTION (MOBILE) ===
+    const LEARN_TIPS = [
+      { id: 'tip-01', text: { en: "Start with a clear role: 'You are an expert [role]. Help me [task].'", id: "Mulai dengan peran yang jelas: 'Anda ahli [peran]. Bantu saya [tugas].'" } },
+      { id: 'tip-02', text: { en: "Use 'Think step-by-step' for complex problems.", id: "Gunakan 'Pikirkan langkah demi langkah' untuk masalah kompleks." } },
+      { id: 'tip-03', text: { en: "Provide examples: 'Like this: [example]' is more reliable.", id: "Berikan contoh: 'Seperti ini: [contoh]' lebih andal." } },
+      { id: 'tip-04', text: { en: "Set constraints early: word limits, format, tone.", id: "Atur batasan sejak awal: batas kata, format, nada." } },
+      { id: 'tip-05', text: { en: "Ask AI to critique itself: 'Review your answer for errors'.", id: "Minta AI mengkritik dirinya: 'Tinjau jawaban untuk kesalahan'." } }
+    ];
+
+    const LEARN_MODULES = [
+      { id: 'mod-01', title: { en: 'AI Fundamentals', id: 'Dasar AI' }, desc: { en: 'Tokens, context, temperature.', id: 'Token, konteks, temperature.' }, duration: 15, status: 'available', lessons: [
+        { id: 'les-01-01', title: { en: 'What Are Tokens?', id: 'Apa Token?' }, concept: { en: 'Tokens are basic text units AI processes.', id: 'Token unit teks dasar AI proses.' }, prompt: { en: 'Explain [CONCEPT] using everyday analogy.', id: 'Jelaskan [KONSEP] dengan analogi sehari-hari.' } },
+        { id: 'les-01-02', title: { en: 'Context Windows', id: 'Jendela Konteks' }, concept: { en: 'Max text AI can process at once.', id: 'Teks maksimal AI proses sekaligus.' }, prompt: { en: 'Summarize in [N] words.', id: 'Ringkas dalam [N] kata.' } }
+      ]},
+      { id: 'mod-02', title: { en: 'Prompt Engineering', id: 'Rekayasa Prompt' }, desc: { en: 'System prompts, few-shot.', id: 'System prompt, few-shot.' }, duration: 20, status: 'available', lessons: [
+        { id: 'les-02-01', title: { en: 'System Prompts', id: 'System Prompt' }, concept: { en: 'Set AI behavior for conversation.', id: 'Atur perilaku AI untuk percakapan.' }, prompt: { en: 'You are [ROLE]. Task: [TASK].', id: 'Anda [PERAN]. Tugas: [TUGAS].' } },
+        { id: 'les-02-02', title: { en: 'Few-Shot Learning', id: 'Few-Shot' }, concept: { en: 'Teach AI with examples.', id: 'Ajari AI dengan contoh.' }, prompt: { en: 'Follow examples:\nInput: [X] → Output: [Y]', id: 'Ikuti contoh:\nInput: [X] → Output: [Y]' } }
+      ]},
+      { id: 'mod-03', title: { en: 'AI Safety', id: 'Keamanan AI' }, desc: { en: 'Bias, privacy, verification.', id: 'Bias, privasi, verifikasi.' }, duration: 18, status: 'available', lessons: [
+        { id: 'les-03-01', title: { en: 'Understanding Bias', id: 'Memahami Bias' }, concept: { en: 'AI reproduces training biases.', id: 'AI reproduksi bias pelatihan.' }, prompt: { en: 'Review for biases, suggest revisions.', id: 'Tinjau bias, sarankan revisi.' } },
+        { id: 'les-03-02', title: { en: 'Privacy & PII', id: 'Privasi & PII' }, concept: { en: 'Never share PII with AI.', id: 'Jangan berbagi PII dengan AI.' }, prompt: { en: 'Replace PII with [NAME], [PHONE].', id: 'Ganti PII dengan [NAMA], [TELEPON].' } }
+      ]},
+      { id: 'mod-04', title: { en: 'Advanced Techniques', id: 'Teknik Lanjutan' }, desc: { en: 'Chain-of-thought, tools.', id: 'Chain-of-thought, alat.' }, duration: 25, status: 'locked', lessons: [] },
+      { id: 'mod-05', title: { en: 'Model Adaptations', id: 'Adaptasi Model' }, desc: { en: 'Claude, GPT, Gemini tips.', id: 'Tips Claude, GPT, Gemini.' }, duration: 22, status: 'locked', lessons: [] },
+      { id: 'mod-06', title: { en: 'Real Workflows', id: 'Workflow Nyata' }, desc: { en: 'Email, docs, code.', id: 'Email, dokumen, kode.' }, duration: 30, status: 'locked', lessons: [] },
+      { id: 'mod-07', title: { en: 'Team Collaboration', id: 'Kolaborasi Tim' }, desc: { en: 'Shared prompts.', id: 'Prompt bersama.' }, duration: 20, status: 'locked', lessons: [] },
+      { id: 'mod-08', title: { en: 'Capstone', id: 'Proyek Akhir' }, desc: { en: 'Build AI project.', id: 'Bangun proyek AI.' }, duration: 60, status: 'locked', lessons: [] }
+    ];
+
+    const WORK_MAP_TASKS = [
+      { id: 'wm-01', fields: ['admin', 'sales'], keywords: { en: ['email', 'report', 'meeting', 'schedule'], id: ['email', 'laporan', 'rapat', 'jadwal'] }, tools: ['Excel', 'Word', 'Email'], hours: 2, prompt: { en: 'Summarize meeting notes into action items:\n\n[NOTES]', id: 'Ringkas catatan rapat jadi action item:\n\n[CATATAN]' }, moduleId: 'mod-01' },
+      { id: 'wm-02', fields: ['sales', 'marketing'], keywords: { en: ['customer', 'client', 'chat', 'reply'], id: ['pelanggan', 'klien', 'chat', 'balas'] }, tools: ['WhatsApp', 'Email'], hours: 3, prompt: { en: 'Draft professional response to customer:\n\n[INQUIRY]', id: 'Buat respons profesional untuk pelanggan:\n\n[PERTANYAAN]' }, moduleId: 'mod-02' },
+      { id: 'wm-03', fields: ['finance', 'admin'], keywords: { en: ['invoice', 'receipt', 'expense', 'budget'], id: ['invoice', 'kwitansi', 'pengeluaran', 'anggaran'] }, tools: ['Excel', 'Notion'], hours: 2.5, prompt: { en: 'Categorize expenses, flag unusual:\n\n[EXPENSES]', id: 'Kategorikan pengeluaran, flag tidak biasa:\n\n[PENGELUARAN]' }, moduleId: 'mod-03' },
+      { id: 'wm-04', fields: ['design', 'marketing'], keywords: { en: ['design', 'social', 'post', 'content'], id: ['desain', 'sosial', 'posting', 'konten'] }, tools: ['Canva', 'Instagram'], hours: 4, prompt: { en: 'Generate 5 social post ideas for [TOPIC] with hooks.', id: 'Hasilkan 5 ide posting untuk [TOPIK] dengan hook.' }, moduleId: 'mod-02' },
+      { id: 'wm-05', fields: ['developer', 'it'], keywords: { en: ['code', 'debug', 'test', 'review'], id: ['kode', 'debug', 'test', 'review'] }, tools: ['Notion'], hours: 5, prompt: { en: 'Review code for bugs, suggest improvements:\n\n[CODE]', id: 'Review kode untuk bug, saran perbaikan:\n\n[KODE]' }, moduleId: 'mod-04' },
+      { id: 'wm-06', fields: ['educator'], keywords: { en: ['lesson', 'student', 'curriculum', 'teach'], id: ['pelajaran', 'siswa', 'kurikulum', 'ajar'] }, tools: ['PowerPoint', 'Notion'], hours: 3.5, prompt: { en: 'Create lesson plan for [TOPIC] with objectives and activities.', id: 'Buat rencana pelajaran untuk [TOPIK] dengan tujuan dan aktivitas.' }, moduleId: 'mod-01' },
+      { id: 'wm-07', fields: ['freelancer'], keywords: { en: ['proposal', 'contract', 'invoice', 'client'], id: ['proposal', 'kontrak', 'invoice', 'klien'] }, tools: ['Word', 'Email'], hours: 2, prompt: { en: 'Draft freelance proposal for [PROJECT] with timeline and pricing.', id: 'Buat proposal freelance untuk [PROYEK] dengan timeline dan harga.' }, moduleId: 'mod-02' },
+      { id: 'wm-08', fields: ['admin'], keywords: { en: ['document', 'file', 'organize', 'archive'], id: ['dokumen', 'file', 'atur', 'arsip'] }, tools: ['Excel', 'Word'], hours: 1.5, prompt: { en: 'Organize these files into categories with naming convention.', id: 'Atur file ini ke kategori dengan konvensi nama.' }, moduleId: 'mod-01' },
+      { id: 'wm-09', fields: ['marketing'], keywords: { en: ['campaign', 'analytics', 'roi', 'conversion'], id: ['kampanye', 'analitik', 'roi', 'konversi'] }, tools: ['Excel', 'Notion'], hours: 4, prompt: { en: 'Analyze campaign performance, suggest optimizations.', id: 'Analisis performa kampanye, saran optimasi.' }, moduleId: 'mod-03' },
+      { id: 'wm-10', fields: ['sales'], keywords: { en: ['pipeline', 'lead', 'follow-up', 'close'], id: ['pipeline', 'lead', 'tindak-lanjut', 'close'] }, tools: ['Excel', 'Email'], hours: 3, prompt: { en: 'Prioritize leads by likelihood to close with reasoning.', id: 'Prioritaskan lead berdasarkan kemungkinan close dengan alasan.' }, moduleId: 'mod-02' },
+      { id: 'wm-11', fields: ['developer'], keywords: { en: ['api', 'endpoint', 'documentation', 'integrate'], id: ['api', 'endpoint', 'dokumentasi', 'integrasi'] }, tools: ['Notion'], hours: 4, prompt: { en: 'Document API endpoints with examples and error codes.', id: 'Dokumentasi endpoint API dengan contoh dan kode error.' }, moduleId: 'mod-04' },
+      { id: 'wm-12', fields: ['finance'], keywords: { en: ['forecast', 'revenue', 'projection', 'cashflow'], id: ['forecast', 'pendapatan', 'proyeksi', 'cashflow'] }, tools: ['Excel'], hours: 3, prompt: { en: 'Create 3-month revenue forecast based on historical data.', id: 'Buat forecast pendapatan 3 bulan berdasarkan data historis.' }, moduleId: 'mod-03' },
+      { id: 'wm-13', fields: ['design'], keywords: { en: ['mockup', 'wireframe', 'prototype', 'ux'], id: ['mockup', 'wireframe', 'prototype', 'ux'] }, tools: ['Canva'], hours: 5, prompt: { en: 'Review wireframe for UX issues, suggest improvements.', id: 'Review wireframe untuk masalah UX, saran perbaikan.' }, moduleId: 'mod-02' },
+      { id: 'wm-14', fields: ['educator'], keywords: { en: ['quiz', 'assessment', 'grade', 'rubric'], id: ['kuis', 'asesmen', 'nilai', 'rubrik'] }, tools: ['PowerPoint', 'Word'], hours: 2, prompt: { en: 'Create quiz questions with rubric for [TOPIC].', id: 'Buat pertanyaan kuis dengan rubrik untuk [TOPIK].' }, moduleId: 'mod-01' },
+      { id: 'wm-15', fields: ['freelancer'], keywords: { en: ['portfolio', 'case study', 'testimonial'], id: ['portofolio', 'studi kasus', 'testimoni'] }, tools: ['Canva', 'Word'], hours: 2.5, prompt: { en: 'Write case study for [PROJECT] with problem, solution, results.', id: 'Tulis studi kasus untuk [PROYEK] dengan masalah, solusi, hasil.' }, moduleId: 'mod-02' },
+      { id: 'wm-16', fields: ['admin', 'finance'], keywords: { en: ['payroll', 'timesheet', 'attendance'], id: ['payroll', 'timesheet', 'kehadiran'] }, tools: ['Excel'], hours: 2, prompt: { en: 'Calculate payroll from timesheets with overtime.', id: 'Hitung payroll dari timesheet dengan lembur.' }, moduleId: 'mod-03' },
+      { id: 'wm-17', fields: ['marketing'], keywords: { en: ['seo', 'keyword', 'meta', 'backlink'], id: ['seo', 'keyword', 'meta', 'backlink'] }, tools: ['Notion'], hours: 3, prompt: { en: 'Generate SEO meta descriptions for these pages.', id: 'Hasilkan meta description SEO untuk halaman ini.' }, moduleId: 'mod-02' },
+      { id: 'wm-18', fields: ['developer'], keywords: { en: ['refactor', 'optimize', 'performance'], id: ['refactor', 'optimasi', 'performa'] }, tools: ['Notion'], hours: 4, prompt: { en: 'Identify performance bottlenecks in this code.', id: 'Identifikasi bottleneck performa di kode ini.' }, moduleId: 'mod-04' },
+      { id: 'wm-19', fields: ['sales'], keywords: { en: ['presentation', 'pitch', 'demo'], id: ['presentasi', 'pitch', 'demo'] }, tools: ['PowerPoint'], hours: 3, prompt: { en: 'Create sales pitch deck outline for [PRODUCT].', id: 'Buat outline deck pitch sales untuk [PRODUK].' }, moduleId: 'mod-02' },
+      { id: 'wm-20', fields: ['design'], keywords: { en: ['brand', 'guideline', 'style', 'logo'], id: ['brand', 'pedoman', 'gaya', 'logo'] }, tools: ['Canva'], hours: 4, prompt: { en: 'Review brand guidelines for consistency issues.', id: 'Review pedoman brand untuk masalah konsistensi.' }, moduleId: 'mod-02' },
+      { id: 'wm-21', fields: ['educator'], keywords: { en: ['syllabus', 'objective', 'outcome'], id: ['silabus', 'tujuan', 'hasil'] }, tools: ['Word'], hours: 2.5, prompt: { en: 'Draft course syllabus with learning outcomes.', id: 'Buat silabus kursus dengan hasil pembelajaran.' }, moduleId: 'mod-01' },
+      { id: 'wm-22', fields: ['freelancer'], keywords: { en: ['negotiate', 'rate', 'scope'], id: ['negosiasi', 'rate', 'scope'] }, tools: ['Email', 'WhatsApp'], hours: 1.5, prompt: { en: 'Draft negotiation email for rate increase.', id: 'Buat email negosiasi untuk kenaikan rate.' }, moduleId: 'mod-02' },
+      { id: 'wm-23', fields: ['admin'], keywords: { en: ['onboard', 'offboard', 'checklist'], id: ['onboard', 'offboard', 'checklist'] }, tools: ['Word', 'Excel'], hours: 2, prompt: { en: 'Create onboarding checklist for new hire.', id: 'Buat checklist onboarding untuk karyawan baru.' }, moduleId: 'mod-01' },
+      { id: 'wm-24', fields: ['finance'], keywords: { en: ['audit', 'compliance', 'tax'], id: ['audit', 'kepatuhan', 'pajak'] }, tools: ['Excel', 'Notion'], hours: 4, prompt: { en: 'Prepare audit documentation checklist.', id: 'Siapkan checklist dokumentasi audit.' }, moduleId: 'mod-03' },
+      { id: 'wm-25', fields: ['marketing', 'sales'], keywords: { en: ['crm', 'contact', 'segment'], id: ['crm', 'kontak', 'segmen'] }, tools: ['Excel', 'Email'], hours: 2.5, prompt: { en: 'Segment contacts by engagement level and industry.', id: 'Segmen kontak berdasarkan engagement dan industri.' }, moduleId: 'mod-02' },
+      { id: 'wm-26', fields: ['developer', 'it'], keywords: { en: ['deploy', 'ci/cd', 'pipeline'], id: ['deploy', 'ci/cd', 'pipeline'] }, tools: ['Notion'], hours: 3, prompt: { en: 'Document deployment steps and rollback procedure.', id: 'Dokumentasi langkah deploy dan prosedur rollback.' }, moduleId: 'mod-04' },
+      { id: 'wm-27', fields: ['design'], keywords: { en: ['accessibility', 'wcag', 'contrast'], id: ['aksesibilitas', 'wcag', 'kontras'] }, tools: ['Canva'], hours: 2, prompt: { en: 'Check design for WCAG accessibility compliance.', id: 'Periksa desain untuk kepatuhan aksesibilitas WCAG.' }, moduleId: 'mod-03' },
+      { id: 'wm-28', fields: ['educator'], keywords: { en: ['feedback', 'comment', 'improve'], id: ['feedback', 'komentar', 'perbaiki'] }, tools: ['Word'], hours: 2, prompt: { en: 'Generate constructive feedback for student work.', id: 'Hasilkan feedback konstruktif untuk pekerjaan siswa.' }, moduleId: 'mod-01' }
+    ];
+
+    function renderLearn() {
+      const container = $('#learnContent');
+      if (!container) return;
+      if (!state.learn) state.learn = { modules: JSON.parse(JSON.stringify(LEARN_MODULES)), progress: {}, quizProgress: {}, streak: { count: 0, lastDay: '', record: 0, days: [] }, badges: [], notes: [], glossarySeen: [], tipIndex: 0, lastActivity: 0, workMaps: [] };
+      const lang = I18N.currentLang;
+      const totalLessons = state.learn.modules.reduce((sum, m) => sum + (m.lessons ? m.lessons.length : 0), 0);
+      const completedLessons = Object.keys(state.learn.progress || {}).filter(k => state.learn.progress[k]?.done).length;
+      const percent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      const today = new Date().toISOString().split('T')[0];
+      const streakCount = state.learn.streak?.count || 0;
+      const streakRecord = state.learn.streak?.record || 0;
+      const tipIndex = state.learn.tipIndex || 0;
+      const currentTip = LEARN_TIPS[tipIndex % LEARN_TIPS.length];
+      const tipText = lang === 'id' ? currentTip.text.id : currentTip.text.en;
+      let nextLesson = null, nextModuleId = null;
+      for (const mod of state.learn.modules) {
+        if (mod.status === 'available' && mod.lessons) {
+          for (const lesson of mod.lessons) {
+            if (!state.learn.progress[lesson.id]?.done) { nextLesson = lesson; nextModuleId = mod.id; break; }
+          }
+          if (nextLesson) break;
+        }
+      }
+      container.innerHTML = `
+        <div class="card" style="margin-bottom: 16px;">
+          <h2 style="font-size:18px;margin-bottom:12px;" data-i18n="learn.hub.academy">Learning Hub</h2>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('learnAcademy').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">📚</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.academy">Academy</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.academyDesc">Structured learning path</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('aiTypeCard').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">🧠</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.aiType">AI Type</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.aiTypeDesc">Know your learning style</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openNotesPanel()"><div style="font-size:20px;margin-bottom:4px;">📝</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.notes">Notes</div><div style="font-size:11px;color:var(--muted);">My notes</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openPromptLibrary()"><div style="font-size:20px;margin-bottom:4px;">📖</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.promptLibrary">Prompt Library</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.promptsDesc">Ready-to-use templates</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openGlossaryPanel()"><div style="font-size:20px;margin-bottom:4px;">🔤</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.glossary">Glossary</div><div style="font-size:11px;color:var(--muted);">Terms</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="openSafetyChecklist()"><div style="font-size:20px;margin-bottom:4px;">🛡️</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.safety">Safety Checklist</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.safetyDesc">Check before deploy</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;" onclick="document.getElementById('learnWorkMap').scrollIntoView({behavior:'smooth'})"><div style="font-size:20px;margin-bottom:4px;">🗺️</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.workMap.title">Work Map (AI)</div><div style="font-size:11px;color:var(--muted);">Task finder</div></div>
+            <div class="card" style="margin:0;padding:12px;cursor:pointer;"><div style="font-size:20px;margin-bottom:4px;">👥</div><div style="font-weight:600;font-size:13px;" data-i18n="learn.hub.community">Community</div><div style="font-size:11px;color:var(--muted);" data-i18n="learn.hub.communityDesc">Discuss & share</div></div>
+          </div>
+        </div>
+        <div id="learnAcademy">
+          <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,var(--brand-50),var(--accent-50));border:1px solid var(--brand);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div><div style="font-size:18px;font-weight:700;" data-i18n="learn.greeting">${t('learn.greeting', { name: 'Learner' })}</div><div style="font-size:13px;color:var(--muted);">${nextLesson ? t('learn.nudge', { lessons: 1, module: state.learn.modules.findIndex(m => m.id === nextModuleId) + 1 }) : t('learn.nudgeStart')}</div></div><div style="text-align:right;"><div style="font-size:24px;font-weight:700;color:var(--brand);">${percent}%</div><div style="font-size:11px;color:var(--muted);">${t('learn.completed')}</div></div></div>
+            <div class="progress-bar" style="height:8px;margin-bottom:8px;"><div class="progress-fill" style="width:${percent}%"></div></div>
+            <div style="display:flex;gap:12px;font-size:12px;color:var(--muted);"><div><strong style="color:var(--ink);">${completedLessons}</strong> ${t('learn.statsLessons')}</div><div><strong style="color:var(--ink);">${streakCount}</strong> ${t('learn.statsStreak')}</div></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="font-size:15px;margin-bottom:8px;" data-i18n="learn.streakTitle">${t('learn.streakTitle')}</h3>
+            <div style="display:flex;gap:2px;margin-bottom:8px;overflow-x:auto;">${[0,1,2,3,4,5,6].map(i => { const d = new Date(); d.setDate(d.getDate() - (6-i)); const dateStr = d.toISOString().split('T')[0]; const isToday = i === 6; const hasStreak = state.learn.streak?.days?.includes(dateStr); return `<div style="flex:1;text-align:center;min-width:32px;"><div style="width:28px;height:28px;border-radius:50%;margin:0 auto 2px;background:${hasStreak ? 'var(--brand-600)' : 'var(--surface-2)'};color:${hasStreak ? '#fff' : 'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${d.getDate()}</div><div style="font-size:9px;color:var(--muted);">${isToday ? t('learn.streakToday') : d.toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US',{weekday:'short'})}</div></div>`; }).join('')}</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><div data-i18n="learn.streakCurrent">${t('learn.streakCurrent', { days: streakCount })}</div><div data-i18n="learn.streakRecord">${t('learn.streakRecord', { days: streakRecord })}</div></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;border-left:4px solid var(--accent);"><h3 style="font-size:15px;margin-bottom:6px;" data-i18n="learn.tipTitle">${t('learn.tipTitle')}</h3><p style="font-size:13px;line-height:1.5;">${tipText}</p></div>
+          ${nextLesson ? `<div class="card" style="margin-bottom:16px;background:var(--brand-50);border:1px solid var(--brand);"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;margin-bottom:2px;">${lang === 'id' ? nextLesson.title.id : nextLesson.title.en}</div><div style="font-size:11px;color:var(--muted);">Next lesson</div></div><button class="btn btn-primary btn-sm" onclick="startLesson('${nextModuleId}','${nextLesson.id}')">${t('learn.continueBtn')}</button></div></div>` : ''}
+          <h2 style="font-size:16px;margin-bottom:12px;">${t('learn.progressTitle')}</h2>
+          <div style="display:flex;flex-direction:column;gap:8px;">${state.learn.modules.map((mod, idx) => { const modLessons = mod.lessons || []; const modCompleted = modLessons.filter(l => state.learn.progress[l.id]?.done).length; const modPercent = modLessons.length > 0 ? Math.round((modCompleted / modLessons.length) * 100) : 0; const isLocked = mod.status === 'locked'; return `<div class="card" style="${isLocked ? 'opacity:0.6;' : ''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div style="flex:1;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="font-size:16px;">${isLocked ? '🔒' : '📖'}</span><div style="font-weight:600;font-size:14px;">${lang === 'id' ? mod.title.id : mod.title.en}</div></div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${lang === 'id' ? mod.desc.id : mod.desc.en}</div><div style="font-size:11px;color:var(--muted);">${mod.duration} min · ${modPercent}%</div></div><div style="text-align:right;">${mod.status === 'complete' ? '<span class="badge badge-established">Done</span>' : isLocked ? '<span class="badge badge-future">Locked</span>' : '<span class="badge badge-proposed">Available</span>'}</div></div><div class="progress-bar" style="height:4px;margin-bottom:8px;"><div class="progress-fill" style="width:${modPercent}%"></div></div>${!isLocked && modLessons.length > 0 ? `<div style="display:flex;flex-direction:column;gap:4px;">${modLessons.map(lesson => { const isDone = state.learn.progress[lesson.id]?.done; return `<div style="display:flex;align-items:center;gap:6px;padding:6px;background:var(--surface-2);border-radius:6px;"><div style="width:18px;height:18px;border-radius:50%;background:${isDone ? 'var(--ok)' : 'var(--surface)'};border:2px solid ${isDone ? 'var(--ok)' : 'var(--line)'};display:flex;align-items:center;justify-content:center;color:${isDone ? '#fff' : 'var(--muted)'};font-size:9px;">${isDone ? '✓' : ''}</div><div style="flex:1;font-size:12px;">${lang === 'id' ? lesson.title.id : lesson.title.en}</div>${!isDone ? `<button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="startLesson('${mod.id}','${lesson.id}')">Start</button>` : ''}</div>`; }).join('')}</div>` : ''}</div>`; }).join('')}</div>
+        </div>
+        <div id="learnWorkMap" style="margin-top:24px;">
+          <h2 style="font-size:16px;margin-bottom:12px;" data-i18n="learn.workMap.title">${t('learn.workMap.title')}</h2>
+          <div class="card" style="margin-bottom:16px;">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px;" data-i18n="learn.workMap.intro">${t('learn.workMap.intro')}</p>
+            <div class="form-group"><label class="form-label" style="font-size:13px;" data-i18n="learn.workMap.field">${t('learn.workMap.field')}</label><select class="form-select" id="workMapField" style="font-size:14px;"><option value="" data-i18n="learn.workMap.fieldPlaceholder">${t('learn.workMap.fieldPlaceholder')}</option><option value="admin">Admin / UMKM</option><option value="sales">Sales</option><option value="marketing">Marketing</option><option value="finance">Finance</option><option value="educator">Educator</option><option value="design">Design</option><option value="developer">Developer/IT</option><option value="freelancer">Freelancer</option><option value="other">Other</option></select></div>
+            <div class="form-group"><label class="form-label" style="font-size:13px;" data-i18n="learn.workMap.description">${t('learn.workMap.description')}</label><textarea class="form-textarea" id="workMapDesc" rows="3" data-i18n-placeholder="learn.workMap.descriptionPlaceholder" placeholder="${t('learn.workMap.descriptionPlaceholder')}" style="font-size:14px;"></textarea></div>
+            <div class="form-group"><label class="form-label" style="font-size:13px;" data-i18n="learn.workMap.tools">${t('learn.workMap.tools')}</label><div style="display:flex;flex-wrap:wrap;gap:6px;">${['Excel', 'Word', 'PowerPoint', 'Canva', 'WhatsApp', 'Email', 'Instagram', 'Notion'].map(tool => `<label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" value="${tool}" class="workMapTool"> ${tool}</label>`).join('')}</div></div>
+            <div style="padding:10px;background:var(--accent-50);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:11px;color:var(--ink);margin-bottom:12px;"><strong>🔒</strong> <span data-i18n="learn.workMap.privacyNote">${t('learn.workMap.privacyNote')}</span></div>
+            <button class="btn btn-primary" onclick="analyzeWorkMap()" data-i18n="learn.workMap.analyze">${t('learn.workMap.analyze')}</button>
+          </div>
+          <div id="workMapResults"></div>
+        </div>
+        <div style="margin-top:24px;"><h2 style="font-size:16px;margin-bottom:12px;" data-i18n="learn.badges">${t('learn.badges')}</h2><div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px;">${state.learn.badges?.length > 0 ? state.learn.badges.map(b => `<div style="padding:8px;background:var(--brand-50);border:1px solid var(--brand);border-radius:8px;text-align:center;min-width:80px;"><div style="font-size:20px;">🏆</div><div style="font-size:10px;font-weight:600;margin-top:2px;">${b}</div></div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:12px;" data-i18n="learn.badges">No badges yet. Complete lessons to earn badges!</div>'}</div></div></div>
+      `;
+    }
+
+    function startLesson(moduleId, lessonId) {
+      const mod = state.learn.modules.find(m => m.id === moduleId);
+      const lesson = mod?.lessons?.find(l => l.id === lessonId);
+      if (!lesson) return;
+      const lang = I18N.currentLang;
+      $('#modalTitle').textContent = lang === 'id' ? lesson.title.id : lesson.title.en;
+      $('#modalBody').innerHTML = `<div style="margin-bottom:12px;"><label class="form-label" style="font-size:13px;">Concept</label><p style="font-size:14px;line-height:1.6;">${lang === 'id' ? lesson.concept.id : lesson.concept.en}</p></div><div style="margin-bottom:16px;"><label class="form-label" style="font-size:13px;">Prompt</label><div style="padding:10px;background:var(--surface-2);border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;white-space:pre-wrap;">${lang === 'id' ? lesson.prompt.id : lesson.prompt.en}</div></div><button class="btn btn-primary" onclick="completeLesson('${moduleId}','${lessonId}'); closeModal();">${t('learn.completeBtn')}</button>`;
+      $('#modalOverlay').classList.add('show');
+    }
+
+    function completeLesson(moduleId, lessonId) {
+      if (!state.learn.progress[lessonId]) state.learn.progress[lessonId] = { done: true, at: Date.now() };
+      const today = new Date().toISOString().split('T')[0];
+      if (state.learn.streak.lastDay !== today) {
+        state.learn.streak.count = (state.learn.streak.lastDay === new Date(Date.now() - 86400000).toISOString().split('T')[0]) ? state.learn.streak.count + 1 : 1;
+        state.learn.streak.lastDay = today;
+        state.learn.streak.days = [...(state.learn.streak.days || []), today].filter((v, i, a) => a.indexOf(v) === i);
+        if (state.learn.streak.count > state.learn.streak.record) state.learn.streak.record = state.learn.streak.count;
+        if (state.learn.streak.count >= 3 && !state.learn.badges?.includes('3-Day Streak')) { state.learn.badges = [...(state.learn.badges || []), '3-Day Streak']; showToast('🏆 Badge earned: 3-Day Streak'); }
+      }
+      state.learn.lastActivity = Date.now();
+      persist('learn');
+      renderLearn();
+      showToast('Lesson completed!');
+    }
+
+    function analyzeWorkMap() {
+      const field = $('#workMapField')?.value;
+      const desc = $('#workMapDesc')?.value || '';
+      const tools = Array.from(document.querySelectorAll('.workMapTool:checked')).map(cb => cb.value);
+      if (desc.length < 80) { showToast(t('learn.workMap.descriptionPlaceholder').includes('min') ? t('learn.workMap.descriptionPlaceholder') : 'Please describe your week (min. 80 characters)'); return; }
+      const lang = I18N.currentLang;
+      const descLower = desc.toLowerCase();
+      const scored = WORK_MAP_TASKS.map(task => { let score = 0; if (field && task.fields.includes(field)) score += 3; const keywords = lang === 'id' ? task.keywords.id : task.keywords.en; keywords.forEach(kw => { if (descLower.includes(kw)) score += 2; }); tools.forEach(tool => { if (task.tools.includes(tool)) score += 1; }); return { ...task, score }; }).filter(t => t.score > 0).sort((a, b) => b.score - a.score);
+      const totalHours = scored.reduce((sum, t) => sum + t.hours, 0);
+      const resultsContainer = $('#workMapResults');
+      resultsContainer.innerHTML = `<div class="card" style="margin-bottom:12px;background:var(--brand-50);border:1px solid var(--brand);"><div style="font-size:16px;font-weight:700;color:var(--brand);">${t('learn.workMap.totalHours', { hours: totalHours })}</div></div>${scored.length === 0 ? '<div style="color:var(--muted);padding:20px;text-align:center;">No matching tasks found. Try adding more details.</div>' : ''}${scored.map(task => `<div class="card" style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-weight:600;">${t('learn.workMap.task')}: ${task.id}</div><div style="font-size:12px;color:var(--muted);">${t('learn.workMap.hoursSaved', { hours: task.hours })}</div></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px;"><strong>${t('learn.workMap.why')}:</strong> Matched: ${Object.keys(lang === 'id' ? task.keywords.id : task.keywords.en).filter(k => descLower.includes(k)).join(', ') || 'field/tools'}</div><div style="padding:8px;background:var(--surface-2);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;white-space:pre-wrap;margin-bottom:8px;">${lang === 'id' ? task.prompt.id : task.prompt.en}</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="navigator.clipboard.writeText('${(lang === 'id' ? task.prompt.id : task.prompt.en).replace(/\n/g, '\\n').replace(/'/g, "\\'")}'); showToast('${t('learn.workMap.copied')}')">${t('learn.workMap.copyPrompt')}</button><button class="btn btn-sm btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="document.getElementById('learnAcademy').scrollIntoView()">${t('learn.workMap.learnMore')}</button></div></div>`).join('')}`;
+    }
+
+    function openNotesPanel() {
+      if (!state.learn.notes) state.learn.notes = [];
+      $('#modalTitle').textContent = t('learn.notes');
+      $('#modalBody').innerHTML = `<div class="form-group"><label class="form-label">Add Note</label><textarea class="form-textarea" id="newNoteInput" rows="3" placeholder="Write your note..."></textarea></div><button class="btn btn-primary btn-sm" onclick="addNote()" style="margin-bottom:12px;">Add Note</button><div style="max-height:300px;overflow-y:auto;"><div style="font-size:13px;font-weight:600;margin-bottom:8px;">My Notes</div>${state.learn.notes.length === 0 ? '<div style="color:var(--muted);font-size:13px;">No notes yet.</div>' : state.learn.notes.map((n, i) => `<div class="card" style="margin-bottom:8px;padding:10px;"><div style="font-size:13px;white-space:pre-wrap;margin-bottom:6px;">${escapeHtml(n.text)}</div><div style="font-size:10px;color:var(--muted);margin-bottom:6px;">${new Date(n.at).toLocaleString()}</div><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px;color:var(--danger);" onclick="deleteNote(${i})">Delete</button></div>`).join('')}</div></div>`;
+      $('#modalOverlay').classList.add('show');
+    }
+
+    function addNote() {
+      const text = $('#newNoteInput')?.value;
+      if (!text) return;
+      if (!state.learn.notes) state.learn.notes = [];
+      state.learn.notes.push({ text, at: Date.now() });
+      persist('learn');
+      openNotesPanel();
+      showToast('Note added');
+    }
+
+    function deleteNote(idx) {
+      state.learn.notes.splice(idx, 1);
+      persist('learn');
+      openNotesPanel();
+      showToast('Note deleted');
+    }
+
+    const PROMPT_LIBRARY = [
+      { id: 'p-01', category: 'Writing', title: { en: 'Email Draft', id: 'Draft Email' }, prompt: { en: 'Draft a professional email to [RECIPIENT] about [TOPIC]. Keep it concise and friendly.', id: 'Buat email profesional ke [PENERIMA] tentang [TOPIK]. Singkat dan ramah.' } },
+      { id: 'p-02', category: 'Writing', title: { en: 'Blog Post Outline', id: 'Outline Blog' }, prompt: { en: 'Create blog post outline for [TOPIC] with introduction, 5 sections, and conclusion.', id: 'Buat outline blog untuk [TOPIK] dengan pendahuluan, 5 bagian, dan kesimpulan.' } },
+      { id: 'p-03', category: 'Analysis', title: { en: 'Meeting Summary', id: 'Ringkasan Rapat' }, prompt: { en: 'Summarize meeting notes into: decisions, action items (with owners), and open questions.', id: 'Ringkas catatan rapat jadi: keputusan, action item (dengan pemilik), dan pertanyaan terbuka.' } },
+      { id: 'p-04', category: 'Analysis', title: { en: 'Data Insights', id: 'Insight Data' }, prompt: { en: 'Analyze this data and identify 3 key insights and 2 recommendations.', id: 'Analisis data ini dan identifikasi 3 insight kunci dan 2 rekomendasi.' } },
+      { id: 'p-05', category: 'Creative', title: { en: 'Social Media Post', id: 'Posting Media Sosial' }, prompt: { en: 'Write 3 social media post variations for [PRODUCT] with hook, value prop, and CTA.', id: 'Tulis 3 variasi posting media sosial untuk [PRODUK] dengan hook, value prop, dan CTA.' } },
+      { id: 'p-06', category: 'Creative', title: { en: 'Product Name Ideas', id: 'Ide Nama Produk' }, prompt: { en: 'Generate 10 creative product names for [DESCRIPTION] that are memorable and brandable.', id: 'Hasilkan 10 nama produk kreatif untuk [DESKRIPSI] yang mudah diingat dan brandable.' } },
+      { id: 'p-07', category: 'Code', title: { en: 'Code Review', id: 'Review Kode' }, prompt: { en: 'Review this code for bugs, performance issues, and suggest improvements.', id: 'Review kode ini untuk bug, masalah performa, dan saran perbaikan.' } },
+      { id: 'p-08', category: 'Code', title: { en: 'Function Generator', id: 'Generator Fungsi' }, prompt: { en: 'Write a [LANGUAGE] function that [TASK] with error handling and comments.', id: 'Tulis fungsi [BAHASA] yang [TUGAS] dengan error handling dan komentar.' } },
+      { id: 'p-09', category: 'Learning', title: { en: 'Explain Concept', id: 'Jelaskan Konsep' }, prompt: { en: 'Explain [CONCEPT] to a beginner using an everyday analogy. Limit 150 words.', id: 'Jelaskan [KONSEP] kepada pemula menggunakan analogi sehari-hari. Batas 150 kata.' } },
+      { id: 'p-10', category: 'Learning', title: { en: 'Study Plan', id: 'Rencana Belajar' }, prompt: { en: 'Create 4-week study plan for [TOPIC] with weekly goals and resources.', id: 'Buat rencana belajar 4 minggu untuk [TOPIK] dengan tujuan mingguan dan sumber daya.' } }
+    ];
+
+    function openPromptLibrary() {
+      const lang = I18N.currentLang;
+      $('#modalTitle').textContent = t('learn.promptLibrary');
+      $('#modalBody').innerHTML = `<div style="max-height:400px;overflow-y:auto;">${PROMPT_LIBRARY.map(p => `<div class="card" style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-weight:600;font-size:14px;">${lang === 'id' ? p.title.id : p.title.en}</div><span class="badge badge-proposed" style="font-size:10px;">${p.category}</span></div><div style="padding:8px;background:var(--surface-2);border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;white-space:pre-wrap;margin-bottom:8px;">${lang === 'id' ? p.prompt.id : p.prompt.en}</div><button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="navigator.clipboard.writeText('${(lang === 'id' ? p.prompt.id : p.prompt.en).replace(/\n/g, '\\n').replace(/'/g, "\\'")}'); showToast('${t('learn.workMap.copied')}')">${t('learn.workMap.copyPrompt')}</button></div>`).join('')}</div></div>`;
+      $('#modalOverlay').classList.add('show');
+    }
+
+    const GLOSSARY = [
+      { id: 'g-01', term: { en: 'Token', id: 'Token' }, def: { en: 'Basic unit of text AI processes (word/subword/character).', id: 'Unit dasar teks yang AI proses (kata/sub-kata/karakter).' } },
+      { id: 'g-02', term: { en: 'Context Window', id: 'Jendela Konteks' }, def: { en: 'Maximum text AI can process at once (input + output).', id: 'Teks maksimal yang AI bisa proses sekaligus (input + output).' } },
+      { id: 'g-03', term: { en: 'Temperature', id: 'Temperature' }, def: { en: 'Controls randomness: low (0.0-0.3) = focused, high (0.7-1.0) = creative.', id: 'Kontrol keacakan: rendah (0,0-0,3) = fokus, tinggi (0,7-1,0) = kreatif.' } },
+      { id: 'g-04', term: { en: 'System Prompt', id: 'System Prompt' }, def: { en: 'Instructions that set AI behavior for entire conversation.', id: 'Instruksi yang atur perilaku AI untuk seluruh percakapan.' } },
+      { id: 'g-05', term: { en: 'Few-Shot', id: 'Few-Shot' }, def: { en: 'Providing examples in prompt to teach AI a pattern.', id: 'Memberikan contoh dalam prompt untuk ajari AI pola.' } },
+      { id: 'g-06', term: { en: 'Hallucination', id: 'Halusinasi' }, def: { en: 'When AI generates false/fabricated information that sounds plausible.', id: 'Ketika AI hasilkan informasi palsu yang terdengar masuk akal.' } },
+      { id: 'g-07', term: { en: 'PII', id: 'PII' }, def: { en: 'Personally Identifiable Information - never share with AI.', id: 'Informasi Pengenal Pribadi - jangan pernah berbagi dengan AI.' } },
+      { id: 'g-08', term: { en: 'Chain of Thought', id: 'Chain of Thought' }, def: { en: 'Asking AI to show reasoning before final answer.', id: 'Minta AI tunjukkan penalaran sebelum jawaban akhir.' } }
+    ];
+
+    function openGlossaryPanel() {
+      const lang = I18N.currentLang;
+      $('#modalTitle').textContent = t('learn.glossary');
+      $('#modalBody').innerHTML = `<div style="max-height:400px;overflow-y:auto;"><input type="text" id="glossarySearch" class="form-input" placeholder="Search terms..." onkeyup="filterGlossary()" style="margin-bottom:12px;font-size:14px;"><div id="glossaryList">${GLOSSARY.map(g => `<div class="card glossary-item" style="margin-bottom:8px;" data-term="${lang === 'id' ? g.term.id.toLowerCase() : g.term.en.toLowerCase()}"><div style="font-weight:600;font-size:14px;margin-bottom:4px;">${lang === 'id' ? g.term.id : g.term.en}</div><div style="font-size:13px;color:var(--muted);">${lang === 'id' ? g.def.id : g.def.en}</div></div>`).join('')}</div></div>`;
+      $('#modalOverlay').classList.add('show');
+    }
+
+    function filterGlossary() {
+      const query = $('#glossarySearch')?.value.toLowerCase() || '';
+      document.querySelectorAll('.glossary-item').forEach(el => {
+        const term = el.dataset.term;
+        el.style.display = term.includes(query) ? 'block' : 'none';
+      });
+    }
+
+    const SAFETY_CHECKLIST = [
+      { id: 's-01', item: { en: 'Factual accuracy — cross-check claims', id: 'Akurasi faktual — periksa klaim' } },
+      { id: 's-02', item: { en: 'No hallucinated citations — verify references exist', id: 'Tidak ada sitasi halusinasi — verifikasi referensi' } },
+      { id: 's-03', item: { en: 'Bias check — review for cultural/gender bias', id: 'Cek bias — tinjau bias budaya/gender' } },
+      { id: 's-04', item: { en: 'Privacy — no PII in prompts or outputs', id: 'Privasi — tidak ada PII di prompt/output' } },
+      { id: 's-05', item: { en: 'Security — no secrets/API keys in prompts', id: 'Keamanan — tidak ada rahasia/API key di prompt' } },
+      { id: 's-06', item: { en: 'Copyright — outputs do not reproduce copyrighted material', id: 'Hak cipta — output tidak reproduksi materi berhak cipta' } },
+      { id: 's-07', item: { en: 'Context appropriateness — tone matches audience', id: 'Kesesuaian konteks — nada sesuai audiens' } },
+      { id: 's-08', item: { en: 'Human review — critical outputs reviewed by expert', id: 'Review manusia — output kritis ditinjau ahli' } }
+    ];
+
+    function openSafetyChecklist() {
+      const lang = I18N.currentLang;
+      $('#modalTitle').textContent = t('learn.hub.safety');
+      $('#modalBody').innerHTML = `<div style="max-height:400px;overflow-y:auto;">${SAFETY_CHECKLIST.map((s, i) => `<label style="display:flex;align-items:flex-start;gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;"><input type="checkbox" id="safety-${i}" style="margin-top:2px;"><span style="font-size:13px;line-height:1.5;">${lang === 'id' ? s.item.id : s.item.en}</span></label>`).join('')}</div><div style="margin-top:12px;padding:10px;background:var(--accent-50);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:12px;"><strong>Tip:</strong> Use this checklist before deploying AI outputs in production or sharing publicly.</div></div>`;
+      $('#modalOverlay').classList.add('show');
+    }
+
+    function initAiTypeQuizMobile() {
+      const startBtn = $('#startAiTypeBtn');
+      const useArchetypeBtn = $('#aiTypeUseArchetypeBtn');
+      const copyResultBtn = $('#aiTypeCopyResultBtn');
+      const retakeBtn = $('#aiTypeRetakeBtn');
+      const langToggle = $('#aiTypeLangToggle');
+
+      if (startBtn) startBtn.onclick = startAiTypeQuiz;
+      if (useArchetypeBtn) useArchetypeBtn.onclick = useAiTypeArchetype;
+      if (copyResultBtn) copyResultBtn.onclick = copyAiTypeResult;
+      if (retakeBtn) retakeBtn.onclick = retakeAiTypeQuiz;
+
+      // Language toggle - default EN to match app
+      if (langToggle) {
+        I18N.currentLang = 'en'; // Default EN
+        langToggle.textContent = 'ID'; // Shows 'ID' when EN is active (toggle to ID)
+        langToggle.onclick = () => {
+          I18N.currentLang = I18N.currentLang === 'en' ? 'id' : 'en';
+          langToggle.textContent = I18N.currentLang === 'en' ? 'ID' : 'EN';
+          applyI18n();
+          renderAiTypeQuiz();
+          renderLearn(); // Re-render Learn when toggling
+          applyI18n();   // translate the freshly-rendered Learn nodes
+          if (state.aura?.aiType?.completed) showAiTypeResult(state.aura.aiType);
+        };
+      }
+      renderAiTypeQuiz();
+    }
+
     // === INIT ===
     async function init() {
+      // Set default language to English BEFORE any renders
+      I18N.currentLang = 'en';
+      applyI18n();
+      
       initPWA();
       await hydrate();
       initAuthGate();
@@ -3929,6 +4905,7 @@
       initCulture();
       initGrowth();
       initPrivacy();
+      initAiTypeQuizMobile();
 
       // Initial renders
       renderToday();
@@ -3939,6 +4916,8 @@
       renderPrivacy();
       renderAura();
       renderWork();
+      renderLearn();
+      applyI18n();
     }
 
     init();
