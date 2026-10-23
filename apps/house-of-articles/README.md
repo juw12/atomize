@@ -19,8 +19,8 @@ Two static prototypes demonstrate the experience across form factors:
 
 | Build | Description | Views |
 |-------|-------------|-------|
-| **Mobile** (`web/index.html`) | Mobile-first vertical feed with 19 screens | Home feed, Brand pages, Shoe detail, Cart, Profile |
-| **Desktop** (`web/desktop.html`) | Desktop dashboard with 5 views | Feed, Market, Calendar, Collections, Settings |
+| **Mobile** (`web/index.html`) | Mobile-first vertical feed with 20 screens | Home feed, Brand pages, Shoe detail, Cart, Profile, **Ledger** |
+| **Desktop** (`web/desktop.html`) | Desktop dashboard with 6 views | Feed, Market, Calendar, Collections, Watchlist, **Ledger** |
 
 Both builds are **static-only** with inline data — no backend required.
 
@@ -30,7 +30,23 @@ The normalized catalog lives in [`data/data-spine.json`](data/data-spine.json) �
 
 - **7 brands**: Apex, Court Co., Velocity, Trail Co., Night Owl, Street Phoenix, Cloud Walker
 - **13 unique sneakers** (by SKU) across Basketball, Running, HYROX, and Lifestyle categories
-- **13 colorways** with full pricing, manufacturing, and market data
+- **13 colorways** with full pricing, manufacturing, market data, and **provenance tracking**
+
+### Provenance
+
+Every colorway includes a `provenance` object for data integrity:
+
+```json
+{
+  "provenance": {
+    "source": "brand_direct",
+    "confidence": "verified",
+    "observed_at": "2025-10-12"
+  }
+}
+```
+
+Confidence levels: `verified` (brand direct), `estimated` (market aggregate), `synthetic` (model-generated).
 
 ### Schema
 
@@ -77,6 +93,16 @@ Note: Desktop prototype has a different shoe `night-owl-runner` (SKU: `NTE-RNR-P
 11. **Night Owl Runner** "Phantom" — NTE-RNR-PHM
 12. **Street Phoenix** "Royal" — ST-PHX-RYL
 13. **Cloud Walker 2** "Pearl" — CLD-WLK2-PRL
+
+## Ledger View
+
+The **Ledger** (desktop sidebar / mobile tab) provides:
+- **Price waterfall** — Visual est. cost → retail → market comparison
+- **Fee-aware economics** — Net profit calculator with editable marketplace fee % and shipping cost
+- **Provenance badges** — Confidence indicators (verified/estimated/synthetic) per colorway
+- **Integrity checks** — Automated validation for duplicate SKUs, missing data, calculation drift
+
+Settings persist in `localStorage` under `hoa_ledger_v1`. See [`docs/Ledger.md`](docs/Ledger.md) for details.
 
 ## Tools
 

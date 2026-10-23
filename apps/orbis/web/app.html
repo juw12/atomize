@@ -2346,8 +2346,16 @@
           'learn.workMap.export': 'Ekspor',
           'learn.workMap.edit': 'Edit',
           'learn.workMap.privacy': 'Privasi',
+          'learn.passport.title': 'Paspor Belajar',
+          'learn.passport.desc': 'Semua tingkat GRATIS dan terbuka — tanpa paywall, tanpa lock-in.',
+          'learn.safety.intro': 'Sebelum menerapkan output AI di produksi atau berbagi secara publik, verifikasi:',
+          'learn.promptLib.intro': 'Template prompt netral vendor dengan adaptasi per-model.',
+          'learn.notes.intro': 'Catatan pribadi per pelajaran — disimpan lokal di browser Anda.',
+          'learn.notes.placeholder': 'Tulis catatan Anda di sini...',
+          'learn.notes.save': 'Simpan Catatan',
+          'learn.notes.saved': 'Catatan tersimpan!',
           'aiType.langToggle': 'EN',
-          'aiType.langSwitching': 'Switching to {lang}...'
+          'aiType.langSwitching': 'Switching to {lang}...',
         },
         en: {
           'aiType.title': 'AI Type — Know how you work with AI',
@@ -2438,14 +2446,22 @@
           'learn.workMap.learnMore': 'Learn More →',
           'learn.workMap.copyPrompt': 'Copy Prompt',
           'learn.workMap.copied': 'Prompt copied!',
-          'learn.workMap.why': 'Why this appeared',
-          'learn.workMap.adopted': 'Tried',
+          'learn.workMap.why': 'Why this appears',
+          'learn.workMap.adopted': 'Already Tried',
           'learn.workMap.save': 'Save',
           'learn.workMap.export': 'Export',
           'learn.workMap.edit': 'Edit',
           'learn.workMap.privacy': 'Privacy',
-          'aiType.langToggle': 'ID',
-          'aiType.langSwitching': 'Switching to {lang}...'
+          'learn.passport.title': 'Learning Passport',
+          'learn.passport.desc': 'All levels are FREE and open — no paywalls, no lock-in.',
+          'learn.safety.intro': 'Before deploying AI outputs in production or sharing publicly, verify:',
+          'learn.promptLib.intro': 'Vendor-neutral prompt templates with per-model adaptations.',
+          'learn.notes.intro': 'Private notes per lesson — stored locally in your browser.',
+          'learn.notes.placeholder': 'Write your note here...',
+          'learn.notes.save': 'Save Note',
+          'learn.notes.saved': 'Note saved!',
+          'aiType.langToggle': 'EN',
+          'aiType.langSwitching': 'Switching to {lang}...',
         }
       }
     };
@@ -4641,7 +4657,44 @@
       { id: 'tip-02', text: { en: "Use 'Think step-by-step' for complex problems. It triggers chain-of-thought reasoning.", id: "Gunakan 'Pikirkan langkah demi langkah' untuk masalah kompleks. Ini memicu penalaran chain-of-thought." } },
       { id: 'tip-03', text: { en: "Provide examples: 'Like this: [example]' is more reliable than describing what you want.", id: "Berikan contoh: 'Seperti ini: [contoh]' lebih andal daripada menggambarkan apa yang Anda inginkan." } },
       { id: 'tip-04', text: { en: "Set constraints early: word limits, format, tone. 'Keep it under 100 words' works better than editing later.", id: "Atur batasan sejak awal: batas kata, format, nada. 'Jaga di bawah 100 kata' lebih baik daripada mengedit nanti." } },
-      { id: 'tip-05', text: { en: "Ask AI to critique itself: 'Review your answer for errors' catches mistakes before you deploy.", id: "Minta AI mengkritik dirinya sendiri: 'Tinjau jawaban Anda untuk kesalahan' menangkap kesalahan sebelum Anda menerapkan." } }
+      { id: 'tip-05', text: { en: "Ask AI to critique itself: 'Review your answer for errors' catches mistakes before you deploy.", id: "Minta AI mengkritik dirinya sendiri: 'Tinjau jawaban Anda untuk kesalahan' menangkap kesalahan sebelum Anda menerapkan." } },
+      { id: 'tip-06', text: { en: "Temperature matters: low (0.0-0.3) for accuracy, high (0.7-1.0) for creativity.", id: "Temperature penting: rendah (0,0-0,3) untuk akurasi, tinggi (0,7-1,0) untuk kreativitas." } },
+      { id: 'tip-07', text: { en: "Never share PII with AI. Assume everything you type could become public.", id: "Jangan pernah berbagi PII dengan AI. Asumsikan semua yang Anda ketik bisa menjadi publik." } },
+      { id: 'tip-08', text: { en: "Verify citations independently. AI can hallucinate references that look real but don't exist.", id: "Verifikasi sitasi secara independen. AI bisa berhalusinasi referensi yang terlihat nyata tetapi tidak ada." } },
+      { id: 'tip-09', text: { en: "Use few-shot prompting: show 2-3 input/output examples to teach the AI your desired pattern.", id: "Gunakan few-shot prompting: tunjukkan 2-3 contoh input/output untuk mengajarkan AI pola yang Anda inginkan." } },
+      { id: 'tip-10', text: { en: "For model-agnostic prompts, add per-model adaptations. Claude likes detail, GPT wants structure, Gemini handles multimodal.", id: "Untuk prompt netral model, tambahkan adaptasi per-model. Claude suka detail, GPT ingin struktur, Gemini menangani multimodal." } }
+    ];
+
+    const LEARN_GLOSSARY = [
+      { id: 'term-token', term: { en: 'Token', id: 'Token' }, definition: { en: 'The basic unit of text that language models process. Tokens can be words, subwords, or characters. Understanding tokens helps predict costs and optimize prompts.', id: 'Unit dasar teks yang diproses oleh model bahasa. Token bisa berupa kata, sub-kata, atau karakter. Memahami token membantu memprediksi biaya dan mengoptimalkan prompt.' } },
+      { id: 'term-context-window', term: { en: 'Context Window', id: 'Jendela Konteks' }, definition: { en: 'The maximum amount of text (in tokens) a model can process at once, including both input and output. Larger windows allow longer documents and more conversation history.', id: 'Jumlah maksimum teks (dalam token) yang dapat diproses model sekaligus, termasuk input dan output. Jendela lebih besar memungkinkan dokumen lebih panjang dan riwayat percakapan lebih banyak.' } },
+      { id: 'term-temperature', term: { en: 'Temperature', id: 'Temperature' }, definition: { en: 'A setting that controls randomness in AI outputs. Low temperature (0.0-0.3) makes outputs deterministic; high temperature (0.7-1.0+) increases creativity.', id: 'Pengaturan yang mengontrol keacakan dalam output AI. Temperature rendah (0,0-0,3) membuat output deterministik; temperature tinggi (0,7-1,0+) meningkatkan kreativitas.' } },
+      { id: 'term-system-prompt', term: { en: 'System Prompt', id: 'System Prompt' }, definition: { en: 'Instructions that set the AI behavior, role, and constraints for the entire conversation. More powerful than user prompts because they establish the rules of engagement.', id: 'Instruksi yang menetapkan perilaku, peran, dan batasan AI untuk seluruh percakapan. Lebih kuat dari prompt pengguna karena menetapkan aturan keterlibatan.' } },
+      { id: 'term-few-shot', term: { en: 'Few-Shot Prompting', id: 'Few-Shot Prompting' }, definition: { en: 'Providing examples within the prompt to teach the AI a pattern. More reliable than describing what you want — show, dont just tell.', id: 'Menyediakan contoh dalam prompt untuk mengajarkan AI sebuah pola. Lebih andal daripada menggambarkan apa yang Anda inginkan — tunjukkan, jangan hanya beritahu.' } },
+      { id: 'term-chain-of-thought', term: { en: 'Chain of Thought (CoT)', id: 'Chain of Thought (CoT)' }, definition: { en: 'A prompting technique that asks AI to show its reasoning before giving a final answer. Improves accuracy on complex tasks and makes errors easier to spot.', id: 'Teknik prompting yang meminta AI untuk menunjukkan penalarannya sebelum memberikan jawaban akhir. Meningkatkan akurasi pada tugas kompleks dan membuat kesalahan lebih mudah dikenali.' } },
+      { id: 'term-hallucination', term: { en: 'Hallucination', id: 'Halusinasi' }, definition: { en: 'When AI generates false or fabricated information that sounds plausible. Always verify facts and citations independently.', id: 'Ketika AI menghasilkan informasi palsu atau direkayasa yang terdengar masuk akal. Selalu verifikasi fakta dan sitasi secara independen.' } },
+      { id: 'term-pii', term: { en: 'PII (Personally Identifiable Information)', id: 'PII (Informasi Pengenal Pribadi)' }, definition: { en: 'Data that can identify a specific person: names, addresses, phone numbers, email addresses, ID numbers, financial data, health records. Never share PII with AI services.', id: 'Data yang dapat mengidentifikasi orang tertentu: nama, alamat, nomor telepon, alamat email, nomor ID, data keuangan, catatan kesehatan. Jangan pernah berbagi PII dengan layanan AI.' } },
+      { id: 'term-bias', term: { en: 'AI Bias', id: 'Bias AI' }, definition: { en: 'Systematic errors or unfair assumptions in AI outputs, often reflecting biases in training data. Common types: cultural, gender, demographic, confirmation bias.', id: 'Kesalahan sistematis atau asumsi tidak adil dalam output AI, sering mencerminkan bias dalam data pelatihan. Jenis umum: budaya, gender, demografis, bias konfirmasi.' } },
+      { id: 'term-self-correction', term: { en: 'Self-Correction', id: 'Koreksi Diri' }, definition: { en: 'Asking AI to review and improve its own output. Effective self-correction requires specific criteria, permission to admit mistakes, and structured feedback format.', id: 'Meminta AI untuk meninjau dan meningkatkan outputnya sendiri. Koreksi diri yang efektif memerlukan kriteria spesifik, izin untuk mengakui kesalahan, dan format umpan balik terstruktur.' } }
+    ];
+
+    const LEARN_SAFETY_CHECKLIST = [
+      { id: 'safety-01', text: { en: 'Factual accuracy — cross-check claims with authoritative sources', id: 'Akurasi faktual — periksa klaim dengan sumber otoritatif' } },
+      { id: 'safety-02', text: { en: 'No hallucinated citations — verify all references exist', id: 'Tidak ada sitasi halusinasi — verifikasi semua referensi ada' } },
+      { id: 'safety-03', text: { en: 'Bias check — review for cultural, gender, or demographic bias', id: 'Pemeriksaan bias — tinjau bias budaya, gender, atau demografis' } },
+      { id: 'safety-04', text: { en: 'Privacy — no PII (personally identifiable information) in prompts or outputs', id: 'Privasi — tidak ada PII (informasi pengenal pribadi) di prompt atau output' } },
+      { id: 'safety-05', text: { en: 'Security — no secrets, API keys, or credentials in prompts', id: 'Keamanan — tidak ada rahasia, kunci API, atau kredensial di prompt' } },
+      { id: 'safety-06', text: { en: 'Copyright — outputs do not reproduce copyrighted material verbatim', id: 'Hak cipta — output tidak mereproduksi materi berhak cipta secara verbatim' } },
+      { id: 'safety-07', text: { en: 'Context appropriateness — tone and content match audience and purpose', id: 'Kesesuaian konteks — nada dan konten sesuai dengan audiens dan tujuan' } },
+      { id: 'safety-08', text: { en: 'Human review — critical outputs reviewed by domain expert before use', id: 'Tinjauan manusia — output kritis ditinjau oleh ahli domain sebelum digunakan' } }
+    ];
+
+    const LEARN_PROMPT_LIBRARY = [
+      { id: 'prompt-01', task: { en: 'Explain a concept to a beginner', id: 'Jelaskan konsep kepada pemula' }, core: { en: 'Explain [CONCEPT] to someone with no background in [FIELD]. Use a concrete analogy from everyday life. Limit to 150 words. After the explanation, provide one practical example.', id: 'Jelaskan [KONSEP] kepada seseorang tanpa latar belakang di [BIDANG]. Gunakan analogi konkret dari kehidupan sehari-hari. Batasi 150 kata. Setelah penjelasan, berikan satu contoh praktis.' }, adaptations: { claude: { en: 'Add: Think step-by-step about what a complete beginner needs to know first. Avoid jargon entirely.', id: 'Tambahkan: Pikirkan langkah demi langkah tentang apa yang perlu diketahui pemula terlebih dahulu. Hindari jargon sepenuhnya.' }, gpt: { en: 'Add: Use the Feynman technique: if you cant explain it simply, you dont understand it well enough.', id: 'Tambahkan: Gunakan teknik Feynman: jika Anda tidak bisa menjelaskannya dengan sederhana, Anda tidak cukup memahaminya.' }, gemini: { en: 'Add: Provide a visual metaphor if possible. Structure the explanation with clear headings.', id: 'Tambahkan: Berikan metafora visual jika memungkinkan. Struktur penjelasan dengan heading yang jelas.' }, local: { en: 'Add: Keep sentences short. Repeat the key point in different words at the end.', id: 'Tambahkan: Jaga kalimat tetap pendek. Ulangi poin kunci dengan kata berbeda di akhir.' } } },
+      { id: 'prompt-02', task: { en: 'Summarize a long document', id: 'Ringkas dokumen panjang' }, core: { en: 'Summarize the following text in [N] words. Preserve key facts, numbers, and names. Omit examples and repetition. If the text exceeds your context window, process it in sections and combine summaries.\n\nText: [PASTE TEXT]', id: 'Ringkas teks berikut dalam [N] kata. Pertahankan fakta kunci, angka, dan nama. Hilangkan contoh dan pengulangan. Jika teks melebihi jendela konteks Anda, proses dalam bagian dan gabungkan ringkasan.\n\nTeks: [TEMPEL TEKS]' }, adaptations: { claude: { en: 'Use 200K context by pasting the full document. Request: Think about the hierarchy of information before summarizing.', id: 'Gunakan konteks 200K dengan menempelkan dokumen lengkap. Minta: Pikirkan hierarki informasi sebelum meringkas.' }, gpt: { en: 'For 128K context: Use structured extraction: identify claims, evidence, and conclusions separately.', id: 'Untuk konteks 128K: Gunakan ekstraksi terstruktur: identifikasi klaim, bukti, dan kesimpulan secara terpisah.' }, gemini: { en: 'Gemini 1.5 Pro supports 1M+ tokens. Add: Create a hierarchical summary with main points and sub-points.', id: 'Gemini 1.5 Pro mendukung 1M+ token. Tambahkan: Buat ringkasan hierarkis dengan poin utama dan sub-poin.' }, local: { en: 'For smaller local models (4K-32K context): Split text into chunks. Summarize each chunk, then summarize the summaries.', id: 'Untuk model lokal lebih kecil (konteks 4K-32K): Bagi teks menjadi bagian. Ringkas setiap bagian, lalu ringkas ringkasannya.' } } },
+      { id: 'prompt-03', task: { en: 'Generate creative variations', id: 'Hasilkan variasi kreatif' }, core: { en: 'Generate 5 distinct variations of [IDEA]. Each variation should be meaningfully different in approach or style. Number them 1-5. Keep each under 100 words.', id: 'Hasilkan 5 variasi berbeda dari [IDE]. Setiap variasi harus berbeda secara bermakna dalam pendekatan atau gaya. Beri nomor 1-5. Jaga setiap variasi di bawah 100 kata.' }, adaptations: { claude: { en: 'Set temperature to 0.8 for creative tasks. Claude responds well to: Think expansively but stay grounded.', id: 'Atur temperature ke 0,8 untuk tugas kreatif. Claude merespons baik: Berpikir secara luas tetapi tetap berpijak.' }, gpt: { en: 'GPT-4 at temperature 0.7-0.9: Be imaginative but coherent. Avoid cliches.', id: 'GPT-4 pada temperature 0,7-0,9: Berimajinasi tetapi koheren. Hindari klise.' }, gemini: { en: 'Gemini at high temperature: Explore unconventional angles. Connect to unexpected domains.', id: 'Gemini pada temperature tinggi: Jelajahi sudut tidak konvensional. Hubungkan ke domain tidak terduga.' }, local: { en: 'Local models may need temperature 1.0-1.2 for similar creativity. Add: Sample diverse tokens.', id: 'Model lokal mungkin perlu temperature 1,0-1,2 untuk kreativitas serupa. Tambahkan: Ambil sampel token beragam.' } } },
+      { id: 'prompt-04', task: { en: 'Create a system prompt for a role', id: 'Buat system prompt untuk peran' }, core: { en: 'You are [ROLE]. Your task is [TASK]. Follow these rules:\n1. [RULE 1]\n2. [RULE 2]\n3. [RULE 3]\nAvoid: [THINGS TO AVOID]\nTone: [TONE]\nFormat: [FORMAT]\n\nRespond to the users request following these guidelines.', id: 'Anda adalah [PERAN]. Tugas Anda adalah [TUGAS]. Ikuti aturan ini:\n1. [ATURAN 1]\n2. [ATURAN 2]\n3. [ATURAN 3]\nHindari: [YANG DIHINDARI]\nNada: [NADA]\nFormat: [FORMAT]\n\nRespons permintaan pengguna mengikuti panduan ini.' }, adaptations: { claude: { en: 'Claude excels with detailed system prompts. Add context: You have expertise in [DOMAIN]. You prioritize [VALUE].', id: 'Claude unggul dengan system prompt detail. Tambahkan konteks: Anda memiliki keahlian di [BIDANG]. Anda memprioritaskan [NILAI].' }, gpt: { en: 'GPT-4 responds well to: You are an expert [ROLE] with [N] years of experience. Your communication style is [STYLE].', id: 'GPT-4 merespons baik: Anda adalah [PERAN] ahli dengan [N] tahun pengalaman. Gaya komunikasi Anda adalah [GAYA].' }, gemini: { en: 'Gemini benefits from: You are helpful, harmless, and honest. You adapt your expertise to the users level.', id: 'Gemini mendapat manfaat dari: Anda membantu, tidak berbahaya, dan jujur. Anda menyesuaikan keahlian dengan tingkat pengguna.' }, local: { en: 'Local models need shorter, clearer system prompts. Use: You are [ROLE]. Be [ADJECTIVE]. Do [TASK]. Avoid nested constraints.', id: 'Model lokal perlu system prompt lebih pendek dan jelas. Gunakan: Anda [PERAN]. Jadilah [SIFAT]. Lakukan [TUGAS]. Hindari batasan bersarang.' } } },
+      { id: 'prompt-05', task: { en: 'Check output for bias', id: 'Periksa output untuk bias' }, core: { en: 'Review the following text for potential biases. Check for:\n1. Cultural or regional bias\n2. Gender or demographic stereotypes\n3. Assumptions about the readers background\n4. Overgeneralizations\n\nText: [PASTE TEXT]\n\nList any biases found and suggest neutral revisions.', id: 'Tinjau teks berikut untuk potensi bias. Periksa:\n1. Bias budaya atau regional\n2. Stereotip gender atau demografis\n3. Asumsi tentang latar belakang pembaca\n4. Generalisasi berlebihan\n\nTeks: [TEMPEL TEKS]\n\nDaftar bias yang ditemukan dan sarankan revisi netral.' }, adaptations: { claude: { en: 'Claude is trained to be thoughtful about bias. Add: Be specific about which phrases are problematic and why.', id: 'Claude dilatih untuk berpikir tentang bias. Tambahkan: Jelaskan secara spesifik frasa mana yang bermasalah dan mengapa.' }, gpt: { en: 'GPT-4: Use your knowledge of fairness guidelines. Flag even subtle biases.', id: 'GPT-4: Gunakan pengetahuan Anda tentang panduan keadilan. Flag bahkan bias halus.' }, gemini: { en: 'Gemini: Consider global perspectives, not just Western viewpoints. Check for inclusive language.', id: 'Gemini: Pertimbangkan perspektif global, bukan hanya sudut pandang Barat. Periksa bahasa inklusif.' }, local: { en: 'Local models may miss subtle biases. Add: Compare this to [SPECIFIC BIAS TYPE]. Is this present? Be explicit.', id: 'Model lokal mungkin melewatkan bias halus. Tambahkan: Bandingkan ini dengan [JENIS BIAS SPESIFIK]. Apakah ini ada? Jadilah eksplisit.' } } }
     ];
 
     const LEARN_MODULES = [
@@ -4898,6 +4951,112 @@
             </div>
           </div>
         </div>
+
+        <!-- Passport Section -->
+        <div id="learnPassport" style="margin-top:32px;">
+          <h2 style="font-size:18px;margin-bottom:16px;" data-i18n="learn.passport.title">Learning Passport</h2>
+          <div class="card" style="background:linear-gradient(135deg,var(--brand-50),var(--accent-50));border:1px solid var(--brand);">
+            <div style="font-size:14px;color:var(--muted);margin-bottom:16px;" data-i18n="learn.passport.desc">All levels are FREE and open — no paywalls, no lock-in.</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+              ${[
+                { n: 1, name: { en: 'Foundation', id: 'Dasar' }, icon: '🌱', mod: 'mod-01' },
+                { n: 2, name: { en: 'Practitioner', id: 'Praktisi' }, icon: '🔧', mod: 'mod-02' },
+                { n: 3, name: { en: 'Guardian', id: 'Penjaga' }, icon: '🛡️', mod: 'mod-03' },
+                { n: 4, name: { en: 'Master', id: 'Ahli' }, icon: '🎓', mod: 'mod-04' }
+              ].map(lvl => {
+                const mod = state.learn.modules.find(m => m.id === lvl.mod);
+                const modLessons = mod?.lessons || [];
+                const modCompleted = modLessons.filter(l => state.learn.progress[l.id]?.done).length;
+                const modTotal = modLessons.length || 1;
+                const isComplete = modCompleted >= modTotal;
+                const isInProgress = modCompleted > 0 && !isComplete;
+                const isLocked = mod?.status === 'locked' && modCompleted === 0;
+                return `<div style="padding:16px;background:${isComplete ? 'var(--ok)' : isLocked ? 'var(--surface-2)' : 'var(--surface)'};border:2px solid ${isComplete ? 'var(--ok)' : isLocked ? 'var(--line)' : 'var(--brand)'};border-radius:var(--radius-sm);text-align:center;min-width:120px;opacity:${isLocked ? 0.5 : 1};">
+                  <div style="font-size:32px;margin-bottom:4px;">${lvl.icon}</div>
+                  <div style="font-size:12px;font-weight:600;margin-bottom:4px;">${lang === 'id' ? lvl.name.id : lvl.name.en}</div>
+                  <div style="font-size:10px;color:${isComplete ? '#fff' : 'var(--muted)'};">${isComplete ? (lang === 'id' ? 'Selesai' : 'Complete') : isLocked ? (lang === 'id' ? 'Terkunci' : 'Locked') : modCompleted + '/' + modTotal}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Glossary Section -->
+        <div id="learnGlossary" style="margin-top:32px;">
+          <h2 style="font-size:18px;margin-bottom:16px;" data-i18n="learn.glossary">Glossary</h2>
+          <div class="card">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+              ${LEARN_GLOSSARY.map(term => `
+                <div style="padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);">
+                  <div style="font-weight:600;font-size:14px;margin-bottom:4px;color:var(--brand);">${lang === 'id' ? term.term.id : term.term.en}</div>
+                  <div style="font-size:13px;color:var(--muted);line-height:1.5;">${lang === 'id' ? term.definition.id : term.definition.en}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Safety Checklist Section -->
+        <div id="learnSafety" style="margin-top:32px;">
+          <h2 style="font-size:18px;margin-bottom:16px;" data-i18n="learn.hub.safety">Safety Checklist</h2>
+          <div class="card">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;" data-i18n="learn.safety.intro">Before deploying AI outputs in production or sharing publicly, verify:</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${LEARN_SAFETY_CHECKLIST.map(item => `
+                <label style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);cursor:pointer;">
+                  <input type="checkbox" style="margin-top:2px;" onchange="this.parentElement.style.background=this.checked?'var(--accent-50)':'var(--surface-2)';this.parentElement.style.borderColor=this.checked?'var(--accent)':'var(--line)';">
+                  <span style="font-size:14px;line-height:1.5;">${lang === 'id' ? item.text.id : item.text.en}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt Library Section -->
+        <div id="learnPromptLib" style="margin-top:32px;">
+          <h2 style="font-size:18px;margin-bottom:16px;" data-i18n="learn.promptLibrary">Prompt Library</h2>
+          <div class="card">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;" data-i18n="learn.promptLib.intro">Vendor-neutral prompt templates with per-model adaptations.</p>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              ${LEARN_PROMPT_LIBRARY.map(prompt => `
+                <div style="padding:16px;border:1px solid var(--line);border-radius:var(--radius-sm);">
+                  <div style="font-weight:600;font-size:14px;margin-bottom:8px;">${lang === 'id' ? prompt.task.id : prompt.task.en}</div>
+                  <div style="padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);font-family:var(--mono);font-size:13px;white-space:pre-wrap;margin-bottom:12px;">${lang === 'id' ? prompt.core.id : prompt.core.en}</div>
+                  <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);">Per-model adaptations:</div>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+                    ${Object.entries(prompt.adaptations).map(([model, adaptation]) => `
+                      <div style="padding:8px;background:var(--brand-50);border:1px solid var(--brand);border-radius:6px;font-size:12px;">
+                        <div style="font-weight:600;margin-bottom:4px;text-transform:capitalize;">${model}</div>
+                        <div style="color:var(--ink);">${lang === 'id' ? adaptation.id : adaptation.en}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <button class="btn btn-sm btn-secondary" style="margin-top:12px;" onclick="navigator.clipboard.writeText('${(lang === 'id' ? prompt.core.id : prompt.core.en).replace(/\n/g, '\\n').replace(/'/g, "\\'")}'); showToast('${t('learn.workMap.copied')}')">Copy Prompt</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div id="learnNotes" style="margin-top:32px;">
+          <h2 style="font-size:18px;margin-bottom:16px;" data-i18n="learn.notes">My Notes</h2>
+          <div class="card">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;" data-i18n="learn.notes.intro">Private notes per lesson — stored locally in your browser.</p>
+            <div class="form-group">
+              <label class="form-label">Select Lesson</label>
+              <select class="form-select" id="notesLessonSelect" onchange="loadNoteForLesson(this.value)">
+                <option value="">-- Select a lesson --</option>
+                ${state.learn.modules.flatMap(m => m.lessons || []).map(l => `<option value="${l.id}">${lang === 'id' ? l.title.id : l.title.en}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Your Note</label>
+              <textarea class="form-textarea" id="notesContent" rows="6" placeholder="${t('learn.notes.placeholder')}"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveCurrentNote()">${t('learn.notes.save')}</button>
+          </div>
+        </div>
       `;
     }
 
@@ -4940,7 +5099,6 @@
         if (state.learn.streak.count > state.learn.streak.record) {
           state.learn.streak.record = state.learn.streak.count;
         }
-        // Award streak badge
         if (state.learn.streak.count >= 3 && !state.learn.badges?.includes(t('learn.badge.streak3'))) {
           state.learn.badges = [...(state.learn.badges || []), t('learn.badge.streak3')];
           showToast('🏆 Badge earned: ' + t('learn.badge.streak3'));
@@ -4951,6 +5109,23 @@
       persist('learn');
       renderLearn();
       showToast('Lesson completed!');
+    }
+
+    // Notes functions
+    function loadNoteForLesson(lessonId) {
+      if (!lessonId) { $('#notesContent').value = ''; return; }
+      const notes = state.learn.notes || {};
+      $('#notesContent').value = notes[lessonId] || '';
+    }
+
+    function saveCurrentNote() {
+      const lessonId = $('#notesLessonSelect')?.value;
+      const content = $('#notesContent')?.value || '';
+      if (!lessonId) { showToast('Please select a lesson'); return; }
+      if (!state.learn.notes) state.learn.notes = {};
+      state.learn.notes[lessonId] = content;
+      persist('learn');
+      showToast(t('learn.notes.saved') || 'Note saved!');
     }
 
     const WORK_MAP_TASKS = [

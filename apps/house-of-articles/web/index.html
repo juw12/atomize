@@ -2252,13 +2252,12 @@ function switchTab(tab){
   document.querySelector('.tab-item[data-tab="'+tab+'"]').classList.add('active');
   const screen=document.getElementById('screen-'+tab);
   if(screen){
-    // Remove flow-mode when switching to app screens
     document.querySelector('.app').classList.remove('flow-mode');
-    // Show skeleton briefly for feed
     if(tab==='feed'){
       const skel=document.getElementById('feed-skeleton');
       if(skel){skel.style.display='block';setTimeout(()=>{skel.style.display='none'},250);}
     }
+    if(tab==='ledger')renderLedger();
     screen.classList.add('active');
     screen.scrollTop=0;
   }
@@ -2801,13 +2800,38 @@ function selectDay(el){
   el.classList.add('selected');
 }
 
+// === LEDGER ===
+function renderLedger(){
+  if(!SHOE_DATA)return;
+  const entries=Object.entries(SHOE_DATA);
+  let verified=0,estimated=0;
+  const listEl=document.getElementById('mob-ledger-list');
+  if(!listEl)return;
+  entries.forEach(([key,shoe])=>{
+    const prov=shoe.provenance;
+    if(prov&&prov.confidence==='verified')verified++;
+    else if(prov&&prov.confidence==='estimated')estimated++;
+  });
+  document.getElementById('mob-ledger-total').textContent=entries.length;
+  document.getElementById('mob-ledger-verified').textContent=verified;
+  document.getElementById('mob-ledger-estimated').textContent=estimated;
+  listEl.innerHTML=entries.map(([key,shoe])=>{
+    const prov=shoe.provenance;
+    const conf=prov?prov.confidence:'unknown';
+    const color=conf==='verified'?'var(--up)':(conf==='estimated'?'var(--gold)':'var(--down)');
+    const bg=conf==='verified'?'rgba(111,169,107,.12)':(conf==='estimated'?'rgba(255,183,0,.12)':'rgba(192,87,75,.12)');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--hair)">'+
+      '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">'+shoe.brand+' '+shoe.model+'</div>'+
+      '<div style="font-size:11px;color:var(--ink-3)">'+shoe.sku+' · Retail $'+shoe.retail+' · Market $'+shoe.market+'</div></div>'+
+      '<div style="text-align:right"><span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;text-transform:uppercase;background:'+bg+';color:'+color+'">'+conf+'</span></div></div>';
+  }).join('');
+}
+
 // Init - Start on Login screen
 document.addEventListener('DOMContentLoaded',()=>{
-  // Clear all active screens so login is visible
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.onboarding-screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.confirmation-screen').forEach(s=>s.classList.remove('active'));
-  // Show login, enable flow mode (hides tab bar)
   document.getElementById('screen-login').style.display='flex';
   document.querySelector('.app').classList.add('flow-mode');
 });

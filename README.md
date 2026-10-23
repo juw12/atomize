@@ -8,7 +8,6 @@ runnable, deployable project.
 | [`apps/orbis`](apps/orbis) | Communication, identity, protection — and hiring (Orbis Work) — in one app | Zero-dependency Python stdlib server + SQLite + static PWA |
 | [`apps/peers`](apps/peers) | Verified reviews for food, travel and products | Single-file web app + optional stdlib persistence backend |
 | [`apps/house-of-articles`](apps/house-of-articles) | Athlete-moment sneaker news + live market feed | Static prototype + versioned data spine |
-| [`apps/ailene-open`](apps/ailene-open) | Open, vendor-neutral AI learning — offline-first, bilingual, no login | Static PWA + inline data spine + optional stdlib API |
 | [`apps/hazel`](apps/hazel) | Desktop studio for creators — auto-cut, repurpose to every platform, publish, measure traffic | Electron + bundled ffmpeg + local Whisper (offline) |
 | [`apps/update`](apps/update) | The `/update` pipeline — sync the repo to GitHub and mirror a note to Obsidian | PowerShell helper + OpenCode slash command |
 

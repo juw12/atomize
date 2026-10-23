@@ -67,12 +67,6 @@ APPS = [
         "desktop": "house-of-articles/desktop.html",
         "mobile": "house-of-articles/",
     },
-    {
-        "name": "Ailene Open",
-        "desc": "Open, vendor-neutral AI learning — offline-first and bilingual",
-        "desktop": "ailene-open/index.html",
-        "mobile": "ailene-open/mobile.html",
-    },
 ]
 
 
@@ -242,7 +236,6 @@ def main():
         ("orbis", "orbis"),
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
-        ("ailene-open", "ailene-open"),
     ]
 
     for app_name, site_subdir in apps_config:

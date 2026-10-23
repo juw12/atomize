@@ -4617,7 +4617,44 @@
       { id: 'tip-02', text: { en: "Use 'Think step-by-step' for complex problems.", id: "Gunakan 'Pikirkan langkah demi langkah' untuk masalah kompleks." } },
       { id: 'tip-03', text: { en: "Provide examples: 'Like this: [example]' is more reliable.", id: "Berikan contoh: 'Seperti ini: [contoh]' lebih andal." } },
       { id: 'tip-04', text: { en: "Set constraints early: word limits, format, tone.", id: "Atur batasan sejak awal: batas kata, format, nada." } },
-      { id: 'tip-05', text: { en: "Ask AI to critique itself: 'Review your answer for errors'.", id: "Minta AI mengkritik dirinya: 'Tinjau jawaban untuk kesalahan'." } }
+      { id: 'tip-05', text: { en: "Ask AI to critique itself: 'Review your answer for errors'.", id: "Minta AI mengkritik dirinya: 'Tinjau jawaban untuk kesalahan'." } },
+      { id: 'tip-06', text: { en: "Temperature: low (0.0-0.3) accuracy, high (0.7-1.0) creativity.", id: "Temperature: rendah (0,0-0,3) akurasi, tinggi (0,7-1,0) kreativitas." } },
+      { id: 'tip-07', text: { en: "Never share PII with AI.", id: "Jangan berbagi PII dengan AI." } },
+      { id: 'tip-08', text: { en: "Verify citations - AI can hallucinate.", id: "Verifikasi sitasi - AI bisa halusinasi." } },
+      { id: 'tip-09', text: { en: "Few-shot: show 2-3 examples.", id: "Few-shot: tunjukkan 2-3 contoh." } },
+      { id: 'tip-10', text: { en: "Per-model adaptations matter.", id: "Adaptasi per-model penting." } }
+    ];
+
+    const LEARN_GLOSSARY = [
+      { id: 'term-token', term: { en: 'Token', id: 'Token' }, definition: { en: 'Basic text unit AI processes.', id: 'Unit teks dasar AI proses.' } },
+      { id: 'term-context-window', term: { en: 'Context Window', id: 'Jendela Konteks' }, definition: { en: 'Max text AI processes at once.', id: 'Teks maksimal AI proses sekaligus.' } },
+      { id: 'term-temperature', term: { en: 'Temperature', id: 'Temperature' }, definition: { en: 'Controls randomness. Low=accurate, high=creative.', id: 'Kontrol keacakan. Rendah=akurat, tinggi=kreatif.' } },
+      { id: 'term-system-prompt', term: { en: 'System Prompt', id: 'System Prompt' }, definition: { en: 'Sets AI behavior for conversation.', id: 'Atur perilaku AI untuk percakapan.' } },
+      { id: 'term-few-shot', term: { en: 'Few-Shot', id: 'Few-Shot' }, definition: { en: 'Teach AI with examples.', id: 'Ajari AI dengan contoh.' } },
+      { id: 'term-cot', term: { en: 'Chain of Thought', id: 'Chain of Thought' }, definition: { en: 'Show reasoning before answer.', id: 'Tunjukkan penalaran sebelum jawaban.' } },
+      { id: 'term-hallucination', term: { en: 'Hallucination', id: 'Halusinasi' }, definition: { en: 'AI generates false info.', id: 'AI hasilkan info palsu.' } },
+      { id: 'term-pii', term: { en: 'PII', id: 'PII' }, definition: { en: 'Personally Identifiable Information - never share.', id: 'Informasi Pengenal Pribadi - jangan berbagi.' } },
+      { id: 'term-bias', term: { en: 'AI Bias', id: 'Bias AI' }, definition: { en: 'Systematic errors in AI outputs.', id: 'Kesalahan sistematis output AI.' } },
+      { id: 'term-self-correction', term: { en: 'Self-Correction', id: 'Koreksi Diri' }, definition: { en: 'AI reviews own output.', id: 'AI tinjau output sendiri.' } }
+    ];
+
+    const LEARN_SAFETY_CHECKLIST = [
+      { id: 'safety-01', text: { en: 'Factual accuracy', id: 'Akurasi faktual' } },
+      { id: 'safety-02', text: { en: 'No hallucinated citations', id: 'Tidak ada sitasi halusinasi' } },
+      { id: 'safety-03', text: { en: 'Bias check', id: 'Pemeriksaan bias' } },
+      { id: 'safety-04', text: { en: 'Privacy - no PII', id: 'Privasi - tidak ada PII' } },
+      { id: 'safety-05', text: { en: 'Security - no secrets', id: 'Keamanan - tidak ada rahasia' } },
+      { id: 'safety-06', text: { en: 'Copyright respected', id: 'Hak cipta dihormati' } },
+      { id: 'safety-07', text: { en: 'Context appropriate', id: 'Konteks sesuai' } },
+      { id: 'safety-08', text: { en: 'Human review', id: 'Tinjauan manusia' } }
+    ];
+
+    const LEARN_PROMPT_LIBRARY = [
+      { id: 'prompt-01', task: { en: 'Explain concept', id: 'Jelaskan konsep' }, core: { en: 'Explain [CONCEPT] to beginner using analogy. 150 words.', id: 'Jelaskan [KONSEP] ke pemula pakai analogi. 150 kata.' }, adaptations: { claude: { en: 'Think step-by-step, no jargon.', id: 'Pikir langkah demi langkah, tanpa jargon.' }, gpt: { en: 'Use Feynman technique.', id: 'Pakai teknik Feynman.' }, gemini: { en: 'Add visual metaphor.', id: 'Tambah metafora visual.' }, local: { en: 'Short sentences, repeat key.', id: 'Kalimat pendek, ulang kunci.' } } },
+      { id: 'prompt-02', task: { en: 'Summarize document', id: 'Ringkas dokumen' }, core: { en: 'Summarize in [N] words. Keep facts, names.', id: 'Ringkas dalam [N] kata. Jaga fakta, nama.' }, adaptations: { claude: { en: 'Use 200K context, hierarchy first.', id: 'Pakai konteks 200K, hierarki dulu.' }, gpt: { en: 'Structured: claims, evidence, conclusions.', id: 'Terstruktur: klaim, bukti, kesimpulan.' }, gemini: { en: 'Hierarchical main/sub-points.', id: 'Hierarkis poin utama/sub.' }, local: { en: 'Chunk, summarize each, combine.', id: 'Bagi, ringkas masing-masing, gabung.' } } },
+      { id: 'prompt-03', task: { en: 'Creative variations', id: 'Variasi kreatif' }, core: { en: '5 distinct variations of [IDEA]. Number 1-5.', id: '5 variasi berbeda [IDE]. Nomor 1-5.' }, adaptations: { claude: { en: 'Temp 0.8, expansive but grounded.', id: 'Temp 0,8, luas tapi berpijak.' }, gpt: { en: 'Temp 0.7-0.9, imaginative coherent.', id: 'Temp 0,7-0,9, imajinasi koheren.' }, gemini: { en: 'High temp, unconventional.', id: 'Temp tinggi, tidak konvensional.' }, local: { en: 'Temp 1.0-1.2, diverse tokens.', id: 'Temp 1,0-1,2, token beragam.' } } },
+      { id: 'prompt-04', task: { en: 'System prompt', id: 'System prompt' }, core: { en: 'You are [ROLE]. Task: [TASK]. Rules: [RULES].', id: 'Anda [PERAN]. Tugas: [TUGAS]. Aturan: [ATURAN].' }, adaptations: { claude: { en: 'Add expertise context.', id: 'Tambah konteks keahlian.' }, gpt: { en: 'N years experience.', id: 'N tahun pengalaman.' }, gemini: { en: 'Helpful, harmless, honest.', id: 'Membantu, tidak berbahaya, jujur.' }, local: { en: 'Short, clear.', id: 'Pendek, jelas.' } } },
+      { id: 'prompt-05', task: { en: 'Bias check', id: 'Pemeriksaan bias' }, core: { en: 'Review for cultural, gender, demographic bias.', id: 'Tinjau bias budaya, gender, demografis.' }, adaptations: { claude: { en: 'Specific phrases, why problematic.', id: 'Frasa spesifik, mengapa masalah.' }, gpt: { en: 'Fairness guidelines, subtle flags.', id: 'Panduan keadilan, flag halus.' }, gemini: { en: 'Global perspectives, inclusive.', id: 'Perspektif global, inklusif.' }, local: { en: 'Compare to bias type, explicit.', id: 'Banding tipe bias, eksplisit.' } } }
     ];
 
     const LEARN_MODULES = [
