@@ -5,11 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ziris Motor Test Console</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="Serial console for ARLO ZIRIS device motor testing">
+  <meta name="theme-color" content="#0f172a" id="theme-color-meta">
+  <meta name="description" content="Serial console for ZIRIS device motor testing">
   <link rel="icon" type="image/svg+xml" href="icons/app-icon.svg">
   <link rel="apple-touch-icon" href="icons/app-icon.svg">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var theme = localStorage.getItem('ziris.theme');
+      if (theme === 'light' || theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="app-container">
@@ -26,6 +34,13 @@
       <div class="header-meta">
         <span class="meta-item">FW: <strong id="fw-version">-</strong></span>
         <span class="meta-item">Source: <strong id="data-source">-</strong></span>
+        <button id="theme-toggle" class="theme-switcher" aria-label="Theme: System">
+          <svg class="theme-switcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <span id="theme-label">System</span>
+        </button>
       </div>
     </header>
 
@@ -152,6 +167,41 @@
         </div>
       </section>
     </main>
+
+    <!-- Device Camera (UVC) Panel - Full Width, Collapsible -->
+    <section class="panel panel-camera" aria-label="Device Camera (UVC)">
+      <div class="panel-header">
+        <h2>Device Camera (UVC)</h2>
+        <div class="camera-header-controls">
+          <button id="btn-camera-toggle" class="btn btn-sm btn-secondary" aria-expanded="false" aria-controls="camera-panel-content">
+            <svg class="camera-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="camera-panel-content" class="camera-panel-content hidden">
+        <div class="camera-controls">
+          <div class="camera-device-select">
+            <label for="camera-device-select" class="label">Camera:</label>
+            <select id="camera-device-select" class="select select-full"></select>
+          </div>
+          <div class="camera-buttons">
+            <button id="btn-camera-refresh" class="btn btn-sm">Refresh</button>
+            <button id="btn-camera-start" class="btn btn-sm btn-primary">Start Preview</button>
+            <button id="btn-camera-stop" class="btn btn-sm btn-danger" disabled>Stop Preview</button>
+          </div>
+        </div>
+        <div class="camera-preview-container">
+          <video id="camera-preview" class="camera-preview" autoplay muted playsinline></video>
+          <div id="camera-placeholder" class="camera-placeholder">
+            <p>Preview not started</p>
+          </div>
+        </div>
+        <div id="camera-status" class="camera-status" aria-live="polite"></div>
+        <div id="camera-diagnostic" class="camera-diagnostic hidden"></div>
+      </div>
+    </section>
   </div>
 
   <!-- Save As Modal -->

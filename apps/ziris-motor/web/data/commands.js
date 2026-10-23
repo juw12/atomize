@@ -1,7 +1,6 @@
 /*
  * Ziris Motor Test Console — command library
- * Source: "FW: Ziris- 測試指令" (Outlook store "0921", 2026-09-23)
- *         attachment: Ziris_commands_list_0626.xlsx  →  sheet "Command List"
+ * Source: the device command list  →  sheet "Command List"
  *         Firmware version documented: 0.0.0.9
  *
  * Schema:
@@ -17,11 +16,10 @@ window.ZIRIS_COMMANDS = {
   meta: {
     title: "Ziris diagnostic command list",
     fwVersion: "0.0.0.9",
-    source: "Ziris_commands_list_0626.xlsx",
-    sourceMail: "FW: Ziris- 測試指令 (2026-09-23)",
+    source: "the device command list",
     sheets: ["Ver", "Block DIagram", "Command List"],
     compiled: "2026-06-12 (v1.2)",
-    authors: ["Jason Fan"]
+    authors: ["Test Engineering"]
   },
 
   groups: [
@@ -207,12 +205,6 @@ window.ZIRIS_COMMANDS = {
       commands: [
         { id: "rled-id", label: "Read ID", cmd: "diag rled id" },
         { id: "rled-report", label: "Report status", cmd: "diag rled report" },
-        { id: "rled-on", label: "On", cmd: "diag rled on {bNight} {fade_rate}",
-          params: [
-            { key: "bNight", label: "Night", type: "enum", options: ["0", "1"], default: "1" },
-            { key: "fade_rate", label: "Fade rate", type: "int", default: 3, min: 0, max: 7, hint: "0 – 7" }
-          ],
-          note: "Example: diag rled on 1 3" },
         { id: "rled-palette", label: "Set palette", cmd: "diag rled palette {r} {g} {b} {bNight} {bBriExtend}",
           params: [
             { key: "r", label: "R", type: "int", default: 120, min: 0, max: 255 },
@@ -223,8 +215,6 @@ window.ZIRIS_COMMANDS = {
           ],
           note: "Example: diag rled palette 120 120 120 1 0" },
         { id: "rled-off", label: "Off", cmd: "diag rled off" },
-        { id: "rled-start", label: "Start pattern", cmd: "diag rled start" },
-        { id: "rled-stop", label: "Stop pattern", cmd: "diag rled stop" },
         { id: "rled-pattern-off", label: "Pattern off", cmd: "diag rled pattern_off" },
         { id: "rled-breathing", label: "Breathing", cmd: "diag rled breathing {fSpeed} {fMinLevel} {fMaxLevel} {fade_rate} {eColor} {night_mode}",
           params: [
@@ -263,10 +253,7 @@ window.ZIRIS_COMMANDS = {
         { id: "zg-otw", label: "OTW firmware update", cmd: "diag zg23 otw {image}",
           params: [ { key: "image", label: "Image path", type: "text", default: "/mnt/usb/u1_1.gbl",
                       hint: "Path to the .gbl image on the device" } ],
-          note: "Prints #ZG23 OTW transfer 0..100%# then \"#INFO#0:ZG23 OTW PASS …#END#\"." },
-        { id: "zg-pc-start", label: "PC-controller start", cmd: "diag zg23 pc-controller start",
-          note: "While started, other `diag zg23` commands are blocked until stopped." },
-        { id: "zg-pc-stop", label: "PC-controller stop", cmd: "diag zg23 pc-controller stop" }
+          note: "Prints #ZG23 OTW transfer 0..100%# then \"#INFO#0:ZG23 OTW PASS …#END#\"." }
       ]
     },
 

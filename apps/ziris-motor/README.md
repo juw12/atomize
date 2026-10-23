@@ -1,6 +1,6 @@
 # Ziris Motor Test Console
 
-A complete, production-quality, dependency-free browser app that replaces the TeraTerm/CWD serial workflow for ARLO ZIRIS device motor testing.
+A complete, production-quality, dependency-free browser app that replaces the TeraTerm/CWD serial workflow for ZIRIS device motor testing.
 
 ## Features
 
@@ -157,13 +157,11 @@ Simulates device behavior:
 ## Command Data Source
 
 - **Firmware version**: 0.0.0.9
-- **Source**: `Ziris_commands_list_0626.xlsx` → sheet *Command List*
-- **Mail**: "FW: Ziris- 測試指令", received 2026-09-23, in the Outlook store named `0921`
-- **Compiled**: 2026-06-12 (v1.2) by Jason Fan
+- **Source**: the device command list → sheet *Command List*
+- **Compiled**: 2026-06-12 (v1.2)
 
 ## Macro Data Source
 
-- **Original location**: `E:\Work\RD ME\Project\1-Juwen Project\ARLO\ZIRIS\Motor\Macro\`
 - **Source files**: `test_motor.ttl`, `test_motor2 (no light).ttl`, `test_motor3 (1100).ttl`, `指令.txt`
 
 ## License

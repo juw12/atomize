@@ -5,7 +5,7 @@ Stdlib only (matches the repo's test convention: exit 0 = pass, 1 = fail).
 
 What it protects:
   * the command library still contains every command from
-    Ziris_commands_list_0626.xlsx (the source of truth),
+    the device command list (the source of truth),
   * the motor parameter ranges are the documented ones,
   * the three TeraTerm macros are preserved and every macro placeholder
     resolves to a declared parameter,
@@ -146,7 +146,6 @@ def main():
         "diag rled breathing {fSpeed} {fMinLevel} {fMaxLevel} {fade_rate} {eColor} {night_mode}",
         "diag zg23 check", "diag zg23 get fw_ver", "diag zg23 reset",
         "diag zg23 fw_recovery_mode", "diag zg23 otw {image}",
-        "diag zg23 pc-controller start", "diag zg23 pc-controller stop",
         "diag motor pan forward {x} {y}", "diag motor pan reverse {x} {y}",
         "diag motor rising forward {x} {y}", "diag motor rising reverse {x} {y}",
         "diag button get rising-det", "diag button get  sync-btn",
@@ -155,6 +154,18 @@ def main():
     missing = [c for c in expected if c not in templates]
     check(not missing, f"all {len(expected)} expected commands present"
           + ("" if not missing else f" — MISSING: {missing}"))
+
+    # Commands the device answers with "unknown command" must stay out of the library.
+    rejected = [
+        "diag rled on",
+        "diag rled start",
+        "diag rled stop",
+        "diag zg23 pc-controller start",
+        "diag zg23 pc-controller stop",
+    ]
+    still_there = [c for c in rejected if c in templates]
+    check(not still_there, "commands the device rejects are not offered"
+          + ("" if not still_there else f" — still present: {still_there}"))
 
     # ---- parameter ranges -------------------------------------------------
     print("\n[ parameter ranges ]")

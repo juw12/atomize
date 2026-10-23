@@ -12,12 +12,11 @@
  * `repeat` runs the whole step list N times (the runner shows
  * "Current Test Count = n" between iterations, exactly like the .ttl macros).
  *
- * The first three macros are direct translations of the TeraTerm macros in
- * …\ARLO\ZIRIS\Motor\Macro\.  The rest are presets derived from 指令.txt.
+ * The first three macros are direct translations of the TeraTerm macros.
+ * The rest are presets derived from 指令.txt.
  */
 window.ZIRIS_MACROS = {
   meta: {
-    sourceDir: "E:\\Work\\RD ME\\Project\\1-Juwen Project\\ARLO\\ZIRIS\\Motor\\Macro",
     prompt: "~ #"
   },
 

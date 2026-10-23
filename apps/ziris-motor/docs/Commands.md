@@ -3,8 +3,8 @@
 Auto-generated from `web/data/commands.js` by `tools/gen_docs.py`. Do not edit by hand.
 
 - Firmware documented: **0.0.0.9**  
-- Source: `Ziris_commands_list_0626.xlsx` (sheet *Command List*), mailed as "FW: Ziris- 測試指令 (2026-09-23)"  
-- Compiled 2026-06-12 (v1.2) by Jason Fan
+- Source: the device command list (sheet *Command List*)  
+- Compiled 2026-06-12 (v1.2)
 
 > The device shell prompt is `~ #`. Commands are sent as a line terminated by CRLF.
 
@@ -102,12 +102,6 @@ Z-Wave radio: check, version, reset, recovery and OTW firmware update.
 
 > Prints #ZG23 OTW transfer 0..100%# then "#INFO#0:ZG23 OTW PASS …#END#".
 
-**`diag zg23 pc-controller start`** — PC-controller start
-
-> While started, other `diag zg23` commands are blocked until stopped.
-
-**`diag zg23 pc-controller stop`** — PC-controller stop
-
 ## Audio
 
 ### AMP — TAS2781 (I2C)
@@ -199,15 +193,6 @@ Ring-LED driver: palette, patterns and effects.
 
 **`diag rled report`** — Report status
 
-**`diag rled on {bNight} {fade_rate}`** — On
-
-| Param | Type | Range / options | Default | Hint |
-| --- | --- | --- | --- | --- |
-| `bNight` | enum | 0 · 1 | `1` |  |
-| `fade_rate` | int | 0 – 7 | `3` | 0 – 7 |
-
-> Example: diag rled on 1 3
-
 **`diag rled palette {r} {g} {b} {bNight} {bBriExtend}`** — Set palette
 
 | Param | Type | Range / options | Default | Hint |
@@ -221,10 +206,6 @@ Ring-LED driver: palette, patterns and effects.
 > Example: diag rled palette 120 120 120 1 0
 
 **`diag rled off`** — Off
-
-**`diag rled start`** — Start pattern
-
-**`diag rled stop`** — Stop pattern
 
 **`diag rled pattern_off`** — Pattern off
 

@@ -1,6 +1,6 @@
 /**
  * Ziris Motor Test Console — Application
- * Dependency-free browser app for ARLO ZIRIS device testing
+ * Dependency-free browser app for ZIRIS device testing
  */
 
 (function() {
@@ -49,6 +49,9 @@
     // Header
     elements.fwVersion = document.getElementById('fw-version');
     elements.dataSource = document.getElementById('data-source');
+    elements.themeToggle = document.getElementById('theme-toggle');
+    elements.themeLabel = document.getElementById('theme-label');
+    elements.themeColorMeta = document.getElementById('theme-color-meta');
     
     // Status bar
     elements.btnConnect = document.getElementById('btn-connect');
@@ -116,8 +119,18 @@
     renderMacroSelect();
     setupEventListeners();
     registerServiceWorker();
+    initTheme();
+    initCameraPanel();
     
     logToConsole('Ziris Motor Test Console initialized', 'welcome');
+  }
+  
+  function initTheme() {
+    const stored = localStorage.getItem('ziris.theme');
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    updateThemeUI(currentTheme || 'system');
+    updateMetaThemeColor(currentTheme);
   }
 
   function renderHeader() {
@@ -201,6 +214,9 @@
     elements.btnCopyTtl.addEventListener('click', copyTtlToClipboard);
     elements.btnDownloadTtl.addEventListener('click', downloadTtlFile);
     elements.btnCloseExport.addEventListener('click', () => elements.modalExportTtl.close());
+    
+    // Theme switcher
+    elements.themeToggle.addEventListener('click', handleThemeToggle);
   }
 
   // ========================================================================
@@ -1305,6 +1321,57 @@
   }
 
   // ========================================================================
+  // THEME SWITCHER
+  // ========================================================================
+  
+  function handleThemeToggle() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const themeOrder = [null, 'light', 'dark'];
+    const currentIndex = themeOrder.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    const nextTheme = themeOrder[nextIndex];
+    
+    if (nextTheme === null) {
+      html.removeAttribute('data-theme');
+      localStorage.removeItem('ziris.theme');
+      updateThemeUI('system');
+    } else {
+      html.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('ziris.theme', nextTheme);
+      updateThemeUI(nextTheme);
+    }
+    
+    updateMetaThemeColor(nextTheme);
+  }
+  
+  function updateThemeUI(theme) {
+    const labels = {
+      'system': 'System',
+      'light': 'Light',
+      'dark': 'Dark'
+    };
+    elements.themeLabel.textContent = labels[theme] || 'System';
+    elements.themeToggle.setAttribute('aria-label', 'Theme: ' + (labels[theme] || 'System'));
+  }
+  
+  function updateMetaThemeColor(theme) {
+    if (!elements.themeColorMeta) return;
+    
+    if (theme === 'dark' || theme === null) {
+      if (theme === null && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        elements.themeColorMeta.setAttribute('content', '#0f172a');
+      } else if (theme === 'dark') {
+        elements.themeColorMeta.setAttribute('content', '#0f172a');
+      } else {
+        elements.themeColorMeta.setAttribute('content', '#f8fafc');
+      }
+    } else {
+      elements.themeColorMeta.setAttribute('content', '#f8fafc');
+    }
+  }
+
+  // ========================================================================
   // SERVICE WORKER
   // ========================================================================
   
@@ -1316,6 +1383,225 @@
     }
   }
 
+  // ========================================================================
+  // CAMERA PANEL (UVC)
+  // ========================================================================
+  
+  const cameraState = {
+    stream: null,
+    selectedDeviceId: null,
+    collapsed: true
+  };
+  
+  function initCameraPanel() {
+    elements.cameraToggle = document.getElementById('btn-camera-toggle');
+    elements.cameraPanelContent = document.getElementById('camera-panel-content');
+    elements.cameraDeviceSelect = document.getElementById('camera-device-select');
+    elements.cameraRefresh = document.getElementById('btn-camera-refresh');
+    elements.cameraStart = document.getElementById('btn-camera-start');
+    elements.cameraStop = document.getElementById('btn-camera-stop');
+    elements.cameraPreview = document.getElementById('camera-preview');
+    elements.cameraPlaceholder = document.getElementById('camera-placeholder');
+    elements.cameraStatus = document.getElementById('camera-status');
+    elements.cameraDiagnostic = document.getElementById('camera-diagnostic');
+    
+    if (elements.cameraToggle) {
+      elements.cameraToggle.addEventListener('click', toggleCameraPanel);
+    }
+    if (elements.cameraRefresh) {
+      elements.cameraRefresh.addEventListener('click', enumerateCameraDevices);
+    }
+    if (elements.cameraStart) {
+      elements.cameraStart.addEventListener('click', startCameraPreview);
+    }
+    if (elements.cameraStop) {
+      elements.cameraStop.addEventListener('click', stopCameraPreview);
+    }
+    
+    // Initial enumeration
+    enumerateCameraDevices();
+  }
+  
+  function toggleCameraPanel() {
+    cameraState.collapsed = !cameraState.collapsed;
+    if (cameraState.collapsed) {
+      elements.cameraPanelContent.classList.add('hidden');
+      elements.cameraToggle.setAttribute('aria-expanded', 'false');
+      elements.cameraToggle.querySelector('.camera-toggle-icon').classList.add('rotated');
+    } else {
+      elements.cameraPanelContent.classList.remove('hidden');
+      elements.cameraToggle.setAttribute('aria-expanded', 'true');
+      elements.cameraToggle.querySelector('.camera-toggle-icon').classList.remove('rotated');
+    }
+  }
+  
+  async function enumerateCameraDevices() {
+    // Check for secure context
+    if (!window.isSecureContext) {
+      updateCameraStatus('Camera access needs a secure context — open over http://localhost or https://');
+      showCameraDiagnostic(false);
+      return;
+    }
+    
+    // Check for mediaDevices support
+    if (!navigator.mediaDevices?.getUserMedia) {
+      updateCameraStatus('Camera API not available in this browser');
+      showCameraDiagnostic(false);
+      return;
+    }
+    
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      
+      // Clear existing options
+      elements.cameraDeviceSelect.innerHTML = '';
+      
+      if (videoDevices.length === 0) {
+        updateCameraStatus('No video input devices found');
+        showCameraDiagnostic(true);
+        return;
+      }
+      
+      // Check if labels are blank (permission not granted)
+      const hasBlankLabels = videoDevices.some(d => !d.label || d.label.trim() === '');
+      
+      // Add options
+      for (const device of videoDevices) {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.textContent = device.label || `Camera ${videoDevices.indexOf(device) + 1}`;
+        elements.cameraDeviceSelect.appendChild(option);
+      }
+      
+      let statusMsg = `Found ${videoDevices.length} video device${videoDevices.length !== 1 ? 's' : ''}`;
+      if (hasBlankLabels) {
+        statusMsg += ' — grant camera permission to see device names';
+      }
+      updateCameraStatus(statusMsg);
+      showCameraDiagnostic(false);
+      
+    } catch (error) {
+      updateCameraStatus(`Error enumerating devices: ${error.message}`);
+      showCameraDiagnostic(false);
+    }
+  }
+  
+  async function startCameraPreview() {
+    // Check for secure context
+    if (!window.isSecureContext) {
+      updateCameraStatus('Camera access needs a secure context — open over http://localhost or https://');
+      return;
+    }
+    
+    // Check for mediaDevices support
+    if (!navigator.mediaDevices?.getUserMedia) {
+      updateCameraStatus('Camera API not available in this browser');
+      return;
+    }
+    
+    // Stop existing stream
+    await stopCameraPreview();
+    
+    const deviceId = elements.cameraDeviceSelect.value;
+    
+    try {
+      const constraints = {
+        video: deviceId ? { deviceId: { exact: deviceId } } : true,
+        audio: false
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      cameraState.stream = stream;
+      cameraState.selectedDeviceId = deviceId;
+      
+      // Attach to video element
+      elements.cameraPreview.srcObject = stream;
+      elements.cameraPreview.style.display = 'block';
+      elements.cameraPlaceholder.style.display = 'none';
+      
+      // Update buttons
+      elements.cameraStart.disabled = true;
+      elements.cameraStop.disabled = false;
+      elements.cameraDeviceSelect.disabled = true;
+      
+      // Get negotiated resolution
+      const track = stream.getVideoTracks()[0];
+      const settings = track.getSettings();
+      const resolution = `${settings.width || '?'}×${settings.height || '?'} @ ${settings.frameRate || '?'}fps`;
+      
+      const selectedOption = elements.cameraDeviceSelect.selectedOptions[0];
+      const deviceLabel = selectedOption ? selectedOption.textContent : 'Unknown';
+      
+      updateCameraStatus(`Playing: ${deviceLabel} — ${resolution}`);
+      
+    } catch (error) {
+      let errorMsg = 'Failed to start camera';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMsg = 'Permission denied — please allow camera access';
+      } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
+        errorMsg = 'Camera not found — device may not be enumerating correctly';
+        showCameraDiagnostic(true);
+      } else if (error.name === 'NotReadableError') {
+        errorMsg = 'Camera busy — close other apps using the camera and try again';
+      } else {
+        errorMsg = `Error: ${error.message}`;
+      }
+      
+      updateCameraStatus(errorMsg);
+    }
+  }
+  
+  async function stopCameraPreview() {
+    if (cameraState.stream) {
+      // Stop all tracks
+      for (const track of cameraState.stream.getTracks()) {
+        track.stop();
+      }
+      cameraState.stream = null;
+    }
+    
+    // Clear video source
+    elements.cameraPreview.srcObject = null;
+    elements.cameraPreview.style.display = 'none';
+    elements.cameraPlaceholder.style.display = 'flex';
+    
+    // Update buttons
+    elements.cameraStart.disabled = false;
+    elements.cameraStop.disabled = true;
+    elements.cameraDeviceSelect.disabled = false;
+    
+    updateCameraStatus('Preview stopped');
+  }
+  
+  function updateCameraStatus(message) {
+    if (elements.cameraStatus) {
+      elements.cameraStatus.textContent = message;
+    }
+  }
+  
+  function showCameraDiagnostic(show) {
+    if (!elements.cameraDiagnostic) return;
+    
+    if (show) {
+      elements.cameraDiagnostic.innerHTML = `
+        <h4>No UVC Camera Detected</h4>
+        <p>The device is not enumerating as a USB Video Class (UVC) camera. Check the following:</p>
+        <ul>
+          <li>On the device, run: <code>diag usbmode set uvc</code> (this will reboot)</li>
+          <li><strong>Unplug and replug the USB cable</strong> so Windows re-enumerates the gadget</li>
+          <li>Check Windows <strong>Device Manager → Cameras</strong> or the <strong>Camera</strong> app</li>
+          <li>Note: UVC and CDC serial console may be mutually exclusive USB modes</li>
+        </ul>
+        <p>After switching USB modes, always disconnect and reconnect the USB cable for Windows to detect the change.</p>
+      `;
+      elements.cameraDiagnostic.classList.remove('hidden');
+    } else {
+      elements.cameraDiagnostic.classList.add('hidden');
+    }
+  }
+  
   // ========================================================================
   // START
   // ========================================================================
