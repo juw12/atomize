@@ -1,0 +1,8 @@
+# Runtime data / state
+*.log
+*.pid
+daemon.stop
+
+# Python
+__pycache__/
+*.py[cod]
