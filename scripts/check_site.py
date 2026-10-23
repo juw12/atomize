@@ -69,6 +69,9 @@ def is_absolute_root(ref):
 
 def resolve_ref(ref, file_path, site_dir):
     """Resolve a reference relative to a file and return the absolute path."""
+    ref = ref.split('#', 1)[0].split('?', 1)[0]
+    if not ref:
+        return site_dir
     file_dir = file_path.parent
     
     if ref.startswith('/'):

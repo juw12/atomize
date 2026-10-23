@@ -82,7 +82,10 @@ def run_tests():
     for ref in refs:
         if ref.startswith(("http://", "https://", "//", "mailto:", "data:", "tel:", "javascript:")):
             continue
-        target = os.path.join(WEB_DIR, ref)
+        clean = ref.split('#', 1)[0].split('?', 1)[0]
+        if not clean:
+            continue
+        target = os.path.join(WEB_DIR, clean)
         if not os.path.isfile(target):
             print(f"FAIL - local ref '{ref}' does not resolve to a file")
             all_passed = False
