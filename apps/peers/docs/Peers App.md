@@ -128,6 +128,9 @@ Fashion & Apparel, Baby & Maternity, Books & Stationery, Gifts & Handmade, Welln
 Categories with no reviews yet render a hub that describes what people review there and its
 market, with a "write the first review" call to action.
 
+**Settings → Your data** exports the whole app state as JSON and imports a previous export
+(categories, reviews with scorecards and verdicts, and market data).
+
 ## Screenshots
 
 ### Feed

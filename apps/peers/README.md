@@ -199,6 +199,12 @@ chips (All · Following · Trending · Top rated · Verified · Recent). Searchi
 Categories add `mode` (active category) and `catFilter` (in-category feed filter) to the state
 document, alongside `votes` and `feedFilter`.
 
+### Export / import
+
+**Settings → Your data** exports the whole app state as JSON and imports a previous export —
+categories, reviews (with scorecards and verdicts) and market data included. This is carried
+over from the standalone Desk Verdict app.
+
 ## Roadmap
 
 ### Current State (v0.6)

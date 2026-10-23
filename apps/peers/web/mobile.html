@@ -2113,6 +2113,16 @@ var GUIDE_RECOMMENDATIONS=[
       '</form>';
   };
 
+  /* settings: append a data export/import section */
+  var O_settings = views.settings;
+  views.settings = function (params) {
+    return O_settings(params) +
+      '<div style="max-width:520px;margin-top:22px"><div class="settings-row"><div><div class="lbl">Your data</div><div class="sub">Export everything as JSON, or import a previous export - categories, reviews (with scorecards and verdicts), and market data.</div></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-outline" data-action="pm-export">' + icon('receipt', '') + ' Export JSON</button>' +
+      '<button type="button" class="btn btn-outline" data-action="pm-import">' + icon('box', '') + ' Import JSON</button></div></div>' +
+      '<input id="pm-import-file" type="file" accept="application/json,.json" style="display:none" aria-hidden="true"></div>';
+  };
+
   /* desktop live search dropdown (category-aware) */
   if (typeof runSearch === 'function') {
     runSearch = function (q) {
@@ -2170,6 +2180,41 @@ var GUIDE_RECOMMENDATIONS=[
     else if (a === 'mode-picker') { e.preventDefault(); e.stopPropagation(); openModePicker(); }
     else if (a === 'cat-chip') { e.preventDefault(); e.stopPropagation(); state.catFilter = t.getAttribute('data-val'); saveState(state); render(); }
     else if (a === 'pm-write') { e.preventDefault(); e.stopPropagation(); navigate('writeReview', {}); }
+    else if (a === 'pm-export') { e.preventDefault(); e.stopPropagation(); pmExport(); }
+    else if (a === 'pm-import') { e.preventDefault(); e.stopPropagation(); var fi = document.getElementById('pm-import-file'); if (fi) fi.click(); }
+  }, true);
+
+  function pmExport() {
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'peers-export-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 0);
+    toast('Exported Peers data as JSON.', 'receipt');
+  }
+  document.addEventListener('change', function (e) {
+    if (!e.target || e.target.id !== 'pm-import-file') return;
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var obj = JSON.parse(reader.result);
+        if (!obj || typeof obj !== 'object' || !(obj.reviews || obj.places || obj.meId)) throw new Error('not a Peers export');
+        Object.keys(state).forEach(function (k) { delete state[k]; });
+        Object.keys(obj).forEach(function (k) { state[k] = obj[k]; });
+        ensureData();
+        saveState(state);
+        try { renderSidebar(); } catch (er) {}
+        render();
+        navigate('feed');
+        toast('Imported Peers data.', 'check');
+      } catch (err) { toast('Import failed: ' + err.message, 'info'); }
+    };
+    reader.readAsText(file);
   }, true);
 
   /* scorecard buttons in the write form */

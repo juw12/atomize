@@ -59,7 +59,7 @@ APPS = [
     },
     {
         "name": "Peers",
-        "desc": "Verified reviews for food, travel and products",
+        "desc": "Verified reviews across 32 categories — food, travel, market, AI tools, health and more",
         "links": [("App", "peers/app.html"), ("Web", "peers/"), ("Mobile", "peers/mobile.html")],
     },
     {
