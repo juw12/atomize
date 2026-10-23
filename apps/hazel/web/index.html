@@ -1,0 +1,2320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hazel Web Studio</title>
+  <style>
+    :root {
+      --bg: #0e1116;
+      --panel: #151a21;
+      --panel-2: #1b2129;
+      --line: #262e38;
+      --text: #e8edf2;
+      --muted: #8b97a5;
+      --accent: #b7d17a;
+      --accent-2: #e0b25e;
+      --danger: #d97b6c;
+      --success: #7bc98f;
+      --shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top bar ---------------------------------------------------------------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #121821, #0e1116);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand .mark {
+      width: 26px;
+      height: 26px;
+      align-self: center;
+      filter: drop-shadow(0 2px 6px rgba(183, 209, 122, .25));
+    }
+
+    .brand .name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .brand .tag {
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    /* Tabs ------------------------------------------------------------------- */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--panel);
+      padding: 4px;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--panel-2);
+    }
+
+    .tab-btn[aria-selected="true"] {
+      background: var(--panel-2);
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .tab-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Main layout ------------------------------------------------------------ */
+    .studio {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 16px;
+      padding: 16px;
+      min-height: 0;
+      flex: 1;
+    }
+
+    @media (max-width: 900px) {
+      .studio {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      max-height: calc(100vh - 140px);
+    }
+
+    .panel h2 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+    }
+
+    .panel h3 {
+      margin: 8px 0 4px;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    /* Form elements ---------------------------------------------------------- */
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    label span {
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 1px solid var(--accent);
+      border-color: var(--accent);
+    }
+
+    textarea {
+      min-height: 80px;
+      font-family: inherit;
+    }
+
+    /* Buttons ---------------------------------------------------------------- */
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, opacity .15s;
+      font-size: 13px;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #212a34;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, var(--accent), #9fbb63);
+      border-color: #9fbb63;
+      color: #14200a;
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      filter: brightness(1.05);
+    }
+
+    .btn.danger {
+      background: linear-gradient(180deg, var(--danger), #c56a5c);
+      border-color: #c56a5c;
+      color: #2a0f0c;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    /* Toggle ----------------------------------------------------------------- */
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle input {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+
+    .toggle.muted {
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .toggle em {
+      color: var(--muted);
+      font-style: normal;
+      opacity: .8;
+    }
+
+    /* Character chips -------------------------------------------------------- */
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .char-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+    }
+
+    .char-card:hover {
+      border-color: var(--accent);
+    }
+
+    .char-card.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+    }
+
+    .char-card .check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .char-card.selected .check {
+      background: var(--accent);
+      color: #14200a;
+      border-color: var(--accent);
+    }
+
+    .char-card .char-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .char-card .char-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .add-char-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel-2);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      transition: all .15s;
+    }
+
+    .add-char-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Scene type ------------------------------------------------------------- */
+    .scene-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scene-option {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all .15s;
+    }
+
+    .scene-option:hover {
+      border-color: var(--accent);
+    }
+
+    .scene-option.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+      color: var(--accent);
+    }
+
+    /* Length & Size ---------------------------------------------------------- */
+    .option-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .option-btn {
+      padding: 8px 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all .15s;
+    }
+
+    .option-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .option-btn.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+      color: var(--accent);
+    }
+
+    /* Storyboard ------------------------------------------------------------- */
+    .storyboard {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 0;
+      margin-bottom: 12px;
+    }
+
+    .shot {
+      min-width: 100px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      position: relative;
+    }
+
+    .shot .shot-label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--accent);
+    }
+
+    .shot .shot-dur {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .shot .shot-desc {
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 10px;
+      line-height: 1.3;
+    }
+
+    /* Preview stage ---------------------------------------------------------- */
+    .preview-stage {
+      background: #000;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .preview-stage.empty {
+      color: var(--muted);
+    }
+
+    .preview-stage .leaf-icon {
+      width: 64px;
+      height: 64px;
+      color: var(--accent);
+      opacity: .25;
+    }
+
+    .preview-stage.playing .shot-preview {
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 9/16;
+      background: linear-gradient(135deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-stage .shot-preview::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.4));
+    }
+
+    .preview-stage .progress-bar {
+      width: 100%;
+      max-width: 280px;
+      height: 4px;
+      background: var(--panel-2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .preview-stage .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width .1s linear;
+    }
+
+    .preview-stage .current-shot {
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    /* Timeline (Editor) ------------------------------------------------------ */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .timeline-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .timeline-item .shot-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    .timeline-item .shot-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .timeline-item .shot-label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .timeline-item .shot-caption {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+
+    .timeline-item .shot-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .timeline-item .shot-actions .btn {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .timeline-item input[type="range"] {
+      width: 100px;
+      accent-color: var(--accent);
+    }
+
+    .timeline-item .dur-display {
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .runtime-total {
+      padding: 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .runtime-total b {
+      color: var(--accent);
+    }
+
+    /* Publish platforms ------------------------------------------------------ */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .platform-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+    }
+
+    .platform-card:hover {
+      border-color: var(--accent);
+    }
+
+    .platform-card.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+    }
+
+    .platform-card .platform-name {
+      font-weight: 600;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .platform-card .platform-format {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .publish-queue {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .queue-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .queue-item .queue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .queue-item .queue-platform {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .queue-item .queue-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .queue-item .queue-status.pending {
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .queue-item .queue-status.progress {
+      background: rgba(224, 178, 94, 0.15);
+      color: var(--accent-2);
+    }
+
+    .queue-item .queue-status.done {
+      background: rgba(123, 201, 143, 0.15);
+      color: var(--success);
+    }
+
+    .queue-item .queue-status.failed {
+      background: rgba(217, 123, 108, 0.15);
+      color: var(--danger);
+    }
+
+    .queue-item .progress-bar {
+      height: 3px;
+      background: var(--panel);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .queue-item .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width .2s;
+    }
+
+    /* Library - Bulk upload -------------------------------------------------- */
+    .drop-zone {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      transition: all .2s;
+      cursor: pointer;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.05);
+      color: var(--text);
+    }
+
+    .drop-zone .drop-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      color: var(--accent);
+      opacity: .5;
+    }
+
+    .upload-queue {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .upload-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .upload-item .file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .upload-item .file-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .upload-item .file-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .upload-item .file-caption {
+      font-size: 11px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 8px;
+      width: 100%;
+    }
+
+    .upload-item .file-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .upload-item .file-status.pending {
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .upload-item .file-status.uploading {
+      background: rgba(224, 178, 94, 0.15);
+      color: var(--accent-2);
+    }
+
+    .upload-item .file-status.done {
+      background: rgba(123, 201, 143, 0.15);
+      color: var(--success);
+    }
+
+    /* Storage & Memories ----------------------------------------------------- */
+    .storage-meter {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .storage-meter .meter-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .storage-meter .meter-used {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .storage-meter .meter-total {
+      color: var(--muted);
+    }
+
+    .storage-meter .meter-bar {
+      height: 8px;
+      background: var(--panel);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .storage-meter .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 4px;
+      transition: width .3s;
+    }
+
+    .storage-meter .meter-warning .meter-fill {
+      background: linear-gradient(90deg, var(--accent-2), var(--danger));
+    }
+
+    .storage-meter .meter-critical .meter-fill {
+      background: var(--danger);
+    }
+
+    .storage-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .storage-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .storage-item .item-name {
+      font-weight: 600;
+    }
+
+    .storage-item .item-meta {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .storage-item .item-size {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .storage-item.duplicate {
+      border-color: var(--accent-2);
+      background: rgba(224, 178, 94, 0.05);
+    }
+
+    .storage-item.duplicate::before {
+      content: "Duplicate";
+      font-size: 9px;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-right: 8px;
+    }
+
+    .retention-rules {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .cleanup-summary {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .cleanup-summary b {
+      color: var(--accent);
+    }
+
+    /* Disclosure ------------------------------------------------------------- */
+    .disclosure {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      padding: 8px 16px;
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    /* Tab content ------------------------------------------------------------ */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Responsive ------------------------------------------------------------- */
+    @media (max-width: 600px) {
+      .studio {
+        padding: 12px;
+      }
+
+      .panel {
+        max-height: none;
+      }
+
+      .brand .tag {
+        display: none;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-item .shot-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    /* Utility ---------------------------------------------------------------- */
+    .muted {
+      color: var(--muted);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="hazelLeaf" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b7d17a"/>
+            <stop offset="1" stop-color="#e0b25e"/>
+          </linearGradient>
+        </defs>
+        <path d="M16 2.5C9.3 7.6 5.5 12.6 5.5 17.8a10.5 10.5 0 0 0 21 0c0-5.2-3.8-10.2-10.5-15.3z" fill="url(#hazelLeaf)"/>
+        <path d="M16 5.5V29" stroke="#59682f" stroke-width="1.3" stroke-linecap="round" opacity="0.75" fill="none"/>
+        <path d="M16 11l5.2 4.2M16 11l-5.2 4.2M16 17.5l5.6 4.4M16 17.5l-5.6 4.4" stroke="#59682f" stroke-width="1" stroke-linecap="round" opacity="0.5" fill="none"/>
+      </svg>
+      <span class="name">Hazel</span>
+      <span class="tag">Film once. Post everywhere. Learn what works.</span>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tabs" role="tablist" aria-label="Studio sections">
+    <button class="tab-btn" role="tab" aria-selected="true" id="tab-create" data-tab="create">Create</button>
+    <button class="tab-btn" role="tab" aria-selected="false" id="tab-editor" data-tab="editor">Editor</button>
+    <button class="tab-btn" role="tab" aria-selected="false" id="tab-publish" data-tab="publish">Publish</button>
+    <button class="tab-btn" role="tab" aria-selected="false" id="tab-library" data-tab="library">Library</button>
+  </nav>
+
+  <!-- STUDIO -->
+  <main class="studio">
+    <!-- LEFT PANEL - Dynamic content per tab -->
+    <div class="panel" id="leftPanel">
+      <!-- CREATE TAB -->
+      <div class="tab-content active" id="content-create">
+        <h2>Create &mdash; Video Generator</h2>
+        <p class="disclosure" style="text-align: left; padding: 0; border: 0; background: transparent;">This is an offline prototype that renders a storyboard and preview locally. No model calls or uploads are performed.</p>
+
+        <label>
+          <span>Characters</span>
+          <div class="char-grid" id="charGrid">
+            <div class="char-card" data-char="alex" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="check">&#10003;</div>
+              <div class="char-name">Alex</div>
+              <div class="char-desc">Tech reviewer, casual style</div>
+            </div>
+            <div class="char-card" data-char="maria" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="check">&#10003;</div>
+              <div class="char-name">Maria</div>
+              <div class="char-desc">Lifestyle creator, warm tone</div>
+            </div>
+            <div class="char-card" data-char="dev" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="check">&#10003;</div>
+              <div class="char-name">Dev</div>
+              <div class="char-desc">Developer, tutorial host</div>
+            </div>
+            <div class="add-char-btn" id="addCharBtn">+ Add custom</div>
+          </div>
+        </label>
+
+        <div id="customCharForm" class="hidden">
+          <label>
+            <span>Custom character name</span>
+            <input type="text" id="customCharName" placeholder="e.g. Jordan" />
+          </label>
+          <label>
+            <span>Description</span>
+            <input type="text" id="customCharDesc" placeholder="e.g. Fitness coach, energetic" />
+          </label>
+          <div class="btn-group">
+            <button class="btn" id="cancelChar">Cancel</button>
+            <button class="btn primary" id="addCustomChar">Add character</button>
+          </div>
+        </div>
+
+        <label>
+          <span>Scene type</span>
+          <div class="scene-options" id="sceneOptions">
+            <div class="scene-option selected" data-scene="talking">Talking to camera</div>
+            <div class="scene-option" data-scene="interaction">Interaction / Drama</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Scene description</span>
+          <textarea id="sceneDesc" placeholder="Describe the setting, mood, and key visual elements..."></textarea>
+        </label>
+
+        <label>
+          <span>Length</span>
+          <div class="option-grid" id="lengthOptions">
+            <div class="option-btn" data-length="15">15s</div>
+            <div class="option-btn" data-length="30">30s</div>
+            <div class="option-btn selected" data-length="45">45s</div>
+            <div class="option-btn" data-length="60">60s</div>
+            <div class="option-btn" data-length="90">90s</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Aspect ratio</span>
+          <div class="option-grid" id="aspectOptions">
+            <div class="option-btn selected" data-aspect="9:16">9:16</div>
+            <div class="option-btn" data-aspect="1:1">1:1</div>
+            <div class="option-btn" data-aspect="4:5">4:5</div>
+            <div class="option-btn" data-aspect="16:9">16:9</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Resolution</span>
+          <div class="option-grid" id="resOptions">
+            <div class="option-btn" data-res="720">720p</div>
+            <div class="option-btn selected" data-res="1080">1080p</div>
+            <div class="option-btn" data-res="4k">4K</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Main prompt</span>
+          <textarea id="mainPrompt" placeholder="Describe the video content, key messages, and call-to-action..."></textarea>
+        </label>
+
+        <button class="btn primary" id="generateBtn" style="width: 100%;">Generate</button>
+
+        <div id="generatingState" class="hidden">
+          <div class="row" style="justify-content: center; gap: 12px;">
+            <span class="muted">Generating storyboard...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDITOR TAB -->
+      <div class="tab-content" id="content-editor">
+        <h2>Editor &mdash; Timeline</h2>
+        <div id="editorEmpty" class="row" style="justify-content: center; padding: 24px;">
+          <span class="muted">No project yet. Create a video first.</span>
+        </div>
+        <div id="editorContent" class="hidden">
+          <div class="row-between" style="margin-bottom: 8px;">
+            <span class="muted" style="font-size: 12px;">Aspect: <b id="editorAspect" style="color: var(--text);">9:16</b></span>
+            <button class="btn" id="switchAspectBtn">Switch aspect</button>
+          </div>
+          <div class="timeline" id="timeline"></div>
+          <div class="runtime-total">
+            <span>Total runtime</span>
+            <span><b id="runtimeTotal">0s</b></span>
+          </div>
+          <div class="btn-group" style="margin-top: 12px;">
+            <button class="btn" id="autoCaptionBtn">Auto-caption</button>
+            <button class="btn" id="removeSilencesBtn">Remove silences</button>
+          </div>
+          <div class="btn-group">
+            <button class="btn primary" id="backToCreateBtn">Back to Create</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PUBLISH TAB -->
+      <div class="tab-content" id="content-publish">
+        <h2>Publish &mdash; Multi-platform</h2>
+        <div id="publishEmpty" class="row" style="justify-content: center; padding: 24px;">
+          <span class="muted">No project to publish. Create a video first.</span>
+        </div>
+        <div id="publishContent" class="hidden">
+          <label>
+            <span>Select platforms</span>
+            <div class="platform-grid" id="platformGrid">
+              <div class="platform-card" data-platform="tiktok" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">TikTok</div>
+                <div class="platform-format">Auto: 9:16</div>
+              </div>
+              <div class="platform-card" data-platform="instagram" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">Instagram Reels</div>
+                <div class="platform-format">Auto: 9:16</div>
+              </div>
+              <div class="platform-card" data-platform="youtube" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">YouTube Shorts</div>
+                <div class="platform-format">Auto: 9:16</div>
+              </div>
+              <div class="platform-card" data-platform="x" data-format="16:9" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">X (Twitter)</div>
+                <div class="platform-format">Auto: 16:9</div>
+              </div>
+              <div class="platform-card" data-platform="facebook" data-format="1:1" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">Facebook</div>
+                <div class="platform-format">Auto: 1:1</div>
+              </div>
+              <div class="platform-card" data-platform="linkedin" data-format="1:1" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">LinkedIn</div>
+                <div class="platform-format">Auto: 1:1</div>
+              </div>
+            </div>
+          </label>
+
+          <label>
+            <span>Caption</span>
+            <textarea id="publishCaption" placeholder="Write your post caption..."></textarea>
+          </label>
+
+          <label>
+            <span>Schedule</span>
+            <select id="publishSchedule">
+              <option value="now">Publish now</option>
+              <option value="later">Schedule for later</option>
+            </select>
+          </label>
+
+          <button class="btn primary" id="deployBtn" style="width: 100%;">Deploy to <span id="deployCount">0</span> platforms</button>
+
+          <div id="publishQueue" class="publish-queue hidden" style="margin-top: 12px;"></div>
+        </div>
+      </div>
+
+      <!-- LIBRARY TAB -->
+      <div class="tab-content" id="content-library">
+        <h2>Library &mdash; Bulk Upload</h2>
+        <div class="drop-zone" id="dropZone" tabindex="0">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M24 4v28M12 20l12-12 12 12M4 36h40" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>Drag &amp; drop photos/videos here</div>
+          <div class="muted" style="font-size: 11px; margin-top: 4px;">or click to browse</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" />
+
+        <div id="uploadQueue" class="upload-queue"></div>
+
+        <button class="btn primary" id="uploadBtn" style="width: 100%; margin-top: 12px;" disabled>Upload to socials</button>
+      </div>
+
+      <!-- STORAGE TAB (inside Library) -->
+      <div class="tab-content" id="content-storage">
+        <h2>Storage &amp; Memories</h2>
+        <div class="storage-meter" id="storageMeter">
+          <div class="meter-header">
+            <span class="meter-used"><b id="storageUsed">0 GB</b> used</span>
+            <span class="meter-total">of <b id="storageTotal">128 GB</b></span>
+          </div>
+          <div class="meter-bar">
+            <div class="meter-fill" id="storageFill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <span style="font-size: 12px; font-weight: 600;">Items</span>
+          <button class="btn" id="backupBtn">Back up to Memories</button>
+        </div>
+        <div class="storage-list" id="storageList"></div>
+
+        <div class="retention-rules">
+          <span style="font-size: 12px; font-weight: 600;">Retention rules</span>
+          <label class="toggle">
+            <input type="checkbox" id="ruleAutoDelete" />
+            <span>Auto-delete originals after backup (<input type="number" id="autoDeleteDays" value="7" min="1" max="30" style="width: 50px; background: var(--panel); border: 1px solid var(--line); color: var(--text); padding: 4px 6px; border-radius: 4px;" /> days)</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="ruleRemoveDupes" checked />
+            <span>Remove duplicates</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="ruleCompress" />
+            <span>Compress large videos (&gt;500 MB)</span>
+          </label>
+        </div>
+
+        <button class="btn" id="cleanupBtn" style="width: 100%; margin-top: 12px;">Run cleanup</button>
+        <div id="cleanupSummary" class="cleanup-summary hidden"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL - Preview / Context -->
+    <div class="panel" id="rightPanel">
+      <h2 id="rightPanelTitle">Preview</h2>
+      <div class="preview-stage empty" id="previewStage">
+        <svg class="leaf-icon" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5C9.3 7.6 5.5 12.6 5.5 17.8a10.5 10.5 0 0 0 21 0c0-5.2-3.8-10.2-10.5-15.3z" fill="currentColor"/>
+          <path d="M16 5.5V29" stroke="#0e1116" stroke-width="1.4" stroke-linecap="round" opacity="0.55" fill="none"/>
+          <path d="M16 11l5.2 4.2M16 11l-5.2 4.2M16 17.5l5.6 4.4M16 17.5l-5.6 4.4" stroke="#0e1116" stroke-width="1.1" stroke-linecap="round" opacity="0.35" fill="none"/>
+        </svg>
+        <div id="previewText">No video generated yet</div>
+      </div>
+
+      <div id="refineSection" class="hidden" style="margin-top: 12px;">
+        <button class="btn primary" id="refineBtn" style="width: 100%;">Refine in editor</button>
+      </div>
+
+      <div id="storageSection" class="hidden" style="margin-top: 12px;">
+        <h3>Quick stats</h3>
+        <div class="row-between" style="font-size: 12px;">
+          <span class="muted">Files</span>
+          <span id="quickFileCount">0</span>
+        </div>
+        <div class="row-between" style="font-size: 12px;">
+          <span class="muted">Duplicates</span>
+          <span id="quickDupeCount" style="color: var(--accent-2);">0</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DISCLOSURE -->
+  <div class="disclosure">
+    Offline prototype &middot; No external calls &middot; All data stored locally in localStorage
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // STORAGE KEY
+      const STORAGE_KEY = 'hazel-studio-v1';
+
+      // STATE
+      let state = {
+        currentTab: 'create',
+        characters: [],
+        customCharacters: [],
+        sceneType: 'talking',
+        sceneDesc: '',
+        length: 45,
+        aspect: '9:16',
+        resolution: '1080',
+        mainPrompt: '',
+        generatedProject: null,
+        uploadQueue: [],
+        storageItems: [],
+        publishQueue: []
+      };
+
+      // LOAD STATE
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            state = { ...state, ...parsed };
+          }
+        } catch (e) {
+          console.warn('Failed to load state:', e);
+        }
+      }
+
+      // SAVE STATE
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.warn('Failed to save state:', e);
+        }
+      }
+
+      // DOM HELPERS
+      function $(sel) { return document.querySelector(sel); }
+      function $$(sel) { return document.querySelectorAll(sel); }
+
+      // TAB SWITCHING
+      function switchTab(tabId) {
+        state.currentTab = tabId;
+        saveState();
+
+        // Update tab buttons
+        $$('.tab-btn').forEach(btn => {
+          const isSelected = btn.dataset.tab === tabId;
+          btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+
+        // Update tab content
+        $$('.tab-content').forEach(content => {
+          content.classList.toggle('active', content.id === 'content-' + tabId);
+        });
+
+        // Update right panel based on tab
+        updateRightPanel();
+
+        // Special handling for Library tab - show both upload and storage
+        if (tabId === 'library') {
+          $('#content-library').classList.add('active');
+          $('#content-storage').classList.add('active');
+          $('#rightPanelTitle').textContent = 'Preview & Stats';
+          updateStorageUI();
+        } else {
+          $('#content-storage').classList.remove('active');
+        }
+      }
+
+      function updateRightPanel() {
+        const titles = {
+          create: 'Preview',
+          editor: 'Timeline Preview',
+          publish: 'Platform Preview',
+          library: 'Preview & Stats'
+        };
+        $('#rightPanelTitle').textContent = titles[state.currentTab] || 'Preview';
+      }
+
+      // CHARACTER SELECTION
+      function initCharSelection() {
+        $$('.char-card').forEach(card => {
+          card.addEventListener('click', () => toggleChar(card.dataset.char));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleChar(card.dataset.char);
+            }
+          });
+        });
+
+        $('#addCharBtn').addEventListener('click', () => {
+          $('#customCharForm').classList.remove('hidden');
+        });
+
+        $('#cancelChar').addEventListener('click', () => {
+          $('#customCharForm').classList.add('hidden');
+          $('#customCharName').value = '';
+          $('#customCharDesc').value = '';
+        });
+
+        $('#addCustomChar').addEventListener('click', () => {
+          const name = $('#customCharName').value.trim();
+          const desc = $('#customCharDesc').value.trim();
+          if (name) {
+            state.customCharacters.push({ name, desc });
+            saveState();
+            renderCustomChars();
+            $('#customCharForm').classList.add('hidden');
+            $('#customCharName').value = '';
+            $('#customCharDesc').value = '';
+          }
+        });
+      }
+
+      function toggleChar(charId) {
+        const idx = state.characters.indexOf(charId);
+        if (idx === -1) {
+          state.characters.push(charId);
+        } else {
+          state.characters.splice(idx, 1);
+        }
+        saveState();
+        renderCharSelection();
+      }
+
+      function renderCharSelection() {
+        $$('.char-card').forEach(card => {
+          const isSelected = state.characters.includes(card.dataset.char);
+          card.classList.toggle('selected', isSelected);
+          card.setAttribute('aria-checked', isSelected);
+        });
+        renderCustomChars();
+      }
+
+      function renderCustomChars() {
+        // Remove existing custom cards
+        $$('.char-card.custom').forEach(el => el.remove());
+
+        state.customCharacters.forEach((char, idx) => {
+          const card = document.createElement('div');
+          card.className = 'char-card custom' + (state.characters.includes('custom-' + idx) ? ' selected' : '');
+          card.setAttribute('role', 'checkbox');
+          card.setAttribute('aria-checked', state.characters.includes('custom-' + idx));
+          card.setAttribute('tabindex', '0');
+          card.innerHTML = '<div class="check">&#10003;</div><div class="char-name">' + escapeHtml(char.name) + '</div><div class="char-desc">' + escapeHtml(char.desc) + '</div>';
+          card.addEventListener('click', () => toggleCustomChar(idx));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleCustomChar(idx);
+            }
+          });
+          $('#addCharBtn').before(card);
+        });
+      }
+
+      function toggleCustomChar(idx) {
+        const key = 'custom-' + idx;
+        const pos = state.characters.indexOf(key);
+        if (pos === -1) {
+          state.characters.push(key);
+        } else {
+          state.characters.splice(pos, 1);
+        }
+        saveState();
+        renderCustomChars();
+      }
+
+      // SCENE TYPE
+      function initSceneType() {
+        $$('.scene-option').forEach(opt => {
+          opt.addEventListener('click', () => {
+            state.sceneType = opt.dataset.scene;
+            saveState();
+            renderSceneType();
+          });
+        });
+      }
+
+      function renderSceneType() {
+        $$('.scene-option').forEach(opt => {
+          opt.classList.toggle('selected', opt.dataset.scene === state.sceneType);
+        });
+      }
+
+      // LENGTH, ASPECT, RESOLUTION
+      function initOptions() {
+        $('#lengthOptions').addEventListener('click', (e) => {
+          if (e.target.classList.contains('option-btn')) {
+            state.length = parseInt(e.target.dataset.length);
+            saveState();
+            renderOptions();
+          }
+        });
+
+        $('#aspectOptions').addEventListener('click', (e) => {
+          if (e.target.classList.contains('option-btn')) {
+            state.aspect = e.target.dataset.aspect;
+            saveState();
+            renderOptions();
+            if (state.generatedProject) {
+              state.generatedProject.aspect = state.aspect;
+              saveState();
+            }
+          }
+        });
+
+        $('#resOptions').addEventListener('click', (e) => {
+          if (e.target.classList.contains('option-btn')) {
+            state.resolution = e.target.dataset.res;
+            saveState();
+            renderOptions();
+          }
+        });
+      }
+
+      function renderOptions() {
+        $$('#lengthOptions .option-btn.selected, #lengthOptions .option-btn').forEach(el => {
+          if (el.classList.contains('option-btn')) {
+            el.classList.toggle('selected', parseInt(el.dataset.length) === state.length);
+          }
+        });
+        $$('#lengthOptions .option-btn').forEach(btn => {
+          btn.classList.toggle('selected', parseInt(btn.dataset.length) === state.length);
+        });
+        $$('#aspectOptions .option-btn').forEach(btn => {
+          btn.classList.toggle('selected', btn.dataset.aspect === state.aspect);
+        });
+        $$('#resOptions .option-btn').forEach(btn => {
+          btn.classList.toggle('selected', btn.dataset.res === state.resolution);
+        });
+      }
+
+      // FORM INPUTS
+      function initFormInputs() {
+        $('#sceneDesc').addEventListener('input', (e) => {
+          state.sceneDesc = e.target.value;
+          saveState();
+        });
+
+        $('#mainPrompt').addEventListener('input', (e) => {
+          state.mainPrompt = e.target.value;
+          saveState();
+        });
+      }
+
+      function renderFormInputs() {
+        $('#sceneDesc').value = state.sceneDesc;
+        $('#mainPrompt').value = state.mainPrompt;
+      }
+
+      // DETERMINISTIC HASH
+      function hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash;
+        }
+        return Math.abs(hash);
+      }
+
+      // GENERATE STORYBOARD
+      function generateStoryboard() {
+        const prompt = state.mainPrompt.trim();
+        if (!prompt) {
+          alert('Please enter a main prompt');
+          return;
+        }
+
+        $('#generateBtn').disabled = true;
+        $('#generatingState').classList.remove('hidden');
+
+        // Simulate generation delay
+        setTimeout(() => {
+          const project = createDeterministicProject();
+          state.generatedProject = project;
+          saveState();
+
+          $('#generateBtn').disabled = false;
+          $('#generatingState').classList.add('hidden');
+
+          renderStoryboard();
+          renderPreview();
+          $('#refineSection').classList.remove('hidden');
+        }, 1500);
+      }
+
+      function createDeterministicProject() {
+        const seed = hashString(state.mainPrompt + state.sceneType + state.sceneDesc + state.characters.join(',') + state.length);
+        const charNames = state.characters.map(c => {
+          if (c.startsWith('custom-')) {
+            const idx = parseInt(c.split('-')[1]);
+            return state.customCharacters[idx]?.name || 'Custom';
+          }
+          const names = { alex: 'Alex', maria: 'Maria', dev: 'Dev' };
+          return names[c] || c;
+        });
+
+        const sceneLabels = {
+          talking: 'Talking to camera',
+          interaction: 'Interaction / Drama'
+        };
+
+        // Calculate shot count based on length
+        const shotCount = Math.max(3, Math.min(8, Math.floor(state.length / 10)));
+        const baseDur = Math.floor(state.length / shotCount);
+        let remaining = state.length;
+
+        const shots = [];
+        const promptWords = state.mainPrompt.split(/\s+/).filter(w => w.length > 3);
+        const sceneWords = state.sceneDesc.split(/\s+/).filter(w => w.length > 3);
+
+        for (let i = 0; i < shotCount; i++) {
+          const isLast = i === shotCount - 1;
+          const dur = isLast ? remaining : Math.max(5, baseDur + ((seed + i) % 5) - 2);
+          remaining -= dur;
+
+          const shotLabel = sceneLabels[state.sceneType] + ' ' + (i + 1);
+          const charRef = charNames.length > 0 ? charNames[i % charNames.length] : 'Host';
+          const promptRef = promptWords[i % promptWords.length] || 'topic';
+          const sceneRef = sceneWords[i % sceneWords.length] || 'setting';
+
+          shots.push({
+            id: 'shot-' + i,
+            label: shotLabel,
+            duration: dur,
+            caption: charRef + ' discusses ' + promptRef + ' in ' + sceneRef + ' setting',
+            description: charRef + ' on camera, ' + state.sceneType + ' style. Key point: ' + promptRef + '. Atmosphere: ' + sceneRef + '.'
+          });
+        }
+
+        return {
+          aspect: state.aspect,
+          resolution: state.resolution,
+          length: state.length,
+          sceneType: state.sceneType,
+          characters: [...state.characters],
+          sceneDesc: state.sceneDesc,
+          prompt: state.mainPrompt,
+          shots: shots,
+          createdAt: Date.now()
+        };
+      }
+
+      function renderStoryboard() {
+        if (!state.generatedProject) return;
+
+        const container = document.createElement('div');
+        container.className = 'storyboard';
+
+        state.generatedProject.shots.forEach((shot, idx) => {
+          const shotEl = document.createElement('div');
+          shotEl.className = 'shot';
+          shotEl.innerHTML = '<div class="shot-label">' + escapeHtml(shot.label) + '</div><div class="shot-dur">' + shot.duration + 's</div><div class="shot-desc">' + escapeHtml(shot.description) + '</div>';
+          container.appendChild(shotEl);
+        });
+
+        // Replace existing storyboard if any
+        const existing = $('#previewStage').querySelector('.storyboard');
+        if (existing) existing.remove();
+
+        $('#previewStage').classList.add('playing');
+        $('#previewStage').insertBefore(container, $('#previewText'));
+        $('#previewText').textContent = state.generatedProject.shots.length + ' shots generated';
+      }
+
+      function renderPreview() {
+        if (!state.generatedProject) {
+          $('#previewStage').classList.add('empty');
+          $('#previewStage').classList.remove('playing');
+          $('#previewText').textContent = 'No video generated yet';
+          $('#refineSection').classList.add('hidden');
+          return;
+        }
+
+        $('#previewStage').classList.remove('empty');
+        $('#previewStage').classList.add('playing');
+        $('#previewText').textContent = state.generatedProject.shots.length + ' shots &middot; ' + state.generatedProject.length + 's total &middot; ' + state.generatedProject.aspect;
+      }
+
+      // PLAY PREVIEW ANIMATION
+      function playPreview() {
+        if (!state.generatedProject) return;
+
+        const shots = state.generatedProject.shots;
+        let currentShot = 0;
+        let elapsed = 0;
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.innerHTML = '<div class="progress-fill"></div>';
+
+        const currentShotEl = document.createElement('div');
+        currentShotEl.className = 'current-shot';
+
+        // Clear and setup
+        const existing = $('#previewStage').querySelector('.shot-preview, .progress-bar, .current-shot');
+        if (existing) existing.remove();
+
+        $('#previewStage').appendChild(progressBar);
+        $('#previewStage').appendChild(currentShotEl);
+
+        const fill = progressBar.querySelector('.progress-fill');
+        const totalDur = state.generatedProject.length;
+
+        const interval = setInterval(() => {
+          elapsed += 0.1;
+          const pct = (elapsed / totalDur) * 100;
+          fill.style.width = pct + '%';
+
+          // Update current shot
+          let shotElapsed = 0;
+          for (let i = 0; i < shots.length; i++) {
+            shotElapsed += shots[i].duration;
+            if (elapsed <= shotElapsed) {
+              currentShot = i;
+              break;
+            }
+          }
+
+          currentShotEl.textContent = 'Playing: ' + shots[currentShot].label;
+
+          if (elapsed >= totalDur) {
+            clearInterval(interval);
+            currentShotEl.textContent = 'Preview complete';
+          }
+        }, 100);
+      }
+
+      // EDITOR
+      function renderEditor() {
+        if (!state.generatedProject) {
+          $('#editorEmpty').classList.remove('hidden');
+          $('#editorContent').classList.add('hidden');
+          return;
+        }
+
+        $('#editorEmpty').classList.add('hidden');
+        $('#editorContent').classList.remove('hidden');
+        $('#editorAspect').textContent = state.generatedProject.aspect;
+
+        const timeline = $('#timeline');
+        timeline.innerHTML = '';
+
+        state.generatedProject.shots.forEach((shot, idx) => {
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          item.dataset.shotIdx = idx;
+          item.innerHTML = '<div class="shot-num">' + (idx + 1) + '</div><div class="shot-info"><div class="shot-label">' + escapeHtml(shot.label) + '</div><input type="text" class="shot-caption" value="' + escapeHtml(shot.caption) + '" placeholder="Caption for this shot..." /></div><div class="shot-actions"><button class="btn shot-up">&#9650;</button><button class="btn shot-down">&#9660;</button><button class="btn shot-delete" style="color: var(--danger);">&#10005;</button></div><input type="range" min="3" max="30" value="' + shot.duration + '" class="shot-dur-range" /><div class="dur-display">' + shot.duration + 's</div>';
+
+          // Caption input
+          const captionInput = item.querySelector('.shot-caption');
+          captionInput.addEventListener('input', (e) => {
+            state.generatedProject.shots[idx].caption = e.target.value;
+            saveState();
+          });
+
+          // Duration slider
+          const range = item.querySelector('.shot-dur-range');
+          const durDisplay = item.querySelector('.dur-display');
+          range.addEventListener('input', (e) => {
+            state.generatedProject.shots[idx].duration = parseInt(e.target.value);
+            durDisplay.textContent = e.target.value + 's';
+            updateRuntime();
+            saveState();
+          });
+
+          // Move up
+          item.querySelector('.shot-up').addEventListener('click', () => {
+            if (idx > 0) {
+              const temp = state.generatedProject.shots[idx];
+              state.generatedProject.shots[idx] = state.generatedProject.shots[idx - 1];
+              state.generatedProject.shots[idx - 1] = temp;
+              saveState();
+              renderEditor();
+            }
+          });
+
+          // Move down
+          item.querySelector('.shot-down').addEventListener('click', () => {
+            if (idx < state.generatedProject.shots.length - 1) {
+              const temp = state.generatedProject.shots[idx];
+              state.generatedProject.shots[idx] = state.generatedProject.shots[idx + 1];
+              state.generatedProject.shots[idx + 1] = temp;
+              saveState();
+              renderEditor();
+            }
+          });
+
+          // Delete
+          item.querySelector('.shot-delete').addEventListener('click', () => {
+            if (state.generatedProject.shots.length > 1) {
+              state.generatedProject.shots.splice(idx, 1);
+              saveState();
+              renderEditor();
+              updateRuntime();
+            } else {
+              alert('Cannot delete the last shot');
+            }
+          });
+
+          timeline.appendChild(item);
+        });
+
+        updateRuntime();
+      }
+
+      function updateRuntime() {
+        if (!state.generatedProject) return;
+        const total = state.generatedProject.shots.reduce((sum, shot) => sum + shot.duration, 0);
+        $('#runtimeTotal').innerHTML = '<b>' + total + 's</b>';
+      }
+
+      function switchAspect() {
+        if (!state.generatedProject) return;
+        const aspects = ['9:16', '1:1', '4:5', '16:9'];
+        const idx = aspects.indexOf(state.generatedProject.aspect);
+        state.generatedProject.aspect = aspects[(idx + 1) % aspects.length];
+        state.aspect = state.generatedProject.aspect;
+        saveState();
+        $('#editorAspect').textContent = state.generatedProject.aspect;
+      }
+
+      function autoCaption() {
+        if (!state.generatedProject) return;
+        state.generatedProject.shots.forEach((shot, idx) => {
+          shot.caption = 'Shot ' + (idx + 1) + ': ' + shot.label;
+        });
+        saveState();
+        renderEditor();
+      }
+
+      function removeSilences() {
+        if (!state.generatedProject) return;
+        // Simulate removing silences by reducing shot durations
+        state.generatedProject.shots.forEach(shot => {
+          shot.duration = Math.max(3, shot.duration - 2);
+        });
+        saveState();
+        renderEditor();
+      }
+
+      // PUBLISH
+      function renderPublish() {
+        if (!state.generatedProject) {
+          $('#publishEmpty').classList.remove('hidden');
+          $('#publishContent').classList.add('hidden');
+          return;
+        }
+
+        $('#publishEmpty').classList.add('hidden');
+        $('#publishContent').classList.remove('hidden');
+
+        // Update platform format hints
+        $$('.platform-card').forEach(card => {
+          const format = mapAspectToFormat(state.generatedProject.aspect);
+          card.querySelector('.platform-format').textContent = 'Auto: ' + format;
+        });
+      }
+
+      function mapAspectToFormat(aspect) {
+        // Simple mapping - in real app would be more sophisticated
+        if (aspect === '9:16') return '9:16';
+        if (aspect === '1:1') return '1:1';
+        if (aspect === '16:9') return '16:9';
+        return aspect;
+      }
+
+      function togglePlatform(platform) {
+        const idx = state.publishQueue.findIndex(p => p.platform === platform);
+        if (idx === -1) {
+          state.publishQueue.push({ platform, status: 'pending', progress: 0 });
+        } else {
+          state.publishQueue.splice(idx, 1);
+        }
+        saveState();
+        renderPlatformSelection();
+        renderDeployButton();
+      }
+
+      function renderPlatformSelection() {
+        $$('.platform-card').forEach(card => {
+          const isSelected = state.publishQueue.some(p => p.platform === card.dataset.platform);
+          card.classList.toggle('selected', isSelected);
+          card.setAttribute('aria-checked', isSelected);
+        });
+      }
+
+      function renderDeployButton() {
+        $('#deployCount').textContent = state.publishQueue.length;
+        $('#deployBtn').disabled = state.publishQueue.length === 0;
+      }
+
+      function deployToPlatforms() {
+        if (state.publishQueue.length === 0) return;
+
+        $('#deployBtn').disabled = true;
+        const queueEl = $('#publishQueue');
+        queueEl.classList.remove('hidden');
+        queueEl.innerHTML = '';
+
+        state.publishQueue.forEach((item, idx) => {
+          const queueItem = document.createElement('div');
+          queueItem.className = 'queue-item';
+          queueItem.dataset.platform = item.platform;
+          queueItem.innerHTML = '<div class="queue-header"><span class="queue-platform">' + item.platform + '</span><span class="queue-status pending">Pending</span></div><div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>';
+          queueEl.appendChild(queueItem);
+        });
+
+        // Simulate publishing
+        let completed = 0;
+        state.publishQueue.forEach((item, idx) => {
+          setTimeout(() => {
+            const queueItem = queueEl.querySelector('.queue-item[data-platform="' + item.platform + '"]');
+            if (queueItem) {
+              const statusEl = queueItem.querySelector('.queue-status');
+              const fill = queueItem.querySelector('.progress-fill');
+              statusEl.textContent = 'Publishing...';
+              statusEl.classList.add('progress');
+
+              // Progress animation
+              let progress = 0;
+              const progressInterval = setInterval(() => {
+                progress += 10;
+                fill.style.width = progress + '%';
+                if (progress >= 100) {
+                  clearInterval(progressInterval);
+                  const success = Math.random() > 0.1; // 90% success rate
+                  item.status = success ? 'done' : 'failed';
+                  item.progress = 100;
+                  statusEl.textContent = success ? 'Posted' : 'Failed';
+                  statusEl.classList.remove('pending', 'progress');
+                  statusEl.classList.add(success ? 'done' : 'failed');
+                  completed++;
+                  saveState();
+
+                  if (completed === state.publishQueue.length) {
+                    $('#deployBtn').disabled = false;
+                  }
+                }
+              }, 200);
+            }
+          }, idx * 800);
+        });
+      }
+
+      // LIBRARY - BULK UPLOAD
+      function initDropZone() {
+        const dropZone = $('#dropZone');
+        const fileInput = $('#fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+          }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+          handleFiles(e.target.files);
+          fileInput.value = '';
+        });
+      }
+
+      function handleFiles(fileList) {
+        const files = Array.from(fileList);
+        files.forEach(file => {
+          const uploadItem = {
+            id: 'upload-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            caption: '',
+            platforms: [],
+            status: 'pending',
+            progress: 0
+          };
+          state.uploadQueue.push(uploadItem);
+        });
+        saveState();
+        renderUploadQueue();
+      }
+
+      function renderUploadQueue() {
+        const queueEl = $('#uploadQueue');
+        queueEl.innerHTML = '';
+
+        state.uploadQueue.forEach((item, idx) => {
+          const uploadItem = document.createElement('div');
+          uploadItem.className = 'upload-item';
+          uploadItem.dataset.uploadIdx = idx;
+
+          const sizeStr = formatSize(item.size);
+          const typeStr = item.type.startsWith('image/') ? 'Image' : 'Video';
+
+          uploadItem.innerHTML = '<div class="file-info"><div class="file-name">' + escapeHtml(item.name) + '</div><div class="file-meta">' + typeStr + ' &middot; ' + sizeStr + '</div><input type="text" class="file-caption" value="' + escapeHtml(item.caption) + '" placeholder="Add caption..." /></div><span class="file-status ' + item.status + '">' + (item.status === 'pending' ? 'Pending' : item.status === 'uploading' ? 'Uploading...' : item.status === 'done' ? 'Uploaded' : 'Failed') + '</span>';
+
+          const captionInput = uploadItem.querySelector('.file-caption');
+          captionInput.addEventListener('input', (e) => {
+            state.uploadQueue[idx].caption = e.target.value;
+            saveState();
+          });
+
+          queueEl.appendChild(uploadItem);
+        });
+
+        $('#uploadBtn').disabled = state.uploadQueue.length === 0;
+        updateStorageUI();
+      }
+
+      function uploadToSocials() {
+        if (state.uploadQueue.length === 0) return;
+
+        $('#uploadBtn').disabled = true;
+
+        state.uploadQueue.forEach((item, idx) => {
+          if (item.status !== 'done') {
+            item.status = 'uploading';
+            saveState();
+            renderUploadQueue();
+
+            setTimeout(() => {
+              let progress = 0;
+              const interval = setInterval(() => {
+                progress += 15;
+                item.progress = progress;
+                if (progress >= 100) {
+                  clearInterval(interval);
+                  item.status = 'done';
+                  item.progress = 100;
+
+                  // Add to storage
+                  state.storageItems.push({
+                    id: item.id,
+                    name: item.name,
+                    size: item.size,
+                    type: item.type,
+                    caption: item.caption,
+                    uploadedAt: Date.now(),
+                    backedUp: false
+                  });
+
+                  saveState();
+                  renderUploadQueue();
+                  updateStorageUI();
+
+                  if (state.uploadQueue.every(i => i.status === 'done' || i.status === 'failed')) {
+                    $('#uploadBtn').disabled = false;
+                  }
+                }
+              }, 300);
+            }, idx * 500);
+          }
+        });
+      }
+
+      // STORAGE
+      function updateStorageUI() {
+        const totalSize = state.storageItems.reduce((sum, item) => sum + item.size, 0);
+        const quota = 128 * 1024 * 1024 * 1024; // 128 GB
+        const pct = (totalSize / quota) * 100;
+
+        $('#storageUsed').textContent = formatSize(totalSize);
+        $('#storageTotal').textContent = formatSize(quota);
+        $('#storageFill').style.width = Math.min(100, pct) + '%';
+
+        // Update meter styling
+        const meter = $('#storageMeter');
+        meter.classList.remove('meter-warning', 'meter-critical');
+        if (pct > 90) meter.classList.add('meter-critical');
+        else if (pct > 75) meter.classList.add('meter-warning');
+
+        // Render storage list
+        const listEl = $('#storageList');
+        listEl.innerHTML = '';
+
+        // Check for duplicates (simple name-based detection)
+        const nameCounts = {};
+        state.storageItems.forEach(item => {
+          const baseName = item.name.replace(/\.\w+$/, '');
+          nameCounts[baseName] = (nameCounts[baseName] || 0) + 1;
+        });
+
+        let dupeCount = 0;
+        state.storageItems.forEach(item => {
+          const baseName = item.name.replace(/\.\w+$/, '');
+          const isDupe = nameCounts[baseName] > 1;
+          if (isDupe) dupeCount++;
+
+          const storageItem = document.createElement('div');
+          storageItem.className = 'storage-item' + (isDupe ? ' duplicate' : '');
+          storageItem.innerHTML = '<div><div class="item-name">' + escapeHtml(item.name) + '</div><div class="item-meta">' + new Date(item.uploadedAt).toLocaleDateString() + (item.backedUp ? ' &middot; Backed up' : '') + '</div></div><div class="item-size">' + formatSize(item.size) + '</div>';
+          listEl.appendChild(storageItem);
+        });
+
+        // Update quick stats
+        $('#quickFileCount').textContent = state.storageItems.length;
+        $('#quickDupeCount').textContent = dupeCount;
+      }
+
+      function backupToMemories() {
+        state.storageItems.forEach(item => {
+          item.backedUp = true;
+        });
+        saveState();
+        updateStorageUI();
+      }
+
+      function runCleanup() {
+        const removeDupes = $('#ruleRemoveDupes').checked;
+        const compress = $('#ruleCompress').checked;
+        const autoDelete = $('#ruleAutoDelete').checked;
+        const autoDeleteDays = parseInt($('#autoDeleteDays').value) || 7;
+
+        let freed = 0;
+        let removedCount = 0;
+        let compressedCount = 0;
+
+        // Remove duplicates
+        if (removeDupes) {
+          const nameCounts = {};
+          state.storageItems.forEach(item => {
+            const baseName = item.name.replace(/\.\w+$/, '');
+            nameCounts[baseName] = (nameCounts[baseName] || 0) + 1;
+          });
+
+          const initialLength = state.storageItems.length;
+          state.storageItems = state.storageItems.filter((item, idx, arr) => {
+            const baseName = item.name.replace(/\.\w+$/, '');
+            if (nameCounts[baseName] > 1) {
+              // Keep first occurrence only
+              const firstIdx = arr.findIndex(i => i.name.replace(/\.\w+$/, '') === baseName);
+              if (idx !== firstIdx) {
+                freed += item.size;
+                removedCount++;
+                return false;
+              }
+            }
+            return true;
+          });
+        }
+
+        // Compress large videos
+        if (compress) {
+          state.storageItems.forEach(item => {
+            if (item.type.startsWith('video/') && item.size > 500 * 1024 * 1024) {
+              const saved = Math.floor(item.size * 0.4); // 40% compression
+              freed += saved;
+              item.size -= saved;
+              compressedCount++;
+            }
+          });
+        }
+
+        // Auto-delete old backed up items
+        if (autoDelete) {
+          const cutoff = Date.now() - (autoDeleteDays * 24 * 60 * 60 * 1000);
+          state.storageItems = state.storageItems.filter(item => {
+            if (item.backedUp && item.uploadedAt < cutoff) {
+              freed += item.size;
+              removedCount++;
+              return false;
+            }
+            return true;
+          });
+        }
+
+        saveState();
+        updateStorageUI();
+
+        // Show summary
+        const summary = $('#cleanupSummary');
+        summary.classList.remove('hidden');
+        summary.innerHTML = '<b>Cleanup complete!</b><br>Freed: ' + formatSize(freed) + '<br>Removed: ' + removedCount + ' items' + (compressedCount > 0 ? ' &middot; Compressed: ' + compressedCount + ' videos' : '');
+      }
+
+      // UTILS
+      function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      // INIT
+      function init() {
+        loadState();
+
+        // Initialize UI from state
+        renderCharSelection();
+        renderSceneType();
+        renderOptions();
+        renderFormInputs();
+        renderPreview();
+        renderEditor();
+        renderPublish();
+        renderPlatformSelection();
+        renderDeployButton();
+        renderUploadQueue();
+        updateStorageUI();
+
+        // Tab switching
+        $$('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+
+        // Keyboard navigation for tabs
+        $$('.tab-btn').forEach((btn, idx, arr) => {
+          btn.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const next = arr[(idx + 1) % arr.length];
+              next.focus();
+              switchTab(next.dataset.tab);
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prev = arr[(idx - 1 + arr.length) % arr.length];
+              prev.focus();
+              switchTab(prev.dataset.tab);
+            }
+          });
+        });
+
+        // Initialize features
+        initCharSelection();
+        initSceneType();
+        initOptions();
+        initFormInputs();
+        initDropZone();
+
+        // Generate button
+        $('#generateBtn').addEventListener('click', generateStoryboard);
+
+        // Refine in editor
+        $('#refineBtn').addEventListener('click', () => {
+          switchTab('editor');
+          renderEditor();
+        });
+
+        // Editor actions
+        $('#switchAspectBtn').addEventListener('click', switchAspect);
+        $('#autoCaptionBtn').addEventListener('click', autoCaption);
+        $('#removeSilencesBtn').addEventListener('click', removeSilences);
+        $('#backToCreateBtn').addEventListener('click', () => switchTab('create'));
+
+        // Publish actions
+        $$('.platform-card').forEach(card => {
+          card.addEventListener('click', () => togglePlatform(card.dataset.platform));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              togglePlatform(card.dataset.platform);
+            }
+          });
+        });
+
+        $('#deployBtn').addEventListener('click', deployToPlatforms);
+
+        // Upload actions
+        $('#uploadBtn').addEventListener('click', uploadToSocials);
+
+        // Storage actions
+        $('#backupBtn').addEventListener('click', backupToMemories);
+        $('#cleanupBtn').addEventListener('click', runCleanup);
+
+        // Initial tab
+        switchTab(state.currentTab || 'create');
+
+        // Play preview if project exists
+        if (state.generatedProject) {
+          setTimeout(playPreview, 500);
+        }
+      }
+
+      // Start
+      init();
+    })();
+  </script>
+</body>
+</html>
+<!--
+SECTIONS:
+- Top bar: brand mark + name + tagline (lines ~290-303)
+- Tabs: Create, Editor, Publish, Library (lines ~306-312)
+- Main studio grid: left panel + right preview panel (lines ~315-336)
+- A. Create tab: character selection, scene type, length, aspect, resolution, prompt, generate (lines ~340-438)
+- B. Editor tab: timeline with shot editing, trim, reorder, delete, captions, runtime (lines ~441-468)
+- C. Publish tab: platform selection, caption, schedule, deploy queue (lines ~471-534)
+- D. Library tab: bulk upload drop zone, upload queue (lines ~537-559)
+- E. Storage tab: storage meter, item list, retention rules, cleanup (lines ~562-604)
+- Right panel: preview stage, refine button, quick stats (lines ~607-637)
+- Disclosure: offline prototype notice (lines ~640-642)
+- JavaScript: state management, deterministic generation, all interactions (lines ~645-end)
+-->

@@ -24,6 +24,10 @@
       <span class="name">Hazel</span>
       <span class="tag">Film once. Post everywhere. Learn what works.</span>
     </div>
+    <div class="mode-switcher">
+      <button id="modeCreate" class="mode-btn">Create</button>
+      <button id="modeEdit" class="mode-btn active">Edit</button>
+    </div>
     <div class="nav-actions">
       <button id="guideNav" class="btn">Guide</button>
       <button id="import" class="btn primary">Import footage</button>
@@ -31,7 +35,112 @@
   </header>
 
   <main class="stage">
-    <section class="preview">
+    <div id="createModeSection" class="create-mode-section">
+      <div class="create-panel panel">
+        <h2>Create - Video Generator</h2>
+        <p class="offline-disclosure">Offline prototype - renders storyboard and preview locally. No model calls or uploads performed.</p>
+
+        <div class="form-section">
+          <h3>Characters</h3>
+          <div class="char-grid" id="charGrid">
+            <div class="char-card" data-char="alex" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="char-check">&#10003;</div>
+              <div class="char-name">Alex</div>
+              <div class="char-desc">Tech reviewer, casual style</div>
+            </div>
+            <div class="char-card" data-char="maria" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="char-check">&#10003;</div>
+              <div class="char-name">Maria</div>
+              <div class="char-desc">Lifestyle creator, warm tone</div>
+            </div>
+            <div class="char-card" data-char="dev" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="char-check">&#10003;</div>
+              <div class="char-name">Dev</div>
+              <div class="char-desc">Developer, tutorial host</div>
+            </div>
+            <div class="add-char-btn" id="addCharBtn">+ Add custom</div>
+          </div>
+          <div id="customCharForm" class="custom-form hidden">
+            <label class="field">
+              <span>Character name</span>
+              <input type="text" id="customCharName" placeholder="e.g. Jordan" />
+            </label>
+            <label class="field">
+              <span>Description</span>
+              <input type="text" id="customCharDesc" placeholder="e.g. Fitness coach, energetic" />
+            </label>
+            <div class="btn-group">
+              <button id="cancelChar" class="btn">Cancel</button>
+              <button id="addCustomChar" class="btn primary">Add character</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Scene type</h3>
+          <div class="scene-options" id="sceneOptions">
+            <div class="scene-option selected" data-scene="talking">Talking to camera</div>
+            <div class="scene-option" data-scene="interaction">Interaction / Drama</div>
+          </div>
+          <label class="field mt-8">
+            <span>Scene description</span>
+            <textarea id="sceneDesc" rows="3" placeholder="Describe the setting, mood, and key visual elements..."></textarea>
+          </label>
+        </div>
+
+        <div class="form-section">
+          <h3>Length</h3>
+          <div class="option-grid" id="lengthOptions">
+            <div class="option-btn" data-length="15">15s</div>
+            <div class="option-btn" data-length="30">30s</div>
+            <div class="option-btn selected" data-length="45">45s</div>
+            <div class="option-btn" data-length="60">60s</div>
+            <div class="option-btn" data-length="90">90s</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Aspect ratio</h3>
+          <div class="option-grid" id="aspectOptions">
+            <div class="option-btn selected" data-aspect="9:16">9:16</div>
+            <div class="option-btn" data-aspect="1:1">1:1</div>
+            <div class="option-btn" data-aspect="4:5">4:5</div>
+            <div class="option-btn" data-aspect="16:9">16:9</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Resolution</h3>
+          <div class="option-grid" id="resOptions">
+            <div class="option-btn" data-res="720">720p</div>
+            <div class="option-btn selected" data-res="1080">1080p</div>
+            <div class="option-btn" data-res="4k">4K</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Main prompt</h3>
+          <textarea id="mainPrompt" rows="4" placeholder="Describe the video content, key messages, and call-to-action..."></textarea>
+        </div>
+
+        <button id="generateBtn" class="btn primary btn-block">Generate</button>
+
+        <div id="generatingState" class="hidden">
+          <div class="row-center"><span class="muted">Generating storyboard...</span></div>
+        </div>
+
+        <div id="storyboardSection" class="hidden">
+          <div class="storyboard" id="storyboard"></div>
+          <div class="btn-group">
+            <button id="sendToEditorBtn" class="btn primary">Send to editor</button>
+          </div>
+          <div id="sendStatus" class="status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="editModeSection" class="edit-mode-section">
+    <section class="preview" id="preview">
       <div class="video-wrap">
         <video id="video" controls playsinline></video>
         <div id="empty" class="empty">
@@ -47,7 +156,7 @@
       <div class="meta" id="meta"></div>
     </section>
 
-    <section id="guideSection" class="guide-section" style="display: none;">
+    <section id="guideSection" class="guide-section">
       <div class="guide-content">
         <header class="guide-header">
           <h1>Welcome to Hazel</h1>
@@ -104,7 +213,10 @@
       </div>
     </section>
 
-    <aside class="panel">
+    </div>
+    </div>
+
+    <aside class="panel" id="editPanel">
       <h2>Auto-cut</h2>
 
       <label class="toggle">
@@ -180,10 +292,107 @@
 
       <div id="status" class="status"></div>
     </aside>
+
+    <aside class="panel" id="createPanel">
+      <h2>Publish</h2>
+      <div class="form-section">
+        <h3>Platforms</h3>
+        <div class="platform-grid" id="platformGrid">
+          <div class="platform-card" data-platform="tiktok" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="platform-name">TikTok</div>
+            <div class="platform-format">9:16</div>
+          </div>
+          <div class="platform-card" data-platform="instagram" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="platform-name">Instagram Reels</div>
+            <div class="platform-format">9:16</div>
+          </div>
+          <div class="platform-card" data-platform="youtube" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="platform-name">YouTube Shorts</div>
+            <div class="platform-format">9:16</div>
+          </div>
+          <div class="platform-card" data-platform="x" data-format="16:9" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="platform-name">X (Twitter)</div>
+            <div class="platform-format">16:9</div>
+          </div>
+          <div class="platform-card" data-platform="facebook" data-format="1:1" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="platform-name">Facebook</div>
+            <div class="platform-format">1:1</div>
+          </div>
+          <div class="platform-card" data-platform="linkedin" data-format="1:1" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="platform-name">LinkedIn</div>
+            <div class="platform-format">1:1</div>
+          </div>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>Caption</span>
+        <textarea id="publishCaption" rows="3" placeholder="Write your post caption..."></textarea>
+      </label>
+
+      <label class="field">
+        <span>Schedule</span>
+        <select id="publishSchedule">
+          <option value="now">Publish now</option>
+          <option value="later">Schedule for later</option>
+        </select>
+      </label>
+
+      <button id="deployBtn" class="btn primary btn-block">Deploy to <span id="deployCount">0</span> platforms</button>
+
+      <div id="publishQueue" class="publish-queue hidden mt-12"></div>
+
+      <div class="form-section sub">
+        <h3>Library - Bulk Upload</h3>
+        <div class="drop-zone" id="dropZone" tabindex="0">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M24 4v28M12 20l12-12 12 12M4 36h40" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>Drag &amp; drop photos/videos here</div>
+          <div class="muted hint">or click to browse</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" />
+        <div id="uploadQueue" class="upload-queue mt-12"></div>
+        <button id="uploadBtn" class="btn primary btn-block mt-12" disabled>Upload to socials</button>
+      </div>
+
+      <div class="form-section sub">
+        <h3>Storage &amp; Memories</h3>
+        <div class="storage-meter" id="storageMeter">
+          <div class="meter-header">
+            <span class="meter-used"><b id="storageUsed">0 GB</b> used</span>
+            <span class="meter-total">of <b id="storageTotal">128 GB</b></span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill" id="storageFill"></div></div>
+        </div>
+        <div class="row-between">
+          <span class="label-sm">Items</span>
+          <button id="backupBtn" class="btn">Back up to Memories</button>
+        </div>
+        <div class="storage-list mt-8" id="storageList"></div>
+        <div class="retention-rules sub">
+          <span class="label-sm">Retention rules</span>
+          <label class="toggle mt-8">
+            <input type="checkbox" id="ruleAutoDelete" />
+            <span>Auto-delete originals after backup (<input type="number" id="autoDeleteDays" value="7" min="1" max="30" class="num-input" /> days)</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="ruleRemoveDupes" checked />
+            <span>Remove duplicates</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="ruleCompress" />
+            <span>Compress large videos (&gt;500 MB)</span>
+          </label>
+        </div>
+        <button id="cleanupBtn" class="btn btn-block mt-12">Run cleanup</button>
+        <div id="cleanupSummary" class="cleanup-summary hidden mt-12"></div>
+      </div>
+    </aside>
   </main>
 
   <!-- First-run onboarding tour overlay -->
-  <div id="tourOverlay" class="tour-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+  <div id="tourOverlay" class="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
     <div class="tour-modal">
       <div class="tour-progress">
         <span class="tour-dot" data-step="0"></span>
@@ -198,7 +407,7 @@
         <button id="tourSkip" class="btn btn-ghost">Skip</button>
         <button id="tourBack" class="btn" disabled>Back</button>
         <button id="tourContinue" class="btn primary">Continue</button>
-        <button id="tourDone" class="btn primary" style="display: none;">Done</button>
+        <button id="tourDone" class="btn primary">Done</button>
       </div>
     </div>
   </div>

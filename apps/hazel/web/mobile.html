@@ -1,0 +1,2206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Hazel Mobile Studio</title>
+  <style>
+    :root {
+      --bg: #0e1116;
+      --panel: #151a21;
+      --panel-2: #1b2129;
+      --line: #262e38;
+      --text: #e8edf2;
+      --muted: #8b97a5;
+      --accent: #b7d17a;
+      --accent-2: #e0b25e;
+      --danger: #d97b6c;
+      --success: #7bc98f;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.45 system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* Top bar ---------------------------------------------------------------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px calc(12px + var(--safe-bottom));
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #121821, #0e1116);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .brand .mark {
+      width: 24px;
+      height: 24px;
+      align-self: center;
+      filter: drop-shadow(0 2px 6px rgba(183, 209, 122, .25));
+    }
+
+    .brand .name {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .brand .tag {
+      color: var(--muted);
+      font-size: 11px;
+      display: none;
+    }
+
+    @media (min-width: 400px) {
+      .brand .tag { display: inline; }
+    }
+
+    /* Main container --------------------------------------------------------- */
+    .container {
+      height: calc(100% - 140px);
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: calc(16px + var(--safe-bottom));
+    }
+
+    .section {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section.active {
+      display: flex;
+    }
+
+    /* Cards ------------------------------------------------------------------ */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+    }
+
+    .card h3 {
+      margin: 6px 0 4px;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    /* Form elements ---------------------------------------------------------- */
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    label span {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 44px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+
+    textarea {
+      min-height: 90px;
+      font-family: inherit;
+    }
+
+    /* Buttons ---------------------------------------------------------------- */
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      font-size: 14px;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #212a34;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #b7d17a, #9fbb63);
+      border-color: #9fbb63;
+      color: #14200a;
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      filter: brightness(1.05);
+    }
+
+    .btn.danger {
+      background: linear-gradient(180deg, var(--danger), #c56a5c);
+      border-color: #c56a5c;
+      color: #2a0f0c;
+    }
+
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 12px;
+      min-height: 36px;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* Option grids ----------------------------------------------------------- */
+    .option-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .option-btn {
+      padding: 10px 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .15s;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .option-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .option-btn.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+      color: var(--accent);
+    }
+
+    /* Character chips -------------------------------------------------------- */
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .char-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .char-card:hover {
+      border-color: var(--accent);
+    }
+
+    .char-card.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+    }
+
+    .char-card .check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .char-card.selected .check {
+      background: var(--accent);
+      color: #14200a;
+      border-color: var(--accent);
+    }
+
+    .char-card .char-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .char-card .char-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .add-char-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel-2);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      transition: all .15s;
+      min-height: 44px;
+    }
+
+    .add-char-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Scene type ------------------------------------------------------------- */
+    .scene-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scene-option {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all .15s;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .scene-option:hover {
+      border-color: var(--accent);
+    }
+
+    .scene-option.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+      color: var(--accent);
+    }
+
+    /* Storyboard strip ------------------------------------------------------- */
+    .storyboard {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .shot {
+      min-width: 110px;
+      max-width: 110px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      position: relative;
+    }
+
+    .shot .shot-label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--accent);
+      font-size: 10px;
+    }
+
+    .shot .shot-dur {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .shot .shot-desc {
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 9px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Preview stage ---------------------------------------------------------- */
+    .preview-stage {
+      background: #000;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .preview-stage.empty {
+      color: var(--muted);
+    }
+
+    .preview-stage .leaf-icon {
+      width: 56px;
+      height: 56px;
+      color: var(--accent);
+      opacity: .25;
+    }
+
+    .preview-stage.playing .shot-preview {
+      width: 100%;
+      max-width: 200px;
+      aspect-ratio: 9/16;
+      background: linear-gradient(135deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-stage .progress-bar {
+      width: 100%;
+      max-width: 200px;
+      height: 4px;
+      background: var(--panel-2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .preview-stage .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width .1s linear;
+    }
+
+    .preview-stage .current-shot {
+      font-size: 11px;
+      color: var(--text);
+    }
+
+    /* Timeline (Editor) ------------------------------------------------------ */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timeline-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timeline-item .shot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timeline-item .shot-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    .timeline-item .shot-label {
+      font-size: 12px;
+      font-weight: 600;
+      flex: 1;
+      margin-left: 8px;
+    }
+
+    .timeline-item .shot-caption {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 8px;
+      width: 100%;
+    }
+
+    .timeline-item .shot-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .timeline-item .shot-actions .btn {
+      padding: 6px 10px;
+      font-size: 11px;
+      min-height: 36px;
+    }
+
+    .timeline-item input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .timeline-item .dur-display {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .runtime-total {
+      padding: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .runtime-total b {
+      color: var(--accent);
+    }
+
+    /* Publish platforms ------------------------------------------------------ */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .platform-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .platform-card:hover {
+      border-color: var(--accent);
+    }
+
+    .platform-card.selected {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.08);
+    }
+
+    .platform-card .platform-name {
+      font-weight: 600;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .platform-card .platform-format {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .publish-queue {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .queue-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .queue-item .queue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .queue-item .queue-platform {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .queue-item .queue-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .queue-item .queue-status.pending {
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .queue-item .queue-status.progress {
+      background: rgba(224, 178, 94, 0.15);
+      color: var(--accent-2);
+    }
+
+    .queue-item .queue-status.done {
+      background: rgba(123, 201, 143, 0.15);
+      color: var(--success);
+    }
+
+    .queue-item .queue-status.failed {
+      background: rgba(217, 123, 108, 0.15);
+      color: var(--danger);
+    }
+
+    .queue-item .progress-bar {
+      height: 3px;
+      background: var(--panel);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .queue-item .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width .2s;
+    }
+
+    /* Library - Bulk upload -------------------------------------------------- */
+    .drop-zone {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--muted);
+      transition: all .2s;
+      cursor: pointer;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(183, 209, 122, 0.05);
+      color: var(--text);
+    }
+
+    .drop-zone .drop-icon {
+      width: 40px;
+      height: 40px;
+      color: var(--accent);
+      opacity: .5;
+    }
+
+    .upload-queue {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .upload-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .upload-item .file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .upload-item .file-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .upload-item .file-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .upload-item .file-caption {
+      font-size: 11px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 8px;
+      width: 100%;
+    }
+
+    .upload-item .file-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      align-self: flex-start;
+    }
+
+    .upload-item .file-status.pending {
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .upload-item .file-status.uploading {
+      background: rgba(224, 178, 94, 0.15);
+      color: var(--accent-2);
+    }
+
+    .upload-item .file-status.done {
+      background: rgba(123, 201, 143, 0.15);
+      color: var(--success);
+    }
+
+    /* Storage & Memories ----------------------------------------------------- */
+    .storage-meter {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .storage-meter .meter-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .storage-meter .meter-used {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .storage-meter .meter-total {
+      color: var(--muted);
+    }
+
+    .storage-meter .meter-bar {
+      height: 8px;
+      background: var(--panel);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .storage-meter .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 4px;
+      transition: width .3s;
+    }
+
+    .storage-meter .meter-warning .meter-fill {
+      background: linear-gradient(90deg, var(--accent-2), var(--danger));
+    }
+
+    .storage-meter .meter-critical .meter-fill {
+      background: var(--danger);
+    }
+
+    .storage-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .storage-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .storage-item .item-name {
+      font-weight: 600;
+    }
+
+    .storage-item .item-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .storage-item .item-size {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .storage-item.duplicate {
+      border-color: var(--accent-2);
+      background: rgba(224, 178, 94, 0.05);
+    }
+
+    .storage-item.duplicate::before {
+      content: "Duplicate";
+      font-size: 9px;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .retention-rules {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .toggle input {
+      accent-color: var(--accent);
+      width: 18px;
+      height: 18px;
+    }
+
+    .toggle.muted {
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .toggle em {
+      color: var(--muted);
+      font-style: normal;
+      opacity: .8;
+    }
+
+    .cleanup-summary {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .cleanup-summary b {
+      color: var(--accent);
+    }
+
+    /* Disclosure ------------------------------------------------------------- */
+    .disclosure {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      padding: 8px 16px;
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    /* Bottom navigation ------------------------------------------------------ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      padding: 8px 8px calc(8px + var(--safe-bottom));
+      z-index: 100;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 4px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      color: currentColor;
+    }
+
+    .nav-item:hover {
+      color: var(--text);
+    }
+
+    .nav-item[aria-selected="true"] {
+      color: var(--accent);
+    }
+
+    .nav-item[aria-selected="true"] svg {
+      filter: drop-shadow(0 2px 4px rgba(183, 209, 122, .3));
+    }
+
+    /* Utility ---------------------------------------------------------------- */
+    .muted {
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .sticky-action {
+      position: sticky;
+      bottom: 70px;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="hazelLeaf" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b7d17a"/>
+            <stop offset="1" stop-color="#e0b25e"/>
+          </linearGradient>
+        </defs>
+        <path d="M16 2.5C9.3 7.6 5.5 12.6 5.5 17.8a10.5 10.5 0 0 0 21 0c0-5.2-3.8-10.2-10.5-15.3z" fill="url(#hazelLeaf)"/>
+        <path d="M16 5.5V29" stroke="#59682f" stroke-width="1.3" stroke-linecap="round" opacity="0.75" fill="none"/>
+        <path d="M16 11l5.2 4.2M16 11l-5.2 4.2M16 17.5l5.6 4.4M16 17.5l-5.6 4.4" stroke="#59682f" stroke-width="1" stroke-linecap="round" opacity="0.5" fill="none"/>
+      </svg>
+      <span class="name">Hazel</span>
+      <span class="tag">Film once. Post everywhere. Learn what works.</span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <!-- CREATE SECTION -->
+    <section class="section active" id="section-create">
+      <div class="card">
+        <h2>Create &#8212; Video Generator</h2>
+        <p class="disclosure" style="text-align: left; padding: 0; border: 0; background: transparent;">This is an offline prototype that renders a storyboard and preview locally. No model calls or uploads are performed.</p>
+
+        <label>
+          <span>Characters</span>
+          <div class="char-grid" id="charGrid">
+            <div class="char-card" data-char="alex" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="check">&#10003;</div>
+              <div class="char-name">Alex</div>
+              <div class="char-desc">Tech reviewer, casual style</div>
+            </div>
+            <div class="char-card" data-char="maria" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="check">&#10003;</div>
+              <div class="char-name">Maria</div>
+              <div class="char-desc">Lifestyle creator, warm tone</div>
+            </div>
+            <div class="char-card" data-char="dev" role="checkbox" aria-checked="false" tabindex="0">
+              <div class="check">&#10003;</div>
+              <div class="char-name">Dev</div>
+              <div class="char-desc">Developer, tutorial host</div>
+            </div>
+            <div class="add-char-btn" id="addCharBtn">+ Add custom</div>
+          </div>
+        </label>
+
+        <div id="customCharForm" class="hidden">
+          <label>
+            <span>Custom character name</span>
+            <input type="text" id="customCharName" placeholder="e.g. Jordan" />
+          </label>
+          <label>
+            <span>Description</span>
+            <input type="text" id="customCharDesc" placeholder="e.g. Fitness coach, energetic" />
+          </label>
+          <div class="row" style="margin-top: 8px;">
+            <button class="btn btn-sm" id="cancelChar" style="flex: 1;">Cancel</button>
+            <button class="btn btn-sm primary" id="addCustomChar" style="flex: 1;">Add character</button>
+          </div>
+        </div>
+
+        <label>
+          <span>Scene type</span>
+          <div class="scene-options" id="sceneOptions">
+            <div class="scene-option selected" data-scene="talking">Talking to camera</div>
+            <div class="scene-option" data-scene="interaction">Interaction / Drama</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Scene description</span>
+          <textarea id="sceneDesc" placeholder="Describe the setting, mood, and key visual elements..."></textarea>
+        </label>
+
+        <label>
+          <span>Length</span>
+          <div class="option-grid" id="lengthOptions">
+            <div class="option-btn" data-length="15">15s</div>
+            <div class="option-btn" data-length="30">30s</div>
+            <div class="option-btn selected" data-length="45">45s</div>
+            <div class="option-btn" data-length="60">60s</div>
+            <div class="option-btn" data-length="90">90s</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Aspect ratio</span>
+          <div class="option-grid" id="aspectOptions">
+            <div class="option-btn selected" data-aspect="9:16">9:16</div>
+            <div class="option-btn" data-aspect="1:1">1:1</div>
+            <div class="option-btn" data-aspect="4:5">4:5</div>
+            <div class="option-btn" data-aspect="16:9">16:9</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Resolution</span>
+          <div class="option-grid" id="resOptions">
+            <div class="option-btn" data-res="720">720p</div>
+            <div class="option-btn selected" data-res="1080">1080p</div>
+            <div class="option-btn" data-res="4k">4K</div>
+          </div>
+        </label>
+
+        <label>
+          <span>Main prompt</span>
+          <textarea id="mainPrompt" placeholder="Describe the video content, key messages, and call-to-action..."></textarea>
+        </label>
+
+        <button class="btn primary btn-full" id="generateBtn">Generate</button>
+
+        <div id="generatingState" class="hidden">
+          <div class="row" style="justify-content: center; gap: 12px;">
+            <span class="muted">Generating storyboard...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="previewCard">
+        <h2>Preview</h2>
+        <div class="preview-stage empty" id="previewStage">
+          <svg class="leaf-icon" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 2.5C9.3 7.6 5.5 12.6 5.5 17.8a10.5 10.5 0 0 0 21 0c0-5.2-3.8-10.2-10.5-15.3z" fill="currentColor"/>
+            <path d="M16 5.5V29" stroke="#0e1116" stroke-width="1.4" stroke-linecap="round" opacity="0.55" fill="none"/>
+            <path d="M16 11l5.2 4.2M16 11l-5.2 4.2M16 17.5l5.6 4.4M16 17.5l-5.6 4.4" stroke="#0e1116" stroke-width="1.1" stroke-linecap="round" opacity="0.35" fill="none"/>
+          </svg>
+          <div id="previewText">No video generated yet</div>
+        </div>
+        <div id="refineSection" class="hidden" style="margin-top: 12px;">
+          <button class="btn primary btn-full" id="refineBtn">Refine in editor</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDITOR SECTION -->
+    <section class="section" id="section-editor">
+      <div class="card">
+        <h2>Editor &#8212; Timeline</h2>
+        <div id="editorEmpty" class="row" style="justify-content: center; padding: 24px;">
+          <span class="muted">No project yet. Create a video first.</span>
+        </div>
+        <div id="editorContent" class="hidden">
+          <div class="row-between" style="margin-bottom: 8px;">
+            <span class="muted" style="font-size: 12px;">Aspect: <b id="editorAspect" style="color: var(--text);">9:16</b></span>
+            <button class="btn btn-sm" id="switchAspectBtn">Switch aspect</button>
+          </div>
+          <div class="timeline" id="timeline"></div>
+          <div class="runtime-total">
+            <span>Total runtime</span>
+            <span><b id="runtimeTotal">0s</b></span>
+          </div>
+          <div class="row" style="margin-top: 12px;">
+            <button class="btn btn-sm" id="autoCaptionBtn" style="flex: 1;">Auto-caption</button>
+            <button class="btn btn-sm" id="removeSilencesBtn" style="flex: 1;">Remove silences</button>
+          </div>
+          <button class="btn primary btn-full" id="backToCreateBtn" style="margin-top: 12px;">Back to Create</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PUBLISH SECTION -->
+    <section class="section" id="section-publish">
+      <div class="card">
+        <h2>Publish &#8212; Multi-platform</h2>
+        <div id="publishEmpty" class="row" style="justify-content: center; padding: 24px;">
+          <span class="muted">No project to publish. Create a video first.</span>
+        </div>
+        <div id="publishContent" class="hidden">
+          <label>
+            <span>Select platforms</span>
+            <div class="platform-grid" id="platformGrid">
+              <div class="platform-card" data-platform="tiktok" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">TikTok</div>
+                <div class="platform-format">Auto: 9:16</div>
+              </div>
+              <div class="platform-card" data-platform="instagram" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">Instagram Reels</div>
+                <div class="platform-format">Auto: 9:16</div>
+              </div>
+              <div class="platform-card" data-platform="youtube" data-format="9:16" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">YouTube Shorts</div>
+                <div class="platform-format">Auto: 9:16</div>
+              </div>
+              <div class="platform-card" data-platform="x" data-format="16:9" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">X (Twitter)</div>
+                <div class="platform-format">Auto: 16:9</div>
+              </div>
+              <div class="platform-card" data-platform="facebook" data-format="1:1" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">Facebook</div>
+                <div class="platform-format">Auto: 1:1</div>
+              </div>
+              <div class="platform-card" data-platform="linkedin" data-format="1:1" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="platform-name">LinkedIn</div>
+                <div class="platform-format">Auto: 1:1</div>
+              </div>
+            </div>
+          </label>
+
+          <label>
+            <span>Caption</span>
+            <textarea id="publishCaption" placeholder="Write your post caption..."></textarea>
+          </label>
+
+          <label>
+            <span>Schedule</span>
+            <select id="publishSchedule">
+              <option value="now">Publish now</option>
+              <option value="later">Schedule for later</option>
+            </select>
+          </label>
+
+          <button class="btn primary btn-full" id="deployBtn">Deploy to <span id="deployCount">0</span> platforms</button>
+
+          <div id="publishQueue" class="publish-queue hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIBRARY SECTION -->
+    <section class="section" id="section-library">
+      <div class="card">
+        <h2>Library &#8212; Bulk Upload</h2>
+        <div class="drop-zone" id="dropZone" tabindex="0">
+          <svg class="drop-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M24 4v28M12 20l12-12 12 12M4 36h40" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>Drag &amp; drop photos/videos here</div>
+          <div class="muted" style="font-size: 11px; margin-top: 4px;">or click to browse</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" />
+
+        <div id="uploadQueue" class="upload-queue"></div>
+
+        <button class="btn primary btn-full" id="uploadBtn" style="margin-top: 12px;" disabled>Upload to socials</button>
+      </div>
+
+      <div class="card">
+        <h2>Storage &amp; Memories</h2>
+        <div class="storage-meter" id="storageMeter">
+          <div class="meter-header">
+            <span class="meter-used"><b id="storageUsed">0 GB</b> used</span>
+            <span class="meter-total">of <b id="storageTotal">128 GB</b></span>
+          </div>
+          <div class="meter-bar">
+            <div class="meter-fill" id="storageFill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <span style="font-size: 12px; font-weight: 600;">Items</span>
+          <button class="btn btn-sm" id="backupBtn">Back up to Memories</button>
+        </div>
+        <div class="storage-list" id="storageList"></div>
+
+        <div class="retention-rules">
+          <span style="font-size: 12px; font-weight: 600;">Retention rules</span>
+          <label class="toggle">
+            <input type="checkbox" id="ruleAutoDelete" />
+            <span>Auto-delete originals after backup (<input type="number" id="autoDeleteDays" value="7" min="1" max="30" style="width: 50px; background: var(--panel); border: 1px solid var(--line); color: var(--text); padding: 4px 6px; border-radius: 4px;" /> days)</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="ruleRemoveDupes" checked />
+            <span>Remove duplicates</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="ruleCompress" />
+            <span>Compress large videos (&gt;500 MB)</span>
+          </label>
+        </div>
+
+        <button class="btn btn-full" id="cleanupBtn" style="margin-top: 12px;">Run cleanup</button>
+        <div id="cleanupSummary" class="cleanup-summary hidden"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav" role="tablist" aria-label="Studio sections">
+    <button class="nav-item" role="tab" aria-selected="true" id="nav-create" data-section="create">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 3v18M3 12h18" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Create
+    </button>
+    <button class="nav-item" role="tab" aria-selected="false" id="nav-editor" data-section="editor">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="5" width="18" height="14" rx="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 12h10M7 8h6M7 16h8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Editor
+    </button>
+    <button class="nav-item" role="tab" aria-selected="false" id="nav-publish" data-section="publish">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v20M2 12h20" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="4"/>
+      </svg>
+      Publish
+    </button>
+    <button class="nav-item" role="tab" aria-selected="false" id="nav-library" data-section="library">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Library
+    </button>
+  </nav>
+
+  <!-- DISCLOSURE -->
+  <div class="disclosure" style="position: fixed; bottom: 70px; left: 0; right: 0; z-index: 99; background: var(--panel); border-top: 1px solid var(--line);">
+    Offline prototype &#183; No external calls &#183; All data stored locally in localStorage
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // STORAGE KEY
+      const STORAGE_KEY = 'hazel-studio-mobile-v1';
+
+      // STATE
+      let state = {
+        currentSection: 'create',
+        characters: [],
+        customCharacters: [],
+        sceneType: 'talking',
+        sceneDesc: '',
+        length: 45,
+        aspect: '9:16',
+        resolution: '1080',
+        mainPrompt: '',
+        generatedProject: null,
+        uploadQueue: [],
+        storageItems: [],
+        publishQueue: [],
+        selectedPlatforms: []
+      };
+
+      // LOAD STATE
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            state = { ...state, ...parsed };
+          }
+        } catch (e) {
+          console.warn('Failed to load state:', e);
+        }
+      }
+
+      // SAVE STATE
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.warn('Failed to save state:', e);
+        }
+      }
+
+      // DOM HELPERS
+      function $(sel) { return document.querySelector(sel); }
+      function $$(sel) { return document.querySelectorAll(sel); }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // SECTION SWITCHING
+      function switchSection(sectionId) {
+        state.currentSection = sectionId;
+        saveState();
+
+        // Update nav buttons
+        $$('.nav-item').forEach(btn => {
+          const isSelected = btn.dataset.section === sectionId;
+          btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+
+        // Update sections
+        $$('.section').forEach(sec => {
+          sec.classList.toggle('active', sec.id === 'section-' + sectionId);
+        });
+
+        // Scroll to top
+        document.querySelector('.container').scrollTop = 0;
+
+        // Special handling for sections
+        if (sectionId === 'editor') {
+          renderEditor();
+        } else if (sectionId === 'publish') {
+          renderPublish();
+        } else if (sectionId === 'library') {
+          updateStorageUI();
+        }
+      }
+
+      // CHARACTER SELECTION
+      function initCharSelection() {
+        $$('.char-card').forEach(card => {
+          card.addEventListener('click', () => toggleChar(card.dataset.char));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleChar(card.dataset.char);
+            }
+          });
+        });
+
+        $('#addCharBtn').addEventListener('click', () => {
+          $('#customCharForm').classList.remove('hidden');
+        });
+
+        $('#cancelChar').addEventListener('click', () => {
+          $('#customCharForm').classList.add('hidden');
+          $('#customCharName').value = '';
+          $('#customCharDesc').value = '';
+        });
+
+        $('#addCustomChar').addEventListener('click', () => {
+          const name = $('#customCharName').value.trim();
+          const desc = $('#customCharDesc').value.trim();
+          if (name) {
+            state.customCharacters.push({ name, desc });
+            saveState();
+            renderCustomChars();
+            $('#customCharForm').classList.add('hidden');
+            $('#customCharName').value = '';
+            $('#customCharDesc').value = '';
+          }
+        });
+      }
+
+      function toggleChar(charId) {
+        const idx = state.characters.indexOf(charId);
+        if (idx === -1) {
+          state.characters.push(charId);
+        } else {
+          state.characters.splice(idx, 1);
+        }
+        saveState();
+        renderCharSelection();
+      }
+
+      function renderCharSelection() {
+        $$('.char-card').forEach(card => {
+          const isSelected = state.characters.includes(card.dataset.char);
+          card.classList.toggle('selected', isSelected);
+          card.setAttribute('aria-checked', isSelected);
+        });
+        renderCustomChars();
+      }
+
+      function renderCustomChars() {
+        // Remove existing custom cards
+        $$('.char-card.custom').forEach(el => el.remove());
+
+        state.customCharacters.forEach((char, idx) => {
+          const card = document.createElement('div');
+          card.className = 'char-card custom' + (state.characters.includes('custom-' + idx) ? ' selected' : '');
+          card.setAttribute('role', 'checkbox');
+          card.setAttribute('aria-checked', state.characters.includes('custom-' + idx));
+          card.setAttribute('tabindex', '0');
+          card.innerHTML = '<div class="check">&#10003;</div><div class="char-name">' + escapeHtml(char.name) + '</div><div class="char-desc">' + escapeHtml(char.desc) + '</div>';
+          card.addEventListener('click', () => toggleCustomChar(idx));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleCustomChar(idx);
+            }
+          });
+          $('#addCharBtn').before(card);
+        });
+      }
+
+      function toggleCustomChar(idx) {
+        const key = 'custom-' + idx;
+        const pos = state.characters.indexOf(key);
+        if (pos === -1) {
+          state.characters.push(key);
+        } else {
+          state.characters.splice(pos, 1);
+        }
+        saveState();
+        renderCustomChars();
+      }
+
+      // SCENE TYPE
+      function initSceneType() {
+        $$('.scene-option').forEach(opt => {
+          opt.addEventListener('click', () => {
+            state.sceneType = opt.dataset.scene;
+            saveState();
+            renderSceneType();
+          });
+        });
+      }
+
+      function renderSceneType() {
+        $$('.scene-option').forEach(opt => {
+          opt.classList.toggle('selected', opt.dataset.scene === state.sceneType);
+        });
+      }
+
+      // LENGTH, ASPECT, RESOLUTION
+      function initOptions() {
+        $('#lengthOptions').addEventListener('click', (e) => {
+          if (e.target.classList.contains('option-btn')) {
+            state.length = parseInt(e.target.dataset.length);
+            saveState();
+            renderOptions();
+          }
+        });
+
+        $('#aspectOptions').addEventListener('click', (e) => {
+          if (e.target.classList.contains('option-btn')) {
+            state.aspect = e.target.dataset.aspect;
+            saveState();
+            renderOptions();
+            if (state.generatedProject) {
+              state.generatedProject.aspect = state.aspect;
+              saveState();
+            }
+          }
+        });
+
+        $('#resOptions').addEventListener('click', (e) => {
+          if (e.target.classList.contains('option-btn')) {
+            state.resolution = e.target.dataset.res;
+            saveState();
+            renderOptions();
+          }
+        });
+      }
+
+      function renderOptions() {
+        $$('#lengthOptions .option-btn').forEach(btn => {
+          btn.classList.toggle('selected', parseInt(btn.dataset.length) === state.length);
+        });
+        $$('#aspectOptions .option-btn').forEach(btn => {
+          btn.classList.toggle('selected', btn.dataset.aspect === state.aspect);
+        });
+        $$('#resOptions .option-btn').forEach(btn => {
+          btn.classList.toggle('selected', btn.dataset.res === state.resolution);
+        });
+      }
+
+      // FORM INPUTS
+      function initFormInputs() {
+        $('#sceneDesc').addEventListener('input', (e) => {
+          state.sceneDesc = e.target.value;
+          saveState();
+        });
+
+        $('#mainPrompt').addEventListener('input', (e) => {
+          state.mainPrompt = e.target.value;
+          saveState();
+        });
+      }
+
+      function renderFormInputs() {
+        $('#sceneDesc').value = state.sceneDesc;
+        $('#mainPrompt').value = state.mainPrompt;
+      }
+
+      // DETERMINISTIC HASH
+      function hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash;
+        }
+        return Math.abs(hash);
+      }
+
+      // GENERATE STORYBOARD
+      function generateStoryboard() {
+        const prompt = state.mainPrompt.trim();
+        if (!prompt) {
+          alert('Please enter a main prompt');
+          return;
+        }
+
+        $('#generateBtn').disabled = true;
+        $('#generatingState').classList.remove('hidden');
+
+        // Simulate generation delay
+        setTimeout(() => {
+          const project = createDeterministicProject();
+          state.generatedProject = project;
+          saveState();
+
+          $('#generateBtn').disabled = false;
+          $('#generatingState').classList.add('hidden');
+
+          renderStoryboard();
+          renderPreview();
+          $('#refineSection').classList.remove('hidden');
+        }, 1500);
+      }
+
+      function createDeterministicProject() {
+        const seed = hashString(state.mainPrompt + state.sceneType + state.sceneDesc + state.characters.join(',') + state.length);
+        const charNames = state.characters.map(c => {
+          if (c.startsWith('custom-')) {
+            const idx = parseInt(c.split('-')[1]);
+            return state.customCharacters[idx]?.name || 'Custom';
+          }
+          const names = { alex: 'Alex', maria: 'Maria', dev: 'Dev' };
+          return names[c] || c;
+        });
+
+        const sceneLabels = {
+          talking: 'Talking to camera',
+          interaction: 'Interaction / Drama'
+        };
+
+        // Calculate shot count based on length
+        const shotCount = Math.max(3, Math.min(8, Math.floor(state.length / 10)));
+        const baseDur = Math.floor(state.length / shotCount);
+        let remaining = state.length;
+
+        const shots = [];
+        const promptWords = state.mainPrompt.split(/\s+/).filter(w => w.length > 3);
+        const sceneWords = state.sceneDesc.split(/\s+/).filter(w => w.length > 3);
+
+        for (let i = 0; i < shotCount; i++) {
+          const isLast = i === shotCount - 1;
+          const dur = isLast ? remaining : Math.max(5, baseDur + ((seed + i) % 5) - 2);
+          remaining -= dur;
+
+          const shotLabel = sceneLabels[state.sceneType] + ' ' + (i + 1);
+          const charRef = charNames.length > 0 ? charNames[i % charNames.length] : 'Host';
+          const promptRef = promptWords[i % promptWords.length] || 'topic';
+          const sceneRef = sceneWords[i % sceneWords.length] || 'setting';
+
+          shots.push({
+            id: 'shot-' + i,
+            label: shotLabel,
+            duration: dur,
+            caption: charRef + ' discusses ' + promptRef + ' in ' + sceneRef + ' setting',
+            description: charRef + ' on camera, ' + state.sceneType + ' style. Key point: ' + promptRef + '. Atmosphere: ' + sceneRef + '.'
+          });
+        }
+
+        return {
+          aspect: state.aspect,
+          resolution: state.resolution,
+          length: state.length,
+          sceneType: state.sceneType,
+          characters: [...state.characters],
+          sceneDesc: state.sceneDesc,
+          prompt: state.mainPrompt,
+          shots: shots,
+          createdAt: Date.now()
+        };
+      }
+
+      function renderStoryboard() {
+        if (!state.generatedProject) return;
+
+        const container = document.createElement('div');
+        container.className = 'storyboard';
+
+        state.generatedProject.shots.forEach((shot, idx) => {
+          const shotEl = document.createElement('div');
+          shotEl.className = 'shot';
+          shotEl.innerHTML = '<div class="shot-label">' + escapeHtml(shot.label) + '</div><div class="shot-dur">' + shot.duration + 's</div><div class="shot-desc">' + escapeHtml(shot.description) + '</div>';
+          container.appendChild(shotEl);
+        });
+
+        // Replace existing storyboard if any
+        const existing = $('#previewStage').querySelector('.storyboard');
+        if (existing) existing.remove();
+
+        $('#previewStage').classList.add('playing');
+        $('#previewStage').insertBefore(container, $('#previewText'));
+        $('#previewText').textContent = state.generatedProject.shots.length + ' shots generated';
+      }
+
+      function renderPreview() {
+        if (!state.generatedProject) {
+          $('#previewStage').classList.add('empty');
+          $('#previewStage').classList.remove('playing');
+          $('#previewText').textContent = 'No video generated yet';
+          $('#refineSection').classList.add('hidden');
+          return;
+        }
+
+        $('#previewStage').classList.remove('empty');
+        $('#previewStage').classList.add('playing');
+        $('#previewText').textContent = state.generatedProject.shots.length + ' shots &#183; ' + state.generatedProject.length + 's total &#183; ' + state.generatedProject.aspect;
+      }
+
+      // PLAY PREVIEW ANIMATION
+      function playPreview() {
+        if (!state.generatedProject) return;
+
+        const shots = state.generatedProject.shots;
+        let currentShot = 0;
+        let elapsed = 0;
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.innerHTML = '<div class="progress-fill"></div>';
+
+        const currentShotEl = document.createElement('div');
+        currentShotEl.className = 'current-shot';
+
+        // Clear and setup
+        const existing = $('#previewStage').querySelector('.shot-preview, .progress-bar, .current-shot');
+        if (existing) existing.remove();
+
+        $('#previewStage').appendChild(progressBar);
+        $('#previewStage').appendChild(currentShotEl);
+
+        const fill = progressBar.querySelector('.progress-fill');
+        const totalDur = state.generatedProject.length;
+
+        const interval = setInterval(() => {
+          elapsed += 0.1;
+          const pct = (elapsed / totalDur) * 100;
+          fill.style.width = pct + '%';
+
+          // Update current shot
+          let shotElapsed = 0;
+          for (let i = 0; i < shots.length; i++) {
+            shotElapsed += shots[i].duration;
+            if (elapsed <= shotElapsed) {
+              currentShot = i;
+              break;
+            }
+          }
+
+          currentShotEl.textContent = 'Playing: ' + shots[currentShot].label;
+
+          if (elapsed >= totalDur) {
+            clearInterval(interval);
+            currentShotEl.textContent = 'Preview complete';
+          }
+        }, 100);
+      }
+
+      // EDITOR
+      function renderEditor() {
+        if (!state.generatedProject) {
+          $('#editorEmpty').classList.remove('hidden');
+          $('#editorContent').classList.add('hidden');
+          return;
+        }
+
+        $('#editorEmpty').classList.add('hidden');
+        $('#editorContent').classList.remove('hidden');
+        $('#editorAspect').textContent = state.generatedProject.aspect;
+
+        const timeline = $('#timeline');
+        timeline.innerHTML = '';
+
+        state.generatedProject.shots.forEach((shot, idx) => {
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          item.dataset.shotIdx = idx;
+          item.innerHTML = '<div class="shot-header"><div class="shot-num">' + (idx + 1) + '</div><div class="shot-label">' + escapeHtml(shot.label) + '</div></div><input type="text" class="shot-caption" placeholder="Add caption..." value="' + escapeHtml(shot.caption) + '"/><div class="row" style="align-items: center;"><input type="range" min="3" max="60" value="' + shot.duration + '" class="shot-trim" style="flex: 1;"/><div class="dur-display">' + shot.duration + 's</div></div><div class="shot-actions"><button class="btn btn-sm" data-action="reorder">Reorder</button><button class="btn btn-sm danger" data-action="delete">Delete</button></div>';
+          timeline.appendChild(item);
+        });
+
+        // Add event listeners
+        $$('.timeline-item').forEach(item => {
+          const trimInput = item.querySelector('.shot-trim');
+          const durDisplay = item.querySelector('.dur-display');
+          const captionInput = item.querySelector('.shot-caption');
+          const actions = item.querySelectorAll('[data-action]');
+
+          trimInput.addEventListener('input', (e) => {
+            const newDur = parseInt(e.target.value);
+            durDisplay.textContent = newDur + 's';
+            state.generatedProject.shots[item.dataset.shotIdx].duration = newDur;
+            updateRuntimeTotal();
+            saveState();
+          });
+
+          captionInput.addEventListener('input', (e) => {
+            state.generatedProject.shots[item.dataset.shotIdx].caption = e.target.value;
+            saveState();
+          });
+
+          actions.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const action = btn.dataset.action;
+              const shotIdx = parseInt(item.dataset.shotIdx);
+              if (action === 'delete') {
+                state.generatedProject.shots.splice(shotIdx, 1);
+                saveState();
+                renderEditor();
+              } else if (action === 'reorder') {
+                // Simple reorder: swap with next
+                if (shotIdx < state.generatedProject.shots.length - 1) {
+                  const temp = state.generatedProject.shots[shotIdx];
+                  state.generatedProject.shots[shotIdx] = state.generatedProject.shots[shotIdx + 1];
+                  state.generatedProject.shots[shotIdx + 1] = temp;
+                  saveState();
+                  renderEditor();
+                }
+              }
+            });
+          });
+        });
+
+        updateRuntimeTotal();
+      }
+
+      function updateRuntimeTotal() {
+        if (!state.generatedProject) return;
+        const total = state.generatedProject.shots.reduce((sum, shot) => sum + shot.duration, 0);
+        $('#runtimeTotal').textContent = total + 's';
+      }
+
+      // PUBLISH
+      function renderPublish() {
+        if (!state.generatedProject) {
+          $('#publishEmpty').classList.remove('hidden');
+          $('#publishContent').classList.add('hidden');
+          return;
+        }
+
+        $('#publishEmpty').classList.add('hidden');
+        $('#publishContent').classList.remove('hidden');
+
+        // Render platform cards
+        $$('.platform-card').forEach(card => {
+          const isSelected = state.selectedPlatforms.includes(card.dataset.platform);
+          card.classList.toggle('selected', isSelected);
+          card.setAttribute('aria-checked', isSelected);
+        });
+
+        updateDeployCount();
+      }
+
+      function initPlatformSelection() {
+        $$('.platform-card').forEach(card => {
+          card.addEventListener('click', () => togglePlatform(card.dataset.platform));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              togglePlatform(card.dataset.platform);
+            }
+          });
+        });
+      }
+
+      function togglePlatform(platform) {
+        const idx = state.selectedPlatforms.indexOf(platform);
+        if (idx === -1) {
+          state.selectedPlatforms.push(platform);
+        } else {
+          state.selectedPlatforms.splice(idx, 1);
+        }
+        saveState();
+        renderPublish();
+      }
+
+      function updateDeployCount() {
+        $('#deployCount').textContent = state.selectedPlatforms.length;
+        $('#deployBtn').disabled = state.selectedPlatforms.length === 0;
+      }
+
+      function deployToPlatforms() {
+        if (state.selectedPlatforms.length === 0) return;
+
+        const queue = $('#publishQueue');
+        queue.innerHTML = '';
+        queue.classList.remove('hidden');
+
+        state.selectedPlatforms.forEach(platform => {
+          const item = document.createElement('div');
+          item.className = 'queue-item';
+          item.dataset.platform = platform;
+          item.innerHTML = '<div class="queue-header"><span class="queue-platform">' + escapeHtml(platform.toUpperCase()) + '</span><span class="queue-status pending">Pending</span></div><div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>';
+          queue.appendChild(item);
+        });
+
+        // Simulate upload progress
+        const platforms = [...state.selectedPlatforms];
+        let current = 0;
+
+        function processNext() {
+          if (current >= platforms.length) return;
+
+          const platform = platforms[current];
+          const item = queue.querySelector('[data-platform="' + platform + '"]');
+          if (!item) return;
+
+          const statusEl = item.querySelector('.queue-status');
+          const fill = item.querySelector('.progress-fill');
+
+          statusEl.textContent = 'Uploading...';
+          statusEl.className = 'queue-status progress';
+
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 10;
+            fill.style.width = progress + '%';
+
+            if (progress >= 100) {
+              clearInterval(interval);
+              statusEl.textContent = 'Published';
+              statusEl.className = 'queue-status done';
+              current++;
+              setTimeout(processNext, 500);
+            }
+          }, 200);
+        }
+
+        processNext();
+      }
+
+      // LIBRARY - BULK UPLOAD
+      function initBulkUpload() {
+        const dropZone = $('#dropZone');
+        const fileInput = $('#fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+          }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+          handleFiles(e.target.files);
+          fileInput.value = '';
+        });
+      }
+
+      function handleFiles(fileList) {
+        const files = Array.from(fileList);
+        files.forEach(file => {
+          const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+          state.uploadQueue.push({
+            name: file.name,
+            size: sizeMB + ' MB',
+            type: file.type,
+            caption: '',
+            status: 'pending',
+            progress: 0
+          });
+        });
+
+        state.storageItems.push(...files.map(f => ({
+          name: f.name,
+          size: (f.size / (1024 * 1024)).toFixed(1) + ' MB',
+          type: f.type,
+          isDuplicate: false
+        })));
+
+        saveState();
+        renderUploadQueue();
+        updateStorageUI();
+        $('#uploadBtn').disabled = false;
+      }
+
+      function renderUploadQueue() {
+        const container = $('#uploadQueue');
+        container.innerHTML = '';
+
+        state.uploadQueue.forEach((item, idx) => {
+          const el = document.createElement('div');
+          el.className = 'upload-item';
+          el.innerHTML = '<div class="file-info"><div class="file-name">' + escapeHtml(item.name) + '</div><div class="file-meta">' + escapeHtml(item.size) + ' &#183; ' + escapeHtml(item.type) + '</div><input type="text" class="file-caption" placeholder="Add caption..." value="' + escapeHtml(item.caption) + '"/></div><span class="file-status ' + item.status + '">' + item.status + '</span>';
+          container.appendChild(el);
+
+          const captionInput = el.querySelector('.file-caption');
+          captionInput.addEventListener('input', (e) => {
+            state.uploadQueue[idx].caption = e.target.value;
+            saveState();
+          });
+        });
+      }
+
+      function processUploads() {
+        state.uploadQueue.forEach((item, idx) => {
+          item.status = 'uploading';
+        });
+        saveState();
+        renderUploadQueue();
+
+        let current = 0;
+        function processNext() {
+          if (current >= state.uploadQueue.length) return;
+
+          const item = state.uploadQueue[current];
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 20;
+            state.uploadQueue[current].progress = progress;
+            if (progress >= 100) {
+              clearInterval(interval);
+              state.uploadQueue[current].status = 'done';
+              current++;
+              saveState();
+              renderUploadQueue();
+              setTimeout(processNext, 300);
+            } else {
+              saveState();
+            }
+          }, 150);
+        }
+        processNext();
+      }
+
+      // STORAGE UI
+      function updateStorageUI() {
+        const totalItems = state.storageItems.length;
+        const duplicates = state.storageItems.filter(i => i.isDuplicate).length;
+        const totalSize = state.storageItems.reduce((sum, item) => {
+          const match = item.size.match(/([\d.]+)/);
+          return sum + (match ? parseFloat(match[1]) : 0);
+        }, 0);
+
+        const totalGB = (totalSize / 1024).toFixed(1);
+        const quotaGB = 128;
+        const pct = Math.min(100, (totalSize / (quotaGB * 1024)) * 100);
+
+        $('#storageUsed').textContent = totalGB + ' GB';
+        $('#storageTotal').textContent = quotaGB + ' GB';
+        $('#storageFill').style.width = pct + '%';
+
+        // Update meter color
+        const meter = $('#storageMeter');
+        meter.classList.remove('meter-warning', 'meter-critical');
+        if (pct > 90) {
+          meter.classList.add('meter-critical');
+        } else if (pct > 70) {
+          meter.classList.add('meter-warning');
+        }
+
+        // Render storage list
+        const list = $('#storageList');
+        list.innerHTML = '';
+        state.storageItems.slice(0, 10).forEach(item => {
+          const el = document.createElement('div');
+          el.className = 'storage-item' + (item.isDuplicate ? ' duplicate' : '');
+          el.innerHTML = '<div class="item-name">' + escapeHtml(item.name) + '</div><div class="item-meta">' + escapeHtml(item.type) + '</div><div class="item-size">' + item.size + '</div>';
+          list.appendChild(el);
+        });
+
+        // Update quick stats in preview card (if visible)
+        const quickFileCount = $('#quickFileCount');
+        const quickDupeCount = $('#quickDupeCount');
+        if (quickFileCount) quickFileCount.textContent = totalItems;
+        if (quickDupeCount) quickDupeCount.textContent = duplicates;
+      }
+
+      function runCleanup() {
+        const removeDupes = $('#ruleRemoveDupes').checked;
+        const autoDelete = $('#ruleAutoDelete').checked;
+        const compress = $('#ruleCompress').checked;
+
+        let freed = 0;
+        let removed = 0;
+
+        if (removeDupes) {
+          const dupes = state.storageItems.filter(i => i.isDuplicate);
+          freed += dupes.length * 50; // Simulated
+          removed += dupes.length;
+          state.storageItems = state.storageItems.filter(i => !i.isDuplicate);
+        }
+
+        if (autoDelete) {
+          const days = parseInt($('#autoDeleteDays').value) || 7;
+          freed += 100; // Simulated
+          removed += 2;
+        }
+
+        if (compress) {
+          freed += 200; // Simulated
+        }
+
+        saveState();
+        updateStorageUI();
+
+        const summary = $('#cleanupSummary');
+        summary.classList.remove('hidden');
+        summary.innerHTML = 'Cleanup complete. Freed <b>' + freed + ' MB</b> by removing ' + removed + ' items.';
+      }
+
+      // INITIALIZATION
+      function init() {
+        loadState();
+
+        // Nav switching
+        $$('.nav-item').forEach(btn => {
+          btn.addEventListener('click', () => switchSection(btn.dataset.section));
+        });
+
+        // Initialize UI from state
+        renderCharSelection();
+        renderSceneType();
+        renderOptions();
+        renderFormInputs();
+        renderPreview();
+
+        // Setup event handlers
+        initCharSelection();
+        initSceneType();
+        initOptions();
+        initFormInputs();
+        initPlatformSelection();
+        initBulkUpload();
+
+        // Generate button
+        $('#generateBtn').addEventListener('click', generateStoryboard);
+
+        // Refine button
+        $('#refineBtn').addEventListener('click', () => {
+          switchSection('editor');
+        });
+
+        // Back to create
+        $('#backToCreateBtn').addEventListener('click', () => {
+          switchSection('create');
+        });
+
+        // Switch aspect
+        $('#switchAspectBtn').addEventListener('click', () => {
+          if (!state.generatedProject) return;
+          const aspects = ['9:16', '1:1', '4:5', '16:9'];
+          const currentIdx = aspects.indexOf(state.generatedProject.aspect);
+          const nextIdx = (currentIdx + 1) % aspects.length;
+          state.generatedProject.aspect = aspects[nextIdx];
+          state.aspect = aspects[nextIdx];
+          saveState();
+          $('#editorAspect').textContent = state.generatedProject.aspect;
+          renderEditor();
+        });
+
+        // Auto-caption (simulated)
+        $('#autoCaptionBtn').addEventListener('click', () => {
+          if (!state.generatedProject) return;
+          state.generatedProject.shots.forEach(shot => {
+            if (!shot.caption) {
+              shot.caption = 'Auto-generated caption for this shot';
+            }
+          });
+          saveState();
+          renderEditor();
+        });
+
+        // Remove silences (simulated)
+        $('#removeSilencesBtn').addEventListener('click', () => {
+          if (!state.generatedProject) return;
+          // Remove shots with duration < 5s
+          state.generatedProject.shots = state.generatedProject.shots.filter(s => s.duration >= 5);
+          saveState();
+          renderEditor();
+        });
+
+        // Deploy button
+        $('#deployBtn').addEventListener('click', deployToPlatforms);
+
+        // Upload button
+        $('#uploadBtn').addEventListener('click', processUploads);
+
+        // Cleanup button
+        $('#cleanupBtn').addEventListener('click', runCleanup);
+
+        // Backup button
+        $('#backupBtn').addEventListener('click', () => {
+          alert('Backed up ' + state.storageItems.length + ' items to Memories');
+        });
+
+        // Initial section
+        switchSection(state.currentSection);
+      }
+
+      // Start
+      init();
+    })();
+  </script>
+
+  <!-- SECTIONS: Create (lines 500-700), Editor (lines 700-800), Publish (lines 800-900), Library (lines 900-1000), Storage (lines 1000-1100) -->
+</body>
+</html>

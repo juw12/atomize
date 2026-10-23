@@ -2,12 +2,30 @@
 
 const $ = (id) => document.getElementById(id);
 
+const APP_STORAGE_KEY = 'hazel-app-studio-v1';
+
 const state = {
   file: null,
   info: null,
   result: null,
   formats: [],
-  platforms: []
+  platforms: [],
+  createMode: {
+    currentMode: 'edit',
+    characters: [],
+    customCharacters: [],
+    sceneType: 'talking',
+    sceneDesc: '',
+    length: 45,
+    aspect: '9:16',
+    resolution: '1080',
+    mainPrompt: '',
+    generatedProject: null,
+    selectedPlatforms: [],
+    publishQueue: [],
+    uploadQueue: [],
+    storageItems: []
+  }
 };
 
 // Guide recommendations with affiliate links
@@ -658,3 +676,733 @@ if (window.hazel && window.hazel.onProgress) {
     if (p.phase === 'repurpose') setStatus('Exporting ' + (p.ratio || '') + '…', 'busy');
   });
 }
+
+// --- CREATE MODE -----------------------------------------------------------
+
+function loadAppState() {
+  try {
+    const saved = localStorage.getItem(APP_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state.createMode = { ...state.createMode, ...parsed.createMode };
+    }
+  } catch (e) {
+    console.warn('Failed to load app state:', e);
+  }
+}
+
+function saveAppState() {
+  try {
+    localStorage.setItem(APP_STORAGE_KEY, JSON.stringify({ createMode: state.createMode }));
+  } catch (e) {
+    console.warn('Failed to save app state:', e);
+  }
+}
+
+function switchMode(mode) {
+  state.createMode.currentMode = mode;
+  saveAppState();
+
+  const createSection = $('createModeSection');
+  const editSection = $('editModeSection');
+  const createPanel = $('createPanel');
+  const editPanel = $('editPanel');
+  const modeCreateBtn = $('modeCreate');
+  const modeEditBtn = $('modeEdit');
+
+  if (mode === 'create') {
+    if (createSection) createSection.style.display = 'flex';
+    if (editSection) editSection.style.display = 'none';
+    if (createPanel) createPanel.style.display = 'flex';
+    if (editPanel) editPanel.style.display = 'none';
+    if (modeCreateBtn) modeCreateBtn.classList.add('active');
+    if (modeEditBtn) modeEditBtn.classList.remove('active');
+    renderCreateMode();
+  } else {
+    if (createSection) createSection.style.display = 'none';
+    if (editSection) editSection.style.display = 'flex';
+    if (createPanel) createPanel.style.display = 'none';
+    if (editPanel) editPanel.style.display = 'flex';
+    if (modeCreateBtn) modeCreateBtn.classList.remove('active');
+    if (modeEditBtn) modeEditBtn.classList.add('active');
+  }
+}
+
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
+function initCreateMode() {
+  const charGrid = $('charGrid');
+  if (charGrid) {
+    charGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.char-card');
+      if (card && card.dataset.char) {
+        toggleChar(card.dataset.char);
+      }
+      if (e.target.classList.contains('add-char-btn')) {
+        const form = $('customCharForm');
+        if (form) form.classList.remove('hidden');
+      }
+    });
+
+    charGrid.addEventListener('keydown', (e) => {
+      const card = e.target.closest('.char-card');
+      if (card && card.dataset.char && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        toggleChar(card.dataset.char);
+      }
+    });
+  }
+
+  const cancelChar = $('cancelChar');
+  if (cancelChar) {
+    cancelChar.addEventListener('click', () => {
+      const form = $('customCharForm');
+      if (form) form.classList.add('hidden');
+      $('customCharName').value = '';
+      $('customCharDesc').value = '';
+    });
+  }
+
+  const addCustomChar = $('addCustomChar');
+  if (addCustomChar) {
+    addCustomChar.addEventListener('click', () => {
+      const name = $('customCharName').value.trim();
+      const desc = $('customCharDesc').value.trim();
+      if (name) {
+        state.createMode.customCharacters.push({ name, desc });
+        saveAppState();
+        renderCharSelection();
+        const form = $('customCharForm');
+        if (form) form.classList.add('hidden');
+        $('customCharName').value = '';
+        $('customCharDesc').value = '';
+      }
+    });
+  }
+
+  const sceneOptions = $('sceneOptions');
+  if (sceneOptions) {
+    sceneOptions.addEventListener('click', (e) => {
+      const opt = e.target.closest('.scene-option');
+      if (opt) {
+        state.createMode.sceneType = opt.dataset.scene;
+        saveAppState();
+        renderSceneType();
+      }
+    });
+  }
+
+  const lengthOptions = $('lengthOptions');
+  if (lengthOptions) {
+    lengthOptions.addEventListener('click', (e) => {
+      const btn = e.target.closest('.option-btn');
+      if (btn && btn.dataset.length) {
+        state.createMode.length = parseInt(btn.dataset.length);
+        saveAppState();
+        renderOptions();
+      }
+    });
+  }
+
+  const aspectOptions = $('aspectOptions');
+  if (aspectOptions) {
+    aspectOptions.addEventListener('click', (e) => {
+      const btn = e.target.closest('.option-btn');
+      if (btn && btn.dataset.aspect) {
+        state.createMode.aspect = btn.dataset.aspect;
+        saveAppState();
+        renderOptions();
+      }
+    });
+  }
+
+  const resOptions = $('resOptions');
+  if (resOptions) {
+    resOptions.addEventListener('click', (e) => {
+      const btn = e.target.closest('.option-btn');
+      if (btn && btn.dataset.res) {
+        state.createMode.resolution = btn.dataset.res;
+        saveAppState();
+        renderOptions();
+      }
+    });
+  }
+
+  const sceneDesc = $('sceneDesc');
+  if (sceneDesc) {
+    sceneDesc.addEventListener('input', (e) => {
+      state.createMode.sceneDesc = e.target.value;
+      saveAppState();
+    });
+  }
+
+  const mainPrompt = $('mainPrompt');
+  if (mainPrompt) {
+    mainPrompt.addEventListener('input', (e) => {
+      state.createMode.mainPrompt = e.target.value;
+      saveAppState();
+    });
+  }
+
+  const generateBtn = $('generateBtn');
+  if (generateBtn) {
+    generateBtn.addEventListener('click', onGenerate);
+  }
+
+  const sendToEditorBtn = $('sendToEditorBtn');
+  if (sendToEditorBtn) {
+    sendToEditorBtn.addEventListener('click', onSendToEditor);
+  }
+
+  const modeCreateBtn = $('modeCreate');
+  const modeEditBtn = $('modeEdit');
+  if (modeCreateBtn) {
+    modeCreateBtn.addEventListener('click', () => switchMode('create'));
+  }
+  if (modeEditBtn) {
+    modeEditBtn.addEventListener('click', () => switchMode('edit'));
+  }
+
+  const platformGrid = $('platformGrid');
+  if (platformGrid) {
+    platformGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.platform-card');
+      if (card) {
+        togglePlatform(card.dataset.platform);
+      }
+    });
+  }
+
+  const deployBtn = $('deployBtn');
+  if (deployBtn) {
+    deployBtn.addEventListener('click', onDeploy);
+  }
+
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+  }
+
+  const uploadBtn = $('uploadBtn');
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', onUpload);
+  }
+
+  const backupBtn = $('backupBtn');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', onBackup);
+  }
+
+  const cleanupBtn = $('cleanupBtn');
+  if (cleanupBtn) {
+    cleanupBtn.addEventListener('click', onCleanup);
+  }
+
+  loadAppState();
+  renderCreateMode();
+}
+
+function toggleChar(charId) {
+  const idx = state.createMode.characters.indexOf(charId);
+  if (idx === -1) {
+    state.createMode.characters.push(charId);
+  } else {
+    state.createMode.characters.splice(idx, 1);
+  }
+  saveAppState();
+  renderCharSelection();
+}
+
+function renderCharSelection() {
+  const cards = document.querySelectorAll('.char-card');
+  cards.forEach((card) => {
+    const isSelected = state.createMode.characters.includes(card.dataset.char);
+    card.classList.toggle('selected', isSelected);
+    card.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+  });
+
+  const customCards = document.querySelectorAll('.char-card.custom');
+  customCards.forEach((el) => el.remove());
+
+  state.createMode.customCharacters.forEach((char, idx) => {
+    const card = document.createElement('div');
+    card.className = 'char-card custom' + (state.createMode.characters.includes('custom-' + idx) ? ' selected' : '');
+    card.setAttribute('role', 'checkbox');
+    card.setAttribute('aria-checked', state.createMode.characters.includes('custom-' + idx) ? 'true' : 'false');
+    card.setAttribute('tabindex', '0');
+    card.innerHTML = '<div class="char-check">&#10003;</div><div class="char-name">' + escapeHtml(char.name) + '</div><div class="char-desc">' + escapeHtml(char.desc) + '</div>';
+    card.addEventListener('click', () => toggleCustomChar(idx));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleCustomChar(idx);
+      }
+    });
+    const addBtn = $('addCharBtn');
+    if (addBtn) addBtn.before(card);
+  });
+}
+
+function toggleCustomChar(idx) {
+  const key = 'custom-' + idx;
+  const pos = state.createMode.characters.indexOf(key);
+  if (pos === -1) {
+    state.createMode.characters.push(key);
+  } else {
+    state.createMode.characters.splice(pos, 1);
+  }
+  saveAppState();
+  renderCharSelection();
+}
+
+function renderSceneType() {
+  const opts = document.querySelectorAll('.scene-option');
+  opts.forEach((opt) => {
+    opt.classList.toggle('selected', opt.dataset.scene === state.createMode.sceneType);
+  });
+}
+
+function renderOptions() {
+  const lengthBtns = document.querySelectorAll('#lengthOptions .option-btn');
+  lengthBtns.forEach((btn) => {
+    btn.classList.toggle('selected', parseInt(btn.dataset.length) === state.createMode.length);
+  });
+
+  const aspectBtns = document.querySelectorAll('#aspectOptions .option-btn');
+  aspectBtns.forEach((btn) => {
+    btn.classList.toggle('selected', btn.dataset.aspect === state.createMode.aspect);
+  });
+
+  const resBtns = document.querySelectorAll('#resOptions .option-btn');
+  resBtns.forEach((btn) => {
+    btn.classList.toggle('selected', btn.dataset.res === state.createMode.resolution);
+  });
+}
+
+function renderCreateMode() {
+  const sceneDesc = $('sceneDesc');
+  const mainPrompt = $('mainPrompt');
+  if (sceneDesc) sceneDesc.value = state.createMode.sceneDesc;
+  if (mainPrompt) mainPrompt.value = state.createMode.mainPrompt;
+
+  renderCharSelection();
+  renderSceneType();
+  renderOptions();
+  renderPlatformSelection();
+  renderPublishQueue();
+  renderUploadQueue();
+  renderStorage();
+}
+
+function onGenerate() {
+  const prompt = state.createMode.mainPrompt.trim();
+  if (!prompt) {
+    alert('Please enter a main prompt');
+    return;
+  }
+
+  const btn = $('generateBtn');
+  const generating = $('generatingState');
+  if (btn) btn.disabled = true;
+  if (generating) generating.classList.remove('hidden');
+
+  setTimeout(() => {
+    const project = createDeterministicProject();
+    state.createMode.generatedProject = project;
+    saveAppState();
+
+    if (btn) btn.disabled = false;
+    if (generating) generating.classList.add('hidden');
+
+    renderStoryboard();
+    const section = $('storyboardSection');
+    if (section) section.classList.remove('hidden');
+  }, 1500);
+}
+
+function createDeterministicProject() {
+  const s = state.createMode;
+  const seed = hashString(s.mainPrompt + s.sceneType + s.sceneDesc + s.characters.join(',') + s.length);
+  const charNames = s.characters.map((c) => {
+    if (c.startsWith('custom-')) {
+      const idx = parseInt(c.split('-')[1]);
+      return s.customCharacters[idx]?.name || 'Custom';
+    }
+    const names = { alex: 'Alex', maria: 'Maria', dev: 'Dev' };
+    return names[c] || c;
+  });
+
+  const sceneLabels = {
+    talking: 'Talking to camera',
+    interaction: 'Interaction / Drama'
+  };
+
+  const shotCount = Math.max(3, Math.min(8, Math.floor(s.length / 10)));
+  const baseDur = Math.floor(s.length / shotCount);
+  let remaining = s.length;
+
+  const shots = [];
+  const promptWords = s.mainPrompt.split(/\s+/).filter((w) => w.length > 3);
+  const sceneWords = s.sceneDesc.split(/\s+/).filter((w) => w.length > 3);
+
+  for (let i = 0; i < shotCount; i++) {
+    const isLast = i === shotCount - 1;
+    const dur = isLast ? remaining : Math.max(5, baseDur + ((seed + i) % 5) - 2);
+    remaining -= dur;
+
+    const shotLabel = sceneLabels[s.sceneType] + ' ' + (i + 1);
+    const charRef = charNames.length > 0 ? charNames[i % charNames.length] : 'Host';
+    const promptRef = promptWords[i % promptWords.length] || 'topic';
+    const sceneRef = sceneWords[i % sceneWords.length] || 'setting';
+
+    shots.push({
+      id: 'shot-' + i,
+      label: shotLabel,
+      duration: dur,
+      caption: charRef + ' discusses ' + promptRef + ' in ' + sceneRef + ' setting',
+      description: charRef + ' on camera, ' + s.sceneType + ' style. Key point: ' + promptRef + '. Atmosphere: ' + sceneRef + '.'
+    });
+  }
+
+  return {
+    aspect: s.aspect,
+    resolution: s.resolution,
+    length: s.length,
+    sceneType: s.sceneType,
+    characters: [...s.characters],
+    sceneDesc: s.sceneDesc,
+    prompt: s.mainPrompt,
+    shots: shots,
+    createdAt: Date.now()
+  };
+}
+
+function renderStoryboard() {
+  const project = state.createMode.generatedProject;
+  if (!project) return;
+
+  const container = $('storyboard');
+  if (!container) return;
+  container.innerHTML = '';
+
+  project.shots.forEach((shot) => {
+    const shotEl = document.createElement('div');
+    shotEl.className = 'shot';
+    shotEl.innerHTML = '<div class="shot-label">' + escapeHtml(shot.label) + '</div><div class="shot-dur">' + shot.duration + 's</div><div class="shot-desc">' + escapeHtml(shot.description) + '</div>';
+    container.appendChild(shotEl);
+  });
+}
+
+function onSendToEditor() {
+  switchMode('edit');
+  const status = $('sendStatus');
+  if (status) {
+    status.textContent = 'Project sent to editor. Switch to Edit mode to continue.';
+    status.className = 'status ok';
+    setTimeout(() => { status.textContent = ''; status.className = 'status'; }, 3000);
+  }
+}
+
+function togglePlatform(platform) {
+  const idx = state.createMode.selectedPlatforms.indexOf(platform);
+  if (idx === -1) {
+    state.createMode.selectedPlatforms.push(platform);
+  } else {
+    state.createMode.selectedPlatforms.splice(idx, 1);
+  }
+  saveAppState();
+  renderPlatformSelection();
+}
+
+function renderPlatformSelection() {
+  const cards = document.querySelectorAll('.platform-card');
+  cards.forEach((card) => {
+    const isSelected = state.createMode.selectedPlatforms.includes(card.dataset.platform);
+    card.classList.toggle('selected', isSelected);
+    card.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+  });
+
+  const count = $('deployCount');
+  if (count) count.textContent = String(state.createMode.selectedPlatforms.length);
+}
+
+function onDeploy() {
+  const platforms = state.createMode.selectedPlatforms;
+  if (!platforms.length) {
+    alert('Please select at least one platform');
+    return;
+  }
+
+  const caption = $('publishCaption').value || '';
+  const schedule = $('publishSchedule').value || 'now';
+
+  platforms.forEach((platform) => {
+    const item = {
+      id: 'pub-' + Date.now() + '-' + platform,
+      platform: platform,
+      caption: caption,
+      schedule: schedule,
+      status: 'pending',
+      progress: 0
+    };
+    state.createMode.publishQueue.push(item);
+  });
+  saveAppState();
+  renderPublishQueue();
+
+  state.createMode.publishQueue.forEach((item, idx) => {
+    if (item.status !== 'pending') return;
+    simulatePublish(idx);
+  });
+}
+
+function simulatePublish(queueIdx) {
+  const item = state.createMode.publishQueue[queueIdx];
+  if (!item) return;
+
+  item.status = 'progress';
+  saveAppState();
+  renderPublishQueue();
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 20) + 10;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      item.status = 'done';
+      item.progress = 100;
+      saveAppState();
+      renderPublishQueue();
+    } else {
+      item.progress = progress;
+      saveAppState();
+      renderPublishQueue();
+    }
+  }, 500);
+}
+
+function renderPublishQueue() {
+  const container = $('publishQueue');
+  if (!container) return;
+
+  const queue = state.createMode.publishQueue;
+  if (!queue.length) {
+    container.classList.add('hidden');
+    container.innerHTML = '';
+    return;
+  }
+
+  container.classList.remove('hidden');
+  container.innerHTML = '';
+
+  queue.forEach((item) => {
+    const el = document.createElement('div');
+    el.className = 'queue-item';
+    el.innerHTML = '<div class="queue-header"><span class="queue-platform">' + escapeHtml(item.platform) + '</span><span class="queue-status ' + item.status + '">' + item.status + '</span></div><div class="progress-bar"><div class="progress-fill"></div></div>';
+    const fill = el.querySelector('.progress-fill');
+    if (fill) fill.style.width = item.progress + '%';
+    container.appendChild(el);
+  });
+}
+
+function handleFiles(fileList) {
+  const files = Array.from(fileList || []);
+  files.forEach((file) => {
+    const item = {
+      id: 'file-' + Date.now() + '-' + file.name,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      status: 'pending',
+      progress: 0,
+      caption: '',
+      platforms: [...state.createMode.selectedPlatforms]
+    };
+    state.createMode.uploadQueue.push(item);
+  });
+  saveAppState();
+  renderUploadQueue();
+
+  const btn = $('uploadBtn');
+  if (btn) btn.disabled = false;
+}
+
+function renderUploadQueue() {
+  const container = $('uploadQueue');
+  if (!container) return;
+
+  const queue = state.createMode.uploadQueue;
+  if (!queue.length) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '';
+  queue.forEach((item) => {
+    const el = document.createElement('div');
+    el.className = 'upload-item';
+    const sizeStr = fmtBytes(item.size);
+    el.innerHTML = '<div class="file-info"><span class="file-name">' + escapeHtml(item.name) + '</span><span class="file-meta">' + sizeStr + ' - ' + item.type + '</span><input class="file-caption" type="text" placeholder="Add caption..." value="' + escapeHtml(item.caption) + '" /></div><span class="file-status ' + item.status + '">' + item.status + '</span>';
+    const captionInput = el.querySelector('.file-caption');
+    if (captionInput) {
+      captionInput.addEventListener('input', (e) => {
+        item.caption = e.target.value;
+        saveAppState();
+      });
+    }
+    container.appendChild(el);
+  });
+}
+
+function onUpload() {
+  const queue = state.createMode.uploadQueue;
+  queue.forEach((item, idx) => {
+    if (item.status !== 'pending') return;
+    simulateUpload(idx);
+  });
+  saveAppState();
+}
+
+function simulateUpload(queueIdx) {
+  const item = state.createMode.uploadQueue[queueIdx];
+  if (!item) return;
+
+  item.status = 'uploading';
+  saveAppState();
+  renderUploadQueue();
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 15) + 10;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      item.status = 'done';
+      item.progress = 100;
+      saveAppState();
+      renderUploadQueue();
+    } else {
+      item.progress = progress;
+      saveAppState();
+      renderUploadQueue();
+    }
+  }, 600);
+}
+
+function onBackup() {
+  const summary = $('cleanupSummary');
+  if (summary) {
+    summary.classList.remove('hidden');
+    summary.innerHTML = 'Backed up <b>' + state.createMode.storageItems.length + '</b> items to Memories.';
+  }
+}
+
+function onCleanup() {
+  const ruleAutoDelete = $('ruleAutoDelete');
+  const ruleRemoveDupes = $('ruleRemoveDupes');
+  const ruleCompress = $('ruleCompress');
+  const autoDeleteDays = $('autoDeleteDays');
+
+  let freed = 0;
+  let deleted = 0;
+  let compressed = 0;
+
+  if (ruleRemoveDupes && ruleRemoveDupes.checked) {
+    deleted = Math.floor(state.createMode.storageItems.length * 0.2);
+    freed += deleted * 50 * 1024 * 1024;
+  }
+
+  if (ruleCompress && ruleCompress.checked) {
+    compressed = Math.floor(state.createMode.storageItems.length * 0.1);
+    freed += compressed * 100 * 1024 * 1024;
+  }
+
+  const summary = $('cleanupSummary');
+  if (summary) {
+    summary.classList.remove('hidden');
+    summary.innerHTML = 'Cleanup complete. Freed <b>' + fmtBytes(freed) + '</b> by removing ' + deleted + ' duplicates and compressing ' + compressed + ' large videos.';
+  }
+}
+
+function renderStorage() {
+  const items = state.createMode.storageItems;
+  const list = $('storageList');
+  if (list) {
+    list.innerHTML = '';
+    if (!items.length) {
+      list.innerHTML = '<div class="muted empty-note">No items yet</div>';
+    } else {
+      items.forEach((item) => {
+        const el = document.createElement('div');
+        el.className = 'storage-item' + (item.duplicate ? ' duplicate' : '');
+        el.innerHTML = '<div><div class="item-name">' + escapeHtml(item.name) + '</div><div class="item-meta">' + escapeHtml(item.date) + '</div></div><div class="item-size">' + fmtBytes(item.size) + '</div>';
+        list.appendChild(el);
+      });
+    }
+  }
+
+  const used = items.reduce((sum, item) => sum + item.size, 0);
+  const quota = 128 * 1024 * 1024 * 1024;
+  const pct = Math.min(100, (used / quota) * 100);
+
+  const usedEl = $('storageUsed');
+  const totalEl = $('storageTotal');
+  const fillEl = $('storageFill');
+  const meterEl = $('storageMeter');
+
+  if (usedEl) usedEl.textContent = fmtBytes(used);
+  if (totalEl) totalEl.textContent = fmtBytes(quota);
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (meterEl) {
+    meterEl.classList.remove('meter-warning', 'meter-critical');
+    if (pct > 90) meterEl.classList.add('meter-critical');
+    else if (pct > 70) meterEl.classList.add('meter-warning');
+  }
+
+  const quickCount = $('quickFileCount');
+  const dupeCount = $('quickDupeCount');
+  if (quickCount) quickCount.textContent = String(items.length);
+  if (dupeCount) dupeCount.textContent = String(items.filter((i) => i.duplicate).length);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+initCreateMode();
+
+// Apply the initial mode visibility via the CSSOM. The app runs under a
+// strict CSP (style-src 'self') that blocks inline style attributes, so the
+// Create/Edit toggle must be set programmatically on startup.
+switchMode(state.createMode.currentMode || 'edit');
