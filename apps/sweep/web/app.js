@@ -4,7 +4,8 @@
 const STORAGE_KEYS = {
   WORKSPACE: 'sweep_workspace_v1',
   STATE: 'sweep_state_v1',
-  THEME: 'sweep_theme_v1'
+  THEME: 'sweep_theme_v1',
+  GUEST: 'sweep_guest_v1'
 };
 
 const DEMO_PROJECT = {
@@ -46,6 +47,8 @@ function init() {
   }
   
   const workspaceData = localStorage.getItem(STORAGE_KEYS.WORKSPACE);
+  const guestData = localStorage.getItem(STORAGE_KEYS.GUEST);
+  
   if (workspaceData) {
     try {
       const parsed = JSON.parse(workspaceData);
@@ -54,8 +57,13 @@ function init() {
     } catch (e) {
       localStorage.removeItem(STORAGE_KEYS.WORKSPACE);
       localStorage.removeItem(STORAGE_KEYS.STATE);
+      localStorage.removeItem(STORAGE_KEYS.GUEST);
       showGate('create');
     }
+  } else if (guestData) {
+    state.workspace = { name: 'Guest', guestMode: true };
+    state.projects = JSON.parse(localStorage.getItem(STORAGE_KEYS.STATE + '_guest') || '{"projects":[]}').projects || [];
+    enterApp();
   } else {
     showGate('create');
   }
@@ -259,10 +267,18 @@ function enterApp() {
   document.getElementById('section-gate').style.display = 'none';
   document.getElementById('main-nav').style.display = 'flex';
   document.getElementById('workspace-chip').style.display = 'inline-flex';
-  document.getElementById('workspace-name').textContent = state.workspace.name;
+  document.getElementById('workspace-name').textContent = state.workspace ? state.workspace.name : 'Guest';
   document.getElementById('signout-btn').style.display = 'inline-flex';
   renderCatalog();
   navigateTo('catalog');
+}
+
+function handleGuestContinue() {
+  localStorage.setItem(STORAGE_KEYS.GUEST, 'true');
+  state.workspace = { name: 'Guest', guestMode: true };
+  state.projects = JSON.parse(localStorage.getItem(STORAGE_KEYS.STATE + '_guest') || '{"projects":[]}').projects || [];
+  state.cryptoMode = false;
+  enterApp();
 }
 
 function signOut() {
@@ -272,6 +288,8 @@ function signOut() {
   state.verifyGates = {};
   state.generatedFiles = {};
   state.currentFile = null;
+  
+  localStorage.removeItem(STORAGE_KEYS.GUEST);
   
   document.getElementById('section-gate').style.display = 'block';
   document.getElementById('section-catalog').style.display = 'none';
@@ -560,9 +578,12 @@ function exportProjectJSON() {
 }
 
 async function saveState() {
-  if (state.cryptoMode && state.cryptoKey) {
+  const stateData = JSON.stringify({ projects: state.projects, version: 1 });
+  
+  if (state.workspace && state.workspace.guestMode) {
+    localStorage.setItem(STORAGE_KEYS.STATE + '_guest', stateData);
+  } else if (state.cryptoMode && state.cryptoKey) {
     try {
-      const stateData = JSON.stringify({ projects: state.projects, version: 1 });
       const encoder = new TextEncoder();
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, state.cryptoKey, encoder.encode(stateData));
@@ -574,7 +595,6 @@ async function saveState() {
       showToast('Warning: Failed to encrypt data');
     }
   } else {
-    const stateData = JSON.stringify({ projects: state.projects, version: 1 });
     localStorage.setItem(STORAGE_KEYS.STATE + '_unencrypted', stateData);
   }
 }

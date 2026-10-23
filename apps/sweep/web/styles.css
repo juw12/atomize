@@ -112,8 +112,13 @@ code{font-family:var(--font-mono);font-size:0.9em;background:var(--color-border-
 .btn-secondary:hover{background:var(--color-border)}
 .btn-text{color:var(--color-muted);padding:var(--spacing-xs)}
 .btn-text:hover{color:var(--color-accent)}
+.btn-ghost{background:transparent;color:var(--color-ink-light);border:1px dashed var(--color-border);padding:10px 20px;font-size:13px}
+.btn-ghost:hover{background:var(--color-border-light);color:var(--color-ink);border-style:solid}
 .btn-block{width:100%}
 .form-actions{display:flex;gap:var(--spacing-sm);justify-content:flex-end;margin-top:var(--spacing-lg)}
+.gate-divider{display:flex;align-items:center;gap:var(--spacing-md);margin:var(--spacing-lg) 0;color:var(--color-muted);font-size:12px}
+.gate-divider:before,.gate-divider:after{content:'';flex:1;height:1px;background:var(--color-border-light)}
+.gate-guest-hint{font-size:11px;color:var(--color-muted);text-align:center;margin-top:var(--spacing-xs);font-style:italic}
 
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--spacing-lg);padding-bottom:var(--spacing-sm);border-bottom:3px double var(--color-ink);flex-wrap:wrap;gap:var(--spacing-sm)}
 .section-actions{display:flex;gap:var(--spacing-sm)}
