@@ -507,6 +507,10 @@ a{color:var(--accent);text-decoration:none}
       <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       Ledger
     </div>
+    <div class="nav-item" data-view="guide" onclick="switchView('guide')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Guide
+    </div>
   </nav>
   <nav class="nav-secondary">
     <div class="nav-section-label">Account</div>
@@ -1299,8 +1303,111 @@ a{color:var(--accent);text-decoration:none}
     </div>
   </div>
 
+  <!-- GUIDE VIEW -->
+  <div class="view-container" id="view-guide">
+    <div style="max-width:900px;margin:0 auto">
+      <!-- Overview -->
+      <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-5)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-3)">Welcome to House of Articles</h2>
+        <p style="font-family:var(--font-serif);font-size:var(--text-base);color:var(--ink-2);line-height:1.6;margin-bottom:var(--space-4)">See what athletes wear, and what it's worth — right now. House of Articles ties athlete moments directly to live sneaker market moves in one feed.</p>
+        <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+          <button onclick="startTour()" style="padding:10px 20px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);cursor:pointer">Start Interactive Tour</button>
+          <button onclick="switchView('feed')" style="padding:10px 20px;background:var(--surface-2);color:var(--ink);border:1px solid var(--hair);border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);cursor:pointer">Go to Feed</button>
+        </div>
+      </div>
+
+      <!-- How It Works -->
+      <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-5)">
+        <h3 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-5)">How It Works</h3>
+        
+        <div style="display:grid;gap:var(--space-5)">
+          <div style="display:flex;gap:var(--space-4)">
+            <div style="width:40px;height:40px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-weight:700;color:var(--accent)">1</span></div>
+            <div>
+              <h4 style="font-weight:600;color:var(--ink);margin-bottom:6px">Feed</h4>
+              <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.5">Browse editorial stories linking athlete performances to sneaker demand. Each story shows the price impact percentage.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:var(--space-4)">
+            <div style="width:40px;height:40px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-weight:700;color:var(--accent)">2</span></div>
+            <div>
+              <h4 style="font-weight:600;color:var(--ink);margin-bottom:6px">Drops</h4>
+              <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.5">Track upcoming sneaker releases with calendar view. See drop times, raffles, and sold-out status.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:var(--space-4)">
+            <div style="width:40px;height:40px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-weight:700;color:var(--accent)">3</span></div>
+            <div>
+              <h4 style="font-weight:600;color:var(--ink);margin-bottom:6px">Market</h4>
+              <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.5">View live market movers with gainers, losers, and trending shoes. See price charts and trade volume.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:var(--space-4)">
+            <div style="width:40px;height:40px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-weight:700;color:var(--accent)">4</span></div>
+            <div>
+              <h4 style="font-weight:600;color:var(--ink);margin-bottom:6px">Athletes</h4>
+              <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.5">Follow athletes across basketball, running, and HYROX. See their stats, upcoming events, and shoe rotations.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:var(--space-4)">
+            <div style="width:40px;height:40px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-weight:700;color:var(--accent)">5</span></div>
+            <div>
+              <h4 style="font-weight:600;color:var(--ink);margin-bottom:6px">Watchlist</h4>
+              <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.5">Build your portfolio with tracked shoes. Monitor cost basis, market value, and P/L with price alerts.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:var(--space-4)">
+            <div style="width:40px;height:40px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-weight:700;color:var(--accent)">6</span></div>
+            <div>
+              <h4 style="font-weight:600;color:var(--ink);margin-bottom:6px">Ledger</h4>
+              <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.5">Data integrity console showing provenance (verified/estimated/synthetic), fee-aware economics, and catalog validation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-6)">
+        <h3 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-2)">Recommended Resources</h3>
+        <p style="font-size:var(--text-sm);color:var(--ink-3);margin-bottom:var(--space-4)">Tools and platforms we trust for sneaker market intelligence.</p>
+        <div id="guide-recommendations" style="display:grid;gap:var(--space-3)"></div>
+        <p style="font-size:11px;color:var(--ink-3);margin-top:var(--space-4);font-style:italic">Disclosure: Some links above are affiliate links. We may earn a commission at no extra cost to you.</p>
+      </div>
+    </div>
+  </div>
+
 </main>
 
+</div>
+
+<!-- ONBOARDING TOUR OVERLAY -->
+<div id="onboarding-tour" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;display:none;align-items:center;justify-content:center" onclick="if(event.target===this)tourSkip()">
+  <div style="background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-lg);max-width:520px;width:90%;padding:var(--space-6);position:relative">
+    <button onclick="tourSkip()" style="position:absolute;top:var(--space-4);right:var(--space-4);width:32px;height:32px;border-radius:50%;background:var(--surface-2);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Skip tour"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--ink-2);fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    
+    <div id="tour-progress" style="display:flex;gap:6px;justify-content:center;margin-bottom:var(--space-5)">
+      <div class="tour-dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
+      <div class="tour-dot" style="width:8px;height:8px;border-radius:50%;background:var(--hair)"></div>
+      <div class="tour-dot" style="width:8px;height:8px;border-radius:50%;background:var(--hair)"></div>
+      <div class="tour-dot" style="width:8px;height:8px;border-radius:50%;background:var(--hair)"></div>
+    </div>
+    
+    <div id="tour-content">
+      <h3 id="tour-title" style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-3);text-align:center">Welcome to House of Articles</h3>
+      <p id="tour-body" style="font-family:var(--font-serif);font-size:var(--text-base);color:var(--ink-2);line-height:1.6;text-align:center;margin-bottom:var(--space-6)">Your feed-first sneaker market app where athlete moments meet live price data.</p>
+    </div>
+    
+    <div style="display:flex;gap:var(--space-3);justify-content:center">
+      <button id="tour-skip-btn" onclick="tourSkip()" style="padding:10px 24px;background:transparent;color:var(--ink-2);border:1px solid var(--hair);border-radius:var(--radius-md);font-weight:600;cursor:pointer">Skip</button>
+      <button id="tour-back-btn" onclick="tourBack()" style="padding:10px 24px;background:var(--surface-2);color:var(--ink);border:1px solid var(--hair);border-radius:var(--radius-md);font-weight:600;cursor:pointer;display:none">Back</button>
+      <button id="tour-next-btn" onclick="tourNext()" style="padding:10px 24px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer">Continue</button>
+    </div>
+  </div>
 </div>
 
 <!-- SHOE DETAIL MODAL -->

@@ -10,6 +10,66 @@ const state = {
   platforms: []
 };
 
+// Guide recommendations with affiliate links
+const GUIDE_RECOMMENDATIONS = [
+  {
+    title: 'Shure MV7+ Podcast Microphone',
+    blurb: 'Professional USB/XLR dynamic mic with excellent voice isolation. Perfect for talking-head videos.',
+    url: 'https://www.amazon.com/Shure-MV7-Podcast-Microphone-MV7-US/dp/B08G7RG96Y'
+  },
+  {
+    title: 'Elgato Key Light Air',
+    blurb: 'LED panel with app control. Soft, even lighting that makes you look polished on camera.',
+    url: 'https://www.amazon.com/Elgato-Key-Light-Air/dp/B08M39JW6Q'
+  },
+  {
+    title: 'Descript (Video Editing)',
+    blurb: 'Edit video by editing text. AI-powered transcription and seamless cut features.',
+    url: 'https://www.descript.com/'
+  },
+  {
+    title: 'Buzzsprout (Podcast Hosting)',
+    blurb: 'Simple podcast hosting with analytics, distribution to all platforms, and monetization tools.',
+    url: 'https://www.buzzsprout.com/'
+  },
+  {
+    title: 'TubeBuddy (YouTube Analytics)',
+    blurb: 'Browser extension for YouTube creators. Keyword research, A/B testing, and performance tracking.',
+    url: 'https://www.tubebuddy.com/'
+  },
+  {
+    title: 'Logitech Brio 4K Webcam',
+    blurb: '4K HDR webcam with auto-focus and adjustable field of view. Great backup or A-camera.',
+    url: 'https://www.amazon.com/Logitech-Brio-Streaming-Webcam-Black/dp/B01N5UOYC4'
+  }
+];
+
+// Tour configuration
+const TOUR_STEPS = [
+  {
+    title: 'Welcome to Hazel',
+    content: 'Hazel is your desktop studio for creators. Film once, and let Hazel automatically cut silences, repurpose for every platform, and help you learn what works.'
+  },
+  {
+    title: 'Import Your Footage',
+    content: 'Click <strong>"Import footage"</strong> to bring in your raw video. Hazel supports all common formats and reads metadata instantly.'
+  },
+  {
+    title: 'Auto-cut Magic',
+    content: 'Enable <strong>"Remove silences & pauses"</strong> and optionally <strong>"Remove filler words"</strong>. Hazel analyzes your audio and creates a clean cut list automatically.'
+  },
+  {
+    title: 'Repurpose & Publish',
+    content: 'Export in 9:16, 1:1, and 16:9 formats. Then prepare a post package with caption and deep-link directly to your platform\'s uploader.'
+  },
+  {
+    title: 'Track Traffic & Storage',
+    content: 'Import analytics CSVs to see unified performance. Use Storage to scan for duplicates and auto-archive raw files after export.'
+  }
+];
+
+const TOUR_STORAGE_KEY = 'hazel_guide_tour_v1';
+
 // --- helpers -------------------------------------------------------------
 
 function pad(n) { return String(n).padStart(2, '0'); }
@@ -437,6 +497,112 @@ async function initSettings() {
       setStatus('Auto-archive ' + (e.target.checked ? 'on' : 'off'), 'ok');
     } catch { /* ignore */ }
   });
+}
+
+// --- Guide section -------------------------------------------------------
+
+function renderRecommendations() {
+  const ul = $('recommendationsList');
+  if (!ul) return;
+  ul.innerHTML = GUIDE_RECOMMENDATIONS.map((rec) => `
+    <li>
+      <p class="rec-title">${rec.title}</p>
+      <p class="rec-blurb">${rec.blurb}</p>
+      <a class="rec-link" href="${rec.url}" target="_blank" rel="sponsored noopener">Learn more →</a>
+    </li>
+  `).join('');
+}
+
+function showGuide() {
+  $('guideSection').style.display = 'block';
+  $('preview').style.display = 'none';
+  renderRecommendations();
+}
+
+function hideGuide() {
+  $('guideSection').style.display = 'none';
+  $('preview').style.display = 'flex';
+}
+
+// --- Tour overlay --------------------------------------------------------
+
+let tourCurrentStep = 0;
+let tourIsActive = false;
+
+function getTourCompleted() {
+  try {
+    return localStorage.getItem(TOUR_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setTourCompleted() {
+  try {
+    localStorage.setItem(TOUR_STORAGE_KEY, '1');
+  } catch {
+    // localStorage unavailable - in-memory only
+  }
+}
+
+function showTourOverlay() {
+  tourCurrentStep = 0;
+  tourIsActive = true;
+  $('tourOverlay').style.display = 'flex';
+  updateTourStep();
+}
+
+function hideTourOverlay() {
+  $('tourOverlay').style.display = 'none';
+  tourIsActive = false;
+}
+
+function updateTourStep() {
+  const step = TOUR_STEPS[tourCurrentStep];
+  if (!step) return;
+
+  $('tourTitle').textContent = step.title;
+  $('tourContent').innerHTML = step.content;
+
+  // Update progress dots
+  const dots = document.querySelectorAll('.tour-dot');
+  dots.forEach((dot, idx) => {
+    dot.classList.remove('active', 'completed');
+    if (idx === tourCurrentStep) {
+      dot.classList.add('active');
+    } else if (idx < tourCurrentStep) {
+      dot.classList.add('completed');
+    }
+  });
+
+  // Button states
+  $('tourBack').disabled = tourCurrentStep === 0;
+  $('tourContinue').style.display = tourCurrentStep === TOUR_STEPS.length - 1 ? 'none' : 'inline-block';
+  $('tourDone').style.display = tourCurrentStep === TOUR_STEPS.length - 1 ? 'inline-block' : 'none';
+}
+
+function nextTourStep() {
+  if (tourCurrentStep < TOUR_STEPS.length - 1) {
+    tourCurrentStep += 1;
+    updateTourStep();
+  }
+}
+
+function prevTourStep() {
+  if (tourCurrentStep > 0) {
+    tourCurrentStep -= 1;
+    updateTourStep();
+  }
+}
+
+function completeTour() {
+  setTourCompleted();
+  hideTourOverlay();
+}
+
+function skipTour() {
+  setTourCompleted();
+  hideTourOverlay();
 }
 
 // --- wiring --------------------------------------------------------------

@@ -43,6 +43,8 @@ body {
 .brand .name { font-size: 18px; font-weight: 700; letter-spacing: .2px; }
 .brand .tag { color: var(--muted); font-size: 12px; margin-left: 6px; }
 
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+
 .emptyLeaf {
   width: 104px;
   height: 104px;
@@ -271,3 +273,247 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 .status.busy { color: var(--accent-2); }
 .status.ok { color: var(--accent); }
 .status.err { color: var(--danger); }
+
+/* Guide section ---------------------------------------------------------- */
+
+.guide-section {
+  padding: 24px 32px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.guide-content {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.guide-header {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.guide-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.guide-tagline {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.how-it-works h2 {
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.step {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--accent), #9fbb63);
+  color: #14200a;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step h3 {
+  font-size: 15px;
+  margin: 0;
+  color: var(--text);
+}
+
+.step p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.recommendations h2 {
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.recs-intro {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.recs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recs-list li {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rec-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.rec-blurb {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.rec-link {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.rec-link:hover {
+  text-decoration: underline;
+}
+
+.affiliate-disclosure {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 8px 0 0;
+  font-style: italic;
+}
+
+.guide-actions {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 24px;
+}
+
+.guide-actions .btn {
+  min-width: 180px;
+}
+
+/* Tour overlay ----------------------------------------------------------- */
+
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.tour-modal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.tour-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tour-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tour-dot.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.tour-dot.completed {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.tour-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--text);
+  text-align: center;
+}
+
+.tour-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 20px;
+  min-height: 80px;
+}
+
+.tour-content strong {
+  color: var(--accent);
+}
+
+.tour-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--panel-2);
+  color: var(--text);
+}

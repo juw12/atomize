@@ -24,7 +24,10 @@
       <span class="name">Hazel</span>
       <span class="tag">Film once. Post everywhere. Learn what works.</span>
     </div>
-    <button id="import" class="btn primary">Import footage</button>
+    <div class="nav-actions">
+      <button id="guideNav" class="btn">Guide</button>
+      <button id="import" class="btn primary">Import footage</button>
+    </div>
   </header>
 
   <main class="stage">
@@ -42,6 +45,63 @@
         </div>
       </div>
       <div class="meta" id="meta"></div>
+    </section>
+
+    <section id="guideSection" class="guide-section" style="display: none;">
+      <div class="guide-content">
+        <header class="guide-header">
+          <h1>Welcome to Hazel</h1>
+          <p class="guide-tagline">Your desktop studio for creators. Film once, post everywhere, and learn what works.</p>
+          <button id="startTour" class="btn primary">Start Interactive Tour</button>
+        </header>
+
+        <div class="how-it-works">
+          <h2>How It Works</h2>
+          <div class="steps-grid">
+            <div class="step">
+              <div class="step-num">1</div>
+              <h3>Import</h3>
+              <p>Bring in your raw talking-to-camera footage. Hazel supports all common video formats.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <h3>Auto-cut</h3>
+              <p>Hazel automatically removes silences, pauses, and filler words (um, uh) using AI.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <h3>Repurpose</h3>
+              <p>Export in 9:16 (TikTok/Reels), 1:1 (feed), and 16:9 (YouTube) with safe-zones.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <h3>Publish</h3>
+              <p>Get a ready-to-post package with caption and deep-link to your platform's uploader.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <h3>Traffic</h3>
+              <p>Import analytics CSVs to see unified performance across all platforms.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">6</div>
+              <h3>Storage</h3>
+              <p>Scan for duplicates, auto-archive raws, and keep your library organized.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="recommendations">
+          <h2>Recommended Tools for Creators</h2>
+          <p class="recs-intro">Hand-picked gear and services to level up your content.</p>
+          <ul id="recommendationsList" class="recs-list"></ul>
+          <p class="affiliate-disclosure">Disclosure: Some links are affiliate links. We may earn a commission at no extra cost to you.</p>
+        </div>
+
+        <div class="guide-actions">
+          <button id="closeGuide" class="btn">Back to Studio</button>
+        </div>
+      </div>
     </section>
 
     <aside class="panel">
@@ -121,6 +181,27 @@
       <div id="status" class="status"></div>
     </aside>
   </main>
+
+  <!-- First-run onboarding tour overlay -->
+  <div id="tourOverlay" class="tour-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <div class="tour-modal">
+      <div class="tour-progress">
+        <span class="tour-dot" data-step="0"></span>
+        <span class="tour-dot" data-step="1"></span>
+        <span class="tour-dot" data-step="2"></span>
+        <span class="tour-dot" data-step="3"></span>
+        <span class="tour-dot" data-step="4"></span>
+      </div>
+      <h2 id="tourTitle" class="tour-title">Welcome to Hazel</h2>
+      <div id="tourContent" class="tour-content"></div>
+      <div class="tour-actions">
+        <button id="tourSkip" class="btn btn-ghost">Skip</button>
+        <button id="tourBack" class="btn" disabled>Back</button>
+        <button id="tourContinue" class="btn primary">Continue</button>
+        <button id="tourDone" class="btn primary" style="display: none;">Done</button>
+      </div>
+    </div>
+  </div>
 
   <script src="renderer.js"></script>
 </body>
