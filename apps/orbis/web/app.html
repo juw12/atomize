@@ -4763,37 +4763,37 @@
         <!-- Multi-Product Hub -->
         <div class="card" style="margin-bottom: 20px;">
           <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="learn.hub.heading">Learning Hub</h2>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
-            <div class="card" style="margin:0; cursor:pointer;" onclick="navigateTo('learn'); document.getElementById('learnAcademy').scrollIntoView({behavior:'smooth'})">
-              <div style="font-size:24px;margin-bottom:8px;">📚</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;" role="list" aria-label="Learning modules">
+            <button class="card" style="margin:0; cursor:pointer; border:none; padding:16px; text-align:left; width:100%;" onclick="navigateTo('learn'); document.getElementById('learnAcademy').scrollIntoView({behavior:'smooth'})" aria-label="Academy - Structured learning path">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--brand-600)" stroke-width="1.5" style="margin-bottom:8px; display:block;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.hub.academy">Academy</div>
               <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.academyDesc">Structured learning path</div>
-            </div>
-            <div class="card" style="margin:0; cursor:pointer;" onclick="document.getElementById('aiTypeCard').scrollIntoView({behavior:'smooth'})">
-              <div style="font-size:24px;margin-bottom:8px;">🧠</div>
+            </button>
+            <button class="card" style="margin:0; cursor:pointer; border:none; padding:16px; text-align:left; width:100%;" onclick="document.getElementById('aiTypeCard').scrollIntoView({behavior:'smooth'})" aria-label="AI Type - Know your style">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--brand-600)" stroke-width="1.5" style="margin-bottom:8px; display:block;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.hub.aiType">AI Type</div>
               <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.aiTypeDesc">Know your style</div>
-            </div>
-            <div class="card" style="margin:0; cursor:pointer;">
-              <div style="font-size:24px;margin-bottom:8px;">📝</div>
+            </button>
+            <button class="card" style="margin:0; cursor:pointer; border:none; padding:16px; text-align:left; width:100%;" aria-label="Prompt Library - Ready templates">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--brand-600)" stroke-width="1.5" style="margin-bottom:8px; display:block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.hub.prompts">Prompt Library</div>
               <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.promptsDesc">Ready templates</div>
-            </div>
-            <div class="card" style="margin:0; cursor:pointer;">
-              <div style="font-size:24px;margin-bottom:8px;">🛡️</div>
+            </button>
+            <button class="card" style="margin:0; cursor:pointer; border:none; padding:16px; text-align:left; width:100%;" aria-label="Safety - Check before deploy">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--brand-600)" stroke-width="1.5" style="margin-bottom:8px; display:block;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.hub.safety">Safety</div>
               <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.safetyDesc">Check before deploy</div>
-            </div>
-            <div class="card" style="margin:0; cursor:pointer;" onclick="document.getElementById('learnWorkMap').scrollIntoView({behavior:'smooth'})">
-              <div style="font-size:24px;margin-bottom:8px;">🗺️</div>
+            </button>
+            <button class="card" style="margin:0; cursor:pointer; border:none; padding:16px; text-align:left; width:100%;" onclick="document.getElementById('learnWorkMap').scrollIntoView({behavior:'smooth'})" aria-label="Work Map - AI task finder">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--brand-600)" stroke-width="1.5" style="margin-bottom:8px; display:block;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.workMap.title">Work Map</div>
               <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.workMapDesc">AI task finder</div>
-            </div>
-            <div class="card" style="margin:0; cursor:pointer;">
-              <div style="font-size:24px;margin-bottom:8px;">👥</div>
+            </button>
+            <button class="card" style="margin:0; cursor:pointer; border:none; padding:16px; text-align:left; width:100%;" aria-label="Community - Discuss and share">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--brand-600)" stroke-width="1.5" style="margin-bottom:8px; display:block;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <div style="font-weight:600;font-size:14px;" data-i18n="learn.hub.community">Community</div>
               <div style="font-size:12px;color:var(--muted);" data-i18n="learn.hub.communityDesc">Discuss & share</div>
-            </div>
+            </button>
           </div>
         </div>
 

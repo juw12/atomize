@@ -546,6 +546,7 @@ button{font:inherit;cursor:pointer}
 .text-sm{font-size:var(--text-sm)}
 .text-muted{color:var(--ink-3)}
 .text-accent{color:var(--accent)}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 
 /* === MICRO-INTERACTIONS === */
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1616,7 +1617,7 @@ button{font:inherit;cursor:pointer}
 </div>
 
 <!-- LEDGER SCREEN -->
-<div id="screen-ledger" class="screen">
+<div id="screen-ledger" class="screen" role="region" aria-labelledby="ledger-title-mob">
   <div class="masthead-wrap">
     <div class="utility-bar"><span>DATA LEDGER</span><span>Integrity Console</span></div>
     <div class="masthead">
@@ -1627,17 +1628,17 @@ button{font:inherit;cursor:pointer}
   <div style="padding:var(--space-4) var(--space-5)">
     <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4)">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">Catalog Stats</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);text-align:center">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);text-align:center" role="region" aria-label="Ledger statistics">
         <div style="background:var(--surface-2);border-radius:var(--radius-md);padding:var(--space-3)">
-          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink)" id="mob-ledger-total">13</div>
+          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink)" id="mob-ledger-total" aria-live="polite">13</div>
           <div style="font-size:9px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Total</div>
         </div>
         <div style="background:rgba(111,169,107,.12);border:1px solid var(--up);border-radius:var(--radius-md);padding:var(--space-3)">
-          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--up)" id="mob-ledger-verified">0</div>
+          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--up)" id="mob-ledger-verified" aria-live="polite">0</div>
           <div style="font-size:9px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Verified</div>
         </div>
         <div style="background:rgba(255,183,0,.12);border:1px solid var(--gold);border-radius:var(--radius-md);padding:var(--space-3)">
-          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--gold)" id="mob-ledger-estimated">0</div>
+          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--gold)" id="mob-ledger-estimated" aria-live="polite">0</div>
           <div style="font-size:9px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Estimated</div>
         </div>
       </div>
@@ -1645,10 +1646,11 @@ button{font:inherit;cursor:pointer}
     
     <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden">
       <div style="padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--hair);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)">Colorway Provenance</div>
-      <div id="mob-ledger-list" style="max-height:400px;overflow-y:auto"></div>
+      <div id="mob-ledger-list" style="max-height:400px;overflow-y:auto" role="list" aria-label="Colorway provenance list"></div>
     </div>
   </div>
   
+  <h2 id="ledger-title-mob" class="visually-hidden">Data Ledger - Price Provenance and Integrity</h2>
   <div style="height:60px"></div>
 </div>
 

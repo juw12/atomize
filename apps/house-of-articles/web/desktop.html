@@ -471,6 +471,7 @@ a{color:var(--accent);text-decoration:none}
 .hidden{display:none!important}
 .text-up{color:var(--up)}
 .text-down{color:var(--down)}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 </style>
 </head>
 <body>
@@ -1223,45 +1224,47 @@ a{color:var(--accent);text-decoration:none}
   </div>
 
   <!-- LEDGER VIEW -->
-  <div class="view-container" id="view-ledger">
+  <div class="view-container" id="view-ledger" role="region" aria-labelledby="ledger-title">
     <div class="ledger-wrap" style="max-width:var(--max-w);margin:0 auto">
       <div class="panel" style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-6)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
           <div>
-            <h2 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:4px">Data Ledger</h2>
+            <h2 id="ledger-title" style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:4px">Data Ledger</h2>
             <p style="font-size:13px;color:var(--ink-2)">Price provenance, fee-aware economics, and integrity checks</p>
           </div>
-          <button class="icon-btn" onclick="renderLedger()" style="width:auto;padding:8px 16px;border-radius:var(--radius-md);gap:8px">
+          <button class="icon-btn" onclick="renderLedger()" style="width:auto;padding:8px 16px;border-radius:var(--radius-md);gap:8px" aria-label="Refresh ledger data">
             <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1 2.12-9.36L23 10"/></svg>
             Refresh
           </button>
         </div>
-        <div class="ledger-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:var(--space-5)">
+        <div class="ledger-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:var(--space-5)" role="region" aria-label="Ledger statistics">
           <div style="background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
-            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--ink)" id="ledger-total-items">13</div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--ink)" id="ledger-total-items" aria-live="polite">13</div>
             <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Total Colorways</div>
           </div>
-          <div style="background:rgba(0,212,170,.1);border:1px solid var(--up);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
-            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--up)" id="ledger-verified">0</div>
+          <div style="background:rgba(111,169,107,.12);border:1px solid var(--up);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--up)" id="ledger-verified" aria-live="polite">0</div>
             <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Verified</div>
           </div>
-          <div style="background:rgba(255,183,0,.1);border:1px solid var(--gold);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
-            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--gold)" id="ledger-estimated">0</div>
+          <div style="background:rgba(255,183,0,.12);border:1px solid var(--gold);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--gold)" id="ledger-estimated" aria-live="polite">0</div>
             <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Estimated</div>
           </div>
-          <div style="background:rgba(255,107,157,.1);border:1px solid var(--down);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
-            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--down)" id="ledger-synthetic">0</div>
+          <div style="background:rgba(192,87,75,.12);border:1px solid var(--down);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--down)" id="ledger-synthetic" aria-live="polite">0</div>
             <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Synthetic</div>
           </div>
         </div>
-        <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4)">
+        <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4)" role="group" aria-label="Ledger settings">
           <div style="flex:1;background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3)">
-            <div style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Marketplace Fee (%)</div>
-            <input type="number" id="ledger-fee-pct" value="9.5" min="0" max="50" step="0.5" style="width:100%;background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:8px;color:var(--ink);font-family:var(--font-mono);font-size:13px" onchange="saveLedgerSettings();renderLedger()">
+            <label for="ledger-fee-pct" style="display:block;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Marketplace Fee (%)</label>
+            <input type="number" id="ledger-fee-pct" value="9.5" min="0" max="50" step="0.5" aria-describedby="fee-desc" style="width:100%;background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:8px;color:var(--ink);font-family:var(--font-mono);font-size:13px" onchange="saveLedgerSettings();renderLedger()">
+            <span id="fee-desc" class="visually-hidden">Percentage fee charged by the marketplace on each sale</span>
           </div>
           <div style="flex:1;background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3)">
-            <div style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Shipping Cost ($)</div>
-            <input type="number" id="ledger-shipping" value="15" min="0" max="100" step="1" style="width:100%;background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:8px;color:var(--ink);font-family:var(--font-mono);font-size:13px" onchange="saveLedgerSettings();renderLedger()">
+            <label for="ledger-shipping" style="display:block;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Shipping Cost ($)</label>
+            <input type="number" id="ledger-shipping" value="15" min="0" max="100" step="1" aria-describedby="shipping-desc" style="width:100%;background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:8px;color:var(--ink);font-family:var(--font-mono);font-size:13px" onchange="saveLedgerSettings();renderLedger()">
+            <span id="shipping-desc" class="visually-hidden">Fixed shipping cost in dollars</span>
           </div>
         </div>
       </div>
