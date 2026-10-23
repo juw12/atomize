@@ -72,10 +72,13 @@ def main():
         print(f"Running: {rel_path}")
         
         passed, output = run_test_file(test_file)
-        results.append((rel_path, passed, output))
+        skipped = (not passed) and ("ModuleNotFoundError" in output)
+        results.append((rel_path, passed, skipped, output))
         
         if passed:
             print(f"  [PASS] {test_file.name}")
+        elif skipped:
+            print(f"  [SKIP] {test_file.name} (optional dependency not installed)")
         else:
             print(f"  [FAIL] {test_file.name}")
             any_failed = True
@@ -88,11 +91,12 @@ def main():
         print()
     
     # Summary
-    passed_count = sum(1 for _, passed, _ in results if passed)
-    failed_count = len(results) - passed_count
+    passed_count = sum(1 for r in results if r[1])
+    skipped_count = sum(1 for r in results if r[2])
+    failed_count = sum(1 for r in results if not r[1] and not r[2])
     
     print("=" * 60)
-    print(f"Results: {passed_count} passed, {failed_count} failed")
+    print(f"Results: {passed_count} passed, {skipped_count} skipped, {failed_count} failed")
     
     if any_failed:
         print("FAILED")

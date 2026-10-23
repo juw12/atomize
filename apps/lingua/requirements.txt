@@ -1,0 +1,5 @@
+# Lingua runtime dependencies (the only app in the monorepo with third-party deps).
+# Install before running the app or its tests:
+#   pip install -r apps/lingua/requirements.txt
+Pillow>=10
+requests>=2.28
