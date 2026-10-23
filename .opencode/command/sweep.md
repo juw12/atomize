@@ -18,7 +18,7 @@ Run the **/sweep** pipeline for this repository: **validate first, then sync**.
 
 3. **Commit, push & log** by running the helper (it resolves git itself, commits any changes, pushes to `origin`, and writes the Obsidian note into `Update Log/`):
    ```
-   powershell -NoProfile -ExecutionPolicy Bypass -File "apps/update/update.ps1" -Message "$ARGUMENTS"
+   powershell -NoProfile -ExecutionPolicy Bypass -File "apps/sweep/sweep.ps1" -Message "$ARGUMENTS"
    ```
    If `/sweep` was called with no message, the script uses a timestamped default.
    - Before committing, make sure nothing unwanted is staged: never commit `__pycache__`, `.venv/`, `config.json`, `*.log`, or anything that looks like a secret/credential. Unstage such files first (`git restore --staged <path>`).

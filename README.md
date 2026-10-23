@@ -12,7 +12,7 @@ runnable, deployable project.
 | [`apps/lingua`](apps/lingua) | Live-translated Teams captions in an always-on-top overlay | Python + tkinter native desktop app (Pillow, requests) |
 | [`apps/productivity-widget`](apps/productivity-widget) | "The Morning Paper" — always-on-top Pomodoro timer + soundscapes + live app-usage tracking + daily score + coaching | Python + tkinter desktop widget (stdlib only) |
 | [`apps/desk-verdict`](apps/desk-verdict) | Verdict Scorecard for AI tools at work — test a tool on a real task, rate the scorecard, get Use it / Wait / Skip | Single-file web app + optional stdlib persistence backend |
-| [`apps/update`](apps/update) | The `/update` pipeline — sync the repo to GitHub and mirror a note to Obsidian | PowerShell helper + OpenCode slash command |
+| [`apps/sweep`](apps/sweep) | The `/sweep` pipeline — validate, then sync the repo to GitHub and mirror a note to Obsidian | PowerShell helper + OpenCode slash command |
 
 Each project follows the same shape:
 
