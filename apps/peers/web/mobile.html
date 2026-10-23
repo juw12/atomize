@@ -1576,6 +1576,741 @@ var GUIDE_RECOMMENDATIONS=[
   }
 })();
 </script>
+
+<!-- ===== PEERS MODES: category system + AI Tools mode (appended module) ===== -->
+<script>
+/* =====================================================================
+   PEERS MODES  -  category ("mode") system  +  AI Tools mode
+   Merges the "Desk Verdict" AI-tool scorecard into Peers.
+   ---------------------------------------------------------------------
+   Additive module. It runs AFTER the app's own script and OVERRIDES app
+   globals (seed, views.*, render, runSearch) and injects its own DOM and
+   CSS at runtime. Nothing in the original script is edited.
+   ===================================================================== */
+(function () {
+  if (typeof document === 'undefined') return;
+  var IS_MOBILE = !!document.getElementById('app-bar');
+
+  /* ------------------------------------------------------------------ */
+  /* 1. TAXONOMY                                                         */
+  /* ------------------------------------------------------------------ */
+  var MODES = [
+    {id:'all',      label:'All',                    icon:'feed',     kind:'all',     blurb:'Everything on Peers - every category in one place.',  market:'Discover everything'},
+    {id:'food',     label:'Food & Drink',           icon:'place',    kind:'place',   cats:['Food'],      blurb:'Restaurants, cafes, bars, street food and bakeries.', market:'Reservations, delivery & deals'},
+    {id:'travel',   label:'Travel & Stays',         icon:'map',      kind:'place',   cats:['Travel'],    blurb:'Hotels, hostels, tours and experiences.',             market:'Bookings & packages'},
+    {id:'shops',    label:'Shops & Retail',         icon:'market',   kind:'place',   cats:['Shops'],     blurb:'Independent shops and local stores.',                 market:'Storefronts & pick-up'},
+    {id:'services', label:'Home Services',          icon:'checkin',  kind:'place',   cats:['Services'],  blurb:'Plumbers, electricians, cleaners and movers.',        market:'Quotes & lead-gen'},
+    {id:'health',   label:'Health & Wellness',      icon:'shield',   kind:'place',   cats:['Health'],    blurb:'Doctors, dentists, clinics and telehealth.',          market:'Appointments'},
+    {id:'beauty',   label:'Beauty & Personal Care', icon:'profile',  kind:'place',   cats:['Beauty'],    blurb:'Salons, barbers, spas and nail studios.',             market:'Bookings'},
+    {id:'auto',     label:'Auto & EV',              icon:'truck',    kind:'place',   cats:['Auto'],      blurb:'Dealers, mechanics, EV charging and tyres.',          market:'Service booking'},
+    {id:'property', label:'Real Estate',            icon:'place',    kind:'place',   cats:['Property'],  blurb:'Agents, landlords, rentals and stays.',               market:'Listings & leads'},
+    {id:'pets',     label:'Pets',                   icon:'heart',    kind:'place',   cats:['Pets'],      blurb:'Vets, groomers, boarding and pet sitters.',           market:'Bookings'},
+    {id:'kids',     label:'Kids & Care',            icon:'profile',  kind:'place',   cats:['Kids'],      blurb:'Daycares, schools, sitters and activities.',          market:'Enrolment leads'},
+    {id:'fitness',  label:'Fitness & Sport',        icon:'checkin',  kind:'place',   cats:['Fitness'],   blurb:'Gyms, studios, classes and coaches.',                 market:'Memberships'},
+    {id:'events',   label:'Events & Fun',           icon:'star',     kind:'place',   cats:['Events'],    blurb:'Venues, shows, tickets and nightlife.',               market:'Ticketing'},
+    {id:'grocery',  label:'Groceries',              icon:'box',      kind:'place',   cats:['Grocery'],   blurb:'Supermarkets, markets, delivery and meal kits.',      market:'Delivery & pick-up'},
+    {id:'education',label:'Learning',               icon:'about',    kind:'place',   cats:['Education'], blurb:'Courses, tutors, bootcamps and schools.',             market:'Enrolment'},
+    {id:'gov',      label:'Public Services',        icon:'shield',   kind:'place',   cats:['Public'],    blurb:'Government offices and public services.',             market:'Information'},
+    {id:'nonprofit',label:'Nonprofits',             icon:'heart',    kind:'place',   cats:['Nonprofit'], blurb:'Charities and community organisations.',              market:'Donations'},
+    {id:'ai',       label:'AI Tools',               icon:'about',    kind:'tool',    work:true,          blurb:'AI tools and models for work, scored on real tasks.', market:'Plans, seats & affiliate'},
+    {id:'software', label:'Software & SaaS',        icon:'about',    kind:'tool',    blurb:'Apps and platforms for teams and individuals.',       market:'Vendor plans'},
+    {id:'finance',  label:'Money & Finance',        icon:'market',   kind:'tool',    blurb:'Banks, fintech, insurance, investing and crypto.',    market:'Product sign-ups'},
+    {id:'apps',     label:'Apps & Marketplaces',    icon:'market',   kind:'tool',    blurb:'Mobile apps and online marketplaces.',                market:'In-app & affiliate'},
+    {id:'telecom',  label:'Telecom & Internet',     icon:'globe',    kind:'tool',    blurb:'Mobile carriers, ISPs and bundles.',                  market:'Plans'},
+    {id:'media',    label:'Streaming & Media',      icon:'star',     kind:'tool',    blurb:'Streaming services, games, books and music.',         market:'Subscriptions'},
+    {id:'freelance',label:'Freelancers & Agencies', icon:'business', kind:'tool',    blurb:'Studios, agencies, consultants and freelancers.',     market:'Hire & contracts'},
+    {id:'market',   label:'Peers Market',           icon:'market',   kind:'product', cats:['stationery','gifts','fashion','snacks'], blurb:'Curated goods from independent sellers.', market:'Cart & partner checkout'},
+    {id:'gadgets',  label:'Gadgets & Electronics',  icon:'box',      kind:'product', cats:['tech'],      blurb:'Phones, laptops, audio and accessories.',             market:'E-commerce'},
+    {id:'home',     label:'Home & Garden',          icon:'box',      kind:'product', cats:['home'],      blurb:'Furniture, decor, tools and garden.',                 market:'E-commerce'},
+    {id:'fashion',  label:'Fashion & Apparel',      icon:'box',      kind:'product', cats:['fashion'],   blurb:'Clothing, shoes, accessories and jewellery.',         market:'E-commerce'},
+    {id:'baby',     label:'Baby & Maternity',       icon:'box',      kind:'product', cats:['baby'],      blurb:'Baby gear, clothes and care.',                        market:'E-commerce'},
+    {id:'books',    label:'Books & Stationery',     icon:'box',      kind:'product', cats:['books','stationery'], blurb:'Books, notebooks, paper and pens.',          market:'E-commerce'},
+    {id:'gifts',    label:'Gifts & Handmade',       icon:'box',      kind:'product', cats:['gifts'],     blurb:'Handmade gifts, crafts and ceramics.',                market:'E-commerce'},
+    {id:'wellness', label:'Wellness & Nutrition',   icon:'box',      kind:'product', cats:['snacks'],    blurb:'Supplements, food and nutrition.',                    market:'E-commerce'}
+  ];
+
+  var MODE_BY_ID = {};
+  for (var mi = 0; mi < MODES.length; mi++) { MODE_BY_ID[MODES[mi].id] = MODES[mi]; }
+  function modeId() { var m = state && state.mode; return MODE_BY_ID[m] ? m : 'all'; }
+  function mode() { return MODE_BY_ID[modeId()]; }
+  function setMode(id) {
+    if (!MODE_BY_ID[id]) id = 'all';
+    state.mode = id;
+    if (typeof saveState === 'function') saveState(state);
+    var v = (currentView === 'map' || currentView === 'market') ? currentView : 'feed';
+    navigate(v, {});
+    renderModeBar();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 2. ENTITY HELPERS                                                   */
+  /* ------------------------------------------------------------------ */
+  function placesIn(m) {
+    if (!state.places) return [];
+    if (m.id === 'all') return state.places;
+    if (m.kind !== 'place') return [];
+    var cats = m.cats || [];
+    return state.places.filter(function (p) { return cats.indexOf(p.category) >= 0; });
+  }
+  function productsIn(m) {
+    if (!state.products) return [];
+    if (m.id === 'all') return state.products;
+    if (m.kind !== 'product') return [];
+    var cats = m.cats || [];
+    return state.products.filter(function (p) { return cats.indexOf(p.category) >= 0; });
+  }
+  function idSet(list) { var s = {}; for (var i = 0; i < list.length; i++) s[list[i].id] = 1; return s; }
+  function modeVerdicts(m) { return (m.id === 'ai') ? (state.verdicts || []) : []; }
+
+  /* ------------------------------------------------------------------ */
+  /* 3. AI TOOLS SCORECARD  (from Desk Verdict)                          */
+  /* ------------------------------------------------------------------ */
+  var SK = ['time_saved', 'output_quality', 'ease_of_use', 'cost_value', 'work_safety'];
+  var SL = {time_saved:'Time saved', output_quality:'Output quality', ease_of_use:'Ease of use', cost_value:'Cost vs value', work_safety:'Work safety'};
+  var AREAS = ['admin', 'operations', 'marketing', 'finance', 'hr', 'sales', 'project-management'];
+
+  function computeVerdict(s) {
+    var sum = 0;
+    for (var i = 0; i < SK.length; i++) sum += (s[SK[i]] || 0);
+    var avg = Math.round((sum / SK.length) * 10) / 10;
+    if ((s.work_safety || 0) <= 2) return {avg: avg, verdict: 'SKIP'};
+    if (avg >= 4.0) return {avg: avg, verdict: 'USE'};
+    if (avg >= 3.0) return {avg: avg, verdict: 'WAIT'};
+    return {avg: avg, verdict: 'SKIP'};
+  }
+  function vBadge(v) {
+    var c = v === 'USE' ? 'use' : v === 'WAIT' ? 'wait' : 'skip';
+    var t = v === 'USE' ? 'Use it' : v === 'WAIT' ? 'Wait' : 'Skip';
+    return '<span class="pm-vbadge pm-' + c + '">' + t + '</span>';
+  }
+  function scoreBar(k, val) {
+    var b = '';
+    for (var i = 1; i <= 5; i++) b += '<span class="pm-dot' + (i <= val ? ' on' : '') + '"></span>';
+    return '<div class="pm-srow"><span class="pm-sk">' + SL[k] + '</span><span class="pm-dots">' + b + '</span><span class="pm-sv">' + val + '</span></div>';
+  }
+  function script30(v) {
+    var x = (v.time_with_min != null ? v.time_with_min : 'X');
+    var y = (v.time_without_min != null ? v.time_without_min : 'Y');
+    return 'I tried ' + v.tool + ' on ' + v.task + '. It took ' + x + ' minutes instead of ' + y +
+      '. It got ' + v.one_right + ' right and ' + v.one_wrong +
+      ' wrong. Verdict: use it for ' + v.use_it_for + ', skip it for ' + v.skip_it_for + '.';
+  }
+  function verdictCard(v) {
+    var s = v.scores || {};
+    return '<article class="pm-vcard" data-action="open-verdict" data-id="' + esc(v.id) + '" tabindex="0" role="button">' +
+      '<div class="pm-vhead"><div><div class="pm-vtool">' + esc(v.tool) + '</div><div class="pm-varea">' + esc(v.area || '') + '</div></div>' +
+      '<span class="pm-vavg">' + esc(String(v.avg)) + '</span>' + vBadge(v.verdict) + '</div>' +
+      '<div class="pm-vtask">' + esc(v.task) + '</div>' +
+      '<div class="pm-vscores">' + SK.map(function (k) { return scoreBar(k, s[k] || 0); }).join('') + '</div>' +
+      '<div class="pm-vfoot">' + icon('clock', 'sm') + ' ' + (v.time_with_min != null ? v.time_with_min : '?') + ' min vs ' + (v.time_without_min != null ? v.time_without_min : '?') + ' min &middot; ' + fmtDate(v.tested || v.created_at || '') + '</div>' +
+      '</article>';
+  }
+
+  var SEED_VERDICTS = [
+    {id:'v_chatgpt', tool:'ChatGPT', task:'Turn messy meeting notes into a follow-up email', area:'admin', scores:{time_saved:5,output_quality:4,ease_of_use:5,cost_value:3,work_safety:4}, time_with_min:5, time_without_min:45, one_right:'a clean, ready-to-send email in one pass', one_wrong:'invented a deadline I never mentioned', use_it_for:'meeting recaps and follow-up emails', skip_it_for:'anything with legal or HR confidentiality', affiliate:'', tested:daysAgo(3), notes:'', created_at:daysAgo(3)},
+    {id:'v_claude', tool:'Claude Projects', task:'Draft a project plan from a brief and some notes', area:'project-management', scores:{time_saved:5,output_quality:5,ease_of_use:4,cost_value:4,work_safety:4}, time_with_min:20, time_without_min:120, one_right:'structure and milestones right out of the gate', one_wrong:'missed two dependencies I had to add by hand', use_it_for:'planning and long-document edits', skip_it_for:'final sign-off without a human review', affiliate:'', tested:daysAgo(6), notes:'', created_at:daysAgo(6)},
+    {id:'v_gemini', tool:'Gemini in Google Sheets', task:'Write formulas and clean a messy budget sheet', area:'finance', scores:{time_saved:4,output_quality:4,ease_of_use:3,cost_value:4,work_safety:4}, time_with_min:15, time_without_min:50, one_right:'formulas that actually worked on the first try', one_wrong:'confidently wrong on a currency conversion', use_it_for:'quick spreadsheet formulas', skip_it_for:'anything you will not double-check', affiliate:'', tested:daysAgo(9), notes:'', created_at:daysAgo(9)},
+    {id:'v_otter', tool:'Otter.ai', task:'Transcribe a sales call and pull action items', area:'sales', scores:{time_saved:4,output_quality:3,ease_of_use:5,cost_value:3,work_safety:2}, time_with_min:10, time_without_min:40, one_right:'fast, readable transcript', one_wrong:'joins calls and records without warning the other side', use_it_for:'internal notes with consent', skip_it_for:'client calls without disclosure', affiliate:'', tested:daysAgo(12), notes:'', created_at:daysAgo(12)}
+  ];
+  function seedVerdicts() {
+    return SEED_VERDICTS.map(function (v) {
+      var r = computeVerdict(v.scores || {});
+      var o = {};
+      for (var k in v) { if (Object.prototype.hasOwnProperty.call(v, k)) o[k] = v[k]; }
+      o.avg = r.avg; o.verdict = r.verdict;
+      return o;
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 4. STYLES + MODE BAR                                                */
+  /* ------------------------------------------------------------------ */
+  var EXTRA_PLACES = [
+    {id:'x_health_1', name:'Bright Dental Studio', category:'Health', city:'Lisbon', country:'Portugal', rating:4.7, reviews:86, hours:'09:00 - 18:00', price:'$$', location:'Av. da Liberdade 40', ownerId:null, follows:false},
+    {id:'x_health_2', name:'Telehealth Now', category:'Health', city:'Online', country:'Global', rating:4.4, reviews:212, hours:'24/7', price:'$$', location:'Video consultations', ownerId:null, follows:false},
+    {id:'x_services_1', name:'Two Rivers Plumbing', category:'Services', city:'Porto', country:'Portugal', rating:4.6, reviews:134, hours:'08:00 - 20:00', price:'$$', location:'Rua da Boavista 210', ownerId:null, follows:false},
+    {id:'x_beauty_1', name:'Barbearia do Centro', category:'Beauty', city:'Lisbon', country:'Portugal', rating:4.8, reviews:96, hours:'10:00 - 20:00', price:'$$', location:'Rua Augusta 88', ownerId:null, follows:false},
+    {id:'x_auto_1', name:'VoltFast Charging Hub', category:'Auto', city:'Madrid', country:'Spain', rating:4.2, reviews:301, hours:'24/7', price:'$', location:'M-30 Service Area', ownerId:null, follows:false},
+    {id:'x_property_1', name:'Alfama Lofts Rentals', category:'Property', city:'Lisbon', country:'Portugal', rating:4.3, reviews:74, hours:'Check-in 15:00', price:'$$$', location:'Rua dos Remedios 12', ownerId:null, follows:false},
+    {id:'x_pets_1', name:'Happy Paws Vet', category:'Pets', city:'Porto', country:'Portugal', rating:4.9, reviews:158, hours:'09:00 - 19:00', price:'$$', location:'Rua de Cedofeita 300', ownerId:null, follows:false},
+    {id:'x_kids_1', name:'Little Explorers Daycare', category:'Kids', city:'Barcelona', country:'Spain', rating:4.5, reviews:63, hours:'07:30 - 18:30', price:'$$$', location:'Carrer de Sants 45', ownerId:null, follows:false},
+    {id:'x_fitness_1', name:'Studio Move', category:'Fitness', city:'Lisbon', country:'Portugal', rating:4.6, reviews:121, hours:'06:00 - 22:00', price:'$$', location:'Rua do Alecrim 7', ownerId:null, follows:false},
+    {id:'x_events_1', name:'Teatro Rivoli', category:'Events', city:'Porto', country:'Portugal', rating:4.7, reviews:289, hours:'Show times vary', price:'$$', location:'Praca da Batalha', ownerId:null, follows:false},
+    {id:'x_grocery_1', name:'Mercado Fresco', category:'Grocery', city:'Madrid', country:'Spain', rating:4.4, reviews:402, hours:'08:00 - 22:00', price:'$', location:'Calle Mayor 60', ownerId:null, follows:false},
+    {id:'x_education_1', name:'Code Camp Lisbon', category:'Education', city:'Lisbon', country:'Portugal', rating:4.5, reviews:57, hours:'Courses online & on-site', price:'$$$', location:'Campus Tech, Alvalade', ownerId:null, follows:false},
+    {id:'x_public_1', name:'Loja de Cidadao', category:'Public', city:'Porto', country:'Portugal', rating:3.9, reviews:512, hours:'08:30 - 19:30', price:'Free', location:'Rua de Sa da Bandeira', ownerId:null, follows:false},
+    {id:'x_nonprofit_1', name:'Banco Alimentar', category:'Nonprofit', city:'Lisbon', country:'Portugal', rating:4.8, reviews:88, hours:'09:00 - 17:00', price:'Free', location:'Rua da Palma 30', ownerId:null, follows:false}
+  ];
+  var EXTRA_PRODUCTS = [
+    {id:'x_tech_1', name:'Wireless Earbuds', sellerId:'s_brew', category:'tech', price:79, photo:'Photo', desc:'Compact true-wireless earbuds with a 30-hour battery.', rating:4.5, reviews:63, sponsored:false},
+    {id:'x_tech_2', name:'USB-C Fast Charger', sellerId:'s_brew', category:'tech', price:29, photo:'Photo', desc:'65W GaN charger, pocket-sized.', rating:4.7, reviews:41, sponsored:false},
+    {id:'x_home_1', name:'Ceramic Planter', sellerId:'s_ceramic', category:'home', price:36, photo:'Photo', desc:'Hand-glazed planter with a drainage tray.', rating:4.6, reviews:22, sponsored:false},
+    {id:'x_home_2', name:'Linen Cushion Cover', sellerId:'s_fashion', category:'home', price:24, photo:'Photo', desc:'Washed linen with a hidden zip, 45x45cm.', rating:4.4, reviews:18, sponsored:false},
+    {id:'x_baby_1', name:'Organic Baby Blanket', sellerId:'s_fashion', category:'baby', price:38, photo:'Photo', desc:'Soft organic cotton, breathable knit.', rating:4.8, reviews:34, sponsored:false},
+    {id:'x_books_1', name:'Pocket Notebook Set', sellerId:'s_paper', category:'books', price:16, photo:'Photo', desc:'Set of three dot-grid notebooks.', rating:4.7, reviews:52, sponsored:false}
+  ];
+  var EXTRA_REVIEWS = [
+    {id:'xr_health_1', placeId:'x_health_1', authorId:'u_marco', rating:5, text:'Painless cleaning and a clear treatment plan. Modern equipment.', tags:['dentist'], photos:0, likes:9, dislikes:0, lang:'en', state:'Verified: receipt', date:daysAgo(4), affiliate:null, verifiedType:'receipt'},
+    {id:'xr_health_2', placeId:'x_health_2', authorId:'u_yuki', rating:4, text:'Handy for a quick consult while travelling. Wait times vary.', tags:['telehealth'], photos:0, likes:6, dislikes:1, lang:'en', state:'Recently reviewed', date:daysAgo(2)},
+    {id:'xr_services_1', placeId:'x_services_1', authorId:'u_javier', rating:5, text:'Fixed a burst pipe in an hour. Fair quote, no upsell.', tags:['plumbing'], photos:0, likes:11, dislikes:0, lang:'en', state:'Verified: receipt', date:daysAgo(6), verifiedType:'receipt'},
+    {id:'xr_beauty_1', placeId:'x_beauty_1', authorId:'u_marta', rating:5, text:'Best fade in Lisbon. Book ahead - walk-ins wait.', tags:['barber'], photos:0, likes:14, dislikes:0, lang:'en', state:'Recently reviewed', date:daysAgo(3)},
+    {id:'xr_auto_1', placeId:'x_auto_1', authorId:'u_diego', rating:4, text:'Six stalls and all working today. Price is clear on the screen.', tags:['ev','charging'], photos:0, likes:8, dislikes:1, lang:'en', state:'Verified: location', date:daysAgo(1), verifiedType:'location'},
+    {id:'xr_property_1', placeId:'x_property_1', authorId:'u_ines', rating:4, text:'Lovely loft, steep stairs and thin walls. Host was responsive.', tags:['rental'], photos:0, likes:5, dislikes:0, lang:'en', state:'Unverified', date:daysAgo(9)},
+    {id:'xr_pets_1', placeId:'x_pets_1', authorId:'u_hana', rating:5, text:'Gentle with my anxious dog and clear aftercare notes.', tags:['vet'], photos:0, likes:10, dislikes:0, lang:'en', state:'Verified: receipt', date:daysAgo(5), verifiedType:'receipt'},
+    {id:'xr_kids_1', placeId:'x_kids_1', authorId:'u_amara', rating:4, text:'Caring staff and good ratios. The waiting list is long.', tags:['daycare'], photos:0, likes:7, dislikes:0, lang:'en', state:'Recently reviewed', date:daysAgo(7)},
+    {id:'xr_fitness_1', placeId:'x_fitness_1', authorId:'u_liam', rating:5, text:'Small classes and great coaching. Morning slots fill fast.', tags:['gym'], photos:0, likes:9, dislikes:0, lang:'en', state:'Verified: booking', date:daysAgo(2), verifiedType:'booking'},
+    {id:'xr_events_1', placeId:'x_events_1', authorId:'u_marta', rating:5, text:'Beautiful hall and great acoustics. Bar queue at the interval.', tags:['theatre'], photos:0, likes:12, dislikes:0, lang:'en', state:'Recently reviewed', date:daysAgo(8)},
+    {id:'xr_grocery_1', placeId:'x_grocery_1', authorId:'u_diego', rating:4, text:'Fresh produce at fair prices. Busiest before noon.', tags:['market'], photos:0, likes:6, dislikes:1, lang:'en', state:'Unverified', date:daysAgo(10)},
+    {id:'xr_education_1', placeId:'x_education_1', authorId:'u_ines', rating:5, text:'Practical and project-based, taught by working developers.', tags:['course'], photos:0, likes:8, dislikes:0, lang:'en', state:'Verified: receipt', date:daysAgo(11), verifiedType:'receipt'},
+    {id:'xr_public_1', placeId:'x_public_1', authorId:'u_amara', rating:3, text:'Efficient once you take a number. Long queues before 10am.', tags:['services'], photos:0, likes:4, dislikes:2, lang:'en', state:'Unverified', date:daysAgo(12)},
+    {id:'xr_nonprofit_1', placeId:'x_nonprofit_1', authorId:'u_liam', rating:5, text:'Well-run food bank. Volunteers are organised and kind.', tags:['charity'], photos:0, likes:7, dislikes:0, lang:'en', state:'Recently reviewed', date:daysAgo(6)}
+  ];
+  function mergeExtras(s) {
+    s.places = s.places || []; s.products = s.products || []; s.reviews = s.reviews || [];
+    var seen = {}, i, arr;
+    arr = s.places; seen = {};
+    for (i = 0; i < arr.length; i++) seen[arr[i].id] = 1;
+    for (i = 0; i < EXTRA_PLACES.length; i++) if (!seen[EXTRA_PLACES[i].id]) arr.push(EXTRA_PLACES[i]);
+    arr = s.products; seen = {};
+    for (i = 0; i < arr.length; i++) seen[arr[i].id] = 1;
+    for (i = 0; i < EXTRA_PRODUCTS.length; i++) if (!seen[EXTRA_PRODUCTS[i].id]) arr.push(EXTRA_PRODUCTS[i]);
+    arr = s.reviews; seen = {};
+    for (i = 0; i < arr.length; i++) seen[arr[i].id] = 1;
+    for (i = 0; i < EXTRA_REVIEWS.length; i++) if (!seen[EXTRA_REVIEWS[i].id]) arr.push(EXTRA_REVIEWS[i]);
+    return s;
+  }
+  function extrasCount(s) {
+    return (s.places || []).length + (s.products || []).length + (s.reviews || []).length;
+  }
+
+  var CSS = ''
+    + '.pm-bar{display:flex;align-items:center;gap:10px;padding:9px 26px;border-bottom:1px solid var(--sand);background:rgba(250,246,239,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:sticky;z-index:19}'
+    + '.pm-strip{display:flex;gap:8px;overflow-x:auto;flex:1;scrollbar-width:none;-ms-overflow-style:none}'
+    + '.pm-strip::-webkit-scrollbar{display:none}'
+    + '.pm-chip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;border:1px solid var(--sand);background:var(--white);font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;white-space:nowrap;transition:all .2s}'
+    + '.pm-chip:hover{border-color:var(--ink)}'
+    + '.pm-chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}'
+    + '.pm-chip.on svg{color:var(--coral)}'
+    + '.pm-all{flex:none;border:1px solid var(--ink);background:transparent;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center;color:var(--ink)}'
+    + '.pm-all:hover{background:var(--ink);color:var(--cream)}'
+    + '.pm-switchline{font-size:12px;color:var(--slate);margin:-8px 0 16px;display:flex;align-items:center;gap:6px}'
+    + '.pm-vbadge{display:inline-flex;align-items:center;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px}'
+    + '.pm-use{background:rgba(46,125,89,.14);color:#2e7d59;border:1px solid rgba(46,125,89,.35)}'
+    + '.pm-wait{background:rgba(201,125,45,.15);color:#c97d2d;border:1px solid rgba(201,125,45,.35)}'
+    + '.pm-skip{background:rgba(184,68,57,.13);color:#b84439;border:1px solid rgba(184,68,57,.35)}'
+    + '.pm-vcard{background:var(--sand);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:20px;cursor:pointer;transition:transform .2s,box-shadow .2s}'
+    + '.pm-vcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}'
+    + '.pm-vhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}'
+    + '.pm-vtool{font-weight:700;font-size:16px;font-family:var(--serif)}'
+    + '.pm-varea{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.08em}'
+    + '.pm-vavg{margin-left:auto;font-weight:800;font-size:20px}'
+    + '.pm-vtask{font-size:13px;color:var(--slate);margin-bottom:12px}'
+    + '.pm-vscores{display:flex;flex-direction:column;gap:6px}'
+    + '.pm-srow{display:flex;align-items:center;gap:10px;font-size:12px}'
+    + '.pm-sk{width:118px;color:var(--slate);flex:none}'
+    + '.pm-dots{display:inline-flex;gap:3px}'
+    + '.pm-dot{width:10px;height:10px;border-radius:50%;background:var(--white);border:1px solid var(--sand)}'
+    + '.pm-dot.on{background:var(--coral);border-color:var(--coral)}'
+    + '.pm-sv{margin-left:auto;font-weight:700}'
+    + '.pm-vfoot{margin-top:12px;font-size:11px;color:var(--slate);display:flex;align-items:center;gap:6px}'
+    + '.pm-score{display:flex;gap:6px}'
+    + '.pm-score button{width:38px;height:38px;border-radius:10px;border:1px solid var(--sand);background:var(--white);font-weight:700;cursor:pointer;color:var(--ink)}'
+    + '.pm-score button.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}'
+    + '.pm-preview{margin-top:14px;padding:14px 16px;border-radius:var(--r-md);background:var(--white);border:1px solid var(--sand);display:flex;align-items:center;gap:12px}'
+    + '.pm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:14px}'
+    + '.pm-pick{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--sand);border-radius:var(--r-md);background:var(--white);cursor:pointer;text-align:left;width:100%}'
+    + '.pm-pick:hover{border-color:var(--ink);background:var(--cream)}'
+    + '.pm-pick svg{margin-top:2px;color:var(--coral)}'
+    + '.pm-pk-name{font-weight:600;font-size:13px;display:block}'
+    + '.pm-pk-sub{font-size:11px;color:var(--slate);display:block;margin-top:2px;line-height:1.4}'
+    + '.pm-search{width:100%;padding:11px 14px;border:1px solid var(--sand);border-radius:999px;font-size:14px;outline:none}'
+    + '.pm-search:focus{border-color:var(--coral)}'
+    + '@media (max-width:820px){.pm-bar{padding:8px 14px}.pm-all{display:none}.pm-vhead{flex-wrap:wrap}.pm-vavg{font-size:18px}.pm-sk{width:100px}}';
+
+  function injectStyles() {
+    if (document.getElementById('pm-css')) return;
+    var st = document.createElement('style');
+    st.id = 'pm-css';
+    st.textContent = CSS;
+    document.head.appendChild(st);
+  }
+
+  function injectBar() {
+    if (document.getElementById('pm-bar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'pm-bar';
+    bar.className = 'pm-bar';
+    bar.setAttribute('role', 'navigation');
+    bar.setAttribute('aria-label', 'Categories');
+    bar.innerHTML = '<div class="pm-strip" id="pm-strip"></div>' +
+      '<button type="button" class="pm-all" data-action="mode-picker">' + icon('search', 'sm') + ' All categories</button>';
+    var anchor = document.getElementById('header') || document.getElementById('app-bar');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(bar, anchor.nextSibling);
+    else document.body.insertBefore(bar, document.body.firstChild);
+    var h = anchor ? anchor.offsetHeight || 0 : 0;
+    bar.style.top = h + 'px';
+  }
+
+  function renderModeBar() {
+    var strip = document.getElementById('pm-strip');
+    if (!strip) return;
+    var cur = modeId();
+    var picks = ['all'];
+    if (cur !== 'all') picks.push(cur);
+    ['food', 'travel', 'market', 'ai', 'software', 'finance', 'services', 'health', 'shops'].forEach(function (id) {
+      if (picks.indexOf(id) < 0) picks.push(id);
+    });
+    strip.innerHTML = picks.map(function (id) {
+      var m = MODE_BY_ID[id];
+      return '<button type="button" class="pm-chip' + (id === cur ? ' on' : '') + '" data-action="mode-select" data-val="' + esc(id) + '">' + icon(m.icon, 'sm') + esc(m.label) + '</button>';
+    }).join('') +
+    '<button type="button" class="pm-chip" data-action="mode-picker" title="Browse all categories">' + icon('search', 'sm') + 'More</button>';
+  }
+
+  function pickCards(q) {
+    q = (q || '').toLowerCase().trim();
+    var list = MODES.filter(function (m) {
+      if (m.id === 'all') return false;
+      return !q || (m.label + ' ' + m.id + ' ' + (m.blurb || '')).toLowerCase().indexOf(q) >= 0;
+    });
+    if (!list.length) return '<div class="empty">No categories match "' + esc(q) + '".</div>';
+    return list.map(function (m) {
+      return '<button type="button" class="pm-pick" data-action="mode-select" data-val="' + esc(m.id) + '">' + icon(m.icon, '') +
+        '<span><span class="pm-pk-name">' + esc(m.label) + '</span><span class="pm-pk-sub">' + esc(m.blurb || '') + '</span></span></button>';
+    }).join('');
+  }
+  function openModePicker() {
+    var html = modalTitle('Browse categories') +
+      '<div class="modal-body">' +
+      '<input id="pm-pick-q" class="pm-search" type="search" placeholder="Search categories - food, hotels, AI tools, doctors..." aria-label="Search categories" autocomplete="off">' +
+      '<p style="font-size:12px;color:var(--slate);margin:10px 0 0">' + (MODES.length - 1) + ' categories. Pick one and everything - feed, explore and writing - becomes about it.</p>' +
+      '<div class="pm-grid" id="pm-pick-grid">' + pickCards('') + '</div>' +
+      '</div>';
+    openModal(html);
+    var q = document.getElementById('pm-pick-q');
+    if (q) {
+      q.addEventListener('input', function () { document.getElementById('pm-pick-grid').innerHTML = pickCards(q.value); });
+      setTimeout(function () { q.focus(); }, 40);
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 5. SHARED BLOCKS                                                    */
+  /* ------------------------------------------------------------------ */
+  function modeSwitchLine() {
+    return '<div class="pm-switchline">Category: <b>' + esc(mode().label) + '</b>' +
+      '<button type="button" class="btn btn-ghost" data-action="mode-picker" style="font-size:12px;padding:3px 8px">' + icon('refresh', '') + 'Switch</button></div>';
+  }
+  function aiIntro() {
+    return '<div class="callout rule" style="margin:14px 0 16px">' + icon('shield', '') + '<div><div class="ct-label">How AI verdicts work</div>' +
+      'Each tool is tested on a <b>real work task</b> and scored 1-5 on time saved, output quality, ease of use, cost vs value and work safety. ' +
+      'The average gives a verdict: <b>Use it</b> (4.0+), <b>Wait</b> (3.0-4.0) or <b>Skip</b>. Safety is a hard gate - any tool scoring 2 or less on work safety is always a Skip.</div></div>' +
+      '<div style="margin-bottom:16px"><button type="button" class="btn btn-primary" data-action="pm-write">' + icon('write', '') + ' Score a tool</button></div>';
+  }
+  function hubBlock(m) {
+    return '<div class="card pad" style="max-width:680px"><div class="badge recent" style="margin-bottom:10px">' + icon('info', '') + 'New category</div>' +
+      '<h3 style="font-size:22px;margin-bottom:8px">' + esc(m.label) + '</h3>' +
+      '<p style="color:var(--slate);font-size:14px;margin-bottom:16px">' + esc(m.blurb || '') + '</p>' +
+      '<div style="font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.06em">What people review here</div>' +
+      '<p style="font-size:14px;margin:4px 0 16px">' + esc(m.blurb || '') + '</p>' +
+      '<div style="font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.06em">Market &amp; monetisation</div>' +
+      '<p style="font-weight:600;margin:4px 0 18px">' + esc(m.market || '') + '</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-action="pm-write">' + icon('write', '') + ' Write the first review</button>' +
+      '<button type="button" class="btn btn-outline" data-action="mode-picker">' + icon('search', '') + ' Browse categories</button></div></div>';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 6. VIEW OVERRIDES                                                   */
+  /* ------------------------------------------------------------------ */
+  var O = {feed: views.feed, map: views.map, market: views.market, search: views.search};
+
+  views.feed = function () {
+    var m = mode();
+    if (m.id === 'all') return O.feed();
+    if (m.kind === 'tool') {
+      if (m.id === 'ai') {
+        var vs = modeVerdicts(m);
+        return '<div class="page-head"><h1>Feed</h1><p>AI tool verdicts - what actually works at work</p></div>' +
+          modeSwitchLine() + aiIntro() +
+          '<div class="feed-grid">' + vs.map(verdictCard).join('') + (vs.length ? '' : '<div class="empty">' + icon('feed', 'xl') + '<h3>No AI tool verdicts yet</h3><p>Score a tool to start.</p></div>') + '</div>';
+      }
+      return '<div class="page-head"><h1>Feed</h1><p>' + esc(m.label) + '</p></div>' + modeSwitchLine() + hubBlock(m);
+    }
+    if (m.kind === 'product') {
+      var pset = idSet(productsIn(m));
+      var prs = (state.productReviews || []).filter(function (r) { return pset[r.productId]; });
+      return '<div class="page-head"><h1>Feed</h1><p>' + esc(m.label) + ' reviews</p></div>' + modeSwitchLine() +
+        '<div class="feed-grid">' + (prs.length ? prs.map(productReviewCard).join('') : hubBlock(m)) + '</div>';
+    }
+    var set = idSet(placesIn(m));
+    var rs = (state.reviews || []).filter(function (r) { return !r.isOwnerReply && !r.hiddenFromPublic && set[r.placeId]; });
+    return '<div class="page-head"><h1>Feed</h1><p>' + esc(m.label) + ' reviews</p></div>' + modeSwitchLine() +
+      '<div class="feed-grid">' + (rs.length ? rs.map(reviewCard).join('') : hubBlock(m)) + '</div>' +
+      '<div class="callout human-first" style="margin-top:18px">' + icon('shield', '') + '<div><div class="ct-label">Human-first</div>AI can translate, organize, and recommend. AI never writes, edits, or fabricate reviews.</div></div>';
+  };
+
+  views.map = function () {
+    var m = mode();
+    if (m.id === 'all') return O.map();
+    if (m.kind === 'product') {
+      var list = productsIn(m);
+      return '<div class="page-head"><h1>Explore ' + esc(m.label) + '</h1><p>' + list.length + ' product' + (list.length !== 1 ? 's' : '') + '</p></div>' + modeSwitchLine() +
+        (list.length ? '<div class="market-grid">' + list.map(productCard).join('') + '</div>' : hubBlock(m));
+    }
+    if (m.kind === 'tool') {
+      if (m.id === 'ai') {
+        var vs = modeVerdicts(m);
+        return '<div class="page-head"><h1>AI Tools</h1><p>' + vs.length + ' tools scored on real work tasks</p></div>' + modeSwitchLine() + aiIntro() +
+          '<div class="feed-grid">' + vs.map(verdictCard).join('') + '</div>';
+      }
+      return '<div class="page-head"><h1>Explore ' + esc(m.label) + '</h1><p>' + esc(m.blurb || '') + '</p></div>' + modeSwitchLine() + hubBlock(m);
+    }
+    var ps = placesIn(m);
+    return '<div class="page-head"><h1>Explore ' + esc(m.label) + '</h1><p>' + ps.length + ' place' + (ps.length !== 1 ? 's' : '') + ' on the map</p></div>' + modeSwitchLine() +
+      (ps.length ? '<div class="map-wrap">' + mapSVG(ps) + '</div>' : hubBlock(m));
+  };
+
+  views.market = function (params) {
+    var m = mode();
+    if (m.kind !== 'product') return O.market(params);
+    var cats = m.cats || [];
+    var cat = (params && params.cat) || cats[0] || 'all';
+    var list = (state.products || []).filter(function (p) { return cats.indexOf(p.category) >= 0; });
+    list = list.filter(function (p) { return cat === 'all' || p.category === cat; });
+    var sort = state.marketSort || 'default';
+    if (sort === 'price-asc') list = list.slice().sort(function (a, b) { return a.price - b.price; });
+    else if (sort === 'price-desc') list = list.slice().sort(function (a, b) { return b.price - a.price; });
+    else if (sort === 'rating') list = list.slice().sort(function (a, b) { return b.rating - a.rating; });
+    var labels = {all: 'All', stationery: 'Stationery', gifts: 'Handmade gifts', fashion: 'Small-brand fashion', snacks: 'Packaged snacks', tech: 'Electronics', home: 'Home & Garden', baby: 'Baby', books: 'Books'};
+    return '<div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><h1>' + esc(m.label) + '</h1><p>' + esc(m.blurb || '') + ' &middot; ' + esc(m.market || '') + '</p></div>' +
+      '<select id="market-sort" data-action="market-sort" class="select" aria-label="Sort products">' +
+      '<option value="default"' + (sort === 'default' ? ' selected' : '') + '>Sort: Featured</option>' +
+      '<option value="price-asc"' + (sort === 'price-asc' ? ' selected' : '') + '>Price: Low to High</option>' +
+      '<option value="price-desc"' + (sort === 'price-desc' ? ' selected' : '') + '>Price: High to Low</option>' +
+      '<option value="rating"' + (sort === 'rating' ? ' selected' : '') + '>Top Rated</option></select></div>' +
+      '<div class="chip-bar">' + ['all'].concat(cats).map(function (c) {
+        return '<button type="button" class="chip' + (c === cat ? ' active' : '') + '" data-action="market-chip" data-cat="' + esc(c) + '">' + esc(labels[c] || c) + '</button>';
+      }).join('') + '</div>' +
+      '<div class="market-grid">' + list.map(productCard).join('') + '</div>';
+  };
+
+  views.mode = function () {
+    var m = mode();
+    return '<div class="page-head"><h1>' + esc(m.label) + '</h1><p>' + esc(m.blurb || '') + '</p></div>' + modeSwitchLine() + hubBlock(m);
+  };
+
+  /* ---- AI tool verdict detail ---- */
+  views.verdict = function (params) {
+    var v = (state.verdicts || []).filter(function (x) { return x.id === (params && params.id); })[0];
+    if (!v) return views.empty('Verdict not found');
+    var s = v.scores || {};
+    return '<div class="page-head" style="margin-bottom:12px"><button type="button" class="btn btn-ghost" data-action="nav" data-view="feed">' + icon('back', '') + ' Back</button></div>' +
+      '<div class="card pad" style="max-width:720px">' +
+      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div><h1 style="font-size:30px">' + esc(v.tool) + '</h1><div class="review-date" style="margin-top:2px">' + esc(v.area || '') + ' &middot; tested ' + fmtDate(v.tested || v.created_at || '') + '</div></div>' +
+      '<span style="margin-left:auto;display:flex;align-items:center;gap:10px"><span style="font-weight:800;font-size:24px">' + esc(String(v.avg)) + '</span>' + vBadge(v.verdict) + '</span></div>' +
+      '<div class="review-text" style="margin-top:12px">' + esc(v.task) + '</div>' +
+      '<h3 style="font-size:17px;margin:18px 0 10px">Scorecard</h3>' +
+      '<div class="pm-vscores">' + SK.map(function (k) { return scoreBar(k, s[k] || 0); }).join('') + '</div>' +
+      '<h3 style="font-size:17px;margin:18px 0 8px">The 30-second verdict</h3>' +
+      '<div style="background:var(--white);border:1px solid var(--sand);border-radius:var(--r-md);padding:14px;font-family:var(--serif);font-size:15px;line-height:1.6">' + esc(script30(v)) + '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button type="button" class="btn btn-outline" data-action="verdict-copy" data-id="' + esc(v.id) + '">' + icon('receipt', '') + ' Copy script</button>' +
+      '<button type="button" class="btn btn-danger" data-action="verdict-del" data-id="' + esc(v.id) + '">' + icon('trash', '') + ' Delete</button></div>' +
+      (v.notes ? '<p style="margin-top:14px;color:var(--slate);font-size:13px">' + esc(v.notes) + '</p>' : '') +
+      '</div>';
+  };
+
+  /* ---- AI tool scorecard form ---- */
+  var formScores = null;
+  function scoreRow(k) {
+    var cur = formScores[k] || 0;
+    var btns = '';
+    for (var i = 1; i <= 5; i++) btns += '<button type="button" class="' + (cur === i ? 'on' : '') + '" data-action="score-set" data-k="' + k + '" data-v="' + i + '">' + i + '</button>';
+    return '<div class="field"><label>' + SL[k] + '</label><div class="pm-score">' + btns + '</div></div>';
+  }
+  views.writeVerdict = function () {
+    if (!formScores) formScores = {time_saved: 0, output_quality: 0, ease_of_use: 0, cost_value: 0, work_safety: 0};
+    return '<div class="page-head"><h1>Score a tool</h1><p>Test one AI tool on one real task, rate the scorecard, get a verdict you can say in 30 seconds.</p></div>' +
+      '<div class="card pad" style="max-width:680px">' +
+      '<div class="field"><label>Tool</label><input id="pm-tool" type="text" placeholder="e.g. ChatGPT, Claude, Otter.ai"></div>' +
+      '<div class="field"><label>Work area</label><select id="pm-area">' + AREAS.map(function (a) { return '<option value="' + esc(a) + '">' + esc(a) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label>Task you ran it on</label><input id="pm-task" type="text" placeholder="e.g. draft a follow-up email from my notes"></div>' +
+      '<div style="display:flex;gap:14px;flex-wrap:wrap"><div class="field" style="flex:1;min-width:150px"><label>Minutes with the tool</label><input id="pm-tw" type="number" min="0" placeholder="5"></div>' +
+      '<div class="field" style="flex:1;min-width:150px"><label>Minutes without it</label><input id="pm-two" type="number" min="0" placeholder="45"></div></div>' +
+      '<h3 style="font-size:16px;margin:6px 0 12px">Scorecard (1-5)</h3>' +
+      SK.map(scoreRow).join('') +
+      '<div class="pm-preview" id="pm-preview">' + previewHTML() + '</div>' +
+      '<div class="field" style="margin-top:16px"><label>One thing it got right</label><input id="pm-right" type="text"></div>' +
+      '<div class="field"><label>One thing it got wrong</label><input id="pm-wrong" type="text"></div>' +
+      '<div class="field"><label>Use it for</label><input id="pm-use" type="text"></div>' +
+      '<div class="field"><label>Skip it for</label><input id="pm-skip" type="text"></div>' +
+      '<div class="field"><label>Notes (optional)</label><textarea id="pm-notes"></textarea></div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn btn-ghost" data-action="nav" data-view="feed">Cancel</button>' +
+      '<button type="button" class="btn btn-primary" data-action="verdict-submit">' + icon('check', '') + ' Save verdict</button></div>' +
+      '</div>';
+  };
+  function previewHTML() {
+    var any = SK.some(function (k) { return formScores[k] > 0; });
+    if (!any) return '<span style="color:var(--slate);font-size:13px">' + icon('info', '') + ' Rate the five dimensions to see the verdict compute live.</span>';
+    var r = computeVerdict(formScores);
+    var reason = r.verdict === 'USE' ? 'Saves real time and is safe for work.' : r.verdict === 'WAIT' ? 'Promising but not there yet - revisit in 1-3 months.' : (formScores.work_safety <= 2 ? 'Safety gate: too risky for work use.' : 'Not worth the time or cost right now.');
+    return '<span style="font-weight:800;font-size:22px">' + esc(String(r.avg)) + '</span>' + vBadge(r.verdict) + '<span style="font-size:13px;color:var(--slate)">' + esc(reason) + '</span>';
+  }
+
+  /* ---- category-aware search ---- */
+  views.search = function (params) {
+    var q = (params && params.q) || '';
+    if (!q) return O.search(params);
+    var lower = String(q).toLowerCase();
+    var modes = MODES.filter(function (m) { return m.id !== 'all' && (m.label + ' ' + m.id + ' ' + (m.blurb || '')).toLowerCase().indexOf(lower) >= 0; });
+    var places = (state.places || []).filter(function (p) { return (p.name + ' ' + p.category + ' ' + p.city).toLowerCase().indexOf(lower) >= 0; });
+    var products = (state.products || []).filter(function (p) { return (p.name + ' ' + p.category).toLowerCase().indexOf(lower) >= 0; });
+    var reviews = (state.reviews || []).filter(function (r) { return !r.isOwnerReply && (r.text || '').toLowerCase().indexOf(lower) >= 0; });
+    var verdicts = (state.verdicts || []).filter(function (v) { return (v.tool + ' ' + v.task + ' ' + v.area).toLowerCase().indexOf(lower) >= 0; });
+    var users = (state.users || []).filter(function (u) { return u.id !== state.meId && (u.name + ' ' + u.bio).toLowerCase().indexOf(lower) >= 0; });
+    var total = modes.length + places.length + products.length + reviews.length + verdicts.length + users.length;
+    return '<div class="page-head"><h1>Search results</h1><p>' + total + ' result' + (total !== 1 ? 's' : '') + ' for "' + esc(q) + '"</p></div>' +
+      (modes.length ? '<h2 style="font-size:18px;margin:18px 0 12px">Categories (' + modes.length + ')</h2><div class="col-grid">' + modes.map(function (m) { return '<div class="col-card" data-action="mode-select" data-val="' + esc(m.id) + '" style="cursor:pointer"><h3>' + esc(m.label) + '</h3><div class="meta">' + esc(m.blurb || '') + '</div></div>'; }).join('') + '</div>' : '') +
+      (verdicts.length ? '<h2 style="font-size:18px;margin:18px 0 12px">AI tools (' + verdicts.length + ')</h2><div class="feed-grid">' + verdicts.map(verdictCard).join('') + '</div>' : '') +
+      (places.length ? '<h2 style="font-size:18px;margin:18px 0 12px">Places (' + places.length + ')</h2><div class="feed-grid">' + places.map(function (p) { return '<div class="feed-card" data-action="open-place" data-id="' + esc(p.id) + '" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px"><div style="width:72px;height:72px;flex:none;border-radius:8px;overflow:hidden">' + photoTag(p.id, '', '') + '</div><div style="flex:1;min-width:0"><div style="font-weight:600">' + esc(p.name) + '</div><div class="review-date">' + esc(p.category) + ' - ' + esc(p.city) + ', ' + esc(p.country) + '</div><div>' + stars(p.rating) + '</div></div>' + icon('chevronRight', '') + '</div>'; }).join('') + '</div>' : '') +
+      (products.length ? '<h2 style="font-size:18px;margin:18px 0 12px">Products (' + products.length + ')</h2><div class="market-grid">' + products.map(productCard).join('') + '</div>' : '') +
+      (reviews.length ? '<h2 style="font-size:18px;margin:18px 0 12px">Reviews (' + reviews.length + ')</h2><div class="feed-grid">' + reviews.slice(0, 10).map(function (r) { return '<div class="feed-card" data-action="open-place" data-id="' + esc(r.placeId) + '" style="cursor:pointer"><div class="review-text">' + esc((r.text || '').slice(0, 120)) + (r.text.length > 120 ? '...' : '') + '</div><div class="review-date">at ' + esc((placeById(r.placeId) || {}).name || '') + '</div></div>'; }).join('') + '</div>' : '') +
+      (users.length ? '<h2 style="font-size:18px;margin:18px 0 12px">People (' + users.length + ')</h2><div class="feed-grid">' + users.map(function (u) { return '<div class="feed-card" data-action="nav" data-view="profile" data-id="' + esc(u.id) + '" style="cursor:pointer;display:flex;align-items:center;gap:12px">' + avatarFor(u.name, 'sm') + '<div><div style="font-weight:600">' + esc(u.name) + '</div><div class="review-date">' + esc(u.bio || '') + '</div></div></div>'; }).join('') + '</div>' : '') +
+      (total === 0 ? '<div class="empty">' + icon('search', 'xl') + '<h3>No results</h3><p>Try different keywords or a category name.</p></div>' : '');
+  };
+
+  /* desktop live search dropdown */
+  if (typeof runSearch === 'function') {
+    runSearch = function (q) {
+      if (!q) { $$('.search-results').forEach(function (e) { e.hidden = true; }); return; }
+      var lower = String(q).toLowerCase();
+      var matches = [];
+      MODES.forEach(function (m) { if (m.id !== 'all' && (m.label + ' ' + m.id).toLowerCase().indexOf(lower) >= 0) matches.push({kind: 'Category', label: m.label, action: 'mode-select', id: m.id, val: m.id}); });
+      (state.places || []).forEach(function (p) { if ((p.name + ' ' + p.category + ' ' + p.city).toLowerCase().indexOf(lower) >= 0) matches.push({kind: 'Place', label: p.name, action: 'open-place', id: p.id}); });
+      (state.products || []).forEach(function (p) { if ((p.name + ' ' + p.category).toLowerCase().indexOf(lower) >= 0) matches.push({kind: 'Product', label: p.name, action: 'open-product', id: p.id}); });
+      (state.verdicts || []).forEach(function (v) { if ((v.tool + ' ' + v.task).toLowerCase().indexOf(lower) >= 0) matches.push({kind: 'AI tool', label: v.tool, action: 'open-verdict', id: v.id}); });
+      (state.reviews || []).forEach(function (r) { if ((r.text || '').toLowerCase().indexOf(lower) >= 0) matches.push({kind: 'Review', label: (r.text || '').slice(0, 60) + (r.text.length > 60 ? '...' : ''), action: 'open-place', id: r.placeId}); });
+      var box = document.getElementById('search-results');
+      if (!box) return;
+      if (!matches.length) { box.innerHTML = '<div class="search-result">No matches for "' + esc(q) + '"</div>'; box.hidden = false; return; }
+      var ic = function (k) { return k === 'Category' ? 'search' : k === 'Product' ? 'market' : k === 'AI tool' ? 'about' : k === 'Review' ? 'feedback' : 'place'; };
+      var html = matches.slice(0, 8).map(function (m) {
+        return '<div class="search-result" data-action="' + esc(m.action) + '" data-id="' + esc(m.id) + '"' + (m.val ? ' data-val="' + esc(m.val) + '"' : '') + '>' + icon(ic(m.kind), '') + '<span>' + esc(m.label) + '</span><span class="sr-kind">' + esc(m.kind) + '</span></div>';
+      }).join('');
+      if (matches.length > 8) html += '<div class="search-result" data-action="see-all-results" data-q="' + esc(q) + '">' + icon('search', '') + '<span>See all ' + matches.length + ' results</span></div>';
+      box.innerHTML = html; box.hidden = false;
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 7. SEED + RENDER OVERRIDES                                          */
+  /* ------------------------------------------------------------------ */
+  if (typeof seed === 'function') {
+    var _seed = seed;
+    seed = function () {
+      var s = _seed();
+      if (!s.mode) s.mode = 'all';
+      if (!s.verdicts) s.verdicts = seedVerdicts();
+      if (!s.feedFilter) s.feedFilter = 'Following';
+      if (!s.votes) s.votes = {};
+      mergeExtras(s);
+      return s;
+    };
+  }
+
+  var _render = render;
+  render = function () {
+    _render();
+    renderModeBar();
+    var fab = document.getElementById('fab');
+    if (fab) {
+      var m = mode();
+      if (m.kind === 'tool' && (currentView === 'feed' || currentView === 'map' || currentView === 'writeVerdict')) fab.classList.remove('hide');
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* 8. ACTIONS                                                          */
+  /* ------------------------------------------------------------------ */
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
+    if (!t) return;
+    var a = t.getAttribute('data-action');
+    if (a === 'mode-select') {
+      e.preventDefault(); e.stopPropagation();
+      closeModal(); setMode(t.getAttribute('data-val'));
+    } else if (a === 'mode-picker') {
+      e.preventDefault(); e.stopPropagation(); openModePicker();
+    } else if (a === 'open-verdict') {
+      e.preventDefault(); e.stopPropagation(); navigate('verdict', {id: t.getAttribute('data-id')});
+    } else if (a === 'pm-write') {
+      e.preventDefault(); e.stopPropagation();
+      var m2 = mode();
+      if (m2.kind === 'tool') navigate('writeVerdict'); else navigate('writeReview');
+    } else if (a === 'score-set') {
+      e.preventDefault(); e.stopPropagation();
+      if (!formScores) formScores = {time_saved: 0, output_quality: 0, ease_of_use: 0, cost_value: 0, work_safety: 0};
+      var k = t.getAttribute('data-k');
+      formScores[k] = parseInt(t.getAttribute('data-v'), 10) || 0;
+      var row = t.parentNode;
+      for (var i = 0; i < row.children.length; i++) row.children[i].classList.remove('on');
+      t.classList.add('on');
+      var pv = document.getElementById('pm-preview'); if (pv) pv.innerHTML = previewHTML();
+    } else if (a === 'verdict-submit') {
+      e.preventDefault(); e.stopPropagation(); submitVerdict();
+    } else if (a === 'verdict-del') {
+      e.preventDefault(); e.stopPropagation();
+      var id = t.getAttribute('data-id');
+      state.verdicts = (state.verdicts || []).filter(function (x) { return x.id !== id; });
+      saveState(state); navigate('feed'); toast('Verdict deleted.', 'trash');
+    } else if (a === 'verdict-copy') {
+      e.preventDefault(); e.stopPropagation();
+      var v = (state.verdicts || []).filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
+      if (v) {
+        var txt = script30(v);
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { toast('Script copied.', 'check'); }, function () { toast('Copy failed - select and copy manually.', 'info'); });
+        else toast('Copy not available in this browser.', 'info');
+      }
+    }
+  }, true);
+
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  function num(id) { var v = val(id); return v === '' ? null : parseInt(v, 10); }
+  function submitVerdict() {
+    var tool = val('pm-tool'), task = val('pm-task');
+    if (!tool) { toast('Give the tool a name.', 'info'); return; }
+    if (!task) { toast('Describe the task you ran it on.', 'info'); return; }
+    var s = formScores || {};
+    var r = computeVerdict(s);
+    var rec = {
+      id: nid('v'), tool: tool, task: task, area: val('pm-area'), category: val('pm-area'),
+      scores: {time_saved: s.time_saved || 0, output_quality: s.output_quality || 0, ease_of_use: s.ease_of_use || 0, cost_value: s.cost_value || 0, work_safety: s.work_safety || 0},
+      avg: r.avg, verdict: r.verdict, time_with_min: num('pm-tw'), time_without_min: num('pm-two'),
+      one_right: val('pm-right') || 'n/a', one_wrong: val('pm-wrong') || 'n/a', use_it_for: val('pm-use') || 'n/a', skip_it_for: val('pm-skip') || 'n/a',
+      affiliate: '', tested: new Date().toISOString().slice(0, 10), notes: val('pm-notes'), created_at: new Date().toISOString()
+    };
+    if (!state.verdicts) state.verdicts = [];
+    state.verdicts.unshift(rec);
+    saveState(state);
+    formScores = null;
+    toast('Verdict saved: ' + r.verdict, 'check');
+    navigate('verdict', {id: rec.id});
+  }
+
+  /* write button routing (desktop #write-btn handled by app; intercept for tool modes) */
+  document.addEventListener('click', function (e) {
+    var wb = e.target && e.target.closest ? (e.target.closest('#write-btn') || e.target.closest('#fab')) : null;
+    if (!wb) return;
+    if (mode().kind === 'tool') { e.preventDefault(); e.stopPropagation(); navigate('writeVerdict'); }
+  }, true);
+
+  /* ------------------------------------------------------------------ */
+  /* 8b. SERVER AUTH BRIDGE (optional; falls back to the offline gate)    */
+  /* ------------------------------------------------------------------ */
+  var _http = (typeof fetch !== 'undefined') ? fetch : null;
+  var SERVER_OK = false;
+  function probeServer() {
+    if (!_http) return;
+    try {
+      _http('api/health').then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.status === 'ok') SERVER_OK = true;
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function authTab() { var t = document.querySelector('[data-auth-tab].active'); return t ? t.getAttribute('data-auth-tab') : 'signin'; }
+  function authError(msg) { var el = document.getElementById('auth-error'); if (el) { el.textContent = msg; el.hidden = false; } }
+  function authApply(email, name) {
+    var users = state.users || [], me = null;
+    for (var i = 0; i < users.length; i++) if (users[i].id === state.meId) { me = users[i]; break; }
+    var display = (name && name.trim()) ? name.trim() : ((me && me.name) || 'Ana Costa');
+    if (me && name && name.trim()) me.name = display;
+    if (state.me) state.me.name = display;
+    state.auth = {signedIn: true, email: email, name: display, at: new Date().toISOString()};
+    saveState(state);
+    var gate = document.getElementById('auth-gate'); if (gate) gate.classList.remove('show');
+    document.body.classList.remove('locked');
+    try { renderSidebar(); } catch (e) {}
+    try { render(); } catch (e) {}
+    toast('Signed in as ' + display, 'check');
+  }
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f || f.id !== 'auth-form' || !SERVER_OK) return;
+    e.preventDefault(); e.stopPropagation();
+    var tab = authTab();
+    var email = (val('auth-email') || '').trim();
+    var pass = val('auth-pass');
+    var name = (val('auth-name') || '').trim();
+    if (tab === 'create' && !name) { authError('Please enter your name.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authError('Please enter a valid email address.'); return; }
+    if (pass.length < 6) { authError('Password must be at least 6 characters.'); return; }
+    var el = document.getElementById('auth-error'); if (el) el.hidden = true;
+    _http('api/auth', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: tab === 'create' ? 'signup' : 'signin', email: email, password: pass, name: name})
+    })
+      .then(function (r) { return r.json().then(function (d) { return {ok: r.ok, d: d}; }); })
+      .then(function (res) { if (res.ok) authApply(email, tab === 'create' ? name : ''); else authError((res.d && res.d.error) || 'Could not sign in.'); })
+      .catch(function () { authError('Server unreachable - try again.'); });
+  }, true);
+  var _logout = window.peersLogout;
+  window.peersLogout = function () {
+    if (SERVER_OK && _http) {
+      try { _http('api/auth', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'logout'})}).catch(function () {}); } catch (e) {}
+    }
+    if (typeof _logout === 'function') { _logout(); }
+    else { state.auth = null; saveState(state); var g = document.getElementById('auth-gate'); if (g) g.classList.add('show'); }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* 9. MOBILE SEARCH OVERLAY (category-aware)                           */
+  /* ------------------------------------------------------------------ */
+  if (IS_MOBILE) {
+    var si = document.getElementById('search-overlay-input');
+    if (si) {
+      si.addEventListener('input', function () {
+        var q = si.value.toLowerCase().trim();
+        setTimeout(function () {
+          var box = document.getElementById('search-overlay-results');
+          if (!box || !q) return;
+          var hits = MODES.filter(function (m) { return m.id !== 'all' && (m.label + ' ' + m.id).toLowerCase().indexOf(q) >= 0; });
+          if (!hits.length) return;
+          var card = '<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Categories</div>' +
+            hits.map(function (m) { return '<div class="feed-card" data-action="mode-select" data-val="' + esc(m.id) + '" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px">' + icon(m.icon, '') + '<div><div style="font-weight:600">' + esc(m.label) + '</div><div class="review-date">' + esc(m.blurb || '') + '</div></div>' + icon('chevronRight', '') + '</div>'; }).join('') + '</div>';
+          box.insertAdjacentHTML('afterbegin', card);
+        }, 0);
+      }, true);
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 10. INIT                                                            */
+  /* ------------------------------------------------------------------ */
+  function init() {
+    ensureData();
+    probeServer();
+    injectStyles();
+    injectBar();
+    renderModeBar();
+    try { render(); } catch (err) {}
+  }
+  /* The app's own loadState() seeds BEFORE this module runs, so a fresh
+     visitor has no verdicts/mode yet. Backfill them once. */
+  function ensureData() {
+    var changed = false;
+    if (!state.mode) { state.mode = 'all'; changed = true; }
+    if (typeof state.verdicts === 'undefined') { state.verdicts = seedVerdicts(); changed = true; }
+    if (typeof state.votes === 'undefined') { state.votes = {}; changed = true; }
+    if (typeof state.feedFilter === 'undefined') { state.feedFilter = 'Following'; changed = true; }
+    var before = extrasCount(state);
+    mergeExtras(state);
+    if (extrasCount(state) !== before) changed = true;
+    if (changed && typeof saveState === 'function') saveState(state);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+</script>
 </body>
 </html>
 </html>

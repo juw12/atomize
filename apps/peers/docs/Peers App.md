@@ -102,6 +102,27 @@ Logo: two overlapping circles + "Peers". Typography: readable **serif** for head
 
 ---
 
+## Categories (modes)
+
+Peers is a multi-category app. A category switcher (the pill row under the header / app bar,
+or **All categories** → searchable picker) scopes the entire interface to one vertical: the
+**feed**, **explore**, the **write** form and the **market** all become about that category.
+
+The **AI Tools** category merges the *Desk Verdict* scorecard: rate a tool 1–5 on time saved,
+output quality, ease of use, cost vs value and work safety, and get a computed
+**Use it / Wait / Skip** verdict (work safety ≤ 2 is a hard Skip). Each AI verdict carries a
+scorecard breakdown and a copyable "30-second script".
+
+Categories shipped (32, including **All**): Food & Drink, Travel & Stays, Shops & Retail,
+Home Services, Health & Wellness, Beauty & Personal Care, Auto & EV, Real Estate, Pets,
+Kids & Care, Fitness & Sport, Events & Fun, Groceries, Learning, Public Services, Nonprofits,
+AI Tools, Software & SaaS, Money & Finance, Apps & Marketplaces, Telecom & Internet,
+Streaming & Media, Freelancers & Agencies, Peers Market, Gadgets & Electronics, Home & Garden,
+Fashion & Apparel, Baby & Maternity, Books & Stationery, Gifts & Handmade, Wellness & Nutrition.
+
+Categories with no reviews yet render a hub that describes what people review there and its
+market, with a "write the first review" call to action.
+
 ## Screenshots
 
 ### Feed

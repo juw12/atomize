@@ -26,8 +26,9 @@ REQUIRED_STATE_KEYS = [
     "meId", "me", "language", "country", "currency", "currencySymbol",
     "timezone", "users", "places", "reviews", "collections", "sellers",
     "products", "productReviews", "orders", "complaints", "reports",
-    "cart", "following", "visited", "translations", "notifications",
-    "threads", "subscriptions", "auth", "placeTab", "mapFilter", "marketSort"
+    "cart", "following", "visited", "votes", "translations", "feedFilter",
+    "notifications", "threads", "subscriptions", "verdicts", "auth",
+    "placeTab", "mapFilter", "marketSort", "mode"
 ]
 
 

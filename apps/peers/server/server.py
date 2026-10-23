@@ -71,142 +71,121 @@ LS_KEY_MOBILE = "peers_mobile_v1"
 
 
 def build_seed_state() -> dict:
-    """Return the full first-run seed document for the Peers app."""
+    """Return the full first-run seed document for the Peers app.
+
+    Field names and the category vocabulary deliberately match the front-end
+    seed() exactly (places use Food/Travel/Shops, reviews use authorId, products
+    carry rating/desc, notifications use `at`, ...) so that a server-served
+    session renders the same app the offline build does.
+    """
     return {
-        "meId": "user_demo_001",
-        "me": {
-            "name": "Demo User",
-            "id": "user_demo_001",
-            "bio": "Exploring places and trying new foods. Love photography and travel."
-        },
+        "meId": "u_me",
+        "me": {"name": "Demo User", "id": "u_me"},
         "language": "en",
         "country": "US",
         "currency": "USD",
         "currencySymbol": "$",
         "timezone": "America/New_York",
         "users": [
-            {"id": "user_demo_001", "name": "Demo User", "avatar": ""},
-            {"id": "user_002", "name": "Alice Chen", "avatar": ""},
-            {"id": "user_003", "name": "Bob Martinez", "avatar": ""},
+            {"id": "u_me", "name": "Demo User", "bio": "Exploring places and trying new foods.",
+             "followers": 0, "followingCount": 2, "fans": 0, "fanPrice": 0, "points": 50,
+             "avatar": "DU", "role": "reviewer", "tier": "free"},
+            {"id": "u_002", "name": "Alice Chen", "bio": "Coffee and city walks.", "followers": 320,
+             "followingCount": 41, "fans": 8, "fanPrice": 5, "points": 210, "avatar": "AC",
+             "role": "reviewer", "tier": "free"},
+            {"id": "u_003", "name": "Bob Martinez", "bio": "Weekend explorer.", "followers": 180,
+             "followingCount": 30, "fans": 4, "fanPrice": 5, "points": 140, "avatar": "BM",
+             "role": "reviewer", "tier": "free"},
         ],
         "places": [
-            {
-                "id": "place_001",
-                "name": "Central Park Cafe",
-                "lat": 40.785091,
-                "lng": -73.968285,
-                "address": "Central Park, New York, NY",
-                "rating": 4.5,
-                "reviewCount": 128,
-                "category": "cafe",
-                "photos": [],
-                "description": "Cozy cafe with great coffee and park views."
-            },
-            {
-                "id": "place_002",
-                "name": "Brooklyn Bridge Park",
-                "lat": 40.702324,
-                "lng": -73.996864,
-                "address": "Brooklyn, NY",
-                "rating": 4.8,
-                "reviewCount": 256,
-                "category": "park",
-                "photos": [],
-                "description": "Waterfront park with stunning Manhattan views."
-            },
+            {"id": "p_001", "name": "Central Park Cafe", "category": "Food", "city": "New York",
+             "country": "United States", "rating": 4.5, "reviews": 128, "hours": "07:00 - 19:00",
+             "price": "$$", "location": "Central Park, New York, NY", "ownerId": None, "follows": False},
+            {"id": "p_002", "name": "Brooklyn Bridge Park", "category": "Travel", "city": "New York",
+             "country": "United States", "rating": 4.8, "reviews": 256, "hours": "06:00 - 01:00",
+             "price": "Free", "location": "Brooklyn, NY", "ownerId": None, "follows": False},
         ],
         "reviews": [
-            {
-                "id": "review_001",
-                "placeId": "place_001",
-                "userId": "user_002",
-                "rating": 5,
-                "text": "Amazing coffee and atmosphere!",
-                "date": "2026-10-15T14:30:00Z",
-                "photos": []
-            },
-            {
-                "id": "review_002",
-                "placeId": "place_002",
-                "userId": "user_003",
-                "rating": 4,
-                "text": "Great for weekend walks. Can get crowded.",
-                "date": "2026-10-18T10:00:00Z",
-                "photos": []
-            },
+            {"id": "r_001", "placeId": "p_001", "authorId": "u_002", "rating": 5,
+             "text": "Amazing coffee and atmosphere!", "tags": ["coffee"], "photos": 0, "likes": 12,
+             "dislikes": 0, "lang": "en", "state": "Verified: receipt",
+             "date": "2026-10-15T14:30:00Z", "affiliate": None, "verifiedType": "receipt"},
+            {"id": "r_002", "placeId": "p_002", "authorId": "u_003", "rating": 4,
+             "text": "Great for weekend walks. Can get crowded.", "tags": ["walk"], "photos": 0,
+             "likes": 7, "dislikes": 0, "lang": "en", "state": "Unverified",
+             "date": "2026-10-18T10:00:00Z", "affiliate": None},
         ],
         "collections": [
-            {
-                "id": "collection_001",
-                "name": "NYC Favorites",
-                "userId": "user_demo_001",
-                "placeIds": ["place_001", "place_002"],
-                "created": "2026-10-01T00:00:00Z"
-            },
+            {"id": "k_001", "name": "NYC Favorites", "by": "u_me", "items": ["p_001", "p_002"], "public": True},
         ],
         "sellers": [
-            {
-                "id": "seller_001",
-                "name": "Artisan Goods Co",
-                "userId": "user_002",
-                "rating": 4.7,
-                "productCount": 24
-            },
+            {"id": "s_001", "name": "Artisan Goods Co", "bio": "Small-batch handmade goods.", "followers": 240},
         ],
         "products": [
-            {
-                "id": "product_001",
-                "sellerId": "seller_001",
-                "name": "Handmade Ceramic Mug",
-                "price": 28.00,
-                "currency": "USD",
-                "description": "Beautiful handcrafted ceramic mug.",
-                "photos": [],
-                "category": "home"
-            },
+            {"id": "pr_001", "name": "Handmade Ceramic Mug", "sellerId": "s_001", "category": "gifts",
+             "price": 28.0, "photo": "Photo", "desc": "Beautiful handcrafted ceramic mug.",
+             "rating": 4.7, "reviews": 24, "sponsored": False},
         ],
         "productReviews": [
-            {
-                "id": "prev_001",
-                "productId": "product_001",
-                "userId": "user_demo_001",
-                "rating": 5,
-                "text": "Love this mug! Perfect size and weight.",
-                "date": "2026-10-20T09:00:00Z"
-            },
+            {"id": "prv_001", "productId": "pr_001", "authorId": "u_me", "rating": 5,
+             "text": "Love this mug! Perfect size and weight.", "likes": 3, "dislikes": 0,
+             "date": "2026-10-20T09:00:00Z", "state": "Verified: Peers order"},
         ],
         "orders": [
-            {
-                "id": "order_001",
-                "userId": "user_demo_001",
-                "sellerId": "seller_001",
-                "productIds": ["product_001"],
-                "total": 28.00,
-                "status": "delivered",
-                "date": "2026-10-10T00:00:00Z"
-            },
+            {"id": "o_001", "buyer": "u_me", "items": [{"id": "pr_001", "qty": 1}],
+             "status": "Delivered", "date": "2026-10-10T00:00:00Z",
+             "tracking": [{"t": "Order confirmed", "d": "2026-10-10T00:00:00Z"},
+                          {"t": "Delivered", "d": "2026-10-14T00:00:00Z"}]},
         ],
         "complaints": [],
         "reports": [],
         "cart": [],
-        "following": ["user_002", "user_003"],
-        "visited": ["place_001"],
+        "following": ["u_002", "u_003"],
+        "visited": ["p_001"],
+        "votes": {},
         "translations": {},
+        "feedFilter": "Following",
+        "mapFilter": "All",
+        "marketSort": "default",
+        "mode": "all",
         "notifications": [
-            {
-                "id": "notif_001",
-                "type": "review",
-                "text": "Alice Chen reviewed Central Park Cafe",
-                "date": "2026-10-15T14:30:00Z",
-                "read": False
-            },
+            {"id": "n_001", "type": "follower", "text": "Alice Chen started following you",
+             "at": "2026-10-15T14:30:00Z", "read": False},
         ],
         "threads": [],
         "subscriptions": [],
+        "verdicts": [
+            {"id": "v_chatgpt", "tool": "ChatGPT",
+             "task": "Turn messy meeting notes into a follow-up email", "area": "admin", "category": "admin",
+             "scores": {"time_saved": 5, "output_quality": 4, "ease_of_use": 5, "cost_value": 3, "work_safety": 4},
+             "avg": 4.2, "verdict": "USE", "time_with_min": 5, "time_without_min": 45,
+             "one_right": "a clean, ready-to-send email in one pass",
+             "one_wrong": "invented a deadline I never mentioned",
+             "use_it_for": "meeting recaps and follow-up emails",
+             "skip_it_for": "anything with legal or HR confidentiality",
+             "affiliate": "", "tested": "2026-10-20", "notes": "", "created_at": "2026-10-20T00:00:00Z"},
+            {"id": "v_claude", "tool": "Claude Projects",
+             "task": "Draft a project plan from a brief and some notes", "area": "project-management",
+             "category": "project-management",
+             "scores": {"time_saved": 5, "output_quality": 5, "ease_of_use": 4, "cost_value": 4, "work_safety": 4},
+             "avg": 4.4, "verdict": "USE", "time_with_min": 20, "time_without_min": 120,
+             "one_right": "structure and milestones right out of the gate",
+             "one_wrong": "missed two dependencies I had to add by hand",
+             "use_it_for": "planning and long-document edits",
+             "skip_it_for": "final sign-off without a human review",
+             "affiliate": "", "tested": "2026-10-17", "notes": "", "created_at": "2026-10-17T00:00:00Z"},
+            {"id": "v_otter", "tool": "Otter.ai",
+             "task": "Transcribe a sales call and pull action items", "area": "sales", "category": "sales",
+             "scores": {"time_saved": 4, "output_quality": 3, "ease_of_use": 5, "cost_value": 3, "work_safety": 2},
+             "avg": 3.4, "verdict": "SKIP", "time_with_min": 10, "time_without_min": 40,
+             "one_right": "fast, readable transcript",
+             "one_wrong": "joins calls and records without warning the other side",
+             "use_it_for": "internal notes with consent",
+             "skip_it_for": "client calls without disclosure",
+             "affiliate": "", "tested": "2026-10-11", "notes": "", "created_at": "2026-10-11T00:00:00Z"},
+        ],
         "auth": {},
-        "placeTab": "about",
-        "mapFilter": "all",
-        "marketSort": "popular"
+        "placeTab": "reviews",
     }
 
 
@@ -246,8 +225,9 @@ def init_db() -> None:
         "meId", "me", "language", "country", "currency", "currencySymbol",
         "timezone", "users", "places", "reviews", "collections", "sellers",
         "products", "productReviews", "orders", "complaints", "reports",
-        "cart", "following", "visited", "translations", "notifications",
-        "threads", "subscriptions", "auth", "placeTab", "mapFilter", "marketSort"
+        "cart", "following", "visited", "votes", "translations", "feedFilter",
+        "notifications", "threads", "subscriptions", "verdicts", "auth",
+        "placeTab", "mapFilter", "marketSort", "mode"
     ]
     missing = [name for name in all_keys if name not in existing]
     if missing:

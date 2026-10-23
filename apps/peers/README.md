@@ -162,6 +162,37 @@ apps/peers/
   README.md
 ```
 
+## Categories (modes) + AI Tools
+
+Peers now works as a **multi-category app**. A category switcher (the pill row under the
+header / app bar, or **All categories**) scopes the whole interface — feed, explore, writing
+and the market — to one vertical. Pick a category and every screen becomes about it.
+
+The **AI Tools** mode merges the *Desk Verdict* AI-tool scorecard: score a tool on a real
+work task across five dimensions (time saved, output quality, ease of use, cost vs value,
+work safety) and get a **Use it / Wait / Skip** verdict (work safety is a hard gate at ≤ 2).
+
+The taxonomy lives in `web/index.html` / `web/mobile.html` as the appended `MODES` module
+(a second `<script>` block before `</body>`). It overrides app globals
+(`seed`, `views.feed` / `views.map` / `views.market` / `views.search`, `render`, `runSearch`)
+and injects its own markup and CSS at runtime — the original script is not edited.
+
+### Categories (32)
+
+- **Places:** Food & Drink · Travel & Stays · Shops & Retail · Home Services · Health & Wellness · Beauty & Personal Care · Auto & EV · Real Estate · Pets · Kids & Care · Fitness & Sport · Events & Fun · Groceries · Learning · Public Services · Nonprofits
+- **Tools & services:** AI Tools · Software & SaaS · Money & Finance · Apps & Marketplaces · Telecom & Internet · Streaming & Media · Freelancers & Agencies
+- **Products (Peers Market):** Peers Market · Gadgets & Electronics · Home & Garden · Fashion & Apparel · Baby & Maternity · Books & Stationery · Gifts & Handmade · Wellness & Nutrition
+- Plus **All** (everything).
+
+Every category describes what people review there and its market, and any category with no
+reviews yet shows a "be the first to review" hub. Searching a category name (e.g. "doctors",
+"hotels", "AI tools") surfaces a **Jump to category** result.
+
+### New state keys
+
+`mode` (active category) and `verdicts` (AI tool scorecard records) join the state document,
+alongside `votes` and `feedFilter`; all four are in the server seed and the required-key list.
+
 ## Roadmap
 
 ### Current State (v0.6)
