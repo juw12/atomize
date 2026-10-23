@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 config.json
 *.log
+scripts/local-env.ps1

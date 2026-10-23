@@ -13,6 +13,10 @@ $ErrorActionPreference = "Stop"
 $env:PYTHONUTF8       = "1"
 $env:PYTHONIOENCODING = "utf-8"
 
+# Load local gateway settings if present (git-ignored; see scripts/local-env.ps1).
+$localEnv = Join-Path $PSScriptRoot "local-env.ps1"
+if (Test-Path $localEnv) { . $localEnv }
+
 # app.py lives one level up from scripts/.
 $appDir = Split-Path -Parent $PSScriptRoot
 Set-Location $appDir

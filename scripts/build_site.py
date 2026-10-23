@@ -69,6 +69,11 @@ APPS = [
         "desc": "\"The Morning Paper\" — always-on-top Pomodoro timer + soundscapes + app tracking + coaching",
         "links": [("Overview", "productivity-widget/")],
     },
+    {
+        "name": "Lingua",
+        "desc": "Live-translated Microsoft Teams captions in an always-on-top overlay",
+        "links": [("Overview", "lingua/")],
+    },
 ]
 
 
@@ -242,6 +247,7 @@ def main():
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
         ("productivity-widget", "productivity-widget"),
+        ("lingua", "lingua"),
     ]
 
     for app_name, site_subdir in apps_config:

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lingua — Teams live translation</title>
+  <meta name="description" content="Lingua floats a translated-caption window over Microsoft Teams — screen-reads the caption strip, OCRs it, and translates it as the speaker talks.">
+  <style>
+    :root{
+      --paper:#faf8f3; --outer:#f0ede6; --ink:#1a1a1a; --ink-light:#4a4a4a; --muted:#6b6b6b;
+      --accent:#8b1a1a; --border:#d4cfc7; --border-light:#e8e4dc;
+      --serif:Georgia,'Times New Roman',serif; --sans:'Segoe UI',Arial,sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--outer);color:var(--ink);font-family:var(--serif);line-height:1.6;padding:40px 20px}
+    .wrap{max-width:820px;margin:0 auto;background:var(--paper);border:1px solid var(--border);border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:40px}
+    .eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--accent)}
+    h1{font-size:2.4rem;margin:.2em 0 .1em}
+    .tag{color:var(--ink-light);font-size:1.05rem}
+    .rule{height:3px;background:var(--accent);border:0;margin:18px 0}
+    .diagram{display:block;width:100%;height:auto;margin:22px 0;border:1px solid var(--border);border-radius:4px;background:#fff}
+    h2{font-size:1rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);border-bottom:3px double var(--ink);padding-bottom:6px;margin:28px 0 10px;font-family:var(--sans)}
+    ul{margin-left:1.1em}
+    li{margin:.3em 0}
+    code{font-family:'Courier New',monospace;background:#fff;border:1px solid var(--border-light);padding:.1em .35em;border-radius:3px;font-size:.92em}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+    a.btn{font-family:var(--sans);font-weight:600;font-size:.9rem;text-decoration:none;padding:10px 16px;border:1px solid var(--accent);border-radius:4px;color:var(--accent)}
+    a.btn.primary{background:var(--accent);color:#fff}
+    footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border-light);color:var(--muted);font-size:.85rem;font-family:var(--sans)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">Always-on-top overlay</p>
+    <h1>Lingua</h1>
+    <p class="tag">Teams talks. You read along, translated.</p>
+    <hr class="rule">
+
+    <svg class="diagram" viewBox="0 0 760 120" role="img" aria-label="Pipeline: screen region, OCR, translate, overlay">
+      <g font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#1a1a1a">
+        <rect x="10"  y="40" width="150" height="46" rx="4" fill="#faf8f3" stroke="#1a1a1a" stroke-width="1.5"/>
+        <rect x="210" y="40" width="150" height="46" rx="4" fill="#faf8f3" stroke="#1a1a1a" stroke-width="1.5"/>
+        <rect x="410" y="40" width="150" height="46" rx="4" fill="#faf8f3" stroke="#1a1a1a" stroke-width="1.5"/>
+        <rect x="610" y="40" width="140" height="46" rx="4" fill="#8b1a1a" stroke="#8b1a1a" stroke-width="1.5"/>
+        <text x="85"  y="68" text-anchor="middle">Screen region</text>
+        <text x="285" y="68" text-anchor="middle">OCR</text>
+        <text x="485" y="68" text-anchor="middle">Translate</text>
+        <text x="680" y="68" text-anchor="middle" fill="#fff">Overlay</text>
+        <g stroke="#8b1a1a" stroke-width="2" fill="none">
+          <path d="M162 63 h44" marker-end="url(#a)"/>
+          <path d="M362 63 h44" marker-end="url(#a)"/>
+          <path d="M562 63 h44" marker-end="url(#a)"/>
+        </g>
+        <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#8b1a1a"/></marker></defs>
+      </g>
+    </svg>
+
+    <h2>How it works</h2>
+    <ul>
+      <li><strong>Screen-read, not hooked</strong> — Teams has no public caption API, so Lingua grabs the pixels of the region where Teams draws captions (crop downscaled to 640&nbsp;px for speed).</li>
+      <li><strong>Change detection</strong> — a perceptual hash skips OCR + translate when the caption strip is unchanged, so idle time costs nothing.</li>
+      <li><strong>Two-stage pipeline</strong> — OCR, then translate, on a background worker; the UI never blocks.</li>
+      <li><strong>Running transcript</strong> — a single always-on-top window holds the controls and the live, auto-scrolling transcript.</li>
+      <li><strong>Light / dark theme</strong>, selectable source/target languages, opacity, font size and click-through.</li>
+    </ul>
+
+    <h2>Run it</h2>
+    <ul>
+      <li><code>python app.py</code> (or <code>scripts\run.ps1</code>)</li>
+      <li>Gateway endpoints + models are configured via environment variables — see the README.</li>
+    </ul>
+
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/juwpegatron/projects/tree/main/apps/lingua">Source on GitHub</a>
+      <a class="btn" href="../">Back to projects</a>
+    </div>
+    <footer>Python 3 &middot; tkinter &middot; Pillow &middot; requests — screen-region capture &rarr; OCR &rarr; translate &rarr; overlay.</footer>
+  </div>
+</body>
+</html>
