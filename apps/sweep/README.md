@@ -12,6 +12,20 @@ The **`/sweep`** pipeline — one command, two modes. (Renamed from the old `/up
 Command: [`../../.opencode/command/sweep.md`](../../.opencode/command/sweep.md).
 Product plan (PRD + architecture + MVP): [`docs/Sweep-App-Plan.md`](docs/Sweep-App-Plan.md).
 
+## The app (`web/`)
+
+A **static, offline-first** single-page app that walks the front half of the
+pipeline: **local workspace (login)** → **idea brief** → **generated plan**
+(capability matrix + Definition of Done + phases) → **scaffold preview** →
+**catalog**, plus an in-app **How-to-use** guide. Morning Paper theme, light/dark.
+
+- Open it: `apps/sweep/web/index.html` (works from `file://` — no server).
+- Live: https://juwpegatron.github.io/projects/sweep/
+- Spec: [`docs/BRIEF.md`](docs/BRIEF.md) · PRD: [`docs/Sweep-App-Plan.md`](docs/Sweep-App-Plan.md)
+- Zero deps, no network: all state lives in `localStorage`; the workspace gate
+  encrypts local data with WebCrypto (PBKDF2 → AES-GCM) when available, otherwise
+  it falls back to a clearly labeled unencrypted local profile.
+
 ## Mode B — sync (what the script does)
 
 1. **Validates first** (never push a failing state): `scripts/build_site.py`,

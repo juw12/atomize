@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Sweep — From idea to checkable plan</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Masthead -->
+<header class="masthead">
+  <div class="masthead-brand">
+    <span class="masthead-title">SWEEP</span>
+    <span class="masthead-subtitle">From idea to checkable plan</span>
+  </div>
+  <div class="masthead-actions">
+    <span class="workspace-chip" id="workspace-chip" style="display:none">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+      <span id="workspace-name">Workspace</span>
+    </span>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle Night Edition">
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="btn btn-sm" id="signout-btn" style="display:none">Sign out</button>
+  </div>
+</header>
+
+<!-- Navigation -->
+<nav class="nav" id="main-nav" style="display:none">
+  <a href="#catalog" class="nav-item active" data-section="catalog">Catalog</a>
+  <a href="#brief" class="nav-item" data-section="brief">New Brief</a>
+  <a href="#guide" class="nav-item" data-section="guide">How to use</a>
+</nav>
+
+<!-- Main Content -->
+<main class="main">
+
+  <!-- Workspace Gate (Login) -->
+  <section id="section-gate" class="section active">
+    <div class="gate-card">
+      <h1 class="gate-title">Welcome to Sweep</h1>
+      <p class="gate-tagline">Turn rough app ideas into checkable plans. Local-first, offline, encrypted.</p>
+      
+      <div class="gate-tabs">
+        <button class="gate-tab active" data-gate-tab="unlock" onclick="switchGateTab('unlock')">Unlock Workspace</button>
+        <button class="gate-tab" data-gate-tab="create" onclick="switchGateTab('create')">Create New</button>
+      </div>
+
+      <!-- Unlock Form -->
+      <form id="gate-unlock-form" class="gate-form" onsubmit="handleUnlock(event)">
+        <div class="form-group">
+          <label for="unlock-workspace">Workspace name</label>
+          <input type="text" id="unlock-workspace" required autocomplete="username" placeholder="e.g., my-sandbox">
+        </div>
+        <div class="form-group">
+          <label for="unlock-passphrase">Passphrase</label>
+          <input type="password" id="unlock-passphrase" required autocomplete="current-password" placeholder="Your secret passphrase">
+        </div>
+        <div class="gate-error" id="gate-error" style="display:none"></div>
+        <button type="submit" class="btn btn-primary btn-block">Unlock</button>
+      </form>
+
+      <!-- Create Form -->
+      <form id="gate-create-form" class="gate-form" style="display:none" onsubmit="handleCreate(event)">
+        <div class="form-group">
+          <label for="create-workspace">Workspace name</label>
+          <input type="text" id="create-workspace" required autocomplete="username" placeholder="e.g., my-sandbox" pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, and hyphens only">
+        </div>
+        <div class="form-group">
+          <label for="create-passphrase">Passphrase</label>
+          <input type="password" id="create-passphrase" required autocomplete="new-password" placeholder="Choose a strong passphrase" minlength="8">
+        </div>
+        <div class="form-group">
+          <label for="create-passphrase-confirm">Confirm passphrase</label>
+          <input type="password" id="create-passphrase-confirm" required autocomplete="new-password" placeholder="Re-enter passphrase">
+        </div>
+        <div class="gate-error" id="gate-create-error" style="display:none"></div>
+        <button type="submit" class="btn btn-primary btn-block">Create Workspace</button>
+      </form>
+
+      <div class="gate-notice">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Data is encrypted at rest in your browser using WebCrypto. No server. No network.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catalog Section -->
+  <section id="section-catalog" class="section" style="display:none">
+    <div class="section-header">
+      <h2 class="section-title">Project Catalog</h2>
+      <span class="section-subtitle">Your workspace's projects</span>
+    </div>
+
+    <div class="catalog-grid" id="catalog-grid">
+      <!-- Demo card (always present) -->
+      <div class="project-card demo-card" onclick="openDemoProject()">
+        <div class="project-card-header">
+          <span class="project-card-badge demo">Demo</span>
+          <h3 class="project-card-title">Example: Team Task Board</h3>
+        </div>
+        <p class="project-card-desc">A lightweight task board for small teams to track sprint work without Jira complexity.</p>
+        <div class="project-card-meta">
+          <span class="project-card-status" style="color:var(--color-productive)">● Spec complete</span>
+          <span class="project-card-date">Demo project</span>
+        </div>
+      </div>
+      <!-- User projects rendered here -->
+    </div>
+
+    <div class="catalog-actions">
+      <button class="btn btn-primary" onclick="navigateTo('brief')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Project
+      </button>
+    </div>
+  </section>
+
+  <!-- Brief Wizard Section -->
+  <section id="section-brief" class="section" style="display:none">
+    <div class="section-header">
+      <h2 class="section-title">Idea Brief</h2>
+      <span class="section-subtitle">Describe your app idea</span>
+    </div>
+
+    <form id="brief-form" class="form" onsubmit="handleBriefSubmit(event)">
+      <div class="form-section">
+        <h3 class="form-section-title">Core Idea</h3>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="brief-app-name">App name</label>
+            <input type="text" id="brief-app-name" required placeholder="e.g., TaskFlow" oninput="suggestKebabCase()">
+            <span class="form-hint" id="brief-kebab-suggestion" style="display:none">Suggested: <code id="kebab-case-output"></code></span>
+          </div>
+          <div class="form-group">
+            <label for="brief-one-liner">One-liner</label>
+            <input type="text" id="brief-one-liner" required placeholder="What is it in one sentence?">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="brief-problem">Problem</label>
+          <textarea id="brief-problem" required rows="3" placeholder="What problem does this solve?"></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="brief-target-user">Target user</label>
+            <input type="text" id="brief-target-user" required placeholder="Who is this for?">
+          </div>
+          <div class="form-group">
+            <label for="brief-jtbd">Job-to-be-done</label>
+            <input type="text" id="brief-jtbd" required placeholder="When I want to X, so I can Y">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">Success Criteria</h3>
+        <p class="form-section-desc">Define 2–4 checkable success criteria. These become your Definition of Done.</p>
+        
+        <div id="success-checks-container">
+          <div class="success-check-row">
+            <input type="text" class="success-check-input" placeholder="e.g., Boots from file:// with 0 console errors" required>
+            <button type="button" class="btn-icon" onclick="removeSuccessCheck(this)" aria-label="Remove">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addSuccessCheck()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add success check
+        </button>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">Boundaries</h3>
+        
+        <div class="form-group">
+          <label for="brief-non-goals">Non-goals (what this is NOT)</label>
+          <textarea id="brief-non-goals" rows="2" placeholder="e.g., No real-time collaboration, no mobile app"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="brief-overlap">Overlap note (any similar apps in workspace?)</label>
+          <input type="text" id="brief-overlap" placeholder="e.g., Similar to desk-verdict but for planning">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="navigateTo('catalog')">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          Generate Plan
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/><polyline points="19 12 5 12"/></svg>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Plan View Section -->
+  <section id="section-plan" class="section" style="display:none">
+    <div class="section-header">
+      <button class="btn btn-sm btn-text" onclick="navigateTo('catalog')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to catalog
+      </button>
+    </div>
+
+    <div class="plan-header">
+      <span class="plan-badge" id="plan-status">Draft</span>
+      <h2 class="plan-title" id="plan-app-name">App Name</h2>
+      <p class="plan-one-liner" id="plan-one-liner">One-liner goes here</p>
+    </div>
+
+    <!-- Capability Matrix -->
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Capability Matrix
+      </h3>
+      <div class="capability-grid" id="capability-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Definition of Done -->
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Definition of Done
+      </h3>
+      <ul class="dod-list" id="dod-list">
+        <!-- Rendered by JS -->
+      </ul>
+    </div>
+
+    <!-- Phases -->
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Development Phases
+      </h3>
+      <div class="phases-timeline" id="phases-timeline">
+        <div class="phase">
+          <div class="phase-marker">M0</div>
+          <div class="phase-content">
+            <strong>Specification</strong>
+            <span>Brief, capability matrix, Definition of Done</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-marker">M1</div>
+          <div class="phase-content">
+            <strong>Scaffold + Design System</strong>
+            <span>File tree, tokens, components, responsive layout</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-marker">M2</div>
+          <div class="phase-content">
+            <strong>Verification</strong>
+            <span>Smoke tests, visual checks, acceptance criteria</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-marker">M3</div>
+          <div class="phase-content">
+            <strong>Memory + Deploy</strong>
+            <span>Obsidian note, GitHub Pages deploy, catalog entry</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scaffold Preview -->
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Scaffold Preview
+      </h3>
+      <div class="file-tree" id="file-tree">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <div class="plan-actions">
+      <button class="btn btn-secondary" onclick="exportProjectJSON()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export JSON
+      </button>
+      <button class="btn btn-primary" onclick="navigateTo('catalog')">
+        Save to Catalog
+      </button>
+    </div>
+  </section>
+
+  <!-- Guide Section -->
+  <section id="section-guide" class="section" style="display:none">
+    <div class="guide-content">
+      <h2 class="guide-title">How to use Sweep</h2>
+      <p class="guide-intro">Sweep turns rough app ideas into checkable plans. Follow the flow: brief → plan → scaffold → sync.</p>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="guide-step-number">1</div>
+          <div class="guide-step-content">
+            <h3>Create or unlock your workspace</h3>
+            <p>Choose a workspace name and a strong passphrase. Your data is encrypted at rest in your browser using WebCrypto (PBKDF2 → AES-GCM). No server, no network—everything stays local.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-step-number">2</div>
+          <div class="guide-step-content">
+            <h3>Write an idea brief</h3>
+            <p>Describe your app idea: the problem, target user, job-to-be-done, and 2–4 success checks. Be specific—these success criteria become your Definition of Done checklist.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-step-number">3</div>
+          <div class="guide-step-content">
+            <h3>Review the generated plan</h3>
+            <p>Sweep analyzes your brief and produces a capability matrix (backend/auth/mobile on/off), a Definition of Done checklist derived from your success checks, and a phased development roadmap (M0→M3).</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-step-number">4</div>
+          <div class="guide-step-content">
+            <h3>Preview the scaffold</h3>
+            <p>See the file tree Sweep would generate: <code>web/</code> for the static front-end, optional <code>server/</code> if backend is needed, <code>tests/</code>, <code>docs/</code>, and configuration files. The structure reflects your capability matrix.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-step-number">5</div>
+          <div class="guide-step-content">
+            <h3>Save to catalog</h3>
+            <p>Save the project to your workspace catalog. Export as JSON anytime. The demo project is always visible so the catalog is never empty.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-step-number">6</div>
+          <div class="guide-step-content">
+            <h3>Next steps (future)</h3>
+            <p>In a future version, Sweep will integrate with the <code>/sweep</code> pipeline to actually generate the code, run verification, and sync to GitHub + Obsidian.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-principles">
+        <h3>Core principles</h3>
+        <ul>
+          <li><strong>Verification-first:</strong> Prove the app runs before saying "done"</li>
+          <li><strong>Ownership:</strong> You own the code, tests, docs—no lock-in</li>
+          <li><strong>Memory + catalog:</strong> A longitudinal system, not one-off chat→code</li>
+          <li><strong>Static-first:</strong> GitHub Pages deployable, zero dependencies</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

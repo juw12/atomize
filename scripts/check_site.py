@@ -36,12 +36,13 @@ def extract_refs(content):
 
 
 def extract_path_literals(content):
-    """Extract string literals that look like absolute-root paths from JS/manifest files."""
-    # Match "/..." pattern in string literals (both single and double quotes)
-    # Be conservative: only match clear absolute paths
-    pattern = r'["\'](/[^"\']{2,})["\']'
+    """Extract absolute-root path literals from JS/manifest files.
+
+    Restricts the literal body to path-safe characters so inline-SVG or template
+    markup (e.g. ``'/><line x1='``) is not mistaken for a path.
+    """
+    pattern = r'["\'](/[A-Za-z0-9_./~%+-]+)["\']'
     matches = re.findall(pattern, content)
-    # Filter to only keep ones that look like actual path literals (not URLs, not just /)
     return [m for m in matches if not m.startswith('//') and not m.startswith('http')]
 
 

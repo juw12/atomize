@@ -79,6 +79,11 @@ APPS = [
         "desc": "Verdict Scorecard — test an AI tool on a real work task, rate the 5-point scorecard, get Use it / Wait / Skip",
         "links": [("Open", "desk-verdict/")],
     },
+    {
+        "name": "Sweep",
+        "desc": "Turn a rough app idea into a checkable plan — brief, capability matrix, Definition of Done, scaffold preview and catalog",
+        "links": [("Open", "sweep/")],
+    },
 ]
 
 
@@ -254,6 +259,7 @@ def main():
         ("productivity-widget", "productivity-widget"),
         ("lingua", "lingua"),
         ("desk-verdict", "desk-verdict"),
+        ("sweep", "sweep"),
     ]
 
     for app_name, site_subdir in apps_config:
