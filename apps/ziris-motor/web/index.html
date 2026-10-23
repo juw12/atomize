@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ziris Motor Test Console</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Serial console for ARLO ZIRIS device motor testing">
+  <link rel="icon" type="image/svg+xml" href="icons/app-icon.svg">
+  <link rel="apple-touch-icon" href="icons/app-icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <h1>Ziris Motor Test Console</h1>
+      </div>
+      <div class="header-meta">
+        <span class="meta-item">FW: <strong id="fw-version">-</strong></span>
+        <span class="meta-item">Source: <strong id="data-source">-</strong></span>
+      </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-left">
+        <button id="btn-connect" class="btn btn-primary">Connect</button>
+        <button id="btn-disconnect" class="btn btn-danger" disabled>Disconnect</button>
+        <select id="baud-select" class="select" disabled>
+          <option value="9600">9600</option>
+          <option value="19200">19200</option>
+          <option value="38400">38400</option>
+          <option value="57600">57600</option>
+          <option value="115200" selected>115200</option>
+          <option value="230400">230400</option>
+          <option value="460800">460800</option>
+          <option value="921600">921600</option>
+        </select>
+        <button id="btn-demo" class="btn btn-secondary" title="Use demo device (no hardware)">Demo Device</button>
+      </div>
+      <div class="status-right">
+        <span id="connection-status" class="status-indicator">Disconnected</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-grid">
+      <!-- A. Command Library (Left) -->
+      <section class="panel panel-commands" aria-label="Command Library">
+        <div class="panel-header">
+          <h2>Command Library</h2>
+          <div class="search-box">
+            <input type="text" id="command-search" class="input" placeholder="Search commands..." aria-label="Search commands">
+          </div>
+        </div>
+        <div id="command-list" class="command-list" role="region" aria-live="polite">
+          <!-- Commands rendered by JS -->
+        </div>
+      </section>
+
+      <!-- B. Console (Center) -->
+      <section class="panel panel-console" aria-label="Console">
+        <div class="panel-header">
+          <h2>Console</h2>
+          <div class="console-controls">
+            <button id="btn-clear" class="btn btn-sm">Clear</button>
+            <button id="btn-save-log" class="btn btn-sm">Save Log</button>
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-autoscroll" checked>
+              Autoscroll
+            </label>
+          </div>
+        </div>
+        <div id="console-output" class="console-output" role="log" aria-live="off" aria-relevant="additions">
+          <div class="console-line welcome">Ziris Motor Test Console — Ready</div>
+        </div>
+        <div class="console-input-area">
+          <input type="text" id="raw-command" class="input input-monospace" placeholder="Enter raw command..." aria-label="Raw command input">
+        </div>
+      </section>
+
+      <!-- C. Macro Notepad (Right) -->
+      <section class="panel panel-macros" aria-label="Macro Notepad">
+        <div class="panel-header">
+          <h2>Macro Notepad</h2>
+        </div>
+        
+        <!-- Macro Selector -->
+        <div class="macro-selector">
+          <label for="macro-select" class="label">Select Macro:</label>
+          <select id="macro-select" class="select select-full"></select>
+        </div>
+
+        <!-- Macro Info -->
+        <div id="macro-info" class="macro-info">
+          <p id="macro-desc" class="macro-desc"></p>
+          <p id="macro-source" class="macro-source"></p>
+        </div>
+
+        <!-- Macro Params -->
+        <div id="macro-params" class="macro-params"></div>
+
+        <!-- Repeat Count -->
+        <div class="macro-repeat">
+          <label for="macro-repeat" class="label">Repeat:</label>
+          <input type="number" id="macro-repeat" class="input input-number" min="1" max="999" value="1">
+        </div>
+
+        <!-- Step Editor -->
+        <div class="step-editor">
+          <div class="step-editor-header">
+            <h3>Steps</h3>
+            <div class="step-add-buttons">
+              <button id="btn-add-blank" class="btn btn-sm btn-step" data-type="blank">+ Blank</button>
+              <button id="btn-add-command" class="btn btn-sm btn-step" data-type="command">+ Command</button>
+              <button id="btn-add-wait" class="btn btn-sm btn-step" data-type="wait">+ Wait</button>
+              <button id="btn-add-pause" class="btn btn-sm btn-step" data-type="pause">+ Pause</button>
+              <button id="btn-add-note" class="btn btn-sm btn-step" data-type="note">+ Note</button>
+            </div>
+          </div>
+          <div id="step-list" class="step-list" role="list">
+            <!-- Steps rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Macro Actions -->
+        <div class="macro-actions">
+          <button id="btn-save-macro" class="btn btn-sm">Save</button>
+          <button id="btn-save-as-macro" class="btn btn-sm">Save As…</button>
+          <button id="btn-delete-macro" class="btn btn-sm btn-danger">Delete</button>
+          <button id="btn-export-ttl" class="btn btn-sm btn-secondary">Export .ttl</button>
+        </div>
+
+        <!-- Run Controls -->
+        <div class="macro-run-controls">
+          <button id="btn-run-macro" class="btn btn-primary btn-lg">Run</button>
+          <button id="btn-pause-macro" class="btn btn-warning btn-lg" disabled>Pause</button>
+          <button id="btn-stop-macro" class="btn btn-danger btn-lg" disabled>Stop</button>
+        </div>
+
+        <!-- Progress -->
+        <div id="macro-progress" class="macro-progress" aria-live="polite" aria-atomic="true">
+          <span class="progress-text">Ready</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Save As Modal -->
+  <dialog id="modal-save-as" class="modal">
+    <form method="dialog" class="modal-content">
+      <h3>Save Macro As</h3>
+      <label for="save-as-name" class="label">Name:</label>
+      <input type="text" id="save-as-name" class="input input-full" required>
+      <label for="save-as-desc" class="label">Description:</label>
+      <textarea id="save-as-desc" class="input input-full input-textarea" rows="3"></textarea>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" id="btn-cancel-save" class="btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Export TTL Modal -->
+  <dialog id="modal-export-ttl" class="modal modal-large">
+    <form method="dialog" class="modal-content">
+      <h3>Export TeraTerm Macro (.ttl)</h3>
+      <p class="modal-hint">Copy this code and save it as a .ttl file for use in TeraTerm:</p>
+      <textarea id="ttl-export" class="input input-full input-textarea input-monospace" rows="20" readonly></textarea>
+      <div class="modal-actions">
+        <button type="button" id="btn-copy-ttl" class="btn btn-primary">Copy to Clipboard</button>
+        <button type="button" id="btn-download-ttl" class="btn btn-secondary">Download .ttl</button>
+        <button type="button" id="btn-close-export" class="btn btn-secondary">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="data/commands.js"></script>
+  <script src="data/macros.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

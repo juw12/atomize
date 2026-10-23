@@ -2,6 +2,7 @@
 """Build static site from apps/*/web directories for GitHub Pages deployment."""
 
 import argparse
+import json
 import shutil
 from pathlib import Path
 
@@ -51,56 +52,35 @@ def write_nojekyll(out_dir):
 #   App    = installable application (installable PWA, or the native desktop app)
 #   Web    = desktop browser build
 #   Mobile = mobile-optimised build
-APPS = [
-    {
-        "name": "Orbis",
-        "desc": "Communication, identity and protection in one app",
-        "links": [("App", "orbis/app.html"), ("Web", "orbis/index.html"), ("Mobile", "orbis/app-mobile.html")],
-    },
-    {
-        "name": "Peers",
-        "desc": "Verified reviews across 32 categories — food, travel, market, AI tools, health and more",
-        "links": [("App", "peers/app.html"), ("Web", "peers/"), ("Mobile", "peers/mobile.html")],
-    },
-    {
-        "name": "House of Articles",
-        "desc": "Athlete-moment sneaker news + live market feed",
-        "links": [("App", "house-of-articles/app.html"), ("Web", "house-of-articles/desktop.html"), ("Mobile", "house-of-articles/")],
-    },
-    {
-        "name": "Productivity Widget",
-        "desc": "\"The Morning Paper\" — Pomodoro timer + daily focus score (native app, plus web and mobile builds)",
-        "links": [("App", "productivity-widget/"), ("Web", "productivity-widget/web.html"), ("Mobile", "productivity-widget/mobile.html")],
-    },
-    {
-        "name": "Lingua",
-        "desc": "Live-translated Microsoft Teams captions in an always-on-top overlay",
-        "links": [("App", "lingua/"), ("Web", "lingua/web.html"), ("Mobile", "lingua/mobile.html")],
-    },
-    {
-        "name": "Hazel",
-        "desc": "Desktop studio for creators — generate a video from a prompt, refine it, fan it out to every platform, and keep your storage from overfilling",
-        "links": [("App", "hazel/app.html"), ("Web", "hazel/"), ("Mobile", "hazel/mobile.html")],
-    },
-    {
-        "name": "Sweep",
-        "desc": "Turn a rough app idea into a checkable plan — brief, capability matrix, Definition of Done, scaffold preview and catalog",
-        "links": [("App", "sweep/app.html"), ("Web", "sweep/"), ("Mobile", "sweep/mobile.html")],
-    },
-    {
-        "name": "Virtual Bots",
-        "desc": "An office of AI bots you can watch and command \u2014 live activity, goals and progress across App, Web and Mobile",
-        "links": [("App", "virtual-bots/app.html"), ("Web", "virtual-bots/"), ("Mobile", "virtual-bots/mobile.html")],
-    },
-]
+APPS_FILE = Path(__file__).resolve().parent / "apps.json"
 
 
-def generate_index(out_dir, repo_name):
+def load_apps():
+    """Return the catalog entries from scripts/apps.json, in publish order."""
+    data = json.loads(APPS_FILE.read_text(encoding="utf-8"))
+    apps = data["apps"] if isinstance(data, dict) else data
+    return sorted(apps, key=lambda a: a.get("order", 0))
+
+
+def build_landing_apps(catalog):
+    """Map catalog entries to the {name, desc, links} rows the landing page needs."""
+    landing = []
+    for app in catalog:
+        links = app["links"]
+        landing.append({
+            "name": app["name"],
+            "desc": app["desc"],
+            "links": [("App", links["app"]), ("Web", links["web"]), ("Mobile", links["mobile"])],
+        })
+    return landing
+
+
+def generate_index(out_dir, repo_name, apps):
     """Generate the main index.html landing page with Desktop/Mobile links."""
     index_html = out_dir / "index.html"
 
     cards = []
-    for app in APPS:
+    for app in apps:
         buttons = "\n".join(
             f'          <a class="btn" href="{href}">{label}</a>'
             for label, href in app["links"]
@@ -259,27 +239,18 @@ def main():
 
     clean_create_site(out_dir)
 
-    print("Copying app web directories:")
-    apps_config = [
-        ("orbis", "orbis"),
-        ("peers", "peers"),
-        ("house-of-articles", "house-of-articles"),
-        ("productivity-widget", "productivity-widget"),
-        ("lingua", "lingua"),
-        ("hazel", "hazel"),
-        ("sweep", "sweep"),
-        ("virtual-bots", "virtual-bots"),
-    ]
+    catalog = load_apps()
 
-    for app_name, site_subdir in apps_config:
-        copy_app_web(apps_dir, app_name, out_dir, site_subdir)
+    print("Copying app web directories:")
+    for app in catalog:
+        copy_app_web(apps_dir, app["id"], out_dir, app["id"])
 
     print()
 
     write_nojekyll(out_dir)
 
     repo_name = get_repo_name().replace("-", " ").title()
-    generate_index(out_dir, repo_name)
+    generate_index(out_dir, repo_name, build_landing_apps(catalog))
 
     print()
     print("Build complete!")

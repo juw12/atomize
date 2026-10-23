@@ -1,0 +1,131 @@
+{
+  "_comment": "Single source of truth for the software apps shipped by this monorepo. Consumed by scripts/build_site.py (GitHub Pages landing page + deploy copy list) and scripts/publish_portfolio.py (portfolio cards + Obsidian notes). `description` is the full portfolio-card copy (HTML-ready); `desc` is the short landing-page blurb. `links` are relative to the deployed site root (https://juwpegatron.github.io/projects/<rel>). Extra fields `image_alt`, `project_id`, `label` (thumbnail aria-label) and `desc` reproduce the live markup verbatim.",
+  "apps": [
+    {
+      "id": "orbis",
+      "name": "Orbis",
+      "category": "Software",
+      "desc": "Communication, identity and protection in one app",
+      "description": "Communication, identity, and protection in one app: a zero-dependency Python backend + SQLite + static PWA for managing replies, commitments, summaries, and personal growth tracking. Offline-first.",
+      "tags": ["Python", "SQLite", "PWA", "zero-dependency"],
+      "image": "orbis-abstract.jpg",
+      "image_alt": "Abstract geometric visualization of communication and identity networks",
+      "links": {"app": "orbis/app.html", "web": "orbis/index.html", "mobile": "orbis/app-mobile.html"},
+      "featured": true,
+      "order": 1
+    },
+    {
+      "id": "peers",
+      "name": "Peers",
+      "category": "Software",
+      "desc": "Verified reviews across 32 categories \u2014 food, travel, market, AI tools, health and more",
+      "description": "Offline-first single-file PWA for verified reviews across 32 category &ldquo;modes&rdquo; &mdash; food, travel, market, AI tools, health, finance and more. Pick a category and the feed, explore, market and writing all scope to it, with a Use it / Wait / Skip scorecard built in.",
+      "tags": ["PWA", "category modes", "AI tools", "offline-first"],
+      "image": "peers-feed.jpg",
+      "image_alt": "Peers app feed screen showing verified reviews",
+      "thumbnails": [
+        {"src": "peers-market.jpg", "alt": "Peers app market screen", "label": "View market screen"},
+        {"src": "peers-product.jpg", "alt": "Peers app product screen", "label": "View product screen"}
+      ],
+      "project_id": "peers",
+      "links": {"app": "peers/app.html", "web": "peers/", "mobile": "peers/mobile.html"},
+      "featured": true,
+      "order": 2
+    },
+    {
+      "id": "house-of-articles",
+      "name": "House of Articles",
+      "category": "Product",
+      "desc": "Athlete-moment sneaker news + live market feed",
+      "description": "Athlete-moment sneaker news + live market feed. Static mobile and desktop prototypes driven by a versioned JSON data spine linking on-court moments to resale price moves.",
+      "tags": ["data modeling", "prototypes", "JSON", "market data"],
+      "image": "hoa-hero.jpg",
+      "image_alt": "House of Articles sneaker news and athlete moments feature",
+      "thumbnails": [
+        {"src": "hoa-runner.jpg", "alt": "House of Articles running shoe feature", "label": "View runner feature"}
+      ],
+      "project_id": "hoa",
+      "links": {"app": "house-of-articles/app.html", "web": "house-of-articles/desktop.html", "mobile": "house-of-articles/"},
+      "featured": true,
+      "order": 3
+    },
+    {
+      "id": "productivity-widget",
+      "name": "Productivity Widget",
+      "category": "Software",
+      "desc": "\"The Morning Paper\" \u2014 Pomodoro timer + daily focus score (native app, plus web and mobile builds)",
+      "description": "\"The Morning Paper\" \u2014 an always-on-top Pomodoro timer with soundscapes, live app-usage tracking, a daily score, and coaching. Python + tkinter, standard library only.",
+      "tags": ["Python", "tkinter", "Pomodoro", "app tracking"],
+      "image": "productivity-widget.png",
+      "image_alt": "The Morning Paper productivity widget showing a Pomodoro timer and daily score",
+      "links": {"app": "productivity-widget/", "web": "productivity-widget/web.html", "mobile": "productivity-widget/mobile.html"},
+      "featured": true,
+      "order": 4
+    },
+    {
+      "id": "lingua",
+      "name": "Lingua",
+      "category": "Software",
+      "desc": "Live-translated Microsoft Teams captions in an always-on-top overlay",
+      "description": "Live-translated Microsoft Teams captions in an always-on-top overlay \u2014 screen-region capture, OCR, then translate, with a running auto-scrolling transcript. Python + tkinter.",
+      "tags": ["Python", "tkinter", "OCR", "translation"],
+      "image": "lingua-hero.png",
+      "image_alt": "Lingua always-on-top overlay translating live Microsoft Teams captions",
+      "links": {"app": "lingua/", "web": "lingua/web.html", "mobile": "lingua/mobile.html"},
+      "featured": true,
+      "order": 5
+    },
+    {
+      "id": "hazel",
+      "name": "Hazel",
+      "category": "Software",
+      "desc": "Desktop studio for creators \u2014 generate a video from a prompt, refine it, fan it out to every platform, and keep your storage from overfilling",
+      "description": "Desktop studio for creators. Generate a video from a prompt &mdash; cast the characters, choose a talking or drama scene, set the length and size &mdash; then refine it in Hazel's built-in editor and deploy to every platform at once. Also bulk-uploads photos and videos to socials, and backs up and auto-manages memories so your storage never overfills.",
+      "tags": ["AI video generator", "multi-platform publish", "bulk upload", "storage &amp; memories"],
+      "image": "hazel-hero.svg",
+      "image_alt": "Hazel studio generating a video from a prompt, with character casting, scene choice, length and size controls, a storyboard and a timeline",
+      "links": {"app": "hazel/app.html", "web": "hazel/", "mobile": "hazel/mobile.html"},
+      "featured": true,
+      "order": 6
+    },
+    {
+      "id": "sweep",
+      "name": "Sweep",
+      "category": "Software",
+      "desc": "Turn a rough app idea into a checkable plan \u2014 brief, capability matrix, Definition of Done, scaffold preview and catalog",
+      "description": "Turn a rough app idea into a checkable plan. Sweep runs the front half of a product pipeline &mdash; a local workspace gate, an idea brief, a generated plan (capability matrix, Definition of Done and phases), a verification view with runnable gates, and a scaffold generator that emits the actual file contents (web, optional server, tests, docs) plus an exportable memory note &mdash; and keeps a catalog of your projects.",
+      "tags": ["idea &rarr; plan", "capability matrix", "Definition of Done", "verification", "scaffold generator"],
+      "image": "sweep-hero.svg",
+      "image_alt": "Sweep turning a rough app idea into a checkable plan \u2014 an idea brief, a generated capability matrix, a Definition of Done checklist, a scaffold file tree and a project catalog",
+      "links": {"app": "sweep/app.html", "web": "sweep/", "mobile": "sweep/mobile.html"},
+      "featured": true,
+      "order": 7
+    },
+    {
+      "id": "virtual-bots",
+      "name": "Virtual Bots",
+      "category": "Software",
+      "desc": "An office of AI bots you can watch and command \u2014 live activity, goals and progress across App, Web and Mobile",
+      "description": "An office of AI bots you can watch and command &mdash; each bot shows its role, live status and progress; a normalized activity feed streams every tool step, and you can dispatch new goals. Ships as an installable App, a desktop Web dashboard (with a 3D office) and a Mobile view; it runs as an offline simulation when no backend is attached.",
+      "tags": ["AI agents", "live activity", "App + Web + Mobile", "offline sim"],
+      "image": "virtual-bots-hero.svg",
+      "image_alt": "Virtual Bots Office dashboard: AI bots at their desks with live status, an activity feed and a command bar",
+      "links": {"app": "virtual-bots/app.html", "web": "virtual-bots/", "mobile": "virtual-bots/mobile.html"},
+      "featured": true,
+      "order": 8
+    },
+    {
+      "id": "ziris-motor",
+      "name": "Ziris Motor",
+      "category": "Software",
+      "desc": "Dependency-free browser console for ARLO ZIRIS motor testing \u2014 command library, serial console and macro notepad",
+      "description": "A dependency-free browser console that replaces the TeraTerm/CWD serial workflow for ARLO ZIRIS device motor testing &mdash; browse a categorised command library with live parameters, drive a dark serial console with scrollback and log saving, build and run test macros in a visual notepad, install it as an offline PWA, and try the whole UI in a hardware-free demo mode.",
+      "tags": ["Web Serial", "PWA", "serial console", "macro runner", "offline demo"],
+      "image": "ziris-motor-hero.svg",
+      "image_alt": "Ziris Motor Test Console dashboard: command library, serial console and macro notepad for ARLO ZIRIS device motor testing",
+      "links": {"app": "ziris-motor/", "web": "ziris-motor/", "mobile": "ziris-motor/"},
+      "featured": true,
+      "order": 9
+    }
+  ]
+}
