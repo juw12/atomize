@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hazel App</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0e1116">
+  <link rel="apple-touch-icon" href="icons/app-icon.svg">
+  <style>
+    :root {
+      --bg: #0e1116;
+      --panel: #151a21;
+      --panel-2: #1b2129;
+      --line: #262e38;
+      --text: #e8edf2;
+      --muted: #8b97a5;
+      --accent: #b7d17a;
+      --accent-2: #e0b25e;
+      --success: #7bc98f;
+      --shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+    }
+
+    .logo-inner {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg);
+    }
+
+    .wordmark {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 24px;
+      line-height: 1.35;
+    }
+
+    .benefits {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 0 0 32px;
+      text-align: left;
+      width: 100%;
+    }
+
+    .benefits ul {
+      margin: 0;
+      padding: 0 0 0 24px;
+      list-style: none;
+    }
+
+    .benefits li {
+      margin: 0 0 16px;
+      padding-left: 28px;
+      position: relative;
+      color: var(--text);
+    }
+
+    .benefits li:last-child {
+      margin: 0;
+    }
+
+    .benefits li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #0e1116;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.95;
+    }
+
+    .btn-secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn-secondary:hover {
+      background: var(--line);
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+
+    .link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .link:hover {
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .install-hint {
+      display: none;
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 400px;
+    }
+
+    .install-hint.visible {
+      display: block;
+    }
+
+    @media (min-width: 480px) {
+      .actions {
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .btn {
+        flex: 1;
+      }
+    }
+
+    @media (min-width: 640px) {
+      .container {
+        padding: 64px 32px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="masthead">
+      <div class="logo">
+        <div class="logo-inner"></div>
+      </div>
+      <div class="wordmark">Hazel</div>
+    </div>
+
+    <h1>Hazel — a creator studio for video, as an app</h1>
+
+    <div class="benefits">
+      <ul>
+        <li>Install to your desktop or home screen for one-tap access</li>
+        <li>Works offline — no internet required after install</li>
+        <li>Full-screen experience without browser chrome</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button id="installBtn" class="btn btn-primary">Install app</button>
+      <a href="./index.html" class="btn btn-secondary">Open web studio</a>
+    </div>
+
+    <div id="installHint" class="install-hint">
+      To install Hazel: open your browser menu and select "Add to Home Screen" or "Install app".
+    </div>
+
+    <div class="links">
+      <a href="./mobile.html" class="link">Open mobile studio</a>
+      <a href="../" class="link">All projects</a>
+    </div>
+  </div>
+
+  <script>
+    // PWA Install Prompt Handling
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+    const installHint = document.getElementById('installHint');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'inline-flex';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    // Show manual install hint if event never fires (after delay)
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (!deferredPrompt && installBtn.style.display !== 'none') {
+          installHint.classList.add('visible');
+        }
+      }, 3000);
+    });
+
+    // Defensive service worker registration
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            console.log('SW registered:', registration.scope);
+          })
+          .catch((err) => {
+            console.log('SW registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

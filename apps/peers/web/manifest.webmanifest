@@ -1,0 +1,18 @@
+{
+  "name": "Peers",
+  "short_name": "Peers",
+  "description": "Verified reviews from real people",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAF6EF",
+  "theme_color": "#FF6B5B",
+  "icons": [
+    {
+      "src": "icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

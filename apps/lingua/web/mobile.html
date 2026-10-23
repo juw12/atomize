@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lingua — Mobile Demo</title>
+  <meta name="description" content="Lingua Mobile Demo — mobile-first caption overlay.">
+  <style>
+    :root{
+      --paper:#faf8f3; --outer:#f0ede6; --ink:#1a1a1a; --ink-light:#4a4a4a; --muted:#6b6b6b;
+      --accent:#8b1a1a; --border:#d4cfc7; --border-light:#e8e4dc;
+      --serif:Georgia,'Times New Roman',serif; --sans:'Segoe UI',Arial,sans-serif;
+      --overlay-bg:rgba(250,248,243,0.94);
+      --shadow:0 4px 16px rgba(0,0,0,0.1);
+    }
+    .dark{
+      --paper:#1a1a1a; --outer:#0f0f0f; --ink:#f0f0f0; --ink-light:#c0c0c0; --muted:#999;
+      --accent:#c93a3a; --border:#333; --border-light:#2a2a2a;
+      --overlay-bg:rgba(30,30,30,0.96);
+      --shadow:0 4px 16px rgba(0,0,0,0.3);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--outer);color:var(--ink);font-family:var(--serif);line-height:1.6;min-height:100vh;padding-bottom:20px}
+    
+    /* Navigation */
+    .nav{display:flex;gap:10px;padding:12px 16px;font-family:var(--sans);font-size:.8rem;overflow-x:auto;white-space:nowrap;background:var(--paper);border-bottom:1px solid var(--border)}
+    .nav a{color:var(--accent);text-decoration:none;padding:4px 8px}
+    .nav a:hover,.nav a.active{background:var(--accent);color:#fff;border-radius:3px}
+    .nav .label{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.65rem;display:flex;align-items:center}
+    
+    /* Header */
+    .header{padding:16px 16px 12px;text-align:center}
+    .eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.14em;font-size:.65rem;color:var(--accent)}
+    h1{font-size:1.6rem;margin:.2em 0 .1em}
+    .tag{color:var(--ink-light);font-size:.9rem}
+    .disclaimer{background:var(--paper);border:1px solid var(--border);border-radius:4px;padding:10px 14px;margin:12px 16px;font-size:.8rem;font-family:var(--sans);color:var(--muted);line-height:1.5}
+    
+    /* Main content - overlay on top */
+    .main{padding:0 16px 16px}
+    .overlay-panel{background:var(--overlay-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px;position:sticky;top:0;z-index:10}
+    .current-line{font-size:1.5rem;line-height:1.4;margin-bottom:12px;color:var(--ink);font-weight:500;min-height:3rem}
+    .transcript{max-height:40vh;overflow-y:auto;border-top:2px double var(--border);padding-top:12px;font-size:.95rem;color:var(--ink-light)}
+    .transcript-line{margin:6px 0;padding:4px 0;border-bottom:1px solid var(--border-light)}
+    .lang-badge{display:inline-block;font-family:var(--sans);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;background:var(--accent);color:#fff;padding:2px 6px;border-radius:3px;margin-right:6px}
+    
+    /* Bottom sheet controls */
+    .controls-sheet{background:var(--paper);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);padding:16px}
+    .sheet-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border-light)}
+    .sheet-title{font-family:var(--sans);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .control-group{margin-bottom:14px}
+    .control-label{font-family:var(--sans);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;display:block}
+    .control-row{display:flex;gap:8px;align-items:center}
+    select{flex:1;font-family:var(--sans);font-size:.85rem;padding:8px;border:1px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink)}
+    input[type="range"]{width:100%;accent-color:var(--accent);height:4px}
+    .slider-values{display:flex;justify-content:space-between;font-family:var(--sans);font-size:.7rem;color:var(--muted);margin-top:3px}
+    .btn-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+    .btn{font-family:var(--sans);font-weight:600;font-size:.75rem;padding:10px 8px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:transparent;color:var(--accent);text-align:center}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn:active{transform:scale(.98)}
+    textarea{width:100%;font-family:var(--serif);font-size:.9rem;padding:10px;border:1px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink);resize:none;min-height:60px;margin-top:6px}
+    .theme-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border-light);margin-top:12px}
+    .theme-label{font-family:var(--sans);font-size:.85rem;color:var(--muted)}
+    .toggle{position:relative;width:44px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;transition:background .2s}
+    .toggle.on{background:var(--accent)}
+    .toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s}
+    .toggle.on::after{transform:translateX(20px)}
+    
+    /* Footer */
+    .footer{margin-top:16px;text-align:center;font-family:var(--sans);font-size:.75rem;color:var(--muted);padding:0 16px}
+    
+    @media(min-width:600px){.btn-row{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="label">Versions:</span>
+    <a href="./">App</a>
+    <a href="web.html">Web</a>
+    <a href="mobile.html" class="active">Mobile</a>
+    <a href="../">All projects</a>
+  </nav>
+  
+  <header class="header">
+    <p class="eyebrow">Mobile Demo</p>
+    <h1>Lingua</h1>
+    <p class="tag">Mobile-first caption overlay</p>
+  </header>
+  
+  <div class="disclaimer">
+    <strong>Web demo</strong> — the desktop app (Python + tkinter) screen-reads the real Teams caption strip, OCRs it, and translates it. This browser version demonstrates the overlay; it does not capture or translate your screen.
+  </div>
+  
+  <main class="main">
+    <section class="overlay-panel">
+      <div class="current-line" id="currentLine">
+        <span class="lang-badge" id="currentLangBadge">EN</span>
+        <span id="currentText">Caption text appears here…</span>
+      </div>
+      <div class="transcript" id="transcript">
+        <!-- Auto-scrolling transcript lines -->
+      </div>
+    </section>
+    
+    <aside class="controls-sheet">
+      <div class="sheet-header">
+        <span class="sheet-title">Controls</span>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Languages</label>
+        <div class="control-row">
+          <select id="sourceLang">
+            <option value="EN">English</option>
+            <option value="ZH">中文</option>
+            <option value="ES">Español</option>
+            <option value="FR">Français</option>
+            <option value="DE">Deutsch</option>
+            <option value="JA">日本語</option>
+          </select>
+          <span style="color:var(--muted);padding:0 4px">→</span>
+          <select id="targetLang">
+            <option value="ZH">中文</option>
+            <option value="EN">English</option>
+            <option value="ES">Español</option>
+            <option value="FR">Français</option>
+            <option value="DE">Deutsch</option>
+            <option value="JA">日本語</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Opacity: <span id="opacityValue">94</span>%</label>
+        <input type="range" id="opacitySlider" min="60" max="100" value="94">
+        <div class="slider-values"><span>60%</span><span>100%</span></div>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Font size: <span id="fontSizeValue">1.5</span>rem</label>
+        <input type="range" id="fontSizeSlider" min="1" max="2.5" step="0.1" value="1.5">
+        <div class="slider-values"><span>1rem</span><span>2.5rem</span></div>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Paste caption text</label>
+        <textarea id="captionInput" placeholder="Paste text or use Play…"></textarea>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn primary" id="playBtn">▶ Play</button>
+        <button class="btn" id="pauseBtn">⏸ Pause</button>
+        <button class="btn" id="clearBtn">Clear</button>
+        <button class="btn" id="addLineBtn">+ Add</button>
+      </div>
+      
+      <div class="theme-row">
+        <span class="theme-label">Dark theme</span>
+        <div class="toggle" id="themeToggle"></div>
+      </div>
+    </aside>
+    
+    <footer class="footer">
+      Zero dependencies · Works offline · Demo only
+    </footer>
+  </main>
+  
+  <script>
+    // Sample caption feed (realistic meeting captions)
+    const sampleCaptions = [
+      "Good morning everyone, thanks for joining today's sync.",
+      "Let's start with the Q3 roadmap review.",
+      "The team has made solid progress on the core features.",
+      "We're currently at about 80% completion for the MVP.",
+      "There are a few blockers we need to discuss though.",
+      "The API integration is taking longer than expected.",
+      "We might need to push the launch date by a week.",
+      "Does everyone agree with this adjusted timeline?",
+      "Great, let's move on to the budget discussion.",
+      "Marketing has requested additional resources for the campaign.",
+      "We'll need to review the numbers before committing.",
+      "Any other items for today's agenda?"
+    ];
+    
+    // State
+    let isPlaying = false;
+    let currentIndex = 0;
+    let playInterval = null;
+    
+    // Elements
+    const currentText = document.getElementById('currentText');
+    const currentLangBadge = document.getElementById('currentLangBadge');
+    const transcript = document.getElementById('transcript');
+    const overlayPanel = document.querySelector('.overlay-panel');
+    const sourceLang = document.getElementById('sourceLang');
+    const targetLang = document.getElementById('targetLang');
+    const opacitySlider = document.getElementById('opacitySlider');
+    const fontSizeSlider = document.getElementById('fontSizeSlider');
+    const captionInput = document.getElementById('captionInput');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const addLineBtn = document.getElementById('addLineBtn');
+    const themeToggle = document.getElementById('themeToggle');
+    const opacityValue = document.getElementById('opacityValue');
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    
+    // Update current line display
+    function updateCurrentLine(text) {
+      currentText.textContent = text || 'Caption text appears here…';
+      currentLangBadge.textContent = sourceLang.value;
+    }
+    
+    // Add line to transcript
+    function addToTranscript(text, lang) {
+      const line = document.createElement('div');
+      line.className = 'transcript-line';
+      line.innerHTML = `<span class="lang-badge">${lang}</span>${text}`;
+      transcript.appendChild(line);
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+    
+    // Play sample feed
+    function startPlayback() {
+      if (isPlaying) return;
+      isPlaying = true;
+      currentIndex = 0;
+      playBtn.textContent = '▶ Playing…';
+      
+      playInterval = setInterval(() => {
+        if (currentIndex >= sampleCaptions.length) {
+          stopPlayback();
+          return;
+        }
+        const line = sampleCaptions[currentIndex];
+        updateCurrentLine(line);
+        addToTranscript(line, sourceLang.value);
+        currentIndex++;
+      }, 2000);
+    }
+    
+    function stopPlayback() {
+      isPlaying = false;
+      clearInterval(playInterval);
+      playBtn.textContent = '▶ Play';
+    }
+    
+    // Event handlers
+    playBtn.addEventListener('click', startPlayback);
+    pauseBtn.addEventListener('click', stopPlayback);
+    
+    clearBtn.addEventListener('click', () => {
+      transcript.innerHTML = '';
+      updateCurrentLine('');
+      stopPlayback();
+      captionInput.value = '';
+    });
+    
+    addLineBtn.addEventListener('click', () => {
+      const text = captionInput.value.trim();
+      if (text) {
+        updateCurrentLine(text);
+        addToTranscript(text, sourceLang.value);
+        captionInput.value = '';
+      }
+    });
+    
+    opacitySlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      opacityValue.textContent = val;
+      const alpha = val / 100;
+      const isDark = document.body.classList.contains('dark');
+      const base = isDark ? '30,30,30' : '250,248,243';
+      overlayPanel.style.background = `rgba(${base},${alpha})`;
+    });
+    
+    fontSizeSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      fontSizeValue.textContent = val;
+      currentText.style.fontSize = `${val}rem`;
+    });
+    
+    sourceLang.addEventListener('change', () => {
+      currentLangBadge.textContent = sourceLang.value;
+    });
+    
+    themeToggle.addEventListener('click', () => {
+      themeToggle.classList.toggle('on');
+      document.body.classList.toggle('dark');
+      // Re-apply opacity with new theme
+      opacitySlider.dispatchEvent(new Event('input'));
+    });
+    
+    // Initialize
+    updateCurrentLine('');
+  </script>
+</body>
+</html>

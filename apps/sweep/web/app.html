@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#faf8f3">
+<title>Install Sweep App</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-icon.svg">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* App Install Page — Morning Paper theme */
+.app-install-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-masthead {
+  text-align: center;
+  margin-bottom: var(--spacing-xxl);
+  padding: var(--spacing-xl);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  width: 100%;
+}
+
+.app-masthead-title {
+  font-family: var(--font-heading);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+.app-masthead-subtitle {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+}
+
+.app-benefits {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  width: 100%;
+}
+
+.app-benefits-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  color: var(--color-ink);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.app-benefits-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.app-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-border-light);
+  border-radius: var(--radius-card);
+}
+
+.app-benefit-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--color-accent);
+}
+
+.app-benefit-text {
+  font-size: 14px;
+  color: var(--color-ink-light);
+  line-height: 1.5;
+}
+
+.app-install-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: var(--spacing-xl);
+}
+
+.app-install-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 16px 32px;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-card);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 120ms ease;
+  width: 100%;
+}
+
+.app-install-btn:hover {
+  background: var(--color-accent-dark);
+}
+
+.app-install-btn:active {
+  transform: scale(0.98);
+}
+
+.app-install-btn:disabled {
+  background: var(--color-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.app-secondary-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 400px;
+}
+
+.app-secondary-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-light);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: all 120ms ease;
+}
+
+.app-secondary-link:hover {
+  background: var(--color-border-light);
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+}
+
+.app-manual-install {
+  display: none;
+  background: var(--color-border-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  font-size: 13px;
+  color: var(--color-ink-light);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.app-manual-install strong {
+  color: var(--color-accent);
+}
+
+.app-manual-install ol {
+  text-align: left;
+  margin: var(--spacing-sm) 0;
+  padding-left: var(--spacing-lg);
+}
+
+.app-manual-install li {
+  margin-bottom: var(--spacing-xs);
+}
+
+@media (max-width: 480px) {
+  .app-install-container {
+    padding: var(--spacing-md);
+  }
+  
+  .app-masthead {
+    padding: var(--spacing-lg);
+  }
+  
+  .app-masthead-title {
+    font-size: 32px;
+    letter-spacing: 0.1em;
+  }
+  
+  .app-masthead-subtitle {
+    font-size: 11px;
+  }
+  
+  .app-benefits {
+    padding: var(--spacing-md);
+  }
+  
+  .app-benefit-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .app-install-btn {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+}
+
+[data-theme="night"] .app-install-btn {
+  background: var(--color-accent);
+}
+
+[data-theme="night"] .app-install-btn:hover {
+  background: var(--color-accent-dark);
+}
+</style>
+</head>
+<body>
+
+<!-- Masthead -->
+<header class="masthead">
+  <div class="masthead-brand">
+    <span class="masthead-title">SWEEP</span>
+    <span class="masthead-subtitle">App</span>
+  </div>
+  <div class="masthead-actions">
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle Night Edition">
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main">
+  
+  <div class="app-install-container">
+    
+    <!-- Masthead Card -->
+    <div class="app-masthead">
+      <span class="app-masthead-title">SWEEP</span>
+      <span class="app-masthead-subtitle">From idea to checkable plan</span>
+    </div>
+    
+    <!-- Benefits -->
+    <div class="app-benefits">
+      <h2 class="app-benefits-title">Why install Sweep?</h2>
+      <ul class="app-benefits-list">
+        <li class="app-benefit-item">
+          <svg class="app-benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span class="app-benefit-text"><strong>Install to desktop or home screen</strong> — Launch Sweep like a native app, no browser chrome needed</span>
+        </li>
+        <li class="app-benefit-item">
+          <svg class="app-benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span class="app-benefit-text"><strong>Works offline</strong> — Your data is encrypted at rest in your browser. No server, no network required</span>
+        </li>
+        <li class="app-benefit-item">
+          <svg class="app-benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span class="app-benefit-text"><strong>Full-screen experience</strong> — Clean, distraction-free interface focused on your work</span>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Install Actions -->
+    <div class="app-install-actions">
+      <button class="app-install-btn" id="install-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Install app
+      </button>
+      
+      <div class="app-manual-install" id="manual-install-hint">
+        <strong>Manual install not available</strong>
+        <p style="margin: var(--spacing-sm) 0;">Your browser or device doesn't support the install prompt. Try one of these alternatives:</p>
+        <ol>
+          <li><strong>Chrome/Edge:</strong> Click the install icon in the address bar</li>
+          <li><strong>Safari (iOS):</strong> Tap Share → Add to Home Screen</li>
+          <li><strong>Samsung Internet:</strong> Menu → Add page to → Home screen</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Secondary Links -->
+    <div class="app-secondary-links">
+      <a class="app-secondary-link" href="./">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Open web app
+      </a>
+      <a class="app-secondary-link" href="mobile.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        Open mobile
+      </a>
+      <a class="app-secondary-link" href="../">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7H4a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3h9l2-3h6a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-6"/><path d="M4 13h12"/></svg>
+        All projects
+      </a>
+    </div>
+    
+  </div>
+  
+</main>
+
+<script>
+// Theme toggle (same as index.html)
+(function() {
+  const STORAGE_KEY = 'sweep_theme_v1';
+  const savedTheme = localStorage.getItem(STORAGE_KEY);
+  const sunIcon = document.querySelector('.icon-sun');
+  const moonIcon = document.querySelector('.icon-moon');
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  if (savedTheme === 'night') {
+    document.documentElement.setAttribute('data-theme', 'night');
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'block';
+  }
+  
+  themeToggle.addEventListener('click', function() {
+    const isNight = document.documentElement.getAttribute('data-theme') === 'night';
+    if (isNight) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem(STORAGE_KEY, 'light');
+      sunIcon.style.display = 'block';
+      moonIcon.style.display = 'none';
+    } else {
+      document.documentElement.setAttribute('data-theme', 'night');
+      localStorage.setItem(STORAGE_KEY, 'night');
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = 'block';
+    }
+  });
+})();
+
+// Service Worker Registration (defensive)
+(function() {
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(registration) {
+        console.log('ServiceWorker registered:', registration.scope);
+      })
+      .catch(function(error) {
+        console.log('ServiceWorker registration failed:', error);
+      });
+  }
+})();
+
+// Install Prompt Handling
+(function() {
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('install-btn');
+  const manualHint = document.getElementById('manual-install-hint');
+  
+  // Listen for beforeinstallprompt event
+  window.addEventListener('beforeinstallprompt', function(e) {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    // Show the install button
+    installBtn.style.display = 'inline-flex';
+    console.log('beforeinstallprompt event fired');
+  });
+  
+  // Handle install button click
+  installBtn.addEventListener('click', async function() {
+    if (!deferredPrompt) {
+      console.log('Install prompt not available');
+      return;
+    }
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user's response
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('User response to install prompt:', outcome);
+    
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+      // Optionally hide the install button
+      installBtn.style.display = 'none';
+    } else if (outcome === 'dismissed') {
+      console.log('User dismissed the install prompt');
+      // Show manual install hint
+      manualHint.style.display = 'block';
+    }
+    
+    // Clear the deferred prompt
+    deferredPrompt = null;
+  });
+  
+  // Handle app installed event
+  window.addEventListener('appinstalled', function() {
+    console.log('Sweep app was installed');
+    installBtn.style.display = 'none';
+    manualHint.style.display = 'none';
+  });
+  
+  // If no beforeinstallprompt after 2 seconds, show manual hint
+  setTimeout(function() {
+    if (!deferredPrompt && installBtn.style.display !== 'none') {
+      manualHint.style.display = 'block';
+      console.log('beforeinstallprompt did not fire, showing manual install hint');
+    }
+  }, 2000);
+})();
+</script>
+</body>
+</html>

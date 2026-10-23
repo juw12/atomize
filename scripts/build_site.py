@@ -47,42 +47,45 @@ def write_nojekyll(out_dir):
 
 
 # Each app lists the entry points the landing page links to (paths are relative
-# to the site root). Apps without a mobile build just list one link.
+# to the site root). Every product ships three versions — App, Web and Mobile.
+#   App    = installable application (installable PWA, or the native desktop app)
+#   Web    = desktop browser build
+#   Mobile = mobile-optimised build
 APPS = [
     {
         "name": "Orbis",
         "desc": "Communication, identity and protection in one app",
-        "links": [("Desktop", "orbis/app.html"), ("Mobile", "orbis/app-mobile.html")],
+        "links": [("App", "orbis/app.html"), ("Web", "orbis/index.html"), ("Mobile", "orbis/app-mobile.html")],
     },
     {
         "name": "Peers",
         "desc": "Verified reviews for food, travel and products",
-        "links": [("Desktop", "peers/"), ("Mobile", "peers/mobile.html")],
+        "links": [("App", "peers/app.html"), ("Web", "peers/"), ("Mobile", "peers/mobile.html")],
     },
     {
         "name": "House of Articles",
         "desc": "Athlete-moment sneaker news + live market feed",
-        "links": [("Desktop", "house-of-articles/desktop.html"), ("Mobile", "house-of-articles/")],
+        "links": [("App", "house-of-articles/app.html"), ("Web", "house-of-articles/desktop.html"), ("Mobile", "house-of-articles/")],
     },
     {
         "name": "Productivity Widget",
-        "desc": "\"The Morning Paper\" ΓÇö always-on-top Pomodoro timer + soundscapes + app tracking + coaching",
-        "links": [("Overview", "productivity-widget/")],
+        "desc": "\"The Morning Paper\" — Pomodoro timer + daily focus score (native app, plus web and mobile builds)",
+        "links": [("App", "productivity-widget/"), ("Web", "productivity-widget/web.html"), ("Mobile", "productivity-widget/mobile.html")],
     },
     {
         "name": "Lingua",
         "desc": "Live-translated Microsoft Teams captions in an always-on-top overlay",
-        "links": [("Overview", "lingua/")],
-    },
-    {
-        "name": "Sweep",
-        "desc": "Turn a rough app idea into a checkable plan ΓÇö brief, capability matrix, Definition of Done, scaffold preview and catalog",
-        "links": [("Open", "sweep/")],
+        "links": [("App", "lingua/"), ("Web", "lingua/web.html"), ("Mobile", "lingua/mobile.html")],
     },
     {
         "name": "Hazel",
         "desc": "Desktop studio for creators — generate a video from a prompt, refine it, fan it out to every platform, and keep your storage from overfilling",
-        "links": [("Web", "hazel/"), ("Mobile", "hazel/mobile.html")],
+        "links": [("App", "hazel/app.html"), ("Web", "hazel/"), ("Mobile", "hazel/mobile.html")],
+    },
+    {
+        "name": "Sweep",
+        "desc": "Turn a rough app idea into a checkable plan — brief, capability matrix, Definition of Done, scaffold preview and catalog",
+        "links": [("App", "sweep/app.html"), ("Web", "sweep/"), ("Mobile", "sweep/mobile.html")],
     },
 ]
 
@@ -218,14 +221,14 @@ def generate_index(out_dir, repo_name):
 <body>
   <div class="container">
     <h1>{repo_name}</h1>
-    <p class="subtitle">Product projects ΓÇö each with a desktop and a mobile build</p>
+    <p class="subtitle">Product projects — each with an app, web and mobile build</p>
 
     <div class="grid">
 {cards_html}
     </div>
 
     <footer>
-      <p>Built with Python stdlib only ┬╖ Deployed to GitHub Pages</p>
+      <p>Built with Python stdlib only · Deployed to GitHub Pages</p>
     </footer>
   </div>
 </body>
@@ -258,8 +261,8 @@ def main():
         ("house-of-articles", "house-of-articles"),
         ("productivity-widget", "productivity-widget"),
         ("lingua", "lingua"),
-        ("sweep", "sweep"),
         ("hazel", "hazel"),
+        ("sweep", "sweep"),
     ]
 
     for app_name, site_subdir in apps_config:

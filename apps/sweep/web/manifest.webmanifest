@@ -1,0 +1,21 @@
+{
+  "name": "Sweep",
+  "short_name": "Sweep",
+  "description": "From idea to checkable plan",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8f3",
+  "theme_color": "#8b1a1a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en"
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background: newspaper cream paper -->
+  <rect width="512" height="512" rx="64" ry="64" fill="#faf8f3"/>
+  
+  <!-- Border: newspaper red accent -->
+  <rect x="24" y="24" width="464" height="464" rx="56" ry="56" fill="none" stroke="#8b1a1a" stroke-width="8"/>
+  
+  <!-- SW text: bold newspaper headline style -->
+  <text x="256" y="320" font-family="Georgia, 'Times New Roman', serif" font-size="200" font-weight="700" fill="#8b1a1a" text-anchor="middle" letter-spacing="-8">SW</text>
+  
+  <!-- Decorative rule line (newspaper style) -->
+  <line x1="100" y1="360" x2="412" y2="360" stroke="#8b1a1a" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Subtitle hint: small horizontal lines representing text -->
+  <line x1="140" y1="400" x2="372" y2="400" stroke="#6b6b6b" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+  <line x1="160" y1="420" x2="352" y2="420" stroke="#6b6b6b" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  
+  <!-- Corner accent marks (newspaper decorative) -->
+  <path d="M 80 80 L 120 80 L 120 100 L 100 100 L 100 120 L 80 120 Z" fill="#8b1a1a" opacity="0.3"/>
+  <path d="M 432 80 L 392 80 L 392 100 L 412 100 L 412 120 L 432 120 Z" fill="#8b1a1a" opacity="0.3"/>
+  <path d="M 80 432 L 120 432 L 120 412 L 100 412 L 100 392 L 80 392 Z" fill="#8b1a1a" opacity="0.3"/>
+  <path d="M 432 432 L 392 432 L 392 412 L 412 412 L 412 392 L 432 392 Z" fill="#8b1a1a" opacity="0.3"/>
+</svg>

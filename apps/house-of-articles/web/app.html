@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House of Articles — Install App</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111110">
+<link rel="apple-touch-icon" href="icons/app-icon.svg">
+<style>
+:root{--bg:#111110;--surface:#1A1917;--surface-2:#222019;--ink:#F2EEE6;--ink-2:#A39C8F;--ink-3:#6B655C;--hair:#33302B;--accent:#E4572E;--accent-hover:#F56A3E;--radius-sm:0;--radius-md:2px;--radius-lg:3px;--font-display:"Didot","Bodoni MT","Baskerville",Georgia,serif;--font-grotesk:"Franklin Gothic Medium","Helvetica Neue",Helvetica,Arial,sans-serif;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--text-sm:13px;--text-base:15px;--text-lg:17px;--text-xl:20px;--text-3xl:32px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-grotesk);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--space-6)}
+.container{max-width:480px;width:100%;text-align:center}
+.masthead{margin-bottom:var(--space-8)}
+.masthead h1{font-family:var(--font-display);font-size:var(--text-3xl);font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.2;margin-bottom:var(--space-2)}
+.masthead h1 em{color:var(--accent);font-style:normal}
+.masthead p{font-size:var(--text-lg);color:var(--ink-2);line-height:1.5}
+.benefits{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-6);text-align:left}
+.benefits ul{list-style:none}
+.benefits li{display:flex;align-items:flex-start;gap:var(--space-3);margin-bottom:var(--space-4);font-size:var(--text-base);color:var(--ink-2)}
+.benefits li:last-child{margin-bottom:0}
+.benefits li svg{width:20px;height:20px;stroke:var(--accent);stroke-width:2;fill:none;flex-shrink:0;margin-top:2px}
+.actions{display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-6)}
+.btn-primary{background:var(--accent);color:var(--ink);padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);font-size:var(--text-lg);font-weight:600;cursor:pointer;transition:background var(--t-fast,150ms);width:100%;border:none}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{background:var(--surface);color:var(--ink-2);padding:var(--space-3) var(--space-5);border-radius:var(--radius-md);font-size:var(--text-base);font-weight:500;cursor:pointer;transition:all var(--t-fast,150ms);width:100%;border:1px solid var(--hair);text-align:center;text-decoration:none;display:block}
+.btn-secondary:hover{background:var(--surface-2);color:var(--ink);border-color:var(--ink-3)}
+.install-hint{background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-6);font-size:var(--text-sm);color:var(--ink-3);display:none}
+.install-hint.visible{display:block}
+.install-hint strong{color:var(--ink-2)}
+.secondary-links{display:flex;flex-direction:column;gap:var(--space-2)}
+.secondary-links a{color:var(--ink-3);font-size:var(--text-sm);text-decoration:none;transition:color var(--t-fast,150ms)}
+.secondary-links a:hover{color:var(--accent)}
+@media (min-width:481px){.actions{flex-direction:row}.btn-primary{flex:1}.btn-secondary{flex:1}.secondary-links{flex-direction:row;justify-content:center}}
+@media (max-width:359px){.container{padding:0}.benefits{padding:var(--space-4)}.masthead h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="masthead">
+    <h1>House of <em>Articles</em></h1>
+    <p>Sneaker news tied to live market moves, as an app</p>
+  </header>
+
+  <section class="benefits">
+    <ul>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+        <span>Install to home screen or desktop for instant access</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+        <span>Works offline — cached content when you have no connection</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+        <span>Full-screen experience without browser chrome</span>
+      </li>
+    </ul>
+  </section>
+
+  <div class="actions">
+    <button id="installBtn" class="btn-primary">Install app</button>
+  </div>
+
+  <div id="installHint" class="install-hint">
+    <strong>Manual install:</strong> Use your browser's menu to install this page as an app
+  </div>
+
+  <nav class="secondary-links">
+    <a href="desktop.html">Open desktop version</a>
+    <a href="index.html">Open mobile version</a>
+    <a href="../">All projects</a>
+  </nav>
+</div>
+
+<script>
+(function(){
+  let deferredPrompt=null;
+  const installBtn=document.getElementById('installBtn');
+  const installHint=document.getElementById('installHint');
+
+  window.addEventListener('beforeinstallprompt',(e)=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    installBtn.style.display='block';
+  });
+
+  installBtn.addEventListener('click',async()=>{
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt();
+    const{outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted'){installBtn.textContent='Installing...';}
+    deferredPrompt=null;
+  });
+
+  window.addEventListener('appinstalled',()=>{
+    installBtn.textContent='Installed';
+    installBtn.disabled=true;
+    installHint.classList.remove('visible');
+  });
+
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+
+  setTimeout(()=>{
+    if(!deferredPrompt){installHint.classList.add('visible');}
+  },3000);
+})();
+</script>
+</body>
+</html>
