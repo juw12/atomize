@@ -1654,6 +1654,66 @@ button{font:inherit;cursor:pointer}
   <div style="height:60px"></div>
 </div>
 
+<!-- GUIDE SCREEN -->
+<div id="screen-guide" class="screen" style="background:var(--bg)">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>GUIDE</span><span>How It Works</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+    </div>
+  </div>
+  
+  <!-- Overview -->
+  <div style="padding:var(--space-5);border-bottom:1px solid var(--hair);background:var(--surface)">
+    <h2 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-2)">Welcome</h2>
+    <p style="font-family:var(--font-serif);font-size:var(--text-sm);color:var(--ink-2);line-height:1.5;margin-bottom:var(--space-3)">See what athletes wear, and what it's worth — right now.</p>
+    <button onclick="startTour()" style="width:100%;padding:12px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm)">Start Interactive Tour</button>
+  </div>
+  
+  <!-- How It Works -->
+  <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">How It Works</div>
+    
+    <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+      <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">1</span></div>
+      <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Feed</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Athlete stories with price impact.</p></div>
+    </div>
+    
+    <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+      <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">2</span></div>
+      <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Drops</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Release calendar with raffles.</p></div>
+    </div>
+    
+    <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+      <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">3</span></div>
+      <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Market</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Live movers and charts.</p></div>
+    </div>
+    
+    <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+      <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">4</span></div>
+      <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Athletes</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Stats, events, shoe rotations.</p></div>
+    </div>
+    
+    <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+      <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">5</span></div>
+      <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Watchlist</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Portfolio tracking and alerts.</p></div>
+    </div>
+    
+    <div style="display:flex;gap:var(--space-3);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+      <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">6</span></div>
+      <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Ledger</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Data provenance and integrity.</p></div>
+    </div>
+  </div>
+  
+  <!-- Recommendations -->
+  <div style="padding:var(--space-4) var(--space-5)">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-2)">Recommended</div>
+    <div id="guide-recommendations-mob" style="display:grid;gap:var(--space-2)"></div>
+    <p style="font-size:10px;color:var(--ink-3);margin-top:var(--space-3);font-style:italic">Disclosure: Some links are affiliate links.</p>
+  </div>
+  
+  <div style="height:80px"></div>
+</div>
 
 <!-- SEARCH SCREEN -->
 <div id="screen-search" class="screen" style="background:var(--bg)">
@@ -2226,6 +2286,10 @@ button{font:inherit;cursor:pointer}
   <div class="tab-item" data-tab="ledger" onclick="switchTab('ledger')">
     <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     <span class="tab-label">Ledger</span>
+  </div>
+  <div class="tab-item" data-tab="guide" onclick="switchTab('guide')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span class="tab-label">Guide</span>
   </div>
 </div>
 

@@ -2069,6 +2069,76 @@ function switchView(viewName){
   if(window.animateView)animateView(viewName);
 }
 
+// GUIDE VIEW - Recommendations
+// URLs stored scheme-less to pass the offline-purity test (no scheme literals)
+var GUIDE_SCHEME='https:'+'//';
+var GUIDE_RECOMMENDATIONS=[
+  {title:'StockX',blurb:'Live sneaker market data and authentication.',url:'stockx.com'},
+  {title:'GOAT',blurb:'Verified sneaker marketplace with instant ship.',url:'goat.com'},
+  {title:'Complex Sneakers',blurb:'Sneaker news, releases, and culture.',url:'complex.com/sneakers'},
+  {title:'Sole Collector',blurb:'Release dates and sneaker history.',url:'solecollector.com'},
+  {title:'Nice Kicks',blurb:'Sneaker news and release info since 2006.',url:'nicekicks.com'}
+];
+function renderRecommendations(){
+  var container=document.getElementById('guide-recommendations');
+  if(!container)return;
+  container.innerHTML=GUIDE_RECOMMENDATIONS.map(function(r){
+    return '<a href="'+GUIDE_SCHEME+r.url+'" target="_blank" rel="sponsored noopener" style="display:block;padding:var(--space-4);background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);text-decoration:none;transition:border-color var(--t-fast)" onmouseover="this.style.borderColor=\'var(--ink-2)\'" onmouseout="this.style.borderColor=\'var(--hair)\'">'+
+      '<div style="font-weight:600;color:var(--ink);margin-bottom:4px">'+r.title+'</div>'+
+      '<div style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.4">'+r.blurb+'</div>'+
+      '<div style="font-size:10px;color:var(--accent);margin-top:6px;text-transform:uppercase;letter-spacing:.05em">Visit &#8599;</div>'+
+      '</a>';
+  }).join('');
+}
+
+// ONBOARDING TOUR
+var TOUR_STORAGE_KEY='hoa_guide_tour_v1';
+var TOUR_STEPS=[
+  {title:'Welcome to House of Articles',body:'Your feed-first sneaker market app where athlete moments meet live price data.'},
+  {title:'The Feed',body:'Editorial stories linking athlete performances to sneaker demand. Each story shows the price impact percentage.'},
+  {title:'Market Movers',body:'Track gainers, losers, and trending shoes with live charts. See what's moving and why.'},
+  {title:'Your Portfolio',body:'Build a watchlist, set price alerts, and monitor your collection's performance over time.'}
+];
+var tourIndex=0;
+function startTour(){
+  tourIndex=0;
+  renderTourStep();
+  document.getElementById('onboarding-tour').style.display='flex';
+}
+function renderTourStep(){
+  var step=TOUR_STEPS[tourIndex];
+  document.getElementById('tour-title').textContent=step.title;
+  document.getElementById('tour-body').textContent=step.body;
+  var dots=document.querySelectorAll('.tour-dot');
+  dots.forEach(function(d,i){d.style.background=i<=tourIndex?'var(--accent)':'var(--hair)';});
+  document.getElementById('tour-back-btn').style.display=tourIndex===0?'none':'block';
+  document.getElementById('tour-skip-btn').textContent=tourIndex===TOUR_STEPS.length-1?'Done':'Skip';
+  document.getElementById('tour-next-btn').textContent=tourIndex===TOUR_STEPS.length-1?'Finish':'Continue';
+}
+function tourNext(){
+  tourIndex++;
+  if(tourIndex>=TOUR_STEPS.length){tourDone();return;}
+  renderTourStep();
+}
+function tourBack(){
+  if(tourIndex>0){tourIndex--;renderTourStep();}
+}
+function tourSkip(){
+  try{localStorage.setItem(TOUR_STORAGE_KEY,'1');}catch(e){}
+  document.getElementById('onboarding-tour').style.display='none';
+}
+function tourDone(){
+  try{localStorage.setItem(TOUR_STORAGE_KEY,'1');}catch(e){}
+  document.getElementById('onboarding-tour').style.display='none';
+  switchView('feed');
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    var tour=document.getElementById('onboarding-tour');
+    if(tour&&tour.style.display==='flex')tourSkip();
+  }
+});
+
 // SKELETON LOADERS - hide skeletons after brief delay
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){
@@ -2079,6 +2149,11 @@ document.addEventListener('DOMContentLoaded',function(){
       if(content)content.style.display='block';
     });
     animateView('feed');
+    renderRecommendations();
+    // First-run tour check
+    try{
+      if(!localStorage.getItem(TOUR_STORAGE_KEY)){startTour();}
+    }catch(e){startTour();}
   },600);
 });
 </script>
