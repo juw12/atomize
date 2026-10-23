@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Desk Verdict — AI for the 9-to-5</title>
+<style>
+/* DESIGN SYSTEM v1 — Professional, editorial, calm "office desk" feel */
+:root{
+  --bg:#F8F6F2;
+  --surface:#FFFFFF;
+  --surface-2:#F0EDE6;
+  --surface-3:#E8E4DC;
+  --ink:#1A1814;
+  --ink-2:#5A5448;
+  --ink-3:#8A8276;
+  --hair:#D8D4CC;
+  --rule:#1A1814;
+  --accent:#2E6FE4;
+  --accent-hover:#1E5BD1;
+  --accent-dim:rgba(46,111,228,.1);
+  --use:#2D8A4F;
+  --use-bg:rgba(45,138,79,.12);
+  --wait:#C97D2D;
+  --wait-bg:rgba(201,125,45,.12);
+  --skip:#B84439;
+  --skip-bg:rgba(184,68,57,.12);
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
+  --font-display:"Georgia",serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Consolas",monospace;
+  --text-xs:12px;
+  --text-sm:14px;
+  --text-base:16px;
+  --text-lg:18px;
+  --text-xl:22px;
+  --text-2xl:28px;
+  --text-3xl:36px;
+  --radius-sm:4px;
+  --radius-md:6px;
+  --radius-lg:10px;
+  --radius-full:9999px;
+  --t-fast:120ms ease;
+  --t-norm:240ms ease;
+  --t-slow:360ms ease;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.1);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#121214;
+    --surface:#1E1E20;
+    --surface-2:#262628;
+    --surface-3:#2E2E30;
+    --ink:#E8E6E0;
+    --ink-2:#A8A298;
+    --ink-3:#6A645C;
+    --hair:#3A3834;
+    --rule:#E8E6E0;
+    --accent:#4A8AFF;
+    --accent-hover:#6A9AFF;
+    --accent-dim:rgba(74,138,255,.15);
+    --use:#4FB36F;
+    --use-bg:rgba(79,179,111,.15);
+    --wait:#E59A4A;
+    --wait-bg:rgba(229,154,74,.15);
+    --skip:#D96A5F;
+    --skip-bg:rgba(217,106,95,.15);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);line-height:1.5;font-size:var(--text-base);-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+
+/* Header */
+.header{padding:var(--space-6) var(--space-5);border-bottom:1px solid var(--hair);background:var(--surface)}
+.header-brand{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.header-brand em{color:var(--accent);font-style:normal}
+.header-tagline{font-family:var(--font-display);font-size:var(--text-sm);color:var(--ink-2);margin-top:4px;font-style:italic}
+.status-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-left:var(--space-3)}
+.status-chip.local{background:var(--surface-2);color:var(--ink-3);border:1px solid var(--hair)}
+.status-chip.server{background:var(--use-bg);color:var(--use);border:1px solid var(--use)}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--hair);background:var(--surface)}
+.tab{flex:1;padding:var(--space-4);text-align:center;font-size:var(--text-sm);font-weight:600;color:var(--ink-2);border-bottom:2px solid transparent;transition:all var(--t-fast)}
+.tab:hover{background:var(--surface-2);color:var(--ink)}
+.tab:active{transform:scale(.98)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Main container */
+.main{max-width:1100px;margin:0 auto;padding:var(--space-5);padding-bottom:80px}
+
+/* Views */
+.view{display:none}
+.view.active{display:block}
+
+/* Stats strip */
+.stats-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3);margin-bottom:var(--space-6)}
+.stat-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);text-align:center}
+.stat-val{font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;margin-bottom:4px}
+.stat-val.use{color:var(--use)}
+.stat-val.wait{color:var(--wait)}
+.stat-val.skip{color:var(--skip)}
+.stat-lbl{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+
+/* Form */
+.form-section{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5)}
+.section-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink);margin-bottom:var(--space-4);padding-bottom:var(--space-2);border-bottom:1px solid var(--hair)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:var(--text-xs);font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em}
+.form-group input[type="text"],.form-group input[type="number"],.form-group input[type="date"],.form-group select,.form-group textarea{padding:10px 12px;background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);font-size:var(--text-sm);transition:border-color var(--t-fast)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);outline:none}
+.form-group textarea{resize:vertical;min-height:80px}
+.checkbox-row{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) 0}
+.checkbox-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent)}
+.checkbox-row label{font-size:var(--text-sm);color:var(--ink-2);cursor:pointer}
+
+/* Segmented selector (1-5) */
+.segmented{display:flex;gap:var(--space-1)}
+.segment-btn{flex:1;padding:10px 0;text-align:center;border:1px solid var(--hair);background:var(--surface-2);font-size:var(--text-sm);font-weight:600;color:var(--ink-2);cursor:pointer;transition:all var(--t-fast)}
+.segment-btn:first-child{border-radius:var(--radius-md) 0 0 var(--radius-md)}
+.segment-btn:last-child{border-radius:0 var(--radius-md) var(--radius-md) 0}
+.segment-btn:not(:last-child){border-right:none}
+.segment-btn:hover{background:var(--surface-3)}
+.segment-btn.active{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+
+/* Live verdict preview */
+.verdict-preview{background:var(--surface-2);border:2px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-top:var(--space-4);text-align:center}
+.verdict-badge{display:inline-block;padding:8px 24px;border-radius:var(--radius-full);font-size:var(--text-lg);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-2)}
+.verdict-badge.use{background:var(--use);color:white}
+.verdict-badge.wait{background:var(--wait);color:white}
+.verdict-badge.skip{background:var(--skip);color:white}
+.verdict-avg{font-family:var(--font-mono);font-size:var(--text-sm);color:var(--ink-3);margin-bottom:var(--space-2)}
+.verdict-reason{font-size:var(--text-sm);color:var(--ink-2);font-style:italic}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);transition:all var(--t-fast)}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{background:var(--surface-2);color:var(--ink);border:1px solid var(--hair)}
+.btn-secondary:hover{background:var(--surface-3)}
+.btn-danger{background:var(--skip-bg);color:var(--skip);border:1px solid var(--skip)}
+.btn-danger:hover{background:var(--skip);color:white}
+.btn-sm{padding:8px 16px;font-size:12px}
+
+/* Verdict cards */
+.verdicts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);flex-wrap:wrap;gap:var(--space-3)}
+.search-bar{flex:1;min-width:240px;max-width:400px}
+.search-bar input{width:100%;padding:10px 14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);font-size:var(--text-sm)}
+.filter-group{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.filter-select{padding:10px 14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-md);font-size:var(--text-sm);cursor:pointer}
+.verdict-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-3);cursor:pointer;transition:all var(--t-fast)}
+.verdict-card:hover{border-color:var(--ink-2);box-shadow:var(--shadow-md)}
+.verdict-card:active{transform:scale(.98)}
+.verdict-card-head{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-2)}
+.verdict-card-badge{padding:4px 12px;border-radius:var(--radius-full);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.verdict-card-badge.use{background:var(--use-bg);color:var(--use)}
+.verdict-card-badge.wait{background:var(--wait-bg);color:var(--wait)}
+.verdict-card-badge.skip{background:var(--skip-bg);color:var(--skip)}
+.verdict-card-tool{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink)}
+.verdict-card-task{font-size:var(--text-sm);color:var(--ink-2);margin-bottom:var(--space-2)}
+.verdict-card-meta{display:flex;gap:var(--space-4);font-size:var(--text-xs);color:var(--ink-3)}
+.verdict-card-meta span{display:flex;align-items:center;gap:4px}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:var(--space-5);opacity:0;visibility:hidden;transition:all var(--t-norm)}
+.modal-backdrop.open{opacity:1;visibility:visible}
+.modal{background:var(--bg);border-radius:var(--radius-lg);max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{padding:var(--space-5);border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10}
+.modal-title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink)}
+.modal-close{width:32px;height:32px;border-radius:var(--radius-md);background:var(--surface-2);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;transition:all var(--t-fast)}
+.modal-close:hover{background:var(--surface-3)}
+.modal-close svg{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.5}
+.modal-body{padding:var(--space-5)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-5)}
+.detail-item{padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)}
+.detail-label{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.detail-value{font-size:var(--text-sm);color:var(--ink)}
+.scores-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--space-2);margin-bottom:var(--space-5)}
+.score-cell{text-align:center;padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)}
+.score-label{font-size:9px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.score-val{font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink)}
+.script-box{background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-4)}
+.script-text{font-family:var(--font-sans);font-size:var(--text-sm);color:var(--ink-2);line-height:1.6;font-style:italic}
+.script-actions{display:flex;gap:var(--space-2);margin-top:var(--space-3)}
+
+/* Reference panel */
+.ref-panel{background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-top:var(--space-6)}
+.ref-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--ink);margin-bottom:var(--space-3)}
+.ref-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)}
+.ref-item{padding:var(--space-3);background:var(--surface);border-radius:var(--radius-md);border-left:4px solid}
+.ref-item.use{border-left-color:var(--use)}
+.ref-item.wait{border-left-color:var(--wait)}
+.ref-item.skip{border-left-color:var(--skip)}
+.ref-item-title{font-weight:700;color:var(--ink);margin-bottom:4px;font-size:var(--text-sm)}
+.ref-item-desc{font-size:12px;color:var(--ink-3);line-height:1.5}
+
+/* Actions bar */
+.actions-bar{display:flex;gap:var(--space-2);margin-top:var(--space-4);flex-wrap:wrap}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-3);border:1px solid var(--hair);color:var(--ink);padding:12px 24px;border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:500;z-index:1100;opacity:0;visibility:hidden;transition:all var(--t-norm);white-space:nowrap}
+.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+
+/* Responsive */
+@media(max-width:768px){
+  .form-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .ref-grid{grid-template-columns:1fr}
+  .stats-strip{grid-template-columns:repeat(3,1fr)}
+  .verdicts-header{flex-direction:column;align-items:stretch}
+  .search-bar{max-width:none}
+  .scores-grid{grid-template-columns:repeat(5,1fr)}
+  .score-label{font-size:8px}
+}
+@media(max-width:480px){
+  .header{padding:var(--space-4)}
+  .main{padding:var(--space-3)}
+  .stats-strip{grid-template-columns:1fr}
+  .segment-btn{padding:8px 0;font-size:12px}
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* Empty state */
+.empty-state{text-align:center;padding:60px var(--space-5);color:var(--ink-3)}
+.empty-state svg{width:64px;height:64px;stroke:var(--hair);fill:none;stroke-width:1.5;margin-bottom:var(--space-4)}
+.empty-state h3{font-family:var(--font-display);font-size:var(--text-lg);color:var(--ink);margin-bottom:var(--space-2)}
+.empty-state p{font-size:var(--text-sm);margin-bottom:var(--space-4)}
+
+/* Hidden file input */
+.hidden-input{display:none}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div>
+    <div class="header-brand">Desk <em>Verdict</em></div>
+    <div class="header-tagline">AI for the 9-to-5. Tested at work, so you don't have to.</div>
+  </div>
+  <div class="status-chip local" id="status-chip">
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+    <span id="status-text">Local</span>
+  </div>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs">
+  <button class="tab active" data-tab="score" onclick="switchTab('score')">Score a tool</button>
+  <button class="tab" data-tab="verdicts" onclick="switchTab('verdicts')">Verdicts</button>
+</nav>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Score Form View -->
+  <div class="view active" id="view-score">
+    <form id="score-form" onsubmit="handleSubmit(event)">
+      <div class="form-section">
+        <h2 class="section-title">Tool & Task</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="tool">AI Tool name</label>
+            <input type="text" id="tool" name="tool" required placeholder="e.g., ChatGPT, Claude, Gemini">
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+              <option value="">Select a role</option>
+              <option value="admin">Admin</option>
+              <option value="operations">Operations</option>
+              <option value="marketing">Marketing</option>
+              <option value="finance">Finance</option>
+              <option value="hr">HR</option>
+              <option value="sales">Sales</option>
+              <option value="project-management">Project Management</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="task">Task tested</label>
+            <input type="text" id="task" name="task" required placeholder="What specific work task did you test?">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">Time Impact (optional)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="time_with_min">Minutes with tool</label>
+            <input type="number" id="time_with_min" name="time_with_min" min="0" placeholder="e.g., 5">
+          </div>
+          <div class="form-group">
+            <label for="time_without_min">Minutes without tool</label>
+            <input type="number" id="time_without_min" name="time_without_min" min="0" placeholder="e.g., 45">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">Scorecard (1-5)</h2>
+        
+        <div class="form-group" style="margin-bottom:var(--space-4)">
+          <label>Time saved on a real task</label>
+          <div class="segmented" id="seg-time_saved">
+            <button type="button" class="segment-btn" data-score="1">1</button>
+            <button type="button" class="segment-btn" data-score="2">2</button>
+            <button type="button" class="segment-btn" data-score="3">3</button>
+            <button type="button" class="segment-btn" data-score="4">4</button>
+            <button type="button" class="segment-btn" data-score="5">5</button>
+          </div>
+          <input type="hidden" id="time_saved" name="time_saved" value="">
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--space-4)">
+          <label>Quality of output</label>
+          <div class="segmented" id="seg-output_quality">
+            <button type="button" class="segment-btn" data-score="1">1</button>
+            <button type="button" class="segment-btn" data-score="2">2</button>
+            <button type="button" class="segment-btn" data-score="3">3</button>
+            <button type="button" class="segment-btn" data-score="4">4</button>
+            <button type="button" class="segment-btn" data-score="5">5</button>
+          </div>
+          <input type="hidden" id="output_quality" name="output_quality" value="">
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--space-4)">
+          <label>Ease for a non-technical person</label>
+          <div class="segmented" id="seg-ease_of_use">
+            <button type="button" class="segment-btn" data-score="1">1</button>
+            <button type="button" class="segment-btn" data-score="2">2</button>
+            <button type="button" class="segment-btn" data-score="3">3</button>
+            <button type="button" class="segment-btn" data-score="4">4</button>
+            <button type="button" class="segment-btn" data-score="5">5</button>
+          </div>
+          <input type="hidden" id="ease_of_use" name="ease_of_use" value="">
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--space-4)">
+          <label>Cost vs. value</label>
+          <div class="segmented" id="seg-cost_value">
+            <button type="button" class="segment-btn" data-score="1">1</button>
+            <button type="button" class="segment-btn" data-score="2">2</button>
+            <button type="button" class="segment-btn" data-score="3">3</button>
+            <button type="button" class="segment-btn" data-score="4">4</button>
+            <button type="button" class="segment-btn" data-score="5">5</button>
+          </div>
+          <input type="hidden" id="cost_value" name="cost_value" value="">
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--space-4)">
+          <label>Work-safety (data privacy & company-policy risk)</label>
+          <div class="segmented" id="seg-work_safety">
+            <button type="button" class="segment-btn" data-score="1">1</button>
+            <button type="button" class="segment-btn" data-score="2">2</button>
+            <button type="button" class="segment-btn" data-score="3">3</button>
+            <button type="button" class="segment-btn" data-score="4">4</button>
+            <button type="button" class="segment-btn" data-score="5">5</button>
+          </div>
+          <input type="hidden" id="work_safety" name="work_safety" value="">
+        </div>
+
+        <!-- Live verdict preview -->
+        <div class="verdict-preview" id="verdict-preview" style="display:none">
+          <div class="verdict-badge" id="vp-badge">WAIT</div>
+          <div class="verdict-avg" id="vp-avg">Average: 3.0</div>
+          <div class="verdict-reason" id="vp-reason">Safety score is acceptable, but overall score is moderate</div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">The Verdict</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="one_right">One thing it got right</label>
+            <input type="text" id="one_right" name="one_right" required placeholder="e.g., a clean, ready-to-send email in one pass">
+          </div>
+          <div class="form-group">
+            <label for="one_wrong">One thing it got wrong</label>
+            <input type="text" id="one_wrong" name="one_wrong" required placeholder="e.g., invented a deadline I never mentioned">
+          </div>
+          <div class="form-group">
+            <label for="use_it_for">Use it for</label>
+            <input type="text" id="use_it_for" name="use_it_for" required placeholder="e.g., meeting recaps and follow-up emails">
+          </div>
+          <div class="form-group">
+            <label for="skip_it_for">Skip it for</label>
+            <input type="text" id="skip_it_for" name="skip_it_for" required placeholder="e.g., anything with legal or HR confidentiality">
+          </div>
+          <div class="form-group full checkbox-row">
+            <input type="checkbox" id="affiliate" name="affiliate">
+            <label for="affiliate">This tool has an affiliate/paid referral link</label>
+          </div>
+          <div class="form-group">
+            <label for="tested">Tested on</label>
+            <input type="date" id="tested" name="tested" required>
+          </div>
+          <div class="form-group full">
+            <label for="notes">Additional notes (optional)</label>
+            <textarea id="notes" name="notes" placeholder="Any other observations..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-bar">
+        <button type="submit" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Verdict
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Verdicts List View -->
+  <div class="view" id="view-verdicts">
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-val use" id="stat-use">0</div>
+        <div class="stat-lbl">Use</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val wait" id="stat-wait">0</div>
+        <div class="stat-lbl">Wait</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val skip" id="stat-skip">0</div>
+        <div class="stat-lbl">Skip</div>
+      </div>
+    </div>
+
+    <div class="verdicts-header">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search tools, tasks..." oninput="renderVerdicts()">
+      </div>
+      <div class="filter-group">
+        <select class="filter-select" id="filter-verdict" onchange="renderVerdicts()">
+          <option value="">All verdicts</option>
+          <option value="USE">Use</option>
+          <option value="WAIT">Wait</option>
+          <option value="SKIP">Skip</option>
+        </select>
+        <select class="filter-select" id="filter-category" onchange="renderVerdicts()">
+          <option value="">All categories</option>
+          <option value="admin">Admin</option>
+          <option value="operations">Operations</option>
+          <option value="marketing">Marketing</option>
+          <option value="finance">Finance</option>
+          <option value="hr">HR</option>
+          <option value="sales">Sales</option>
+          <option value="project-management">Project Management</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="verdicts-list"></div>
+
+    <div class="actions-bar">
+      <button class="btn btn-secondary btn-sm" onclick="exportJSON()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export JSON
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-input').click()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import JSON
+      </button>
+      <input type="file" id="import-input" class="hidden-input" accept=".json" onchange="importJSON(event)">
+    </div>
+
+    <!-- Reference Panel -->
+    <div class="ref-panel">
+      <h3 class="ref-title">How the verdict works</h3>
+      <div class="ref-grid">
+        <div class="ref-item use">
+          <div class="ref-item-title" style="color:var(--use)">USE IT</div>
+          <div class="ref-item-desc">Saves real time, works reliably, safe for normal work use.</div>
+        </div>
+        <div class="ref-item wait">
+          <div class="ref-item-title" style="color:var(--wait)">WAIT</div>
+          <div class="ref-item-desc">Promising but unreliable, expensive, or missing a key feature. Revisit in 1-3 months.</div>
+        </div>
+        <div class="ref-item skip">
+          <div class="ref-item-title" style="color:var(--skip)">SKIP</div>
+          <div class="ref-item-desc">Hype, poor results, or not worth the learning curve.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Detail Modal -->
+<div class="modal-backdrop" id="detail-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Tool Name</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="verdict-badge" id="modal-badge" style="margin-bottom:var(--space-4)">USE</div>
+      
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">Tool</div>
+          <div class="detail-value" id="modal-tool">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Category</div>
+          <div class="detail-value" id="modal-category">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Task</div>
+          <div class="detail-value" id="modal-task" style="grid-column:1/-1">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Tested</div>
+          <div class="detail-value" id="modal-tested">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Average Score</div>
+          <div class="detail-value" id="modal-avg">-</div>
+        </div>
+      </div>
+
+      <h3 style="font-family:var(--font-display);font-size:var(--text-base);margin-bottom:var(--space-3)">Scorecard Breakdown</h3>
+      <div class="scores-grid">
+        <div class="score-cell">
+          <div class="score-label">Time</div>
+          <div class="score-val" id="score-time_saved">-</div>
+        </div>
+        <div class="score-cell">
+          <div class="score-label">Quality</div>
+          <div class="score-val" id="score-output_quality">-</div>
+        </div>
+        <div class="score-cell">
+          <div class="score-label">Ease</div>
+          <div class="score-val" id="score-ease_of_use">-</div>
+        </div>
+        <div class="score-cell">
+          <div class="score-label">Cost</div>
+          <div class="score-val" id="score-cost_value">-</div>
+        </div>
+        <div class="score-cell">
+          <div class="score-label">Safety</div>
+          <div class="score-val" id="score-work_safety">-</div>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">One thing right</div>
+          <div class="detail-value" id="modal-one_right">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">One thing wrong</div>
+          <div class="detail-value" id="modal-one_wrong">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Use it for</div>
+          <div class="detail-value" id="modal-use_it_for">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Skip it for</div>
+          <div class="detail-value" id="modal-skip_it_for">-</div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:var(--space-5)">
+        <div class="form-group">
+          <label>Minutes with tool</label>
+          <div class="detail-value" id="modal-time_with_min">-</div>
+        </div>
+        <div class="form-group">
+          <label>Minutes without tool</label>
+          <div class="detail-value" id="modal-time_without_min">-</div>
+        </div>
+      </div>
+
+      <div class="script-box">
+        <div class="detail-label" style="margin-bottom:var(--space-2)">30-Second Verdict Script</div>
+        <div class="script-text" id="modal-script">-</div>
+        <div class="script-actions">
+          <button class="btn btn-secondary btn-sm" onclick="copyScript()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group full" id="modal-notes-group" style="display:none">
+        <label>Notes</div>
+        <div class="detail-value" id="modal-notes">-</div>
+      </div>
+
+      <div class="actions-bar" style="margin-top:var(--space-5)">
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentVerdict()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// === STATE ===
+const STORAGE_KEY = 'desk_verdict_v1';
+let state = { verdicts: [], serverMode: false };
+let currentVerdictId = null;
+
+// Seed data (4 demo verdicts)
+const SEED_VERDICTS = [
+  {
+    id: 'demo-1',
+    tool: 'ChatGPT',
+    task: 'Turn messy meeting notes into a follow-up email',
+    category: 'admin',
+    scores: { time_saved: 5, output_quality: 4, ease_of_use: 5, cost_value: 3, work_safety: 4 },
+    avg: 4.2,
+    verdict: 'USE',
+    time_with_min: 5,
+    time_without_min: 45,
+    one_right: 'a clean, ready-to-send email in one pass',
+    one_wrong: 'invented a deadline I never mentioned',
+    use_it_for: 'meeting recaps and follow-up emails',
+    skip_it_for: 'anything with legal or HR confidentiality',
+    affiliate: false,
+    tested: '2026-10-23',
+    notes: '',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'demo-2',
+    tool: 'Claude Projects',
+    task: 'Answer questions across a folder of project PDFs',
+    category: 'project-management',
+    scores: { time_saved: 5, output_quality: 5, ease_of_use: 4, cost_value: 4, work_safety: 4 },
+    avg: 4.4,
+    verdict: 'USE',
+    time_with_min: 10,
+    time_without_min: 60,
+    one_right: 'grounded answers that cite the source',
+    one_wrong: 'occasionally misses a document it should read',
+    use_it_for: 'Q&A over your own project files',
+    skip_it_for: 'live data it cannot see',
+    affiliate: false,
+    tested: '2026-10-23',
+    notes: '',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'demo-3',
+    tool: 'Gemini in Google Sheets',
+    task: 'Categorize a 200-row expense export',
+    category: 'finance',
+    scores: { time_saved: 4, output_quality: 4, ease_of_use: 3, cost_value: 4, work_safety: 4 },
+    avg: 3.8,
+    verdict: 'WAIT',
+    time_with_min: 15,
+    time_without_min: 90,
+    one_right: 'did most of the categorizing',
+    one_wrong: 'mislabeled roughly 10% of ambiguous vendors',
+    use_it_for: 'first-pass cleanup of messy exports',
+    skip_it_for: 'anything with account numbers you must not upload',
+    affiliate: false,
+    tested: '2026-10-23',
+    notes: '',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'demo-4',
+    tool: 'Otter.ai',
+    task: 'Live-transcribe a 30-minute client call',
+    category: 'sales',
+    scores: { time_saved: 4, output_quality: 3, ease_of_use: 5, cost_value: 3, work_safety: 2 },
+    avg: 3.4,
+    verdict: 'SKIP',
+    time_with_min: 30,
+    time_without_min: 120,
+    one_right: 'accurate speaker labels',
+    one_wrong: 'no obvious consent prompt, risky on external calls',
+    use_it_for: 'internal calls you are allowed to record',
+    skip_it_for: 'external calls without consent',
+    affiliate: false,
+    tested: '2026-10-23',
+    notes: '',
+    created_at: new Date().toISOString()
+  }
+];
+
+// === INITIALIZATION ===
+async function init() {
+  // Set today's date as default
+  document.getElementById('tested').valueAsDate = new Date();
+
+  // Check for server
+  try {
+    const res = await fetch('api/health', { method: 'GET' });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      state.serverMode = true;
+      updateStatusChip('server');
+      await loadFromServer();
+    } else {
+      loadFromLocalStorage();
+    }
+  } catch (e) {
+    loadFromLocalStorage();
+  }
+
+  // Setup segmented buttons
+  setupSegmentedButtons();
+  
+  // Initial render
+  renderVerdicts();
+  updateStats();
+}
+
+function updateStatusChip(mode) {
+  const chip = document.getElementById('status-chip');
+  const text = document.getElementById('status-text');
+  if (mode === 'server') {
+    chip.classList.remove('local');
+    chip.classList.add('server');
+    text.textContent = 'Server';
+  } else {
+    chip.classList.remove('server');
+    chip.classList.add('local');
+    text.textContent = 'Local';
+  }
+}
+
+// === DATA LOADING/SAVING ===
+function loadFromLocalStorage() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      state.verdicts = JSON.parse(stored);
+    } catch (e) {
+      state.verdicts = [...SEED_VERDICTS];
+      saveToLocalStorage();
+    }
+  } else {
+    state.verdicts = [...SEED_VERDICTS];
+    saveToLocalStorage();
+  }
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.verdicts));
+}
+
+async function loadFromServer() {
+  try {
+    const res = await fetch('api/verdicts');
+    if (res.ok) {
+      state.verdicts = await res.json();
+    }
+  } catch (e) {
+    console.warn('Failed to load from server, using local', e);
+  }
+}
+
+async function saveToServer(verdict) {
+  try {
+    const res = await fetch('api/verdicts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(verdict)
+    });
+    if (res.ok) {
+      const saved = await res.json();
+      return saved;
+    }
+  } catch (e) {
+    console.warn('Failed to save to server', e);
+  }
+  return null;
+}
+
+async function deleteFromServer(id) {
+  try {
+    await fetch(`api/verdicts/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    console.warn('Failed to delete from server', e);
+  }
+}
+
+// === SEGMENTED BUTTONS ===
+function setupSegmentedButtons() {
+  const keys = ['time_saved', 'output_quality', 'ease_of_use', 'cost_value', 'work_safety'];
+  keys.forEach(key => {
+    const container = document.getElementById(`seg-${key}`);
+    const hidden = document.getElementById(key);
+    container.querySelectorAll('.segment-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        container.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        hidden.value = btn.dataset.score;
+        updateLiveVerdict();
+      });
+    });
+  });
+}
+
+// === LIVE VERDICT CALCULATION ===
+function calculateVerdict(scores) {
+  const s = { ...scores };
+  const vals = [s.time_saved, s.output_quality, s.ease_of_use, s.cost_value, s.work_safety].filter(v => v && !isNaN(v));
+  if (vals.length === 0) return { avg: 0, verdict: 'WAIT', reason: 'Rate the criteria to see the verdict' };
+  
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const rounded = Math.round(avg * 10) / 10;
+  
+  // Verdict algorithm (MUST match spec exactly)
+  let verdict, reason;
+  if (s.work_safety && s.work_safety <= 2) {
+    verdict = 'SKIP';
+    reason = 'Work-safety score is too low (data privacy or policy risk)';
+  } else if (rounded >= 4.0) {
+    verdict = 'USE';
+    reason = 'Strong overall score with acceptable safety';
+  } else if (rounded >= 3.0) {
+    verdict = 'WAIT';
+    reason = 'Promising but not yet essential — revisit in 1-3 months';
+  } else {
+    verdict = 'SKIP';
+    reason = 'Overall score too low — not worth the investment';
+  }
+  
+  return { avg: rounded, verdict, reason };
+}
+
+function updateLiveVerdict() {
+  const scores = {
+    time_saved: parseInt(document.getElementById('time_saved').value) || 0,
+    output_quality: parseInt(document.getElementById('output_quality').value) || 0,
+    ease_of_use: parseInt(document.getElementById('ease_of_use').value) || 0,
+    cost_value: parseInt(document.getElementById('cost_value').value) || 0,
+    work_safety: parseInt(document.getElementById('work_safety').value) || 0
+  };
+  
+  const vals = [scores.time_saved, scores.output_quality, scores.ease_of_use, scores.cost_value, scores.work_safety].filter(v => v > 0);
+  if (vals.length === 0) {
+    document.getElementById('verdict-preview').style.display = 'none';
+    return;
+  }
+  
+  const result = calculateVerdict(scores);
+  const preview = document.getElementById('verdict-preview');
+  const badge = document.getElementById('vp-badge');
+  const avg = document.getElementById('vp-avg');
+  const reason = document.getElementById('vp-reason');
+  
+  preview.style.display = 'block';
+  badge.className = `verdict-badge ${result.verdict.toLowerCase()}`;
+  badge.textContent = result.verdict === 'USE' ? 'USE IT' : result.verdict;
+  avg.textContent = `Average: ${result.avg.toFixed(1)}`;
+  reason.textContent = result.reason;
+}
+
+// === FORM HANDLING ===
+function handleSubmit(e) {
+  e.preventDefault();
+  
+  const scores = {
+    time_saved: parseInt(document.getElementById('time_saved').value) || 0,
+    output_quality: parseInt(document.getElementById('output_quality').value) || 0,
+    ease_of_use: parseInt(document.getElementById('ease_of_use').value) || 0,
+    cost_value: parseInt(document.getElementById('cost_value').value) || 0,
+    work_safety: parseInt(document.getElementById('work_safety').value) || 0
+  };
+  
+  // Validate all scores are filled
+  if (Object.values(scores).some(v => v === 0)) {
+    showToast('Please rate all 5 criteria');
+    return;
+  }
+  
+  const verdictCalc = calculateVerdict(scores);
+  
+  const verdict = {
+    id: `v-${Date.now()}`,
+    tool: document.getElementById('tool').value.trim(),
+    task: document.getElementById('task').value.trim(),
+    category: document.getElementById('category').value,
+    scores,
+    avg: verdictCalc.avg,
+    verdict: verdictCalc.verdict,
+    time_with_min: document.getElementById('time_with_min').value ? parseFloat(document.getElementById('time_with_min').value) : null,
+    time_without_min: document.getElementById('time_without_min').value ? parseFloat(document.getElementById('time_without_min').value) : null,
+    one_right: document.getElementById('one_right').value.trim(),
+    one_wrong: document.getElementById('one_wrong').value.trim(),
+    use_it_for: document.getElementById('use_it_for').value.trim(),
+    skip_it_for: document.getElementById('skip_it_for').value.trim(),
+    affiliate: document.getElementById('affiliate').checked,
+    tested: document.getElementById('tested').value,
+    notes: document.getElementById('notes').value.trim(),
+    created_at: new Date().toISOString()
+  };
+  
+  state.verdicts.unshift(verdict);
+  
+  if (state.serverMode) {
+    saveToServer(verdict);
+  } else {
+    saveToLocalStorage();
+  }
+  
+  showToast('Verdict saved!');
+  resetForm();
+  renderVerdicts();
+  updateStats();
+  switchTab('verdicts');
+}
+
+function resetForm() {
+  document.getElementById('score-form').reset();
+  document.getElementById('tested').valueAsDate = new Date();
+  document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+  ['time_saved', 'output_quality', 'ease_of_use', 'cost_value', 'work_safety'].forEach(k => {
+    document.getElementById(k).value = '';
+  });
+  document.getElementById('verdict-preview').style.display = 'none';
+}
+
+// === VERDICTS LIST ===
+function getFilteredVerdicts() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const verdictFilter = document.getElementById('filter-verdict').value;
+  const categoryFilter = document.getElementById('filter-category').value;
+  
+  return state.verdicts.filter(v => {
+    const matchesSearch = !search || v.tool.toLowerCase().includes(search) || v.task.toLowerCase().includes(search);
+    const matchesVerdict = !verdictFilter || v.verdict === verdictFilter;
+    const matchesCategory = !categoryFilter || v.category === categoryFilter;
+    return matchesSearch && matchesVerdict && matchesCategory;
+  });
+}
+
+function renderVerdicts() {
+  const list = document.getElementById('verdicts-list');
+  const filtered = getFilteredVerdicts();
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <h3>No verdicts found</h3>
+        <p>Try adjusting your filters or add a new verdict</p>
+      </div>
+    `;
+    return;
+  }
+  
+  list.innerHTML = filtered.map(v => `
+    <article class="verdict-card" onclick="openModal('${v.id}')">
+      <div class="verdict-card-head">
+        <span class="verdict-card-badge ${v.verdict.toLowerCase()}">${v.verdict === 'USE' ? 'USE IT' : v.verdict}</span>
+        <h3 class="verdict-card-tool">${escapeHtml(v.tool)}</h3>
+      </div>
+      <p class="verdict-card-task">${escapeHtml(v.task)}</p>
+      <div class="verdict-card-meta">
+        <span><strong>${v.avg.toFixed(1)}</strong> avg</span>
+        <span>📁 ${formatCategory(v.category)}</span>
+        <span>📅 ${v.tested}</span>
+      </div>
+    </article>
+  `).join('');
+}
+
+function updateStats() {
+  const use = state.verdicts.filter(v => v.verdict === 'USE').length;
+  const wait = state.verdicts.filter(v => v.verdict === 'WAIT').length;
+  const skip = state.verdicts.filter(v => v.verdict === 'SKIP').length;
+  
+  document.getElementById('stat-use').textContent = use;
+  document.getElementById('stat-wait').textContent = wait;
+  document.getElementById('stat-skip').textContent = skip;
+}
+
+// === MODAL ===
+function openModal(id) {
+  const v = state.verdicts.find(x => x.id === id);
+  if (!v) return;
+  
+  currentVerdictId = id;
+  
+  document.getElementById('modal-title').textContent = v.tool;
+  document.getElementById('modal-badge').className = `verdict-badge ${v.verdict.toLowerCase()}`;
+  document.getElementById('modal-badge').textContent = v.verdict === 'USE' ? 'USE IT' : v.verdict;
+  document.getElementById('modal-tool').textContent = v.tool;
+  document.getElementById('modal-category').textContent = formatCategory(v.category);
+  document.getElementById('modal-task').textContent = v.task;
+  document.getElementById('modal-tested').textContent = v.tested;
+  document.getElementById('modal-avg').textContent = v.avg.toFixed(1);
+  
+  document.getElementById('score-time_saved').textContent = v.scores.time_saved;
+  document.getElementById('score-output_quality').textContent = v.scores.output_quality;
+  document.getElementById('score-ease_of_use').textContent = v.scores.ease_of_use;
+  document.getElementById('score-cost_value').textContent = v.scores.cost_value;
+  document.getElementById('score-work_safety').textContent = v.scores.work_safety;
+  
+  document.getElementById('modal-one_right').textContent = v.one_right;
+  document.getElementById('modal-one_wrong').textContent = v.one_wrong;
+  document.getElementById('modal-use_it_for').textContent = v.use_it_for;
+  document.getElementById('modal-skip_it_for').textContent = v.skip_it_for;
+  
+  document.getElementById('modal-time_with_min').textContent = v.time_with_min !== null ? `${v.time_with_min} min` : '—';
+  document.getElementById('modal-time_without_min').textContent = v.time_without_min !== null ? `${v.time_without_min} min` : '—';
+  
+  // Generate script
+  const script = generateScript(v);
+  document.getElementById('modal-script').textContent = script;
+  
+  // Notes
+  const notesGroup = document.getElementById('modal-notes-group');
+  if (v.notes && v.notes.trim()) {
+    notesGroup.style.display = 'flex';
+    document.getElementById('modal-notes').textContent = v.notes;
+  } else {
+    notesGroup.style.display = 'none';
+  }
+  
+  document.getElementById('detail-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  currentVerdictId = null;
+}
+
+function generateScript(v) {
+  const timeWith = v.time_with_min !== null ? `${v.time_with_min}` : 'X';
+  const timeWithout = v.time_without_min !== null ? `${v.time_without_min}` : 'Y';
+  return `I tried ${v.tool} on ${v.task}. It took ${timeWith} minutes instead of ${timeWithout}. It got ${v.one_right} right and ${v.one_wrong} wrong. Verdict: use it for ${v.use_it_for}, skip it for ${v.skip_it_for}.`;
+}
+
+function copyScript() {
+  const v = state.verdicts.find(x => x.id === currentVerdictId);
+  if (!v) return;
+  const script = generateScript(v);
+  navigator.clipboard.writeText(script).then(() => {
+    showToast('Script copied!');
+  }).catch(() => {
+    showToast('Failed to copy');
+  });
+}
+
+async function deleteCurrentVerdict() {
+  if (!currentVerdictId || !confirm('Delete this verdict?')) return;
+  
+  const idx = state.verdicts.findIndex(v => v.id === currentVerdictId);
+  if (idx === -1) return;
+  
+  if (state.serverMode) {
+    await deleteFromServer(currentVerdictId);
+  }
+  
+  state.verdicts.splice(idx, 1);
+  if (!state.serverMode) saveToLocalStorage();
+  
+  closeModal();
+  renderVerdicts();
+  updateStats();
+  showToast('Verdict deleted');
+}
+
+// === TABS ===
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`view-${tab}`).classList.add('active');
+}
+
+// === EXPORT/IMPORT ===
+function exportJSON() {
+  const data = JSON.stringify(state.verdicts, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `desk-verdict-export-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exported!');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const imported = JSON.parse(event.target.result);
+      if (!Array.isArray(imported)) throw new Error('Invalid format');
+      state.verdicts = [...imported, ...state.verdicts];
+      if (!state.serverMode) saveToLocalStorage();
+      renderVerdicts();
+      updateStats();
+      showToast(`Imported ${imported.length} verdicts`);
+    } catch (err) {
+      showToast('Invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// === UTILS ===
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatCategory(cat) {
+  return cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// === BOOT ===
+init();
+</script>
+</body>
+</html>
