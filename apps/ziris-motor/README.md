@@ -1,6 +1,6 @@
-# Ziris Motor Test Console
+# Airiz Motor Test Console
 
-A complete, production-quality, dependency-free browser app that replaces the TeraTerm/CWD serial workflow for ZIRIS device motor testing.
+A complete, production-quality, dependency-free browser app that replaces the TeraTerm/CWD serial workflow for AIRIZ device motor testing.
 
 ## Features
 

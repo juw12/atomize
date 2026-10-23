@@ -1,7 +1,7 @@
 {
-  "name": "Ziris Motor Test Console",
-  "short_name": "Ziris Console",
-  "description": "Serial console for ZIRIS device motor testing",
+  "name": "Airiz Motor Test Console",
+  "short_name": "Airiz Console",
+  "description": "Serial console for AIRIZ device motor testing",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

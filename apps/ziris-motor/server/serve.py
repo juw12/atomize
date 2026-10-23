@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the Ziris Motor Test Console on localhost.
+"""Serve the Airiz Motor Test Console on localhost.
 
 The Web Serial API only works in a *secure context*. ``http://localhost``
 (and ``http://127.0.0.1``) counts as secure, but ``file://`` does not — so the
@@ -53,7 +53,7 @@ def free_port(preferred):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Serve the Ziris Motor Test Console.")
+    parser = argparse.ArgumentParser(description="Serve the Airiz Motor Test Console.")
     parser.add_argument("--port", type=int, default=8777, help="preferred port (default 8777)")
     parser.add_argument("--no-browser", action="store_true", help="do not open a browser")
     args = parser.parse_args()
@@ -68,7 +68,7 @@ def main():
     socketserver.TCPServer.allow_reuse_address = True
 
     with socketserver.TCPServer(("127.0.0.1", port), handler) as httpd:
-        print("Ziris Motor Test Console")
+        print("Airiz Motor Test Console")
         print(f"  serving : {WEB_DIR}")
         print(f"  open    : {url}")
         print("  note    : connect via Chrome/Edge; use 'Demo Device' with no hardware.")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Integrity checks for the Ziris Motor Test Console data + shell.
+"""Integrity checks for the Airiz Motor Test Console data + shell.
 
 Stdlib only (matches the repo's test convention: exit 0 = pass, 1 = fail).
 
@@ -109,7 +109,7 @@ PLACEHOLDER = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
 def main():
-    print("Ziris Motor Test Console — data integrity")
+    print("Airiz Motor Test Console — data integrity")
     print("=" * 52)
 
     commands = load_js_object(DATA_DIR / "commands.js", "window.ZIRIS_COMMANDS")

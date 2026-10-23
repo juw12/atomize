@@ -92,7 +92,7 @@ def main():
     meta = cmds["meta"]
 
     L = []
-    L.append("# Ziris diagnostic command reference")
+    L.append("# Airiz diagnostic command reference")
     L.append("")
     L.append("Auto-generated from `web/data/commands.js` by `tools/gen_docs.py`. Do not edit by hand.")
     L.append("")

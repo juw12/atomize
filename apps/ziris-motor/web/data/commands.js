@@ -1,5 +1,5 @@
 /*
- * Ziris Motor Test Console — command library
+ * Airiz Motor Test Console — command library
  * Source: the device command list  →  sheet "Command List"
  *         Firmware version documented: 0.0.0.9
  *
@@ -14,7 +14,7 @@
  */
 window.ZIRIS_COMMANDS = {
   meta: {
-    title: "Ziris diagnostic command list",
+    title: "Airiz diagnostic command list",
     fwVersion: "0.0.0.9",
     source: "the device command list",
     sheets: ["Ver", "Block DIagram", "Command List"],

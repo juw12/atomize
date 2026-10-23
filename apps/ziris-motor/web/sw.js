@@ -1,5 +1,5 @@
 /**
- * Ziris Motor Test Console — Service Worker
+ * Airiz Motor Test Console — Service Worker
  * Cache-first strategy with network fallback
  */
 

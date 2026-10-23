@@ -1,4 +1,4 @@
-# Ziris diagnostic command reference
+# Airiz diagnostic command reference
 
 Auto-generated from `web/data/commands.js` by `tools/gen_docs.py`. Do not edit by hand.
 

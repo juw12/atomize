@@ -1,5 +1,5 @@
 /*
- * Ziris Motor Test Console — macro library
+ * Airiz Motor Test Console — macro library
  *
  * Each macro is a small program the runner executes over the serial link:
  *   { type:'blank' }                        send an empty line (CRLF)
