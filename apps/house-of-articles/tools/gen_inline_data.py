@@ -61,7 +61,8 @@ def generate_shoe_data(data_spine: dict) -> str:
             "drop": sneaker["drop"],
             "image": colorway["image_url"],
             "trend": colorway["trend"],
-            "parts": colorway["parts"]
+            "parts": colorway["parts"],
+            "provenance": colorway.get("provenance")
         }
         
         # Format release date to match original: "2025-10-12" -> "Oct 12, 2025"
@@ -82,6 +83,7 @@ def generate_shoe_data(data_spine: dict) -> str:
             for p in shoe["parts"]
         )
         
+        prov_js = f"provenance:{{source:'{shoe['provenance']['source']}',confidence:'{shoe['provenance']['confidence']}',observed_at:'{shoe['provenance']['observed_at']}'}}" if shoe.get("provenance") else "provenance:null"
         line = (
             f"  '{key}':{{"
             f"brand:'{shoe['brand']}',"
@@ -101,7 +103,8 @@ def generate_shoe_data(data_spine: dict) -> str:
             f"drop:'{shoe['drop']}',"
             f"image:'{shoe['image']}',"
             f"trend:'{shoe['trend']}',"
-            f"parts:[{parts_js}]"
+            f"parts:[{parts_js}],"
+            f"{prov_js}"
             f"}}"
         )
         if i < len(shoes) - 1:

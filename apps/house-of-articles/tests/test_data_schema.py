@@ -67,9 +67,22 @@ def main():
         # Check required fields
         for field in ["id", "sneaker_id", "name", "sku", "retail_price", "release_date", 
                       "image_url", "market_price", "bid", "ask", "est_cost", 
-                      "markup_pct", "margin_pct", "trend", "parts"]:
+                      "markup_pct", "margin_pct", "trend", "parts", "provenance"]:
             if field not in cw:
                 print(f"FAIL: Colorway '{cw.get('id')}' missing '{field}'")
+                all_pass = False
+        
+        # Check provenance object
+        prov = cw.get("provenance")
+        if prov:
+            for field in ["source", "confidence", "observed_at"]:
+                if field not in prov:
+                    print(f"FAIL: Colorway '{cw.get('id')}' provenance missing '{field}'")
+                    all_pass = False
+            # Validate confidence is in allowed set
+            confidence = prov.get("confidence")
+            if confidence and confidence not in ["verified", "estimated", "synthetic"]:
+                print(f"FAIL: Colorway '{cw.get('id')}' has invalid confidence '{confidence}' (must be verified/estimated/synthetic)")
                 all_pass = False
         
         # Check numeric fields

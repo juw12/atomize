@@ -1615,6 +1615,43 @@ button{font:inherit;cursor:pointer}
   <div style="height:60px"></div>
 </div>
 
+<!-- LEDGER SCREEN -->
+<div id="screen-ledger" class="screen">
+  <div class="masthead-wrap">
+    <div class="utility-bar"><span>DATA LEDGER</span><span>Integrity Console</span></div>
+    <div class="masthead">
+      <div class="masthead-title">HOUSE OF <em>ARTICLES</em></div>
+    </div>
+  </div>
+  
+  <div style="padding:var(--space-4) var(--space-5)">
+    <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4)">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">Catalog Stats</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);text-align:center">
+        <div style="background:var(--surface-2);border-radius:var(--radius-md);padding:var(--space-3)">
+          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--ink)" id="mob-ledger-total">13</div>
+          <div style="font-size:9px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Total</div>
+        </div>
+        <div style="background:rgba(111,169,107,.12);border:1px solid var(--up);border-radius:var(--radius-md);padding:var(--space-3)">
+          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--up)" id="mob-ledger-verified">0</div>
+          <div style="font-size:9px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Verified</div>
+        </div>
+        <div style="background:rgba(255,183,0,.12);border:1px solid var(--gold);border-radius:var(--radius-md);padding:var(--space-3)">
+          <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;color:var(--gold)" id="mob-ledger-estimated">0</div>
+          <div style="font-size:9px;color:var(--ink-3);text-transform:uppercase;margin-top:2px">Estimated</div>
+        </div>
+      </div>
+    </div>
+    
+    <div style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden">
+      <div style="padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--hair);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)">Colorway Provenance</div>
+      <div id="mob-ledger-list" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+  
+  <div style="height:60px"></div>
+</div>
+
 
 <!-- SEARCH SCREEN -->
 <div id="screen-search" class="screen" style="background:var(--bg)">
@@ -2183,6 +2220,10 @@ button{font:inherit;cursor:pointer}
   <div class="tab-item" data-tab="watchlist" onclick="switchTab('watchlist')">
     <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
     <span class="tab-label">Watchlist</span>
+  </div>
+  <div class="tab-item" data-tab="ledger" onclick="switchTab('ledger')">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    <span class="tab-label">Ledger</span>
   </div>
 </div>
 

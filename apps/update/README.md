@@ -38,6 +38,17 @@ Flags:
 | `-VaultPath <dir>` | Override the Obsidian vault (default: `~/Documents/Obsidian Vault` or `$env:HAZEL_OBSIDIAN_VAULT`). |
 | `-NoteFolder <name>` | Folder inside the vault (default: `Update Log`). |
 
+## Global install
+
+`/update` is also installed **globally**, so it works from any git repo on this machine:
+
+- Command: `~/.config/opencode/command/update.md`
+- Script:  `~/.config/opencode/tools/update/update.ps1` (a mirror of this file)
+
+The script always syncs the **current working directory's** repo. The project-scoped
+command here uses `apps/update/update.ps1`; the global command uses the mirrored copy —
+keep the two in sync when you change one.
+
 ## Notes
 
 - **git is not on PATH** on this machine — the script resolves it from

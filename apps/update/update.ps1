@@ -28,8 +28,15 @@ function Find-Git {
 $git = Find-Git
 if (-not $git) { Write-Error "git not found on PATH or in known locations"; exit 1 }
 
-$root = (& $git rev-parse --show-toplevel 2>$null)
-if (-not $root) { Write-Error "not inside a git repository"; exit 1 }
+$root = ""
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+try { $root = (& $git rev-parse --show-toplevel 2>$null | Select-Object -First 1) } catch { $root = "" }
+$ErrorActionPreference = $prevEap
+if (-not $root) {
+  Write-Output "Not inside a git repository - run /update from a project folder."
+  exit 1
+}
 $root = "$root".Trim()
 
 if (-not $VaultPath) {

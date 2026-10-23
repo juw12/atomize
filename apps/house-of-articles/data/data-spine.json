@@ -40,6 +40,11 @@
       "markup_pct": 38,
       "margin_pct": 59,
       "trend": "+23%",
+      "provenance": {
+        "source": "brand_direct",
+        "confidence": "verified",
+        "observed_at": "2025-10-12"
+      },
       "parts": [
         {"part": "Upper", "material": "Recycled knit", "site": "Vietnam · Factory 07"},
         {"part": "Midsole", "material": "EVA foam", "site": "China · Factory 12"},
@@ -64,6 +69,11 @@
       "markup_pct": 16,
       "margin_pct": 59,
       "trend": "+5%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-18"
+      },
       "parts": [
         {"part": "Upper", "material": "Gore-Tex knit", "site": "Vietnam · Factory 03"},
         {"part": "Midsole", "material": "Trail EVA", "site": "China · Factory 08"},
@@ -88,6 +98,11 @@
       "markup_pct": 60,
       "margin_pct": 59,
       "trend": "+41%",
+      "provenance": {
+        "source": "brand_direct",
+        "confidence": "verified",
+        "observed_at": "2025-09-28"
+      },
       "parts": [
         {"part": "Upper", "material": "Engineered mesh", "site": "Portugal · Factory 04"},
         {"part": "Midsole", "material": "PEBA foam", "site": "Germany · Factory 02"},
@@ -112,6 +127,11 @@
       "markup_pct": 40,
       "margin_pct": 58,
       "trend": "+7%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-15"
+      },
       "parts": [
         {"part": "Upper", "material": "Flyknit", "site": "Vietnam · Factory 03"},
         {"part": "Midsole", "material": "Zoom Air", "site": "China · Factory 17"},
@@ -136,6 +156,11 @@
       "markup_pct": 20,
       "margin_pct": 59,
       "trend": "+12%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-10"
+      },
       "parts": [
         {"part": "Upper", "material": "Flyknit", "site": "Portugal · Factory 07"},
         {"part": "Midsole", "material": "React foam", "site": "China · Factory 11"},
@@ -160,6 +185,11 @@
       "markup_pct": 48,
       "margin_pct": 59,
       "trend": "+18%",
+      "provenance": {
+        "source": "brand_direct",
+        "confidence": "verified",
+        "observed_at": "2025-08-15"
+      },
       "parts": [
         {"part": "Upper", "material": "VaporWeave", "site": "Japan · Factory 01"},
         {"part": "Midsole", "material": "ZoomX foam", "site": "China · Factory 15"},
@@ -184,6 +214,11 @@
       "markup_pct": 36,
       "margin_pct": 60,
       "trend": "+22%",
+      "provenance": {
+        "source": "brand_direct",
+        "confidence": "verified",
+        "observed_at": "2025-01-20"
+      },
       "parts": [
         {"part": "Upper", "material": "AtomKnit", "site": "Japan · Factory 03"},
         {"part": "Midsole", "material": "Carbon plate + foam", "site": "Germany · Factory 04"},
@@ -208,6 +243,11 @@
       "markup_pct": 22,
       "margin_pct": 56,
       "trend": "-5%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-08"
+      },
       "parts": [
         {"part": "Upper", "material": "Mesh + TPU", "site": "Vietnam · Factory 16"},
         {"part": "Midsole", "material": "EVA + plate", "site": "China · Factory 20"},
@@ -232,6 +272,11 @@
       "markup_pct": 17,
       "margin_pct": 59,
       "trend": "-12%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-05"
+      },
       "parts": [
         {"part": "Upper", "material": "Ripstop nylon", "site": "Indonesia · Factory 05"},
         {"part": "Midsole", "material": "Dual-density EVA", "site": "Thailand · Factory 08"},
@@ -256,6 +301,11 @@
       "markup_pct": 16,
       "margin_pct": 59,
       "trend": "-5%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-12"
+      },
       "parts": [
         {"part": "Upper", "material": "Suede + mesh", "site": "China · Factory 09"},
         {"part": "Midsole", "material": "Phylon", "site": "Vietnam · Factory 14"},
@@ -280,6 +330,11 @@
       "markup_pct": 54,
       "margin_pct": 58,
       "trend": "+11%",
+      "provenance": {
+        "source": "brand_direct",
+        "confidence": "verified",
+        "observed_at": "2025-06-10"
+      },
       "parts": [
         {"part": "Upper", "material": "Suede + mesh", "site": "China · Factory 09"},
         {"part": "Midsole", "material": "Phylon", "site": "Vietnam · Factory 14"},
@@ -304,6 +359,11 @@
       "markup_pct": 52,
       "margin_pct": 58,
       "trend": "+15%",
+      "provenance": {
+        "source": "market_aggregate",
+        "confidence": "estimated",
+        "observed_at": "2025-10-01"
+      },
       "parts": [
         {"part": "Upper", "material": "Leather + synthetic", "site": "South Korea · Factory 02"},
         {"part": "Midsole", "material": "EVA + Air unit", "site": "China · Factory 18"},
@@ -328,6 +388,11 @@
       "markup_pct": 21,
       "margin_pct": 58,
       "trend": "+7%",
+      "provenance": {
+        "source": "synthetic_model",
+        "confidence": "synthetic",
+        "observed_at": "2025-10-20"
+      },
       "parts": [
         {"part": "Upper", "material": "Knit mesh", "site": "Vietnam · Factory 15"},
         {"part": "Midsole", "material": "Cloudfoam EVA", "site": "China · Factory 22"},

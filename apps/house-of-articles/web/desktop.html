@@ -502,6 +502,10 @@ a{color:var(--accent);text-decoration:none}
       <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       Watchlist
     </div>
+    <div class="nav-item" data-view="ledger" onclick="switchView('ledger')">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Ledger
+    </div>
   </nav>
   <nav class="nav-secondary">
     <div class="nav-section-label">Account</div>
@@ -1218,6 +1222,79 @@ a{color:var(--accent);text-decoration:none}
     </div>
   </div>
 
+  <!-- LEDGER VIEW -->
+  <div class="view-container" id="view-ledger">
+    <div class="ledger-wrap" style="max-width:var(--max-w);margin:0 auto">
+      <div class="panel" style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-6)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+          <div>
+            <h2 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:4px">Data Ledger</h2>
+            <p style="font-size:13px;color:var(--ink-2)">Price provenance, fee-aware economics, and integrity checks</p>
+          </div>
+          <button class="icon-btn" onclick="renderLedger()" style="width:auto;padding:8px 16px;border-radius:var(--radius-md);gap:8px">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1 2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div class="ledger-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:var(--space-5)">
+          <div style="background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--ink)" id="ledger-total-items">13</div>
+            <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Total Colorways</div>
+          </div>
+          <div style="background:rgba(0,212,170,.1);border:1px solid var(--up);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--up)" id="ledger-verified">0</div>
+            <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Verified</div>
+          </div>
+          <div style="background:rgba(255,183,0,.1);border:1px solid var(--gold);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--gold)" id="ledger-estimated">0</div>
+            <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Estimated</div>
+          </div>
+          <div style="background:rgba(255,107,157,.1);border:1px solid var(--down);border-radius:var(--radius-md);padding:var(--space-4);text-align:center">
+            <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--down)" id="ledger-synthetic">0</div>
+            <div style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Synthetic</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4)">
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3)">
+            <div style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Marketplace Fee (%)</div>
+            <input type="number" id="ledger-fee-pct" value="9.5" min="0" max="50" step="0.5" style="width:100%;background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:8px;color:var(--ink);font-family:var(--font-mono);font-size:13px" onchange="saveLedgerSettings();renderLedger()">
+          </div>
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);padding:var(--space-3)">
+            <div style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Shipping Cost ($)</div>
+            <input type="number" id="ledger-shipping" value="15" min="0" max="100" step="1" style="width:100%;background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:8px;color:var(--ink);font-family:var(--font-mono);font-size:13px" onchange="saveLedgerSettings();renderLedger()">
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);overflow:hidden">
+        <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center">
+          <h3 style="font-size:13px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.08em">Catalog Overview</h3>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3)" id="ledger-integrity-status"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="movers-table" style="width:100%">
+            <thead>
+              <tr>
+                <th style="width:80px">SKU</th>
+                <th>Model</th>
+                <th style="text-align:right">Retail</th>
+                <th style="text-align:right">Market</th>
+                <th style="text-align:right">Est. Cost</th>
+                <th style="text-align:right">Markup</th>
+                <th style="text-align:right">Net Profit</th>
+                <th style="text-align:center">Provenance</th>
+              </tr>
+            </thead>
+            <tbody id="ledger-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel" style="background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:var(--space-5);margin-top:var(--space-6)">
+        <h3 style="font-size:13px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-4)">Data Integrity Report</h3>
+        <ul id="ledger-integrity-list" style="list-style:none"></ul>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 </div>
@@ -1796,6 +1873,84 @@ function toggleAppearance(){
     app.classList.remove('light');
     label.textContent='Dark';
   }
+}
+
+// LEDGER VIEW
+const LEDGER_STORAGE_KEY='hoa_ledger_v1';
+function loadLedgerSettings(){
+  try{
+    const stored=localStorage.getItem(LEDGER_STORAGE_KEY);
+    if(stored)return JSON.parse(stored);
+  }catch(e){console.warn('Failed to load ledger settings:',e)}
+  return{marketplaceFee:9.5,shippingCost:15};
+}
+function saveLedgerSettings(){
+  const settings={
+    marketplaceFee:parseFloat(document.getElementById('ledger-fee-pct').value)||9.5,
+    shippingCost:parseFloat(document.getElementById('ledger-shipping').value)||15
+  };
+  try{localStorage.setItem(LEDGER_STORAGE_KEY,JSON.stringify(settings));}catch(e){}
+}
+function renderLedger(){
+  const settings=loadLedgerSettings();
+  document.getElementById('ledger-fee-pct').value=settings.marketplaceFee;
+  document.getElementById('ledger-shipping').value=settings.shippingCost;
+  const tbody=document.getElementById('ledger-table-body');
+  const integrityList=document.getElementById('ledger-integrity-list');
+  const integrityStatus=document.getElementById('ledger-integrity-status');
+  if(!SHOE_DATA||!tbody){return;}
+  const entries=Object.entries(SHOE_DATA);
+  let verified=0,estimated=0,synthetic=0;
+  const issues=[];
+  const skuSet=new Set();
+  entries.forEach(([key,shoe])=>{
+    if(skuSet.has(shoe.sku)){issues.push({type:'error',msg:'Duplicate SKU: '+shoe.sku});}
+    skuSet.add(shoe.sku);
+    if(!shoe.parts||shoe.parts.length===0){issues.push({type:'warning',msg:'Missing parts: '+shoe.sku});}
+    const prov=shoe.provenance;
+    if(!prov){issues.push({type:'warning',msg:'Missing provenance: '+shoe.sku});synthetic++;}
+    else if(prov.confidence==='verified')verified++;
+    else if(prov.confidence==='estimated')estimated++;
+    else if(prov.confidence==='synthetic')synthetic++;
+    else{issues.push({type:'info',msg:'Unknown confidence: '+shoe.sku});synthetic++;}
+  });
+  document.getElementById('ledger-total-items').textContent=entries.length;
+  document.getElementById('ledger-verified').textContent=verified;
+  document.getElementById('ledger-estimated').textContent=estimated;
+  document.getElementById('ledger-synthetic').textContent=synthetic;
+  integrityStatus.textContent=issues.length===0?'All checks passed':issues.length+' issue'+(issues.length>1?'s':'');
+  integrityStatus.style.color=issues.some(i=>i.type==='error')?'var(--down)':(issues.length>0?'var(--gold)':'var(--up)');
+  integrityList.innerHTML=issues.length===0?'<li style="color:var(--up);padding:var(--space-3)">All integrity checks passed</li>':issues.map(i=>'<li style="padding:var(--space-2);color:'+(i.type==='error'?'var(--down)':(i.type==='warning'?'var(--gold)':'var(--ink-2)'))+';font-size:13px">'+i.msg+'</li>').join('');
+  tbody.innerHTML=entries.map(([key,shoe])=>{
+    const marketFee=shoe.market*(settings.marketplaceFee/100);
+    const netProceeds=shoe.market-marketFee-settings.shippingCost;
+    const netProfit=netProceeds-shoe.estCost;
+    const provClass=shoe.provenance?shoe.provenance.confidence:'synthetic';
+    const provBadge='<span style="display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;background:'+(provClass==='verified'?'rgba(111,169,107,.15);color:var(--up)':(provClass==='estimated'?'rgba(255,183,0,.15);color:var(--gold)':'rgba(192,87,75,.15);color:var(--down)'))+'">'+provClass+'</span>';
+    const provSource=shoe.provenance?('<div style="font-size:9px;color:var(--ink-3);font-family:var(--font-mono);margin-top:2px">'+shoe.provenance.source+' · '+shoe.provenance.observed_at+'</div>'):'';
+    return '<tr style="cursor:pointer" onclick="openDetail(\''+key+'\')">'+
+      '<td style="font-family:var(--font-mono);font-size:11px;color:var(--ink-2)">'+shoe.sku+'</td>'+
+      '<td><div style="font-weight:600;color:var(--ink)">'+shoe.brand+' '+shoe.model+'</div><div style="font-size:11px;color:var(--ink-2)">'+shoe.colorway+'</div></td>'+
+      '<td style="text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--ink)">$'+shoe.retail+'</td>'+
+      '<td style="text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--ink)">$'+shoe.market+'</td>'+
+      '<td style="text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--ink-2)">$'+shoe.estCost+'</td>'+
+      '<td style="text-align:right;font-family:var(--font-mono);font-size:12px;color:'+(shoe.markupPct>=30?'var(--up)':'var(--ink-2)')+'">+'+shoe.markupPct+'%</td>'+
+      '<td style="text-align:right;font-family:var(--font-mono);font-size:12px;color:'+(netProfit>=0?'var(--up)':'var(--down)')+'">$'+netProfit.toFixed(2)+'</td>'+
+      '<td style="text-align:center">'+provBadge+provSource+'</td>'+
+      '</tr>';
+  }).join('');
+}
+function switchView(viewName){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.view-container').forEach(v=>v.classList.remove('active'));
+  const navItem=document.querySelector('.nav-item[data-view="'+viewName+'"]');
+  const viewContainer=document.getElementById('view-'+viewName);
+  if(navItem)navItem.classList.add('active');
+  if(viewContainer){
+    viewContainer.classList.add('active');
+    if(viewName==='ledger')renderLedger();
+  }
+  if(window.animateView)animateView(viewName);
 }
 
 // SKELETON LOADERS - hide skeletons after brief delay
