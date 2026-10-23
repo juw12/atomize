@@ -24,9 +24,14 @@ def find_manifest_files(site_dir):
 
 
 def extract_refs(content):
-    """Extract href and src references from HTML content."""
-    pattern = r'(?:href|src)\s*=\s*["\']([^"\']+)["\']'
-    refs = re.findall(pattern, content)
+    """Extract href and src references from HTML content.
+
+    The opening and closing quotes must match (backreference) so that
+    inline-JS attribute values such as ``href="'+esc(url)+'"`` are not
+    mistaken for real links.
+    """
+    pattern = r'(?:href|src)\s*=\s*(["\'])([^"\']*?)\1'
+    refs = [m.group(2) for m in re.finditer(pattern, content)]
     return [r for r in refs if '${' not in r]
 
 
