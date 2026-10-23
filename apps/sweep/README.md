@@ -22,7 +22,7 @@ command, repeatable. (Renamed from the old `/update`.)
 ```
 
 Anything after `/sweep` becomes the commit message. With no arguments it uses
-`update: sync projects (<timestamp>)`.
+`sweep: sync projects (<timestamp>)`.
 
 The command lives at [`../../.opencode/command/sweep.md`](../../.opencode/command/sweep.md).
 

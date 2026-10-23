@@ -34,7 +34,7 @@ $ErrorActionPreference = "Continue"
 try { $root = (& $git rev-parse --show-toplevel 2>$null | Select-Object -First 1) } catch { $root = "" }
 $ErrorActionPreference = $prevEap
 if (-not $root) {
-  Write-Output "Not inside a git repository - run /update from a project folder."
+  Write-Output "Not inside a git repository - run /sweep from a project folder."
   exit 1
 }
 $root = "$root".Trim()
@@ -50,7 +50,7 @@ $staged = @(& $git -C $root diff --cached --name-only | Where-Object { $_ -and $
 $changed = $staged.Count
 
 if (-not $Message) {
-  $Message = "update: sync projects ($(Get-Date -Format 'yyyy-MM-dd HH:mm'))"
+  $Message = "sweep: sync projects ($(Get-Date -Format 'yyyy-MM-dd HH:mm'))"
 }
 
 $commit = ""
