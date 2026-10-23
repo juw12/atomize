@@ -21,8 +21,8 @@
       <span id="workspace-name">Workspace</span>
     </span>
     <button class="icon-btn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle Night Edition">
-      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
     <button class="btn btn-sm" id="signout-btn" style="display:none">Sign out</button>
   </div>
@@ -32,7 +32,10 @@
 <nav class="nav" id="main-nav" style="display:none">
   <a href="#catalog" class="nav-item active" data-section="catalog">Catalog</a>
   <a href="#brief" class="nav-item" data-section="brief">New Brief</a>
-  <a href="#guide" class="nav-item" data-section="guide">How to use</a>
+  <a href="#plan" class="nav-item" data-section="plan" id="nav-plan" style="display:none">Plan</a>
+  <a href="#verify" class="nav-item" data-section="verify" id="nav-verify" style="display:none">Verify</a>
+  <a href="#generate" class="nav-item" data-section="generate" id="nav-generate" style="display:none">Generate</a>
+  <a href="#guide" class="nav-item" data-section="guide">Guide</a>
 </nav>
 
 <!-- Main Content -->
@@ -109,6 +112,16 @@
         </div>
       </div>
       <!-- User projects rendered here -->
+    </div>
+
+    <div class="catalog-empty" id="catalog-empty" style="display:none">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>
+      <h3>No projects yet</h3>
+      <p>Create your first project brief to get started.</p>
+      <button class="btn btn-primary" onclick="navigateTo('brief')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Project
+      </button>
     </div>
 
     <div class="catalog-actions">
@@ -209,6 +222,16 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         Back to catalog
       </button>
+      <div class="section-actions">
+        <button class="btn btn-secondary btn-sm" onclick="navigateTo('verify')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Verify
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="navigateTo('generate')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Generate
+        </button>
+      </div>
     </div>
 
     <div class="plan-header">
@@ -299,11 +322,126 @@
     </div>
   </section>
 
+  <!-- Verify Section (M2) -->
+  <section id="section-verify" class="section" style="display:none">
+    <div class="section-header">
+      <button class="btn btn-sm btn-text" onclick="navigateTo('plan')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to plan
+      </button>
+    </div>
+
+    <div class="verify-header">
+      <h2 class="section-title">Verification Gates</h2>
+      <p class="verify-intro">Check off each gate as you complete it. All gates must pass to mark the project as verified.</p>
+    </div>
+
+    <div class="verify-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="verify-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-text" id="verify-progress-text">0 / 0 gates passed</div>
+    </div>
+
+    <div class="verify-gates" id="verify-gates">
+      <!-- Rendered by JS -->
+    </div>
+
+    <div class="verify-commands">
+      <h3 class="verify-commands-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><terminal cx="12" cy="12" r="10"/><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Commands to run
+      </h3>
+      <div class="command-block">
+        <pre><code id="verify-commands-code"></code></pre>
+        <button class="btn btn-sm btn-secondary" onclick="copyVerifyCommands()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <p class="verify-note">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        This static page can't execute verification. Run these commands locally, then check the gates above.
+      </p>
+    </div>
+
+    <div class="verify-actions">
+      <button class="btn btn-primary" id="verify-complete-btn" onclick="markVerified()" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Mark as Verified
+      </button>
+    </div>
+  </section>
+
+  <!-- Generate Section (M3) -->
+  <section id="section-generate" class="section" style="display:none">
+    <div class="section-header">
+      <button class="btn btn-sm btn-text" onclick="navigateTo('plan')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to plan
+      </button>
+    </div>
+
+    <div class="generate-header">
+      <h2 class="section-title">Generate Scaffold</h2>
+      <p class="generate-intro">Generated file contents based on your capability matrix. Copy or download individual files, or download the complete bundle.</p>
+    </div>
+
+    <div class="generate-layout">
+      <div class="generate-files">
+        <h3 class="generate-files-title">Files</h3>
+        <div class="file-list" id="generate-file-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <div class="generate-viewer">
+        <div class="generate-viewer-header">
+          <span class="generate-filename" id="generate-filename">Select a file</span>
+          <div class="generate-viewer-actions">
+            <button class="btn btn-sm btn-secondary" onclick="copyFileContent()" id="copy-file-btn" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="downloadFileContent()" id="download-file-btn" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download
+            </button>
+          </div>
+        </div>
+        <pre class="generate-code-block"><code id="generate-code"></code></pre>
+      </div>
+    </div>
+
+    <div class="generate-memory">
+      <h3 class="generate-memory-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Obsidian Memory Note
+      </h3>
+      <div class="generate-viewer">
+        <pre class="generate-code-block"><code id="generate-memory-note"></code></pre>
+        <div class="generate-viewer-actions" style="margin-top:var(--spacing-sm)">
+          <button class="btn btn-sm btn-secondary" onclick="copyMemoryNote()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Note
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="generate-actions">
+      <button class="btn btn-primary" onclick="downloadBundle()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Bundle (JSON)
+      </button>
+    </div>
+  </section>
+
   <!-- Guide Section -->
   <section id="section-guide" class="section" style="display:none">
     <div class="guide-content">
       <h2 class="guide-title">How to use Sweep</h2>
-      <p class="guide-intro">Sweep turns rough app ideas into checkable plans. Follow the flow: brief → plan → scaffold → sync.</p>
+      <p class="guide-intro">Sweep turns rough app ideas into checkable plans. Follow the flow: brief → plan → verify → generate → sync.</p>
 
       <div class="guide-steps">
         <div class="guide-step">
@@ -333,24 +471,24 @@
         <div class="guide-step">
           <div class="guide-step-number">4</div>
           <div class="guide-step-content">
-            <h3>Preview the scaffold</h3>
-            <p>See the file tree Sweep would generate: <code>web/</code> for the static front-end, optional <code>server/</code> if backend is needed, <code>tests/</code>, <code>docs/</code>, and configuration files. The structure reflects your capability matrix.</p>
+            <h3>Verify the implementation</h3>
+            <p>Complete verification gates: smoke tests, visual checks at desktop + mobile sizes, acceptance criteria from your brief, repo checks (build/test scripts), and secret scanning. Mark as verified when all gates pass.</p>
           </div>
         </div>
 
         <div class="guide-step">
           <div class="guide-step-number">5</div>
           <div class="guide-step-content">
-            <h3>Save to catalog</h3>
-            <p>Save the project to your workspace catalog. Export as JSON anytime. The demo project is always visible so the catalog is never empty.</p>
+            <h3>Generate scaffold files</h3>
+            <p>Get ready-to-use file contents for your project: web/index.html, styles.css, app.js, optional server/server.py, tests, docs, README, .gitignore, and an Obsidian memory note. Copy or download individual files or the complete bundle.</p>
           </div>
         </div>
 
         <div class="guide-step">
           <div class="guide-step-number">6</div>
           <div class="guide-step-content">
-            <h3>Next steps (future)</h3>
-            <p>In a future version, Sweep will integrate with the <code>/sweep</code> pipeline to actually generate the code, run verification, and sync to GitHub + Obsidian.</p>
+            <h3>Save to catalog</h3>
+            <p>Save the project to your workspace catalog. Export as JSON anytime. The demo project is always visible so the catalog is never empty.</p>
           </div>
         </div>
       </div>
@@ -370,7 +508,7 @@
 </main>
 
 <!-- Toast notification -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="app.js"></script>
 </body>

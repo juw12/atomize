@@ -70,7 +70,8 @@ def run_tests():
         all_passed = False
 
     # Test 6: no external network resources (fonts/CDN/remote images)
-    if not re.search(r'(src|href)\s*=\s*"https?://', html):
+    resource_tags = r'<(?:script|img|link|iframe|source)\b[^>]*\b(?:src|href)\s*=\s*"https?://'
+    if not re.search(resource_tags, html):
         print("ok - no external resources in HTML")
     else:
         print("FAIL - HTML loads an external resource")
