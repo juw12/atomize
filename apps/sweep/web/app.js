@@ -454,6 +454,70 @@ function removeSuccessCheck(btn) {
   }
 }
 
+function draftBriefFromIdea() {
+  const ideaInput = document.getElementById('operator-input');
+  if (!ideaInput) return;
+  
+  const idea = ideaInput.value.trim();
+  if (!idea) {
+    showToast('Please enter your idea first');
+    return;
+  }
+  
+  const stopwords = ['a', 'an', 'the', 'for', 'with', 'and', 'to', 'of', 'in', 'on', 'at', 'from', 'by'];
+  const words = idea.split(/\s+/).filter(w => w.length > 0);
+  const significantWords = words.filter(w => !stopwords.includes(w.toLowerCase().replace(/[^a-z]/gi, '')));
+  
+  const nameWords = significantWords.slice(0, 3);
+  const appName = nameWords.length > 0 
+    ? nameWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+    : 'New App';
+  
+  const oneLiner = idea;
+  const problem = `People need a better way to ${idea.toLowerCase().replace(/\.$/, '')}. Current solutions are either too complex or don't address the core need.`;
+  const targetUser = `Individuals and small teams who ${words.slice(0, 5).join(' ')}...`;
+  const goalWords = significantWords.slice(0, 4).join(' ');
+  const jtbd = `When I want to ${goalWords.toLowerCase()}, so I can achieve better outcomes without unnecessary complexity.`;
+  
+  const successChecks = [
+    `Boots from file:// with 0 console errors`,
+    `Core feature works: ${goalWords.toLowerCase()}`,
+    `Responsive layout at desktop (1440×900) and mobile (390×844)`,
+    `Data persists locally in browser storage`
+  ];
+  
+  const nonGoals = `No real-time collaboration, no complex setup, no third-party dependencies`;
+  
+  const nameField = document.getElementById('brief-app-name');
+  const oneLinerField = document.getElementById('brief-one-liner');
+  const problemField = document.getElementById('brief-problem');
+  const targetUserField = document.getElementById('brief-target-user');
+  const jtbdField = document.getElementById('brief-jtbd');
+  const nonGoalsField = document.getElementById('brief-non-goals');
+  const checksContainer = document.getElementById('success-checks-container');
+  
+  if (nameField) nameField.value = appName;
+  if (oneLinerField) oneLinerField.value = oneLiner;
+  if (problemField) problemField.value = problem;
+  if (targetUserField) targetUserField.value = targetUser;
+  if (jtbdField) jtbdField.value = jtbd;
+  if (nonGoalsField) nonGoalsField.value = nonGoals;
+  
+  if (checksContainer) {
+    checksContainer.innerHTML = successChecks.map(check => `
+      <div class="success-check-row">
+        <input type="text" class="success-check-input" value="${escapeHtml(check)}" required>
+        <button type="button" class="btn-icon" onclick="removeSuccessCheck(this)" aria-label="Remove">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+  
+  showToast('Brief drafted locally — edit anything');
+  suggestKebabCase();
+}
+
 function handleBriefSubmit(event) {
   event.preventDefault();
   const project = {
@@ -506,6 +570,33 @@ function generateCapabilityMatrix(project) {
   };
 }
 
+function generateGrowPlan(project) {
+  const name = project.name || 'App';
+  const targetUser = project.targetUser || 'users';
+  const oneLiner = project.oneLiner || 'this product';
+  
+  return [
+    { title: `Pick 1-2 launch channels where ${targetUser.toLowerCase()} already hang out`, hint: 'Focus on depth over breadth' },
+    { title: `Write a one-paragraph launch post for ${name}`, hint: 'Lead with the problem you solve' },
+    { title: 'List 10 target people to reach out to', hint: 'Friends, colleagues, or community members' },
+    { title: 'Draft your first outreach message', hint: 'Keep it personal and specific' },
+    { title: 'Define a success signal to watch', hint: 'e.g., 5 signups, 1 paying customer' }
+  ];
+}
+
+function generateEarnPlan(project) {
+  const name = project.name || 'App';
+  const oneLiner = project.oneLiner || 'this product';
+  
+  return [
+    { title: `Write the one-sentence offer for ${name}`, hint: 'What they get + what it costs' },
+    { title: 'Pick a first price hypothesis', hint: 'Start higher than comfortable' },
+    { title: 'Define the first paid ask/CTA', hint: 'Clear, direct, low-friction' },
+    { title: 'Decide the payment path', hint: 'Stripe, PayPal, Gumroad, or manual' },
+    { title: 'Set a simple sell-through check', hint: 'e.g., 3/10 prospects say yes' }
+  ];
+}
+
 function renderPlanView(project) {
   document.getElementById('plan-app-name').textContent = project.name;
   document.getElementById('plan-one-liner').textContent = project.oneLiner;
@@ -542,6 +633,30 @@ function renderPlanView(project) {
     item.innerHTML = `<input type="checkbox" class="dod-checkbox" id="dod-${index}"><label for="dod-${index}">${escapeHtml(check)}</label>`;
     dodList.appendChild(item);
   });
+  
+  const growList = document.getElementById('grow-list');
+  if (growList) {
+    growList.innerHTML = '';
+    const growPlan = generateGrowPlan(project);
+    growPlan.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.className = 'dod-item';
+      li.innerHTML = `<input type="checkbox" class="dod-checkbox" id="grow-${index}"><label for="grow-${index}">${escapeHtml(item.title)}</label>`;
+      growList.appendChild(li);
+    });
+  }
+  
+  const earnList = document.getElementById('earn-list');
+  if (earnList) {
+    earnList.innerHTML = '';
+    const earnPlan = generateEarnPlan(project);
+    earnPlan.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.className = 'dod-item';
+      li.innerHTML = `<input type="checkbox" class="dod-checkbox" id="earn-${index}"><label for="earn-${index}">${escapeHtml(item.title)}</label>`;
+      earnList.appendChild(li);
+    });
+  }
   
   renderFileTree(project);
 }
@@ -907,7 +1022,6 @@ done
 echo "All checks passed"
 exit 0`;
   
-  // docs/BRIEF.md
   files['docs/BRIEF.md'] = `# BRIEF — ${appName}
 
 ## Problem
@@ -924,6 +1038,75 @@ ${project.successChecks.map(c => `- ${c}`).join('\n')}
 
 ## Non-goals
 ${escapeHtml(project.nonGoals)}`;
+  
+  const growPlan = generateGrowPlan(project);
+  files['docs/GROW.md'] = `# GROW — ${appName}
+
+Launch and reach checklist.
+
+${growPlan.map((item, i) => `${i + 1}. **${item.title}**\n   ${item.hint}`).join('\n\n')}
+
+## Success signal
+Define one metric that tells you growth is working: e.g., 10 active users in week 1, 50 signups in month 1.
+
+## Channels to test
+- Direct outreach (DMs, emails, calls)
+- Community posts (Indie Hackers, Reddit, Twitter/X)
+- Content (blog post, tutorial, case study)
+- Paid (if applicable): small test budget
+
+## Iterate
+Track what works. Double down on channels that bring engaged users. Drop what doesn't work after a fair test.`;
+  
+  const earnPlan = generateEarnPlan(project);
+  files['docs/EARN.md'] = `# EARN — ${appName}
+
+Offer and pricing checklist.
+
+${earnPlan.map((item, i) => `${i + 1}. **${item.title}**\n   ${item.hint}`).join('\n\n')}
+
+## Pricing notes
+- Start higher than comfortable — you can always lower or add tiers
+- Early adopters expect to pay less; validate at full price too
+- Watch for willingness-to-pay signals: questions about features, integration needs, team use
+
+## Revenue milestones
+- First $1: prove someone will pay
+- First $100/mo: prove repeatable value
+- First $1k/mo: prove scalable offer
+
+## Iterate
+Adjust price, packaging, or positioning based on real buyer feedback.`;
+  
+  files['docs/PLAN.md'] = `# PLAN — ${appName}
+
+Complete Build → Grow → Earn overview.
+
+## Build (M0→M2)
+- M0: Specification — brief, capability matrix, DoD
+- M1: Scaffold + Design System — file tree, tokens, components, responsive layout
+- M2: Verification — smoke tests, visual checks, acceptance criteria
+
+## Grow (post-launch)
+- Pick 1-2 channels where target users hang out
+- Write launch post, list 10 targets, draft outreach
+- Define success signal (e.g., 5 signups week 1)
+
+## Earn (monetization)
+- Write one-sentence offer
+- Pick price hypothesis, define first paid CTA
+- Decide payment path (Stripe/PayPal/Gumroad/manual)
+- Set sell-through check (e.g., 3/10 say yes)
+
+## Timeline
+| Phase | Focus | Exit criteria |
+|-------|-------|---------------|
+| M0 | Spec | Brief complete, DoD defined |
+| M1 | Build | Scaffold deployed, layout responsive |
+| M2 | Verify | All gates passed |
+| M3 | Launch | First users onboarded |
+| Grow | Reach | Success signal hit |
+| Earn | Revenue | First paying customer |`;
   
   // README.md
   files['README.md'] = `# ${appName}
@@ -986,6 +1169,8 @@ function generateMemoryNote(project) {
   const date = new Date().toISOString().split('T')[0];
   const id = `${toKebabCase(project.name)}-${Date.now()}`;
   
+  const earnPlan = generateEarnPlan(project);
+  
   return `---
 id: ${id}
 app: ${escapeHtml(project.name)}
@@ -1018,7 +1203,13 @@ ${project.successChecks.map(c => `- [ ] ${c}`).join('\n')}
 - Mobile: ${project.capabilityMatrix.mobile.on ? 'ON' : 'OFF'}
 
 ## Non-goals
-${escapeHtml(project.nonGoals)}`;
+${escapeHtml(project.nonGoals)}
+
+## Grow
+${growPlan.map(item => `- [ ] ${item.title}`).join('\n')}
+
+## Earn
+${earnPlan.map(item => `- [ ] ${item.title}`).join('\n')}`;
 }
 
 function selectFile(filename) {

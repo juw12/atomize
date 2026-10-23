@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <title>Sweep — From idea to checkable plan</title>
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -150,6 +150,21 @@
 
     <form id="brief-form" class="form" onsubmit="handleBriefSubmit(event)">
       <div class="form-section">
+        <h3 class="form-section-title">Guided Intake</h3>
+        <p class="form-section-desc">Type it in plain words. Sweep drafts the brief locally — no AI, no network.</p>
+        
+        <div class="form-group">
+          <label for="operator-input">Describe your idea</label>
+          <textarea id="operator-input" rows="3" placeholder="e.g., a habit tracker with streaks and reminders for busy people"></textarea>
+        </div>
+        
+        <button type="button" class="btn btn-primary btn-sm" onclick="draftBriefFromIdea()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/><path d="M4 12h16"/></svg>
+          Draft my brief
+        </button>
+      </div>
+      
+      <div class="form-section">
         <h3 class="form-section-title">Core Idea</h3>
         
         <div class="form-grid">
@@ -247,6 +262,7 @@
       <span class="plan-badge" id="plan-status">Draft</span>
       <h2 class="plan-title" id="plan-app-name">App Name</h2>
       <p class="plan-one-liner" id="plan-one-liner">One-liner goes here</p>
+      <p style="font-size:12px;color:var(--color-muted);margin-top:8px;font-family:var(--font-mono)">Build → Grow → Earn</p>
     </div>
 
     <!-- Capability Matrix -->
@@ -307,6 +323,28 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Grow -->
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        Grow
+      </h3>
+      <ul class="dod-list" id="grow-list">
+        <!-- Rendered by JS -->
+      </ul>
+    </div>
+
+    <!-- Earn -->
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Earn
+      </h3>
+      <ul class="dod-list" id="earn-list">
+        <!-- Rendered by JS -->
+      </ul>
     </div>
 
     <!-- Scaffold Preview -->
@@ -450,7 +488,7 @@
   <section id="section-guide" class="section" style="display:none">
     <div class="guide-content">
       <h2 class="guide-title">How to use Sweep</h2>
-      <p class="guide-intro">Sweep turns rough app ideas into checkable plans. Follow the flow: brief → plan → verify → generate → sync.</p>
+      <p class="guide-intro">Sweep turns rough app ideas into checkable plans. Follow the flow: guided intake → brief → plan (Build/Grow/Earn) → verify → generate → sync.</p>
 
       <div class="guide-steps">
         <div class="guide-step">
@@ -464,16 +502,16 @@
         <div class="guide-step">
           <div class="guide-step-number">2</div>
           <div class="guide-step-content">
-            <h3>Write an idea brief</h3>
-            <p>Describe your app idea: the problem, target user, job-to-be-done, and 2–4 success checks. Be specific—these success criteria become your Definition of Done checklist.</p>
+            <h3>Use guided intake or write a brief</h3>
+            <p>Type your idea in plain words in the "Describe your idea" panel. Sweep drafts the brief locally — no AI, no network. Or fill the brief fields manually: problem, target user, job-to-be-done, and 2–4 success checks.</p>
           </div>
         </div>
 
         <div class="guide-step">
           <div class="guide-step-number">3</div>
           <div class="guide-step-content">
-            <h3>Review the generated plan</h3>
-            <p>Sweep analyzes your brief and produces a capability matrix (backend/auth/mobile on/off), a Definition of Done checklist derived from your success checks, and a phased development roadmap (M0→M3).</p>
+            <h3>Review the Build → Grow → Earn plan</h3>
+            <p>Sweep produces a capability matrix, Definition of Done, phased roadmap (M0→M3), plus Grow (launch/reach) and Earn (offer/pricing) checklists. All generated locally from your brief.</p>
           </div>
         </div>
 
@@ -519,6 +557,6 @@
 <!-- Toast notification -->
 <div class="toast" id="toast" aria-live="polite"></div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

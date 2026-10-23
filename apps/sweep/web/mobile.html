@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#faf8f3">
 <title>Sweep Mobile — From idea to checkable plan</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=4">
 <style>
 /* Mobile-first overrides — optimized for touch and small screens */
 @media (max-width: 480px) {
@@ -393,6 +393,21 @@
 
     <form id="brief-form" class="form" onsubmit="handleBriefSubmit(event)">
       <div class="form-section">
+        <h3 class="form-section-title">Guided Intake</h3>
+        <p class="form-section-desc">Type it in plain words. Sweep drafts the brief locally — no AI, no network.</p>
+        
+        <div class="form-group">
+          <label for="operator-input">Describe your idea</label>
+          <textarea id="operator-input" rows="3" placeholder="e.g., a habit tracker with streaks and reminders for busy people"></textarea>
+        </div>
+        
+        <button type="button" class="btn btn-primary btn-sm" onclick="draftBriefFromIdea()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/><path d="M4 12h16"/></svg>
+          Draft my brief
+        </button>
+      </div>
+      
+      <div class="form-section">
         <h3 class="form-section-title">Core Idea</h3>
         
         <div class="form-grid">
@@ -480,6 +495,7 @@
       <span class="plan-badge" id="plan-status">Draft</span>
       <h2 class="plan-title" id="plan-app-name">App Name</h2>
       <p class="plan-one-liner" id="plan-one-liner">One-liner goes here</p>
+      <p style="font-size:12px;color:var(--color-muted);margin-top:8px;font-family:var(--font-mono)">Build → Grow → Earn</p>
     </div>
 
     <!-- Capability Matrix -->
@@ -540,6 +556,24 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        Grow
+      </h3>
+      <ul class="dod-list" id="grow-list">
+      </ul>
+    </div>
+
+    <div class="plan-card">
+      <h3 class="plan-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Earn
+      </h3>
+      <ul class="dod-list" id="earn-list">
+      </ul>
     </div>
 
     <!-- Scaffold Preview -->
@@ -637,7 +671,7 @@
 <!-- Toast notification -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 <script>
 // Mobile-specific: sync bottom nav with section changes
 (function() {
