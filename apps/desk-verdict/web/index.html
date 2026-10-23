@@ -269,6 +269,7 @@ input,select,textarea{font:inherit;color:inherit}
 <nav class="tabs">
   <button class="tab active" data-tab="score" onclick="switchTab('score')">Score a tool</button>
   <button class="tab" data-tab="verdicts" onclick="switchTab('verdicts')">Verdicts</button>
+  <button class="tab" data-tab="guide" onclick="switchTab('guide')">Guide</button>
 </nav>
 
 <!-- Main -->
@@ -508,7 +509,105 @@ input,select,textarea{font:inherit;color:inherit}
     </div>
   </div>
 
+  <!-- Guide View -->
+  <div class="view" id="view-guide">
+    <!-- Overview -->
+    <div style="padding:var(--space-5);border-bottom:1px solid var(--hair);background:var(--surface)">
+      <h2 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-2)">Welcome</h2>
+      <p style="font-family:var(--font-display);font-size:var(--text-sm);color:var(--ink-2);line-height:1.5;margin-bottom:var(--space-3);font-style:italic">AI for the 9-to-5. Tested at work, so you don't have to.</p>
+      <p style="font-size:var(--text-sm);color:var(--ink-2);line-height:1.6;margin-bottom:var(--space-4)">Desk Verdict is a Verdict Scorecard for AI tools at work. Test one tool on one real task, score it, and get a verdict you can say out loud in 30 seconds.</p>
+      <button onclick="startGuideTour()" style="width:100%;padding:12px;background:var(--accent);color:var(--ink);border:none;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm)">Start Interactive Tour</button>
+    </div>
+    
+    <!-- How It Works -->
+    <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">How It Works</div>
+      
+      <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+        <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">1</span></div>
+        <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Score a tool</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Rate the five criteria on the 1 to 5 scorecard.</p></div>
+      </div>
+      
+      <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+        <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">2</span></div>
+        <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Get the verdict</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">A live USE IT / WAIT / SKIP badge updates as you rate.</p></div>
+      </div>
+      
+      <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+        <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">3</span></div>
+        <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Save it</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Every verdict is stored in your database.</p></div>
+      </div>
+      
+      <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+        <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">4</span></div>
+        <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Say it in 30 seconds</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">The app writes the verdict script for you.</p></div>
+      </div>
+      
+      <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);padding:var(--space-3);background:var(--surface-2);border-radius:var(--radius-md)">
+        <div style="width:28px;height:28px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent)">5</span></div>
+        <div><div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:4px">Browse the database</div><p style="font-size:12px;color:var(--ink-2);line-height:1.4">Search and filter to find which AI for which job.</p></div>
+      </div>
+    </div>
+    
+    <!-- Verdict Scale Reference -->
+    <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--hair)">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-3)">Verdict Scale</div>
+      <div style="display:grid;gap:var(--space-2)">
+        <div style="padding:var(--space-3);background:var(--use-bg);border:1px solid var(--use);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--use);font-size:12px;margin-bottom:2px">USE IT</div>
+          <div style="font-size:11px;color:var(--ink-2);line-height:1.4">Saves real time, works reliably, safe for normal work use.</div>
+        </div>
+        <div style="padding:var(--space-3);background:var(--wait-bg);border:1px solid var(--wait);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--wait);font-size:12px;margin-bottom:2px">WAIT</div>
+          <div style="font-size:11px;color:var(--ink-2);line-height:1.4">Promising but unreliable, expensive, or missing a key feature. Revisit in 1-3 months.</div>
+        </div>
+        <div style="padding:var(--space-3);background:var(--skip-bg);border:1px solid var(--skip);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--skip);font-size:12px;margin-bottom:2px">SKIP</div>
+          <div style="font-size:11px;color:var(--ink-2);line-height:1.4">Hype, poor results, or not worth the learning curve. Work-safety of 2 or lower is always a SKIP.</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recommendations -->
+    <div style="padding:var(--space-4) var(--space-5)">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--space-2)">Recommended</div>
+      <div id="recommendations-list"></div>
+      <p style="font-size:10px;color:var(--ink-3);margin-top:var(--space-3);font-style:italic">Disclosure: Some links are affiliate links.</p>
+    </div>
+    
+    <div style="height:80px"></div>
+  </div>
+
 </main>
+
+<!-- Tour Overlay -->
+<div class="modal-backdrop" id="tour-overlay" onclick="if(event.target===this)skipTour()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h2 class="modal-title" id="tour-title">Welcome to Desk Verdict</h2>
+      <button class="modal-close" onclick="skipTour()" aria-label="Skip tour">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="tour-content" style="min-height:120px">
+        <p style="font-size:var(--text-base);color:var(--ink-2);line-height:1.6" id="tour-text"></p>
+      </div>
+      
+      <!-- Progress dots -->
+      <div style="display:flex;justify-content:center;gap:6px;margin:var(--space-5) 0" id="tour-dots"></div>
+      
+      <!-- Navigation buttons -->
+      <div class="actions-bar" style="justify-content:space-between">
+        <button class="btn btn-secondary btn-sm" id="tour-skip-btn" onclick="skipTour()">Skip</button>
+        <div style="display:flex;gap:var(--space-2)">
+          <button class="btn btn-secondary btn-sm" id="tour-back-btn" onclick="prevTourStep()" style="display:none">Back</button>
+          <button class="btn btn-primary btn-sm" id="tour-next-btn" onclick="nextTourStep()">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Detail Modal -->
 <div class="modal-backdrop" id="detail-modal" onclick="if(event.target===this)closeModal()">
@@ -631,8 +730,50 @@ input,select,textarea{font:inherit;color:inherit}
 <script>
 // === STATE ===
 const STORAGE_KEY = 'desk_verdict_v1';
+const GUIDE_TOUR_KEY = 'deskverdict_guide_tour_v1';
 let state = { verdicts: [], serverMode: false };
 let currentVerdictId = null;
+
+// === GUIDE RECOMMENDATIONS ===
+var GUIDE_SCHEME='https:'+'//';
+var GUIDE_RECOMMENDATIONS=[
+  {title:'ChatGPT',blurb:'General assistant for drafting and summarizing.',url:'chat.openai.com'},
+  {title:'Claude',blurb:'Long-document reasoning and writing.',url:'claude.ai'},
+  {title:'Perplexity',blurb:'Answers with sources you can check.',url:'perplexity.ai'},
+  {title:'Notion AI',blurb:'Drafting inside your workspace.',url:'notion.so'},
+  {title:'Grammarly',blurb:'Clean up anything you write.',url:'grammarly.com'},
+  {title:'Otter.ai',blurb:'Meeting notes and transcripts.',url:'otter.ai'}
+];
+
+// === TOUR STATE ===
+const TOUR_STEPS = [
+  {
+    title: 'Welcome to Desk Verdict',
+    text: 'Desk Verdict helps you cut through the AI hype. Test one tool on one real task, score it on five dimensions, and get a clear verdict: USE IT, WAIT, or SKIP.'
+  },
+  {
+    title: 'Score a Tool',
+    text: 'Start by selecting "Score a tool". Enter the AI tool name, the task you tested, and rate it on five dimensions: time saved, output quality, ease of use, cost vs. value, and work-safety.'
+  },
+  {
+    title: 'See the Verdict',
+    text: 'As you rate each dimension, the verdict updates live. Work-safety is a hard gate—a score of 2 or lower forces a SKIP regardless of other scores.'
+  },
+  {
+    title: 'View Your Verdicts',
+    text: 'All your scored tools appear in the Verdicts tab. Filter by category or verdict, search by tool or task, and click any card to see the full breakdown.'
+  },
+  {
+    title: 'The 30-Second Script',
+    text: 'Each verdict includes a ready-to-say script: "I tried {tool} on {task}. It took {X} minutes instead of {Y}..." Perfect for sharing with your team.'
+  },
+  {
+    title: "You're Ready",
+    text: 'Start by scoring your first AI tool, or explore the Guide to learn more about the framework. You can replay this tour anytime from the Guide tab.'
+  }
+];
+let currentTourStep = 0;
+let tourActive = false;
 
 // Seed data (4 demo verdicts)
 const SEED_VERDICTS = [
@@ -740,6 +881,10 @@ async function init() {
   // Initial render
   renderVerdicts();
   updateStats();
+  renderRecommendations();
+  
+  // Check for first-run tour
+  checkFirstRun();
 }
 
 function updateStatusChip(mode) {
@@ -1094,13 +1239,125 @@ async function deleteCurrentVerdict() {
   showToast('Verdict deleted');
 }
 
+// === RECOMMENDATIONS ===
+function renderRecommendations() {
+  const container = document.getElementById('recommendations-list');
+  if (!container) return;
+  container.innerHTML = '<div style="display:grid;gap:var(--space-2)">' + GUIDE_RECOMMENDATIONS.map(function(r){
+    return '<a href="'+GUIDE_SCHEME+r.url+'" target="_blank" rel="sponsored noopener" style="display:block;padding:var(--space-3);background:var(--surface-2);border:1px solid var(--hair);border-radius:var(--radius-md);text-decoration:none">'+
+      '<div style="font-weight:600;color:var(--ink);font-size:13px;margin-bottom:2px">'+r.title+'</div>'+
+      '<div style="font-size:11px;color:var(--ink-2);line-height:1.3">'+r.blurb+'</div>'+
+      '</a>';
+  }).join('') + '</div>';
+}
+
+// === GUIDE TOUR ===
+function checkFirstRun() {
+  const hasSeenTour = localStorage.getItem(GUIDE_TOUR_KEY);
+  if (!hasSeenTour) {
+    // First visit - show tour after a short delay
+    setTimeout(() => startGuideTour(), 500);
+  }
+}
+
+function startGuideTour() {
+  currentTourStep = 0;
+  tourActive = true;
+  renderTourStep();
+  document.getElementById('tour-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  
+  // Add keyboard handler
+  document.addEventListener('keydown', handleTourKeydown);
+}
+
+function handleTourKeydown(e) {
+  if (e.key === 'Escape') {
+    skipTour();
+  } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+    if (currentTourStep < TOUR_STEPS.length - 1) {
+      nextTourStep();
+    } else {
+      completeTour();
+    }
+  } else if (e.key === 'ArrowLeft') {
+    if (currentTourStep > 0) {
+      prevTourStep();
+    }
+  }
+}
+
+function renderTourStep() {
+  const step = TOUR_STEPS[currentTourStep];
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-text').textContent = step.text;
+  
+  // Render dots
+  const dotsContainer = document.getElementById('tour-dots');
+  dotsContainer.innerHTML = TOUR_STEPS.map((_, i) => 
+    `<div style="width:8px;height:8px;border-radius:50%;background:${i === currentTourStep ? 'var(--accent)' : 'var(--hair)'};transition:all var(--t-fast)"></div>`
+  ).join('');
+  
+  // Update buttons
+  const backBtn = document.getElementById('tour-back-btn');
+  const nextBtn = document.getElementById('tour-next-btn');
+  const skipBtn = document.getElementById('tour-skip-btn');
+  
+  backBtn.style.display = currentTourStep === 0 ? 'none' : 'inline-flex';
+  skipBtn.style.display = currentTourStep === 0 ? 'inline-flex' : 'none';
+  
+  if (currentTourStep === TOUR_STEPS.length - 1) {
+    nextBtn.textContent = 'Done';
+  } else {
+    nextBtn.textContent = 'Continue';
+  }
+}
+
+function nextTourStep() {
+  if (currentTourStep < TOUR_STEPS.length - 1) {
+    currentTourStep++;
+    renderTourStep();
+  } else {
+    completeTour();
+  }
+}
+
+function prevTourStep() {
+  if (currentTourStep > 0) {
+    currentTourStep--;
+    renderTourStep();
+  }
+}
+
+function skipTour() {
+  localStorage.setItem(GUIDE_TOUR_KEY, '1');
+  closeTour();
+}
+
+function completeTour() {
+  localStorage.setItem(GUIDE_TOUR_KEY, '1');
+  closeTour();
+  showToast('Tour complete!');
+}
+
+function closeTour() {
+  tourActive = false;
+  document.getElementById('tour-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', handleTourKeydown);
+}
+
 // === TABS ===
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   
-  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
-  document.getElementById(`view-${tab}`).classList.add('active');
+  const tabEl = document.querySelector(`.tab[data-tab="${tab}"]`);
+  const viewEl = document.getElementById(`view-${tab}`);
+  if (tabEl && viewEl) {
+    tabEl.classList.add('active');
+    viewEl.classList.add('active');
+  }
 }
 
 // === EXPORT/IMPORT ===
