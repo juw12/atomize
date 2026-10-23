@@ -102,16 +102,21 @@ Logo: two overlapping circles + "Peers". Typography: readable **serif** for head
 
 ---
 
-## Categories (modes)
+## Categories (modes) — one shared interface
 
 Peers is a multi-category app. A category switcher (the pill row under the header / app bar,
 or **All categories** → searchable picker) scopes the entire interface to one vertical: the
 **feed**, **explore**, the **write** form and the **market** all become about that category.
 
-The **AI Tools** category merges the *Desk Verdict* scorecard: rate a tool 1–5 on time saved,
-output quality, ease of use, cost vs value and work safety, and get a computed
-**Use it / Wait / Skip** verdict (work safety ≤ 2 is a hard Skip). Each AI verdict carries a
-scorecard breakdown and a copyable "30-second script".
+Every category uses the **same interface** — the same feed with the same sub-filter chips
+(All · Following · Trending · Top rated · Verified · Recent), the same review card, the same
+explore surface (map for places, grid for products) and the same write form.
+
+The **AI Tools** category carries the *Desk Verdict* scorecard (now merged into Peers): rate a
+tool 1–5 on time saved, output quality, ease of use, cost vs value and work safety, and get a
+computed **Use it / Wait / Skip** verdict (work safety ≤ 2 is a hard Skip). That same optional
+scorecard is available on **any** category's review — with a scorecard breakdown, a verdict
+badge and a copyable "30-second script" rendered inline on the shared review card.
 
 Categories shipped (32, including **All**): Food & Drink, Travel & Stays, Shops & Retail,
 Home Services, Health & Wellness, Beauty & Personal Care, Auto & EV, Real Estate, Pets,

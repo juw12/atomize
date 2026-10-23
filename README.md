@@ -6,12 +6,11 @@ runnable, deployable project.
 | Project | What it is | Stack |
 | --- | --- | --- |
 | [`apps/orbis`](apps/orbis) | Communication, identity, protection — and hiring (Orbis Work) — in one app | Zero-dependency Python stdlib server + SQLite + static PWA |
-| [`apps/peers`](apps/peers) | Verified reviews across category **modes** (food, travel, market, AI tools, health, finance, …) | Single-file web app + optional stdlib persistence backend |
+| [`apps/peers`](apps/peers) | Verified reviews across category **modes** (food, travel, market, AI tools, health, finance, …) — every category shares one interface | Single-file web app + optional stdlib persistence backend |
 | [`apps/house-of-articles`](apps/house-of-articles) | Athlete-moment sneaker news + live market feed | Static prototype + versioned data spine |
 | [`apps/hazel`](apps/hazel) | Desktop studio for creators — auto-cut, repurpose to every platform, publish, measure traffic | Electron + bundled ffmpeg + local Whisper (offline) |
 | [`apps/lingua`](apps/lingua) | Live-translated Teams captions in an always-on-top overlay | Python + tkinter native desktop app (Pillow, requests) |
 | [`apps/productivity-widget`](apps/productivity-widget) | "The Morning Paper" — always-on-top Pomodoro timer + soundscapes + live app-usage tracking + daily score + coaching | Python + tkinter desktop widget (stdlib only) |
-| [`apps/desk-verdict`](apps/desk-verdict) | Verdict Scorecard for AI tools at work — test a tool on a real task, rate the scorecard, get Use it / Wait / Skip. Also merged into **Peers** as the *AI Tools* mode | Single-file web app + optional stdlib persistence backend |
 | [`apps/sweep`](apps/sweep) | The `/sweep` pipeline — validate, then sync the repo to GitHub and mirror a note to Obsidian | PowerShell helper + OpenCode slash command |
 
 Each project follows the same shape:

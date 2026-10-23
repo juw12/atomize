@@ -162,20 +162,25 @@ apps/peers/
   README.md
 ```
 
-## Categories (modes) + AI Tools
+## Categories (modes) + the unified review interface
 
-Peers now works as a **multi-category app**. A category switcher (the pill row under the
-header / app bar, or **All categories**) scopes the whole interface — feed, explore, writing
-and the market — to one vertical. Pick a category and every screen becomes about it.
+Peers is a **multi-category app**. A category switcher (the pill row under the header / app
+bar, or **All categories**) scopes the whole interface — feed, explore, writing and the market
+— to one vertical. Pick a category and every screen becomes about it.
 
-The **AI Tools** mode merges the *Desk Verdict* AI-tool scorecard: score a tool on a real
-work task across five dimensions (time saved, output quality, ease of use, cost vs value,
-work safety) and get a **Use it / Wait / Skip** verdict (work safety is a hard gate at ≤ 2).
+**Every category shares one interface.** The feed, the explore surface, the write form and the
+review card are identical across categories. The **AI Tools** category carries the
+*Desk Verdict* scorecard (now merged into Peers): score a tool on a real work task across five
+dimensions (time saved, output quality, ease of use, cost vs value, work safety) and get a
+**Use it / Wait / Skip** verdict (work safety is a hard gate at ≤ 2). That same optional
+scorecard — with a computed verdict and a copyable 30-second script — is available on any
+category's review and renders inline on the shared review card.
 
 The taxonomy lives in `web/index.html` / `web/mobile.html` as the appended `MODES` module
-(a second `<script>` block before `</body>`). It overrides app globals
-(`seed`, `views.feed` / `views.map` / `views.market` / `views.search`, `render`, `runSearch`)
-and injects its own markup and CSS at runtime — the original script is not edited.
+(a second `<script>` block before `</body>`). It overrides app globals (`seed`, `reviewCard`,
+`productReviewCard`, `views.feed` / `views.map` / `views.market` / `views.search` /
+`views.writeReview`, `render`, `runSearch`) and injects its own markup and CSS at runtime —
+the original script is not edited.
 
 ### Categories (32)
 
@@ -185,13 +190,14 @@ and injects its own markup and CSS at runtime — the original script is not edi
 - Plus **All** (everything).
 
 Every category describes what people review there and its market, and any category with no
-reviews yet shows a "be the first to review" hub. Searching a category name (e.g. "doctors",
-"hotels", "AI tools") surfaces a **Jump to category** result.
+reviews yet shows a "be the first to review" hub. Each category feed has the same sub-filter
+chips (All · Following · Trending · Top rated · Verified · Recent). Searching a category name
+(e.g. "doctors", "hotels", "AI tools") surfaces a **Jump to category** result.
 
-### New state keys
+### State keys
 
-`mode` (active category) and `verdicts` (AI tool scorecard records) join the state document,
-alongside `votes` and `feedFilter`; all four are in the server seed and the required-key list.
+Categories add `mode` (active category) and `catFilter` (in-category feed filter) to the state
+document, alongside `votes` and `feedFilter`.
 
 ## Roadmap
 
