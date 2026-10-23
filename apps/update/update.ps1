@@ -59,12 +59,20 @@ if ($DryRun) {
   $commit = "$(& $git -C $root rev-parse --short HEAD)".Trim()
 
   if (-not $NoPush) {
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $tmpOut = [System.IO.Path]::GetTempFileName()
     try {
-      $pushOut = & $git -C $root push origin $branch 2>&1 | Out-String
-      $pushed = ($LASTEXITCODE -eq 0)
-      if (-not $pushed) { $pushError = "git push exited $LASTEXITCODE`n$pushOut".Trim() }
+      & $git -C $root push origin $branch *> $tmpOut
+      $pushCode = $LASTEXITCODE
+      $pushOut = (Get-Content $tmpOut -Raw)
+      $pushed = ($pushCode -eq 0)
+      if (-not $pushed) { $pushError = "git push exited $pushCode`n$pushOut".Trim() }
     } catch {
       $pushError = $_.Exception.Message
+    } finally {
+      $ErrorActionPreference = $prevEap
+      Remove-Item $tmpOut -ErrorAction SilentlyContinue
     }
   }
 }
