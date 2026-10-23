@@ -9,6 +9,8 @@ runnable, deployable project.
 | [`apps/peers`](apps/peers) | Verified reviews for food, travel and products | Single-file web app + optional stdlib persistence backend |
 | [`apps/house-of-articles`](apps/house-of-articles) | Athlete-moment sneaker news + live market feed | Static prototype + versioned data spine |
 | [`apps/hazel`](apps/hazel) | Desktop studio for creators — auto-cut, repurpose to every platform, publish, measure traffic | Electron + bundled ffmpeg + local Whisper (offline) |
+| [`apps/lingua`](apps/lingua) | Live-translated Teams captions in an always-on-top overlay | Python + tkinter native desktop app (Pillow, requests) |
+| [`apps/productivity-widget`](apps/productivity-widget) | "The Morning Paper" — always-on-top Pomodoro timer + soundscapes + live app-usage tracking + daily score + coaching | Python + tkinter desktop widget (stdlib only) |
 | [`apps/update`](apps/update) | The `/update` pipeline — sync the repo to GitHub and mirror a note to Obsidian | PowerShell helper + OpenCode slash command |
 
 Each project follows the same shape:
