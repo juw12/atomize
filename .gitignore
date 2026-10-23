@@ -20,7 +20,8 @@ _site/
 
 # ---- opencode / local tooling ----
 .omo/
-.opencode/
+.opencode/*
+!.opencode/command/
 
 # ---- OS cruft ----
 .DS_Store
