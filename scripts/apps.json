@@ -116,13 +116,13 @@
     },
     {
       "id": "ziris-motor",
-      "name": "Airiz Motor",
+      "name": "Ziris Motor",
       "category": "Software",
-      "desc": "Dependency-free browser console for AIRIZ motor testing \u2014 command library, serial console and macro notepad",
-      "description": "A dependency-free browser console that replaces the TeraTerm/CWD serial workflow for AIRIZ device motor testing &mdash; browse a categorised command library with live parameters, drive a dark serial console with scrollback and log saving, build and run test macros in a visual notepad, install it as an offline PWA, and try the whole UI in a hardware-free demo mode.",
+      "desc": "Dependency-free browser console for ZIRIS motor testing \u2014 command library, serial console and macro notepad",
+      "description": "A dependency-free browser console that replaces the TeraTerm/CWD serial workflow for ZIRIS device motor testing &mdash; browse a categorised command library with live parameters, drive a dark serial console with scrollback and log saving, build and run test macros in a visual notepad, install it as an offline PWA, and try the whole UI in a hardware-free demo mode.",
       "tags": ["Web Serial", "PWA", "serial console", "macro runner", "offline demo"],
       "image": "ziris-motor-hero.svg",
-      "image_alt": "Airiz Motor Test Console dashboard: command library, serial console and macro notepad for AIRIZ device motor testing",
+      "image_alt": "Ziris Motor Test Console dashboard: command library, serial console and macro notepad for ZIRIS device motor testing",
       "links": {"app": "ziris-motor/", "web": "ziris-motor/", "mobile": "ziris-motor/"},
       "featured": true,
       "order": 9
