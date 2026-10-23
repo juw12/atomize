@@ -116,6 +116,17 @@ python tools/gen_inline_data.py
 
 This outputs a `const SHOE_DATA = {...}` object matching the original inline format from the HTML prototypes. **Does NOT modify HTML files by default.**
 
+### Sync Inline Data (single source of truth)
+
+[`tools/sync_inline_data.py`](tools/sync_inline_data.py) is the write side: it rewrites the inline `SHOE_DATA` block in **both** `web/desktop.html` and `web/index.html` from `data/data-spine.json`, so the offline builds and the Ledger never drift from the spine.
+
+```bash
+python tools/sync_inline_data.py --write   # regenerate the inline blocks in both builds
+python tools/sync_inline_data.py           # report drift only (exit 1 if any)
+```
+
+`tests/test_inline_data_sync.py` enforces the same in CI — it fails if either build's inline data doesn't match the spine, so the two can't silently diverge again.
+
 ### Run Schema Tests
 
 [`tests/test_data_schema.py`](tests/test_data_schema.py) validates the data spine:
