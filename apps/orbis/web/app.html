@@ -1117,6 +1117,121 @@
       height: 16px;
       flex-shrink: 0;
     }
+
+    /* Guide Tour Overlay */
+    .tour-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .tour-overlay.show { display: flex; }
+    .tour-modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin: 20px;
+    }
+    .tour-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tour-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .tour-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+    .tour-close:hover { color: var(--ink); }
+    .tour-body {
+      padding: 24px;
+    }
+    .tour-content {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+    .tour-progress {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .tour-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      transition: all 0.2s;
+    }
+    .tour-dot.active {
+      background: var(--brand-600);
+      transform: scale(1.2);
+    }
+    .tour-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-top: 1px solid var(--line);
+    }
+    .tour-skip {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+    }
+    .tour-skip:hover { background: var(--surface-2); color: var(--ink); }
+    .tour-nav {
+      display: flex;
+      gap: 8px;
+    }
+    .tour-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .tour-btn-secondary {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+    .tour-btn-secondary:hover { background: var(--surface-2); }
+    .tour-btn-primary {
+      background: var(--brand-600);
+      color: white;
+    }
+    .tour-btn-primary:hover { background: var(--brand); }
+    .tour-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -1173,6 +1288,10 @@
         <a class="nav-item" data-view="learn" href="#learn" role="button" tabindex="0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           <span data-i18n="nav.learn">Learn</span>
+        </a>
+        <a class="nav-item" data-view="guide" href="#guide" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span data-i18n="nav.guide">Guide</span>
         </a>
       </nav>
       <div class="sidebar-footer">
@@ -1956,6 +2075,60 @@
           </div>
           <div id="learnContent"></div>
         </section>
+
+        <!-- GUIDE VIEW -->
+        <section id="guide" class="view" role="region" aria-labelledby="guide-title">
+          <div class="view-header">
+            <h1 class="view-title" id="guide-title" data-i18n="guide.title">Guide</h1>
+            <p class="view-intro" data-i18n="guide.intro">Learn how Orbis works and get the most out of it.</p>
+          </div>
+          
+          <div class="card" style="margin-bottom: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 12px;" data-i18n="guide.whatIsTitle">What is Orbis?</h2>
+            <p style="font-size: 14px; line-height: 1.6; color: var(--muted);" data-i18n="guide.whatIsText">
+              Orbis is your personal communication engine. It helps you keep track of messages that need replies, commitments you've made, and important context from your conversations — all while keeping you in control of your data.
+            </p>
+          </div>
+
+          <div class="card" style="margin-bottom: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="guide.howItWorksTitle">How it works</h2>
+            <div style="display: grid; gap: 16px;">
+              <div style="padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 6px;" data-i18n="guide.stepTodayTitle">1. Today</div>
+                <div style="font-size: 13px; color: var(--muted);" data-i18n="guide.stepTodayText">See messages that may need a reply, with clear reasons why each one matters.</div>
+              </div>
+              <div style="padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 6px;" data-i18n="guide.stepCommitmentsTitle">2. Commitments</div>
+                <div style="font-size: 13px; color: var(--muted);" data-i18n="guide.stepCommitmentsText">Track what you said you would do. Mark items done when completed.</div>
+              </div>
+              <div style="padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 6px;" data-i18n="guide.stepDraftsTitle">3. Drafts</div>
+                <div style="font-size: 13px; color: var(--muted);" data-i18n="guide.stepDraftsText">Review AI-suggested replies. Edit, approve, and copy to send in your own app.</div>
+              </div>
+              <div style="padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 6px;" data-i18n="guide.stepAuraTitle">4. Aura</div>
+                <div style="font-size: 13px; color: var(--muted);" data-i18n="guide.stepAuraText">Your self-chosen profile. Created by you, never inferred from messages.</div>
+              </div>
+              <div style="padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm);">
+                <div style="font-weight: 600; margin-bottom: 6px;" data-i18n="guide.stepPrivacyTitle">5. Privacy</div>
+                <div style="font-size: 13px; color: var(--muted);" data-i18n="guide.stepPrivacyText">Control what data is collected. Pause AI anytime with the kill switch.</div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="startGuideTourBtn" style="margin-top: 16px;" data-i18n="guide.startTourBtn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Start tour
+            </button>
+          </div>
+
+          <div class="card" id="recommendationsCard">
+            <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="guide.recommendationsTitle">Recommended tools</h2>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;" data-i18n="guide.recommendationsIntro">Tools and resources that complement Orbis.</p>
+            <div id="recommendationsList" style="display: grid; gap: 12px;"></div>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);" data-i18n="guide.affiliateDisclosure">
+              Some links are affiliate links. This helps support Orbis development at no extra cost to you.
+            </p>
+          </div>
+        </section>
       </div>
 
       <!-- Footer -->
@@ -2094,6 +2267,27 @@
       <button class="auth-guest-btn" id="authGuestBtn">Continue as guest</button>
 
       <p class="auth-note">Prototype — no real authentication. Any email and password work.</p>
+    </div>
+  </div>
+
+  <!-- Guide Tour Overlay -->
+  <div class="tour-overlay" id="tourOverlay" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <div class="tour-modal">
+      <div class="tour-header">
+        <h2 class="tour-title" id="tourTitle">Welcome to Orbis</h2>
+        <button class="tour-close" id="tourClose" aria-label="Close tour">&times;</button>
+      </div>
+      <div class="tour-body">
+        <div class="tour-content" id="tourContent">Loading...</div>
+        <div class="tour-progress" id="tourProgress"></div>
+      </div>
+      <div class="tour-footer">
+        <button class="tour-skip" id="tourSkip">Skip tour</button>
+        <div class="tour-nav">
+          <button class="tour-btn tour-btn-secondary" id="tourBack" disabled>Back</button>
+          <button class="tour-btn tour-btn-primary" id="tourNext">Continue</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2247,6 +2441,85 @@
       }
     };
 
+    // === GUIDE RECOMMENDATIONS (PLACEHOLDER AFFILIATE LINKS) ===
+    const GUIDE_RECOMMENDATIONS = [
+      {
+        title: 'Notion',
+        blurb: 'All-in-one workspace for notes, docs, and project management.',
+        url: 'https://www.notion.so/?affiliate_placeholder=orbis'
+      },
+      {
+        title: 'Raycast',
+        blurb: 'Lightning-fast launcher and productivity toolkit for macOS.',
+        url: 'https://www.raycast.com/?affiliate_placeholder=orbis'
+      },
+      {
+        title: 'Superhuman',
+        blurb: 'The fastest email experience ever made for professionals.',
+        url: 'https://superhuman.com/?affiliate_placeholder=orbis'
+      },
+      {
+        title: 'Obsidian',
+        blurb: 'A powerful knowledge base that works on top of your local folder.',
+        url: 'https://obsidian.md/?affiliate_placeholder=orbis'
+      },
+      {
+        title: 'Readwise Reader',
+        blurb: 'Read, annotate, and organize articles, PDFs, and newsletters.',
+        url: 'https://readwise.io/reader?affiliate_placeholder=orbis'
+      },
+      {
+        title: 'Proton Mail',
+        blurb: 'Secure, encrypted email service with privacy at its core.',
+        url: 'https://proton.me/mail?affiliate_placeholder=orbis'
+      }
+    ];
+
+    // === FIRST-RUN TOUR STATE ===
+    const GUIDE_TOUR_STEPS = [
+      {
+        title: 'Welcome to Orbis',
+        content: 'Orbis is your personal communication engine. It helps you track messages, commitments, and conversation context — all while keeping you in control.',
+        highlight: null
+      },
+      {
+        title: 'Today View',
+        content: 'See messages that may need a reply, with clear reasons why each one matters. Confirm, snooze, or dismiss items.',
+        highlight: 'today'
+      },
+      {
+        title: 'Commitments',
+        content: 'Track what you said you would do. Mark items as done when completed. Dates are only used when explicitly stated.',
+        highlight: 'commitments'
+      },
+      {
+        title: 'Drafts',
+        content: 'Review AI-suggested replies. Edit, approve, and copy to send in your own app. Nothing is sent without your approval.',
+        highlight: 'drafts'
+      },
+      {
+        title: 'Aura',
+        content: 'Your self-chosen profile. Created entirely by you — Orbis never infers personality traits from your messages.',
+        highlight: 'aura'
+      },
+      {
+        title: 'Privacy',
+        content: 'Control what data is collected. Connect sources with explicit consent. Pause AI anytime with the kill switch.',
+        highlight: 'privacy'
+      },
+      {
+        title: "You're all set!",
+        content: 'Explore the other views like Summaries, Culture, Growth, and Learn. You can always restart this tour from the Guide view.',
+        highlight: null
+      }
+    ];
+
+    let tourState = {
+      currentStep: 0,
+      isOpen: false,
+      hasCompletedBefore: localStorage.getItem('orbis_guide_tour_v1') === 'true'
+    };
+
     // === I18N ===
     const I18N = {
       currentLang: 'en', // Default English to match app
@@ -2356,6 +2629,27 @@
           'learn.notes.saved': 'Catatan tersimpan!',
           'aiType.langToggle': 'EN',
           'aiType.langSwitching': 'Switching to {lang}...',
+          // Guide section
+          'nav.guide': 'Panduan',
+          'guide.title': 'Panduan',
+          'guide.intro': 'Pelajari cara kerja Orbis dan manfaatkan secara maksimal.',
+          'guide.whatIsTitle': 'Apa itu Orbis?',
+          'guide.whatIsText': 'Orbis adalah mesin komunikasi pribadi Anda. Membantu melacak pesan yang perlu dibalas, komitmen yang Anda buat, dan konteks penting dari percakapan — sambil menjaga Anda tetap mengendalikan data.',
+          'guide.howItWorksTitle': 'Cara kerjanya',
+          'guide.stepTodayTitle': '1. Hari Ini',
+          'guide.stepTodayText': 'Lihat pesan yang mungkin perlu dibalas, dengan alasan jelas mengapa masing-masing penting.',
+          'guide.stepCommitmentsTitle': '2. Komitmen',
+          'guide.stepCommitmentsText': 'Lacak apa yang Anda katakan akan dilakukan. Tandai selesai saat已完成.',
+          'guide.stepDraftsTitle': '3. Draft',
+          'guide.stepDraftsText': 'Tinjau balasan yang disarankan AI. Edit, setujui, dan salin untuk dikirim di aplikasi Anda.',
+          'guide.stepAuraTitle': '4. Aura',
+          'guide.stepAuraText': 'Profil yang Anda pilih sendiri. Dibuat oleh Anda, tidak pernah disimpulkan dari pesan.',
+          'guide.stepPrivacyTitle': '5. Privasi',
+          'guide.stepPrivacyText': 'Kontrol data apa yang dikumpulkan. Jeda AI kapan saja dengan kill switch.',
+          'guide.startTourBtn': 'Mulai tur',
+          'guide.recommendationsTitle': 'Tools yang direkomendasikan',
+          'guide.recommendationsIntro': 'Tools dan sumber daya yang melengkapi Orbis.',
+          'guide.affiliateDisclosure': 'Beberapa link adalah link afiliasi. Ini membantu mendukung pengembangan Orbis tanpa biaya tambahan untuk Anda.',
         },
         en: {
           'aiType.title': 'AI Type — Know how you work with AI',
@@ -2462,6 +2756,27 @@
           'learn.notes.saved': 'Note saved!',
           'aiType.langToggle': 'EN',
           'aiType.langSwitching': 'Switching to {lang}...',
+          // Guide section
+          'nav.guide': 'Guide',
+          'guide.title': 'Guide',
+          'guide.intro': 'Learn how Orbis works and get the most out of it.',
+          'guide.whatIsTitle': 'What is Orbis?',
+          'guide.whatIsText': 'Orbis is your personal communication engine. It helps you keep track of messages that need replies, commitments you have made, and important context from your conversations — all while keeping you in control of your data.',
+          'guide.howItWorksTitle': 'How it works',
+          'guide.stepTodayTitle': '1. Today',
+          'guide.stepTodayText': 'See messages that may need a reply, with clear reasons why each one matters.',
+          'guide.stepCommitmentsTitle': '2. Commitments',
+          'guide.stepCommitmentsText': 'Track what you said you would do. Mark items done when completed.',
+          'guide.stepDraftsTitle': '3. Drafts',
+          'guide.stepDraftsText': 'Review AI-suggested replies. Edit, approve, and copy to send in your own app.',
+          'guide.stepAuraTitle': '4. Aura',
+          'guide.stepAuraText': 'Your self-chosen profile. Created by you, never inferred from messages.',
+          'guide.stepPrivacyTitle': '5. Privacy',
+          'guide.stepPrivacyText': 'Control what data is collected. Pause AI anytime with the kill switch.',
+          'guide.startTourBtn': 'Start tour',
+          'guide.recommendationsTitle': 'Recommended tools',
+          'guide.recommendationsIntro': 'Tools and resources that complement Orbis.',
+          'guide.affiliateDisclosure': 'Some links are affiliate links. This helps support Orbis development at no extra cost to you.',
         }
       }
     };
@@ -5187,6 +5502,132 @@
       `;
     }
 
+    // === GUIDE VIEW ===
+    function renderGuide() {
+      const container = $('#recommendationsList');
+      if (!container) return;
+
+      container.innerHTML = GUIDE_RECOMMENDATIONS.map(rec => `
+        <div style="padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px solid var(--line);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${escapeHtml(rec.title)}</div>
+              <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">${escapeHtml(rec.blurb)}</div>
+              <a href="${escapeHtml(rec.url)}" target="_blank" rel="sponsored noopener" style="font-size: 13px; color: var(--brand-600); text-decoration: none;">Visit ${escapeHtml(rec.title)} &rarr;</a>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Wire up tour button
+      const tourBtn = $('#startGuideTourBtn');
+      if (tourBtn) {
+        tourBtn.onclick = () => openTour();
+      }
+    }
+
+    // === FIRST-RUN TOUR ===
+    function openTour(fromAuto = false) {
+      tourState.isOpen = true;
+      tourState.currentStep = 0;
+      $('#tourOverlay').classList.add('show');
+      renderTourStep();
+      document.body.style.overflow = 'hidden';
+      
+      // Focus management
+      $('#tourNext').focus();
+    }
+
+    function closeTour() {
+      tourState.isOpen = false;
+      $('#tourOverlay').classList.remove('show');
+      document.body.style.overflow = '';
+      
+      // Mark as completed
+      if (!tourState.hasCompletedBefore) {
+        tourState.hasCompletedBefore = true;
+        localStorage.setItem('orbis_guide_tour_v1', 'true');
+      }
+    }
+
+    function skipTour() {
+      if (!tourState.hasCompletedBefore) {
+        tourState.hasCompletedBefore = true;
+        localStorage.setItem('orbis_guide_tour_v1', 'true');
+      }
+      closeTour();
+      showToast('Tour skipped. You can restart it from the Guide view.');
+    }
+
+    function nextTourStep() {
+      if (tourState.currentStep < GUIDE_TOUR_STEPS.length - 1) {
+        tourState.currentStep++;
+        renderTourStep();
+      } else {
+        // Last step - finish
+        closeTour();
+        showToast('Tour complete! Explore Orbis.');
+      }
+    }
+
+    function prevTourStep() {
+      if (tourState.currentStep > 0) {
+        tourState.currentStep--;
+        renderTourStep();
+      }
+    }
+
+    function renderTourStep() {
+      const step = GUIDE_TOUR_STEPS[tourState.currentStep];
+      const lang = I18N.currentLang;
+      
+      // Title
+      $('#tourTitle').textContent = step.title;
+      
+      // Content
+      $('#tourContent').textContent = step.content;
+      
+      // Progress dots
+      const progressContainer = $('#tourProgress');
+      progressContainer.innerHTML = GUIDE_TOUR_STEPS.map((_, i) => 
+        `<div class="tour-dot ${i === tourState.currentStep ? 'active' : ''}"></div>`
+      ).join('');
+      
+      // Buttons
+      $('#tourBack').disabled = tourState.currentStep === 0;
+      $('#tourNext').textContent = tourState.currentStep === GUIDE_TOUR_STEPS.length - 1 ? 'Done' : 'Continue';
+      
+      // Highlight target view if specified
+      if (step.highlight) {
+        navigateTo(step.highlight);
+      }
+    }
+
+    function initTour() {
+      // Tour event listeners
+      $('#tourClose').addEventListener('click', closeTour);
+      $('#tourSkip').addEventListener('click', skipTour);
+      $('#tourBack').addEventListener('click', prevTourStep);
+      $('#tourNext').addEventListener('click', nextTourStep);
+      
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (!tourState.isOpen) return;
+        if (e.key === 'Escape') {
+          skipTour();
+        } else if (e.key === 'ArrowRight') {
+          nextTourStep();
+        } else if (e.key === 'ArrowLeft' && tourState.currentStep > 0) {
+          prevTourStep();
+        }
+      });
+      
+      // Auto-launch on first visit
+      if (!tourState.hasCompletedBefore) {
+        setTimeout(() => openTour(true), 1500);
+      }
+    }
+
     // === INIT ===
     async function init() {
       // Set default language to English BEFORE any renders
@@ -5206,6 +5647,7 @@
       initGrowth();
       initPrivacy();
       initAiTypeQuiz();
+      initTour();
 
       // Initial renders
       renderToday();
@@ -5217,6 +5659,7 @@
       renderAura();
       renderWork();
       renderLearn();
+      renderGuide();
       applyI18n();
     }
 

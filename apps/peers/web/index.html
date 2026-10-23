@@ -802,6 +802,33 @@ views.about=function(){
     '</div>';
 };
 
+views.guide=function(){
+  var recsHtml='';
+  for(var i=0;i<GUIDE_RECOMMENDATIONS.length;i++){
+    var item=GUIDE_RECOMMENDATIONS[i];
+    recsHtml+='<div class="feed-card" style="border:1px solid var(--sand);background:#fff"><div style="font-weight:600;font-size:15px;margin-bottom:6px">'+esc(item.title)+'</div><p style="font-size:13px;color:var(--slate);margin:0 0 10px">'+esc(item.blurb)+'</p><a href="'+esc(item.url)+'" target="_blank" rel="sponsored noopener" style="font-size:13px;font-weight:500;color:var(--coral);text-decoration:none">Learn more →</a></div>';
+  }
+  return ''+
+    '<div class="about" style="max-width:760px">'+
+    '<div class="page-head"><h1>Peers Guide</h1><p>Your complete guide to getting the most out of Peers.</p></div>'+
+    '<div class="callout" style="margin-bottom:20px;background:linear-gradient(135deg,#fff9f5,#fff);border:1px solid #ffd8b8">'+icon('lightbulb','')+'<div><div class="ct-label" style="font-weight:700">New to Peers?</div><p style="margin:6px 0 0">Take the interactive tour to learn how Peers works in under 2 minutes.</p><button class="btn btn-primary" data-action="start-tour" style="margin-top:10px">Start Tour</button></div></div>'+
+    '<h2 class="section-title">What is Peers?</h2>'+
+    '<p class="lede">Peers is a platform for <b>verified reviews</b> from real people about food, travel, and products. Unlike other platforms, Peers ensures every review is authentic, transparent, and trustworthy.</p>'+
+    '<h2 class="section-title">How it works</h2>'+
+    '<div class="phase-grid">'+
+      '<div class="phase-card"><div class="plabel">Step 1</div><h4>Discover</h4><p>Browse the <b>Feed</b> for reviews from people you follow, or explore places on the <b>Map</b>. Filter by city, trending reviews, or specific categories.</p></div>'+
+      '<div class="phase-card"><div class="plabel">Step 2</div><h4>Explore Places</h4><p>Tap any place to see detailed information, photos, reviews, and ratings. Read what real visitors experienced.</p></div>'+
+      '<div class="phase-card"><div class="plabel">Step 3</div><h4>Read & Write Reviews</h4><p>Read honest reviews from verified visitors. After your visit, write your own review to help the community.</p></div>'+
+      '<div class="phase-card"><div class="plabel">Step 4</div><h4>Peers Market</h4><p>Discover curated products from trusted sellers. Read product reviews and make purchases through partner checkout.</p></div>'+
+      '<div class="phase-card"><div class="plabel">Step 5</div><h4>Messages</h4><p>Connect with businesses and sellers. Ask questions, get support, and build relationships.</p></div>'+
+      '<div class="phase-card"><div class="plabel">Step 6</div><h4>Profile</h4><p>Build your review history, manage collections, track visited places, and grow your following.</p></div>'+
+    '</div>'+
+    '<h2 class="section-title">Recommended for Peers Users</h2>'+
+    '<div class="feed-grid">'+recsHtml+'</div>'+
+    '<p style="font-size:11px;color:var(--slate);margin-top:12px;text-align:center"><b>Disclosure:</b> Some links above are affiliate links. We may earn a commission at no extra cost to you.</p>'+
+    '</div>';
+};
+
 views.empty=function(msg){return '<div class="empty">'+icon('info','xl')+'<h3>'+esc(msg||'Not found')+'</h3></div>';};
 views.search=function(params){
   const q=(params&&params.q)||'';
@@ -851,6 +878,7 @@ const NAV=[
   {view:'collections',label:'Collections',icon:'collections'},
   {view:'moderation',label:'Moderation',icon:'moderation',count:()=>state.reports.length+state.complaints.filter(c=>c.state!=='resolved').length},
   {view:'messages',label:'Messages',icon:'reply'},
+  {view:'guide',label:'Guide',icon:'about'},
   {view:'about',label:'About',icon:'about'},
   {view:'settings',label:'Settings',icon:'settings'},
 ];
@@ -1222,6 +1250,134 @@ document.addEventListener('click',function(e){
   setMode('signin');
   if(state.auth&&state.auth.signedIn){ gate.classList.remove('show'); document.body.classList.remove('locked'); }
   else { openGate(); }
+})();
+
+/* ================== GUIDE & ONBOARDING TOUR ================== */
+var GUIDE_RECOMMENDATIONS=[
+  {title:'Lisbon Food Tour',blurb:'Explore authentic Portuguese cuisine with local guides.',url:'https://example.com/lisbon-food-tour?ref=peers'},
+  {title:'Tokyo Travel Guide',blurb:'Complete guide to Tokyo neighborhoods, food, and culture.',url:'https://example.com/tokyo-guide?ref=peers'},
+  {title:'Premium Travel Backpack',blurb:'Durable, stylish backpack perfect for city exploration.',url:'https://example.com/travel-backpack?ref=peers'},
+  {title:'Portable Coffee Maker',blurb:'Brew quality coffee anywhere - perfect for travelers.',url:'https://example.com/coffee-maker?ref=peers'},
+  {title:'Language Learning App',blurb:'Learn basic phrases before your next trip.',url:'https://example.com/language-app?ref=peers'},
+  {title:'Travel Insurance Plus',blurb:'Comprehensive coverage for worry-free adventures.',url:'https://example.com/travel-insurance?ref=peers'}
+];
+
+(function(){
+  var TOUR_KEY='peers_guide_tour_v1';
+  var tourSteps=[
+    {title:'Welcome to Peers',content:'Peers is your trusted source for verified reviews about food, travel, and products. Let us show you around!',icon:'lightbulb'},
+    {title:'Discover Reviews',content:'The Feed shows reviews from people you follow. Use filters to explore by city or see trending reviews.',icon:'feed'},
+    {title:'Explore Places',content:'The Map view shows all reviewed places. Tap pins to see details, photos, and reviews.',icon:'map'},
+    {title:'Write Reviews',content:'After visiting a place, share your experience. Add photos, ratings, and honest feedback to help others.',icon:'feedback'},
+    {title:'Peers Market',content:'Discover curated products from trusted sellers. Read reviews and shop through partner checkout.',icon:'market'},
+    {title:'You are all set!',content:'You are ready to explore Peers. Visit the Guide anytime for tips and recommendations.',icon:'check'}
+  ];
+  var tourIndex=0;
+  var tourOverlay=null;
+  
+  function shouldShowTour(){
+    try{
+      var done=localStorage.getItem(TOUR_KEY);
+      return !done;
+    }catch(e){return true;}
+  }
+  
+  function markTourDone(){
+    try{localStorage.setItem(TOUR_KEY,'done');}catch(e){}
+  }
+  
+  function createTourOverlay(){
+    if(tourOverlay) return tourOverlay;
+    tourOverlay=document.createElement('div');
+    tourOverlay.id='tour-overlay';
+    tourOverlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(20,33,61,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    tourOverlay.setAttribute('role','dialog');
+    tourOverlay.setAttribute('aria-modal','true');
+    tourOverlay.setAttribute('aria-label','Onboarding tour');
+    return tourOverlay;
+  }
+  
+  function renderTourStep(){
+    if(!tourOverlay) return;
+    var step=tourSteps[tourIndex];
+    var total=tourSteps.length;
+    var dots='';
+    for(var i=0;i<total;i++){
+      dots+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(i===tourIndex?'#FF6B5B':'#d8ccaf')+';margin:0 3px"></span>';
+    }
+    var btnHtml='';
+    if(tourIndex===0){
+      btnHtml='<button id="tour-skip" class="btn btn-ghost" style="color:#666">Skip</button><button id="tour-next" class="btn btn-primary">Continue</button>';
+    }else if(tourIndex===total-1){
+      btnHtml='<button id="tour-back" class="btn btn-ghost" style="color:#666">Back</button><button id="tour-done" class="btn btn-primary">Done</button>';
+    }else{
+      btnHtml='<button id="tour-back" class="btn btn-ghost" style="color:#666">Back</button><button id="tour-next" class="btn btn-primary">Continue</button>';
+    }
+    tourOverlay.innerHTML='<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,0.15);text-align:center">'+
+      '<div style="width:56px;height:56px;border-radius:50%;background:#fff5f2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#FF6B5B">'+
+        '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+ICONS[step.icon]+'</svg>'+
+      '</div>'+
+      '<h2 style="font-size:20px;font-weight:700;margin:0 0 10px;color:#14213D">'+esc(step.title)+'</h2>'+
+      '<p style="font-size:15px;color:#666;line-height:1.5;margin:0 0 20px">'+esc(step.content)+'</p>'+
+      '<div style="margin-bottom:20px">'+dots+'</div>'+
+      '<div style="display:flex;gap:10px;justify-content:center">'+btnHtml+'</div>'+
+    '</div>';
+    document.body.appendChild(tourOverlay);
+    document.body.style.overflow='hidden';
+    
+    var skipBtn=tourOverlay.querySelector('#tour-skip');
+    var backBtn=tourOverlay.querySelector('#tour-back');
+    var nextBtn=tourOverlay.querySelector('#tour-next');
+    var doneBtn=tourOverlay.querySelector('#tour-done');
+    
+    if(skipBtn){
+      skipBtn.onclick=function(){markTourDone();closeTour();};
+    }
+    if(backBtn){
+      backBtn.onclick=function(){if(tourIndex>0){tourIndex--;renderTourStep();}};
+    }
+    if(nextBtn){
+      nextBtn.onclick=function(){if(tourIndex<total-1){tourIndex++;renderTourStep();}};
+    }
+    if(doneBtn){
+      doneBtn.onclick=function(){markTourDone();closeTour();};
+    }
+  }
+  
+  function closeTour(){
+    if(tourOverlay){
+      tourOverlay.remove();
+      tourOverlay=null;
+      document.body.style.overflow='';
+    }
+  }
+  
+  function startTour(){
+    tourIndex=0;
+    if(!tourOverlay){tourOverlay=createTourOverlay();}
+    renderTourStep();
+  }
+  
+  function initTour(){
+    if(shouldShowTour()){
+      setTimeout(function(){startTour();},500);
+    }
+  }
+  
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-action="start-tour"]');
+    if(t){e.preventDefault();startTour();}
+  });
+  
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&tourOverlay){markTourDone();closeTour();}
+  });
+  
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initTour);
+  }else{
+    initTour();
+  }
 })();
 </script>
 </body>
