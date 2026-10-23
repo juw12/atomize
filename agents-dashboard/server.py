@@ -40,7 +40,7 @@ import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -60,6 +60,66 @@ KNOWN_OPENCODE_PATHS = [
     r"~\AppData\Local\PEGAAi Opencode\opencode.exe",
     r"~\AppData\Local\Programs\opencode\opencode.exe",
 ]
+
+EXTERNAL_BOTS = [
+    {
+        "name": "vscode-dev-helper",
+        "description": "VS Code Dev Helper (A) - in-editor coding agent; run in VS Code.",
+        "mode": "external",
+    },
+    {
+        "name": "hermes",
+        "description": "Hermes Agent (C) - standalone terminal/messaging agent; run `hermes`.",
+        "mode": "external",
+    },
+    {
+        "name": "scout",
+        "description": "Scout (B) - web research assistant; run B-km-agent\\scout.py.",
+        "mode": "external",
+    },
+    {
+        "name": "langgraph-agent",
+        "description": "LangGraph agent (D) - Python ReAct agent w/ tools; run D-langgraph-agent\\agent.py.",
+        "mode": "external",
+    },
+]
+EXTERNAL_BOTS_NAMES = {bot["name"] for bot in EXTERNAL_BOTS}
+
+NEW_CONSOLE = 0x00000010 if platform.system() == "Windows" else 0
+
+
+def launch_external_bot(agent: str, goal: str) -> dict:
+    """Start the app/script behind an external bot; returns {ok, detail}."""
+    workspace = BASE_DIR.parent / "agents-lab"
+    local = os.environ.get("LOCALAPPDATA", "")
+    try:
+        if agent == "vscode-dev-helper":
+            exe = Path(local) / "Programs" / "Microsoft VS Code" / "Code.exe"
+            if not exe.exists():
+                return {"ok": False, "detail": "VS Code (Code.exe) not found"}
+            subprocess.Popen([str(exe), str(workspace / "A-vscode-agent")], close_fds=True)
+            return {"ok": True, "detail": "Opened VS Code on A-vscode-agent"}
+        if agent == "hermes":
+            exe = Path(local) / "hermes" / "bin" / "hermes.exe"
+            if not exe.exists():
+                return {"ok": False, "detail": "hermes.exe not found"}
+            subprocess.Popen([str(exe)], close_fds=True)
+            return {"ok": True, "detail": "Started Hermes in a new window"}
+        py = workspace / "D-langgraph-agent" / ".venv" / "Scripts" / "python.exe"
+        scripts = {
+            "scout": workspace / "B-km-agent" / "scout.py",
+            "langgraph-agent": workspace / "D-langgraph-agent" / "agent.py",
+        }
+        script = scripts.get(agent)
+        if script is None:
+            return {"ok": False, "detail": "no launcher configured"}
+        if not py.exists() or not script.exists():
+            return {"ok": False, "detail": "venv python or script not found"}
+        args = [str(py), str(script)] + ([goal] if goal else [])
+        subprocess.Popen(args, cwd=str(script.parent), creationflags=NEW_CONSOLE, close_fds=True)
+        return {"ok": True, "detail": f"Started {agent} in a new console"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "detail": f"{type(exc).__name__}: {exc}"}
 
 # How long to wait for a freshly spawned `opencode serve` to answer /config.
 STARTUP_TIMEOUT = 40.0
@@ -102,6 +162,11 @@ CORS_HEADERS = {
 }
 
 SSE_HEARTBEAT = 15.0
+
+# Real, todo-derived progress (contract v2).
+TODO_POLL_INTERVAL = 2.0     # seconds between todo polls for active sessions
+SESSION_IDLE_TTL = 600.0     # drop sessions with no events for ~10 minutes
+TODO_POLL_TIMEOUT = 3.0      # per-session upstream todo-fetch timeout
 
 # ---------------------------------------------------------------------------
 # Auth (env only — never hardcoded, never logged)
@@ -368,15 +433,38 @@ class State:
         self.session_agent: dict[str, str] = {}
         self.session_goal: dict[str, str] = {}
         self._busy_sessions: set[str] = set()
+        # Active-session tracking for real, todo-derived progress (contract v2):
+        # session_id -> last-seen monotonic timestamp. Bounded by idle eviction.
+        self.active_sessions: dict[str, float] = {}
+        # Poller-owned caches: latest todo summary/list and last-emitted signature.
+        self.todo_cache: dict[str, dict] = {}
+        self.todo_sig: dict[str, tuple] = {}
 
     def note_session(self, session_id: str, agent: str, goal_id: str) -> None:
         if not session_id:
             return
         with self.lock:
+            self.active_sessions[session_id] = time.monotonic()
             if agent:
                 self.session_agent[session_id] = agent
             if goal_id:
                 self.session_goal[session_id] = goal_id
+
+    def touch_session(self, session_id: str) -> None:
+        if not session_id:
+            return
+        with self.lock:
+            self.active_sessions[session_id] = time.monotonic()
+
+    def evict_idle_sessions(self, ttl: float) -> None:
+        now = time.monotonic()
+        with self.lock:
+            stale = [sid for sid, seen in self.active_sessions.items()
+                     if now - seen > ttl]
+            for sid in stale:
+                self.active_sessions.pop(sid, None)
+                self.todo_cache.pop(sid, None)
+                self.todo_sig.pop(sid, None)
 
 
 STATE = State()
@@ -436,20 +524,34 @@ def normalize_event(env: dict):
     props = env.get("properties") if isinstance(env.get("properties"), dict) else {}
     part = props.get("part") if isinstance(props.get("part"), dict) else {}
     session_id = _extract_session_id(props, part)
+    if session_id:
+        STATE.touch_session(session_id)
     agent = _extract_agent(props, part, session_id)
 
     phase = None
     tool = None
     detail = None
+    extra = None
 
     if etype == "message.part.updated":
-        if part.get("type") == "tool":
+        ptype = part.get("type")
+        if ptype == "tool":
             phase = "tool"
             tool = part.get("tool")
             st = part.get("state") if isinstance(part.get("state"), dict) else {}
             detail = st.get("status") or part.get("status")
+        elif ptype in ("text", "reasoning"):
+            # Transcript relay (contract v3): surface streaming text/reasoning
+            # so the dashboard can render the live conversation + result.
+            phase = ptype
+            detail = ""
+            extra = {
+                "part_id": part.get("id"),
+                "message_id": part.get("messageID"),
+                "text": part.get("text"),
+            }
         else:
-            # Non-tool part updates are noise for the office view.
+            # Other part types are noise for the office view.
             return None
 
     elif etype == "session.idle":
@@ -499,8 +601,114 @@ def normalize_event(env: dict):
         detail = etype
 
     ev = _base_event(session_id, agent, phase, tool, detail)
+    ev.pop("raw", None)
+    if extra:
+        ev.update(extra)
     ev["raw"] = env
     return ev
+
+
+# ---------------------------------------------------------------------------
+# Real, todo-derived progress (contract v2)
+# ---------------------------------------------------------------------------
+
+
+def _normalize_todos(data):
+    """Coerce upstream `GET /session/{id}/todo` payload into a list of dicts."""
+    out = []
+    if isinstance(data, list):
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            out.append({
+                "content": item.get("content") or "",
+                "status": item.get("status") or "",
+                "priority": item.get("priority"),
+            })
+    return out
+
+
+def _summarize_todos(todos) -> dict:
+    completed = total = in_progress = 0
+    for item in todos:
+        total += 1
+        status = item.get("status") if isinstance(item, dict) else None
+        if status == "completed":
+            completed += 1
+        elif status == "in_progress":
+            in_progress += 1
+    return {"completed": completed, "total": total, "in_progress": in_progress}
+
+
+def _progress_event(session_id: str, summary: dict) -> dict:
+    """Build the contract-v2 `phase:"progress"` normalized event."""
+    with STATE.lock:
+        agent = STATE.session_agent.get(session_id, "")
+        goal_id = STATE.session_goal.get(session_id, "")
+    completed = summary.get("completed", 0)
+    total = summary.get("total", 0)
+    in_progress = summary.get("in_progress", 0)
+    return {
+        "ts": int(time.time() * 1000),
+        "session_id": session_id or "",
+        "agent": agent or "",
+        "phase": "progress",
+        "tool": None,
+        "detail": f"{completed}/{total}",
+        "goal_id": goal_id or "",
+        "progress": {
+            "completed": completed,
+            "total": total,
+            "in_progress": in_progress,
+        },
+        "raw": None,
+    }
+
+
+def _poll_todos_once() -> None:
+    """Poll every active session's todo list once (live mode only)."""
+    with STATE.lock:
+        mode = STATE.mode
+    STATE.evict_idle_sessions(SESSION_IDLE_TTL)
+    if mode != "live":
+        return
+    with STATE.lock:
+        sessions = list(STATE.active_sessions.keys())
+    for sid in sessions:
+        if STATE.stop_event.is_set():
+            return
+        status, data = upstream_request(
+            "GET", f"/session/{sid}/todo", timeout=TODO_POLL_TIMEOUT)
+        if status != 200:
+            continue  # unknown/sim/expired session: skip (never fabricate)
+        todos = _normalize_todos(data)
+        summary = _summarize_todos(todos)
+        sig = (summary["completed"], summary["total"], summary["in_progress"])
+        with STATE.lock:
+            changed = STATE.todo_sig.get(sid) != sig
+            STATE.todo_cache[sid] = {
+                "completed": summary["completed"],
+                "total": summary["total"],
+                "in_progress": summary["in_progress"],
+                "todos": todos,
+            }
+            STATE.todo_sig[sid] = sig
+        if changed:
+            BROKER.publish(_progress_event(sid, summary))
+
+
+def _run_todo_poller() -> None:
+    while not STATE.stop_event.is_set():
+        try:
+            _poll_todos_once()
+        except Exception:
+            pass
+        if STATE.stop_event.wait(TODO_POLL_INTERVAL):
+            break
+
+
+def _start_todo_poller() -> None:
+    threading.Thread(target=_run_todo_poller, name="todo-poller", daemon=True).start()
 
 
 # ---------------------------------------------------------------------------
@@ -602,6 +810,19 @@ def _sim_event(agent, phase, tool, detail, session_id="sim-0001", goal_id="goal-
         "detail": detail,
         "goal_id": goal_id,
         "raw": {"sim": True},
+    }
+
+
+def _external_event(agent, phase, detail, session_id, goal_id):
+    return {
+        "ts": int(time.time() * 1000),
+        "session_id": session_id,
+        "agent": agent,
+        "phase": phase,
+        "tool": None,
+        "detail": detail,
+        "goal_id": goal_id,
+        "raw": {"external": True},
     }
 
 
@@ -912,6 +1133,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
             return self._api_agents()
         if path == "/api/sessions":
             return self._api_sessions()
+        if path == "/api/todos":
+            return self._api_todos()
+        if path == "/api/messages":
+            return self._api_messages()
         if path == "/api/events":
             return self._api_events()
         if path.startswith("/api/"):
@@ -945,8 +1170,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
             status, data = upstream_request("GET", "/agent", timeout=5.0)
             agents = self._normalize_agents(data) if status == 200 else None
             if agents is not None:
-                return self._send_json({"agents": agents})
-        return self._send_json({"agents": self._sim_agents()})
+                return self._send_json({"agents": agents + EXTERNAL_BOTS})
+        return self._send_json({"agents": self._sim_agents() + EXTERNAL_BOTS})
 
     @staticmethod
     def _normalize_agents(data):
@@ -1015,6 +1240,39 @@ class BridgeHandler(BaseHTTPRequestHandler):
             })
         return out
 
+    # -- API: todos ------------------------------------------------------
+    def _api_todos(self):
+        with STATE.lock:
+            out = {}
+            for sid, entry in STATE.todo_cache.items():
+                out[sid] = {
+                    "completed": entry.get("completed", 0),
+                    "total": entry.get("total", 0),
+                    "in_progress": entry.get("in_progress", 0),
+                    "todos": list(entry.get("todos") or []),
+                }
+        self._send_json(out)
+
+    # -- API: messages (raw transcript proxy) ----------------------------
+    def _api_messages(self):
+        params = parse_qs(urlparse(self.path).query)
+        session_id = (params.get("session") or [""])[0].strip()
+        if not session_id:
+            return self._send_json({"error": "missing session"}, status=400)
+        with STATE.lock:
+            mode = STATE.mode
+        if mode != "live":
+            return self._send_json([])
+        status, data = upstream_request(
+            "GET", f"/session/{session_id}/message", timeout=10.0)
+        if status is None:
+            return self._send_json({"error": "upstream unavailable"}, status=502)
+        if status != 200:
+            return self._send_json(
+                data if data is not None else {"error": "upstream error"},
+                status=status)
+        return self._send_json(data if data is not None else [])
+
     # -- API: SSE events -------------------------------------------------
     def _api_events(self):
         self.send_response(200)
@@ -1057,6 +1315,28 @@ class BridgeHandler(BaseHTTPRequestHandler):
         agent = str(body.get("agent") or "build").strip() or "build"
         session_id = body.get("session_id")
         session_id = str(session_id).strip() if session_id else ""
+
+        if agent in EXTERNAL_BOTS_NAMES:
+            sid = f"ext-{int(time.time() * 1000)}"
+            goal_id = f"goal-{sid[-6:]}"
+            STATE.note_session(sid, agent, goal_id)
+            BROKER.publish(_external_event(
+                agent, "start", f"Received goal: {goal[:80]}", sid, goal_id))
+            result = launch_external_bot(agent, goal)
+            BROKER.publish(_external_event(
+                agent,
+                "info" if result.get("ok") else "error",
+                result.get("detail", ""),
+                sid,
+                goal_id,
+            ))
+            return self._send_json({
+                "ok": True,
+                "session_id": sid,
+                "mode": "external",
+                "launched": result.get("ok", False),
+                "note": result.get("detail", ""),
+            })
 
         with STATE.lock:
             mode = STATE.mode
@@ -1230,6 +1510,9 @@ def main(argv=None) -> int:
     # Background daemon: re-discovers a server that appears/restarts AFTER us,
     # and health-checks the current upstream, logging only on state change.
     _start_health_daemon()
+
+    # Background daemon: polls active sessions' todo lists for real progress.
+    _start_todo_poller()
 
     print(f"agents-dashboard bridge listening on http://{args.host}:{args.port}/")
     target = explicit_upstream or f"discovering on 127.0.0.1 (prefer {PREFERRED_UPSTREAM_PORTS[0]}/{PREFERRED_UPSTREAM_PORTS[1]})"

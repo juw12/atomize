@@ -3,12 +3,15 @@
 _Curated, durable memory. Only meaningful in the main/private session._
 
 ## Durable facts & rules
-- (Add rules the agent must always follow. Example: "Always output comparisons as a Markdown table.")
-- (Add hard constraints. Example: "Never invent policy — flag anything that needs human approval.")
+- Output is always a **structured brief**: Summary → Key points → Sources.
+- **Never fabricate.** Every factual claim must trace to a cited source URL.
+- Always include the source URLs the brief is based on.
+- If information is missing or contradictory, say so — do not guess.
 
 ## Preferences
-- Language: match the user's language.
-- Tone: concise; result first, detail after.
+- Language: match the user's language (English or 繁體中文).
+- Tone: concise; brief first, no filler.
+- Primary input: **web pages / URLs**.
 
 ## Lessons learned
 - (Record mistakes so future sessions don't repeat them.)

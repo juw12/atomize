@@ -56,6 +56,18 @@ server WE spawned.
 | POST | `/api/command` | Send a goal | see "Command" |
 | POST | `/api/permission` | Reply to a permission request | `{ ok: bool }` |
 
+### External bots (added)
+
+`/api/agents` also appends **non-OpenCode bots** (`EXTERNAL_BOTS`) so the
+dashboard lists them alongside OpenCode agents. Each carries `mode: "external"`:
+- `vscode-dev-helper` (A) — in-editor coding agent, launched in VS Code.
+- `hermes` (C) — standalone terminal/messaging agent.
+- `scout` (B) — web research assistant (`B-km-agent/scout.py`).
+- `langgraph-agent` (D) — Python ReAct agent (`D-langgraph-agent/agent.py`).
+
+`POST /api/command` for an `external` agent does **not** forward upstream (it is
+not an OpenCode agent); it returns `{ ok, session_id, mode: "external", note }`.
+
 ### POST /api/command
 Request body: `{ "goal": string, "agent": string, "session_id"?: string }`
 - If `session_id` omitted: create one via upstream `POST /session` (body `{ "title": <goal[:80]> }`).
@@ -91,6 +103,43 @@ Mapping from upstream OpenCode SSE (`GET /event`, envelope `{ id, type, properti
 - Best-effort `agent` attribution from the event's message/part info; if unknown, use the
   session's chosen agent or `"agent"`. Never block the stream waiting for attribution.
 - Always include `raw` = the original upstream event so nothing is lost.
+- **External bots** publish their own normalized events with `raw.external = true`:
+  `phase:"start"` when a goal arrives, then `phase:"info"` (launched OK) or
+  `phase:"error"` (launch failed). `agent` = the bot name; `detail` = human text.
+
+## Progress (REAL, todo-derived) — added v2
+
+OpenCode exposes the agent's todo list at `GET /session/{id}/todo` →
+`[{ content, status, priority }]` where `status ∈ { pending, in_progress, completed }`.
+This is the REAL progress source (no fabrication).
+
+The bridge MUST:
+- Track **active sessions** (any `session_id` seen in events, or created via `/api/command`).
+- Poll `GET /session/{id}/todo` for each active session every ~2s (using the same upstream base + auth).
+- When a session's todo summary changes, emit a normalized event on `/api/events`:
+  `{ ts, session_id, agent, phase: "progress", tool: null, detail: "3/7", goal_id, progress: { completed, total, in_progress } }`
+- Also expose `GET /api/todos` → `{ "<session_id>": { completed, total, in_progress, todos: [...] } }`.
+
+**Percentage rule (dashboard):** `pct = total > 0 ? (completed + 0.5*in_progress) / total : null`.
+`null` = no todo data → the nameplate falls back to its indeterminate "working" bar (never a fake %).
+
+## Transcript / chat relay (in-app job view) — added v3
+
+Upstream also emits `message.part.updated` for parts of type `text` and `reasoning`
+(`part.text` = the full current text, `part.id`, `part.messageID`, `part.sessionID`).
+So the dashboard can show the live conversation + result WITHOUT opening OpenCode.
+
+The bridge MUST additionally emit normalized events:
+- `{ ts, session_id, agent, phase: "text", tool: null, detail: "", goal_id, part_id, message_id, text }`
+- `{ ts, session_id, agent, phase: "reasoning", tool: null, detail: "", goal_id, part_id, message_id, text }`
+
+where `part_id = part.id`, `message_id = part.messageID`, `text = part.text`. The dashboard
+**upserts** a transcript line by `part_id` (replacing `text` as it grows), so no duplicate lines.
+
+Also expose `GET /api/messages?session=<id>` → raw proxy of upstream `GET /session/{id}/message`
+(JSON array of `{info, parts}`) for loading the full transcript on demand.
+
+The dashboard's Job/Chat panel is **in-app only** — it must NOT link out to the OpenCode UI.
 
 ## Modes
 

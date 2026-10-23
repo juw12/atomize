@@ -1,0 +1,27 @@
+{
+  "name": "hazel",
+  "productName": "Hazel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hazel - a desktop studio for creators: film the messy take once, auto-cut the pauses/ums/retakes, fan one clip out to every platform, and see what pulled traffic.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node tests/run-all.js"
+  },
+  "keywords": [
+    "creators",
+    "video",
+    "auto-cut",
+    "repurpose",
+    "publishing"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^45.0.0"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0"
+  }
+}
