@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Install Virtual Bots</title>
+<meta name="theme-color" content="#0a0e14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-icon.svg">
+<link rel="icon" type="image/svg+xml" href="icons/app-icon.svg">
+<style>
+:root{--bg:#0a0e14;--panel:#151d2b;--panel2:#1a2332;--line:#2d3a4f;--text:#e8eef6;--muted:#94a3b8;--dim:#64748b;--green:#10b981;--blue:#3b82f6;--purple:#8b5cf6;--amber:#f59e0b;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Fira Code',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);color:var(--text);background:radial-gradient(120% 120% at 50% 0%,#111823,#0a0e14);display:flex;flex-direction:column;min-height:100vh;-webkit-font-smoothing:antialiased}
+.page{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;max-width:520px;margin:0 auto;width:100%}
+.header{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.header svg{width:52px;height:52px;flex:none;filter:drop-shadow(0 6px 18px rgba(59,130,246,.35))}
+.header-word{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.tag{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;margin-top:2px}
+.hero{text-align:center;margin-bottom:26px}
+.hero h1{font-size:24px;margin-bottom:10px}
+.hero p{font-size:14px;color:var(--muted)}
+.benefits{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:26px;width:100%}
+.benefits ul{list-style:none;display:flex;flex-direction:column;gap:13px}
+.benefits li{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--text)}
+.benefits li svg{width:20px;height:20px;flex:none;color:var(--green);margin-top:1px}
+.actions{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;padding:12px 22px;border-radius:12px;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s;text-decoration:none;border:1px solid transparent;cursor:pointer}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn-primary{background:linear-gradient(180deg,var(--blue),var(--purple));color:#fff;box-shadow:0 10px 26px -12px rgba(59,130,246,.8)}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-outline{border-color:var(--line);color:var(--text);background:transparent}
+.btn-outline:hover{background:var(--panel2)}
+.install-hint{font-size:12px;color:var(--dim);text-align:center;margin-top:8px;display:none}
+.install-hint.visible{display:block}
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px}
+.link-item{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid transparent}
+.link-item:hover{background:var(--panel2);color:var(--text);border-color:var(--line)}
+.sim{margin-top:22px;font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center}
+.sim b{color:var(--amber)}
+@media (max-width:480px){.page{padding:20px 16px}.header-word{font-size:26px}.hero h1{font-size:21px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="header" aria-label="Virtual Bots">
+    <svg viewBox="0 0 512 512" aria-hidden="true">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111823"/><stop offset="1" stop-color="#0a0e14"/></linearGradient>
+        <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
+      </defs>
+      <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+      <circle cx="256" cy="112" r="16" fill="#10b981"/>
+      <rect x="250" y="124" width="12" height="36" rx="6" fill="#2d3a4f"/>
+      <rect x="128" y="160" width="256" height="196" rx="48" fill="url(#fg)"/>
+      <rect x="168" y="208" width="176" height="96" rx="28" fill="#0a0e14"/>
+      <circle cx="214" cy="256" r="18" fill="#10b981"/>
+      <circle cx="298" cy="256" r="18" fill="#10b981"/>
+      <rect x="224" y="282" width="64" height="10" rx="5" fill="#3b82f6"/>
+      <rect x="96" y="222" width="32" height="72" rx="16" fill="#2d3a4f"/>
+      <rect x="384" y="222" width="32" height="72" rx="16" fill="#2d3a4f"/>
+      <rect x="176" y="372" width="160" height="92" rx="40" fill="#1a2332"/>
+      <circle cx="216" cy="414" r="10" fill="#f59e0b"/>
+      <circle cx="256" cy="414" r="10" fill="#3b82f6"/>
+      <circle cx="296" cy="414" r="10" fill="#8b5cf6"/>
+    </svg>
+    <span class="header-word">Virtual Bots<span class="tag">Bots Office</span></span>
+  </header>
+
+  <section class="hero">
+    <h1>Virtual Bots — your AI office, as an app</h1>
+    <p>Install to your home screen or desktop for instant access</p>
+  </section>
+
+  <section class="benefits" aria-label="Benefits">
+    <ul>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Install to home screen (mobile) or desktop (Windows/Mac)</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Watch your bots working, live activity and progress</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Opens full-screen with no browser chrome</span></li>
+    </ul>
+  </section>
+
+  <section class="actions">
+    <button id="installBtn" class="btn btn-primary" type="button" aria-label="Install Virtual Bots app">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Install app
+    </button>
+    <p id="installHint" class="install-hint" role="status">To install: use your browser's "Add to Home Screen" (mobile) or "Install" (desktop) option</p>
+  </section>
+
+  <nav class="links" aria-label="More options">
+    <a href="./" class="link-item">Open the web version</a>
+    <a href="mobile.html" class="link-item">Open mobile version</a>
+    <a href="../" class="link-item">All projects</a>
+  </nav>
+
+  <p class="sim">Status: <b>Simulation mode</b> &middot; offline demo, no backend connections</p>
+</main>
+
+<script>
+(function () {
+  var installBtn = document.getElementById('installBtn');
+  var installHint = document.getElementById('installHint');
+  var deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'inline-flex';
+  });
+
+  installBtn.addEventListener('click', function () {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choiceResult) {
+        if (choiceResult.outcome === 'accepted') {
+          installBtn.style.display = 'none';
+          installHint.classList.add('visible');
+        }
+        deferredPrompt = null;
+      });
+    }
+  });
+
+  window.addEventListener('appinstalled', function () {
+    installBtn.style.display = 'none';
+    installHint.classList.add('visible');
+  });
+
+  if (!window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone) {
+    setTimeout(function () {
+      if (!deferredPrompt) {
+        installBtn.style.display = 'none';
+        installHint.classList.add('visible');
+      }
+    }, 1500);
+  }
+
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    navigator.serviceWorker.register('./sw.js').catch(function (err) {
+      console.warn('SW registration failed:', err);
+    });
+  }
+})();
+</script>
+</body>
+</html>

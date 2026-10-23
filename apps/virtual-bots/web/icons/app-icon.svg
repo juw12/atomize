@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Virtual Bots">
+  <defs>
+    <linearGradient id="vbBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111823"/>
+      <stop offset="1" stop-color="#0a0e14"/>
+    </linearGradient>
+    <linearGradient id="vbFg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#vbBg)"/>
+  <circle cx="256" cy="112" r="16" fill="#10b981"/>
+  <rect x="250" y="124" width="12" height="36" rx="6" fill="#2d3a4f"/>
+  <rect x="128" y="160" width="256" height="196" rx="48" fill="url(#vbFg)"/>
+  <rect x="168" y="208" width="176" height="96" rx="28" fill="#0a0e14"/>
+  <circle cx="214" cy="256" r="18" fill="#10b981"/>
+  <circle cx="298" cy="256" r="18" fill="#10b981"/>
+  <rect x="224" y="282" width="64" height="10" rx="5" fill="#3b82f6"/>
+  <rect x="96" y="222" width="32" height="72" rx="16" fill="#2d3a4f"/>
+  <rect x="384" y="222" width="32" height="72" rx="16" fill="#2d3a4f"/>
+  <rect x="176" y="372" width="160" height="92" rx="40" fill="#1a2332"/>
+  <circle cx="216" cy="414" r="10" fill="#f59e0b"/>
+  <circle cx="256" cy="414" r="10" fill="#3b82f6"/>
+  <circle cx="296" cy="414" r="10" fill="#8b5cf6"/>
+</svg>

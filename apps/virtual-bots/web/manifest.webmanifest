@@ -1,0 +1,19 @@
+{
+  "name": "Virtual Bots",
+  "short_name": "Virtual Bots",
+  "description": "Command and watch your AI bots working in a live office.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0e14",
+  "theme_color": "#0a0e14",
+  "icons": [
+    {
+      "src": "icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

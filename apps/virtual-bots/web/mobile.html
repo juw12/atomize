@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Virtual Bots - Mobile</title>
+  <meta name="theme-color" content="#0a0e14">
+  <meta name="description" content="Mobile roster and command view for Virtual Bots office simulation">
+  <style>
+    :root {
+      /* Midnight theme tokens - EXACT match to desktop */
+      --bg-primary: #0a0e14;
+      --bg-secondary: #111823;
+      --bg-tertiary: #1a2332;
+      --bg-panel: #151d2b;
+      --text-primary: #e8eef6;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --border-color: #2d3a4f;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --font-mono: 'SF Mono', 'Fira Code', Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      
+      /* Mobile layout */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --tab-height: 56px;
+      --header-height: 48px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* App shell */
+    .app-shell {
+      display: grid;
+      grid-template-rows: var(--header-height) 1fr var(--tab-height);
+      height: 100%;
+      padding-bottom: var(--safe-bottom);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Main content area */
+    .main {
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--bg-primary);
+    }
+
+    .tab-panel {
+      display: none;
+      min-height: 100%;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Tab navigation */
+    .tab-bar {
+      display: flex;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding-bottom: var(--safe-bottom);
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.15s ease;
+      min-height: calc(var(--tab-height) - var(--safe-bottom));
+    }
+
+    .tab-btn.active {
+      color: var(--accent-blue);
+    }
+
+    .tab-btn:focus {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: -2px;
+    }
+
+    .tab-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* Bots tab */
+    .bots-list {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bot-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .bot-card:active {
+      background: var(--bg-tertiary);
+      border-color: var(--accent-blue);
+    }
+
+    .bot-card.selected {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .bot-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .bot-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .bot-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .bot-role {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .bot-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .status-badge.idle { background: rgba(100, 116, 139, 0.2); color: var(--text-muted); }
+    .status-badge.working { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+    .status-badge.done { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+    .status-badge.error { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+    .status-dot-small {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-dot-small.idle { background: var(--text-muted); }
+    .status-dot-small.working { background: var(--accent-green); }
+    .status-dot-small.done { background: var(--accent-blue); }
+    .status-dot-small.error { background: var(--accent-red); }
+
+    .bot-progress {
+      width: 80px;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bot-progress-bar {
+      height: 100%;
+      background: var(--accent-blue);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .bot-progress-bar.working {
+      background: var(--accent-green);
+      animation: progress-pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes progress-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Bot detail panel */
+    .bot-detail {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-primary);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+    }
+
+    .bot-detail.open {
+      display: flex;
+    }
+
+    .bot-detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .bot-detail-back {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bot-detail-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .bot-detail-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .detail-section {
+      margin-bottom: 20px;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      padding: 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .detail-goal-input {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .detail-goal-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .detail-send-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-blue);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.15s ease;
+    }
+
+    .detail-send-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .detail-send-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .tool-activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tool-activity-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .tool-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-panel);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    /* Activity tab */
+    .activity-feed {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .activity-item {
+      padding: 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .activity-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .activity-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .activity-bot {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .activity-bot.leader { color: var(--accent-purple); }
+    .activity-bot.media { color: var(--accent-pink); }
+    .activity-bot.coder { color: var(--accent-blue); }
+    .activity-bot.tester { color: var(--accent-green); }
+    .activity-bot.checker { color: var(--accent-amber); }
+    .activity-bot.explore { color: var(--accent-purple); }
+
+    .activity-phase {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: auto;
+    }
+
+    .activity-phase.start { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+    .activity-phase.tool { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+    .activity-phase.end { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+    .activity-phase.info { background: rgba(100, 116, 139, 0.2); color: var(--text-secondary); }
+    .activity-phase.error { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+    .activity-detail {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .activity-empty {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Command tab */
+    .command-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .command-section {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .command-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .command-select,
+    .command-input {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+    }
+
+    .command-select:focus,
+    .command-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .command-input {
+      min-height: 100px;
+      resize: vertical;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    .command-dispatch-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-blue);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .command-dispatch-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .command-dispatch-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .command-status {
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .command-status.visible {
+      display: block;
+    }
+
+    .command-status.success {
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+
+    .command-status.error {
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+    }
+
+    /* About tab */
+    .about-panel {
+      padding: 16px;
+    }
+
+    .about-section {
+      margin-bottom: 24px;
+    }
+
+    .about-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .about-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .simulation-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-amber);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-amber);
+      margin-top: 12px;
+    }
+
+    .simulation-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-amber);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .about-features {
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .about-features li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .about-features li::before {
+      content: '\2713';
+      position: absolute;
+      left: 0;
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .about-version {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 8px;
+    }
+
+    /* Utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="header-title">Virtual Bots</h1>
+      <div class="header-status">
+        <span class="status-dot"></span>
+        <span id="header-status-text">LIVE</span>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main" id="main-content">
+      <!-- Bots Tab -->
+      <section class="tab-panel active" id="tab-bots" role="tabpanel" aria-labelledby="btn-bots">
+        <div class="bots-list" id="bots-list">
+          <!-- Bot cards inserted by JS -->
+        </div>
+      </section>
+
+      <!-- Activity Tab -->
+      <section class="tab-panel" id="tab-activity" role="tabpanel" aria-labelledby="btn-activity">
+        <div class="activity-feed" id="activity-feed">
+          <div class="activity-empty">No activity yet. Events will appear here as bots work.</div>
+        </div>
+      </section>
+
+      <!-- Command Tab -->
+      <section class="tab-panel" id="tab-command" role="tabpanel" aria-labelledby="btn-command">
+        <div class="command-panel">
+          <div class="command-section">
+            <label class="command-label" for="cmd-bot-select">Select Bot</label>
+            <select class="command-select" id="cmd-bot-select">
+              <!-- Options inserted by JS -->
+            </select>
+          </div>
+
+          <div class="command-section">
+            <label class="command-label" for="cmd-goal-input">Goal</label>
+            <textarea class="command-input" id="cmd-goal-input" placeholder="Describe the task or objective..."></textarea>
+          </div>
+
+          <button class="command-dispatch-btn" id="cmd-dispatch-btn">
+            <span>&#9889;</span>
+            <span>Dispatch</span>
+          </button>
+
+          <div class="command-status" id="cmd-status"></div>
+        </div>
+      </section>
+
+      <!-- About Tab -->
+      <section class="tab-panel" id="tab-about" role="tabpanel" aria-labelledby="btn-about">
+        <div class="about-panel">
+          <div class="about-section">
+            <h2 class="about-title">About Virtual Bots</h2>
+            <p class="about-text">
+              Virtual Bots is a simulated office environment where AI agents collaborate on tasks. 
+              This mobile view provides a roster of active bots, real-time activity feed, and 
+              the ability to dispatch goals to your team.
+            </p>
+            
+            <div class="simulation-badge">
+              <span class="simulation-dot"></span>
+              <span>Simulation mode</span>
+            </div>
+            
+            <p class="about-text" style="margin-top: 12px;">
+              This is an offline demo simulation. It does not connect to a real backend or 
+              actual AI agents. All bot activity is procedurally generated to demonstrate 
+              the interface design.
+            </p>
+          </div>
+
+          <div class="about-section">
+            <h3 class="about-title">Features</h3>
+            <ul class="about-features">
+              <li>Bot roster with live status</li>
+              <li>Real-time activity feed</li>
+              <li>Goal dispatch system</li>
+              <li>Progress tracking</li>
+              <li>Simulated agent behaviors</li>
+            </ul>
+          </div>
+
+          <div class="about-section">
+            <h3 class="about-title">Theme</h3>
+            <p class="about-text">
+              Using the Midnight dark theme with high-contrast accent colors for accessibility.
+            </p>
+            <p class="about-version">v1.0.0 &middot; mobile.html</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Tab bar -->
+    <nav class="tab-bar" role="tablist" aria-label="Main navigation">
+      <button class="tab-btn active" id="btn-bots" role="tab" aria-selected="true" aria-controls="tab-bots" data-tab="bots">
+        <span class="tab-icon">&#128101;</span>
+        <span>Bots</span>
+      </button>
+      <button class="tab-btn" id="btn-activity" role="tab" aria-selected="false" aria-controls="tab-activity" data-tab="activity">
+        <span class="tab-icon">&#128203;</span>
+        <span>Activity</span>
+      </button>
+      <button class="tab-btn" id="btn-command" role="tab" aria-selected="false" aria-controls="tab-command" data-tab="command">
+        <span class="tab-icon">&#128230;</span>
+        <span>Command</span>
+      </button>
+      <button class="tab-btn" id="btn-about" role="tab" aria-selected="false" aria-controls="tab-about" data-tab="about">
+        <span class="tab-icon">&#128712;</span>
+        <span>About</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Bot detail panel -->
+  <div class="bot-detail" id="bot-detail" role="dialog" aria-modal="true" aria-label="Bot details">
+    <div class="bot-detail-header">
+      <button class="bot-detail-back" id="bot-detail-back" aria-label="Go back">&#8592;</button>
+      <h2 class="bot-detail-title" id="bot-detail-name">Bot Name</h2>
+      <div style="width: 44px;"></div>
+    </div>
+    <div class="bot-detail-content">
+      <div class="detail-section">
+        <div class="detail-label">Role</div>
+        <div class="detail-value" id="bot-detail-role">-</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-label">Status</div>
+        <div class="detail-value" id="bot-detail-status">-</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-label">Current Goal</div>
+        <div class="detail-value" id="bot-detail-goal">No active goal</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-label">Recent Tool Activity</div>
+        <div class="tool-activity-list" id="bot-detail-tools">
+          <div class="tool-activity-item">No recent activity</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-label">Send New Goal</div>
+        <textarea class="detail-goal-input" id="bot-detail-goal-input" placeholder="Type a goal for this bot..."></textarea>
+        <button class="detail-send-btn" id="bot-detail-send-btn">Send Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ============================================
+    // BOT ROSTER - from desktop index.html
+    // ============================================
+    const BOTS = [
+      { id: 'leader', name: 'Leader', role: 'Team coordinator', color: '#8b5cf6', initials: 'LD' },
+      { id: 'media', name: 'Media', role: 'Content creator', color: '#ec4899', initials: 'MD' },
+      { id: 'coder', name: 'Coder', role: 'Software developer', color: '#3b82f6', initials: 'CD' },
+      { id: 'tester', name: 'Tester', role: 'QA engineer', color: '#10b981', initials: 'TS' },
+      { id: 'checker', name: 'Checker', role: 'Code reviewer', color: '#f59e0b', initials: 'CK' },
+      { id: 'explore', name: 'Explore', role: 'Research agent', color: '#8b5cf6', initials: 'EX' }
+    ];
+
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    const STORAGE_KEY = 'virtual-bots-mobile-v1';
+
+    const defaultState = {
+      bots: {},
+      events: [],
+      goals: {},
+      lastActivity: Date.now()
+    };
+
+    function loadState() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return { ...defaultState, ...parsed };
+        }
+      } catch (e) {
+        console.warn('Failed to load state:', e);
+      }
+      return { ...defaultState };
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('Failed to save state:', e);
+      }
+    }
+
+    let state = loadState();
+
+    // Initialize bot states if not present
+    BOTS.forEach(bot => {
+      if (!state.bots[bot.id]) {
+        state.bots[bot.id] = {
+          id: bot.id,
+          status: 'idle',
+          progress: 0,
+          currentGoal: null,
+          recentTools: []
+        };
+      }
+    });
+
+    // ============================================
+    // TAB NAVIGATION
+    // ============================================
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    function switchTab(tabId) {
+      tabButtons.forEach(btn => {
+        const isActive = btn.dataset.tab === tabId;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      tabPanels.forEach(panel => {
+        panel.classList.toggle('active', panel.id === 'tab-' + tabId);
+      });
+
+      // Save last tab
+      state.lastTab = tabId;
+      saveState();
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // Restore last tab
+    if (state.lastTab) {
+      switchTab(state.lastTab);
+    }
+
+    // ============================================
+    // BOT LIST RENDERING
+    // ============================================
+    const botsListEl = document.getElementById('bots-list');
+    const botDetailEl = document.getElementById('bot-detail');
+    const botDetailNameEl = document.getElementById('bot-detail-name');
+    const botDetailRoleEl = document.getElementById('bot-detail-role');
+    const botDetailStatusEl = document.getElementById('bot-detail-status');
+    const botDetailGoalEl = document.getElementById('bot-detail-goal');
+    const botDetailToolsEl = document.getElementById('bot-detail-tools');
+    const botDetailGoalInput = document.getElementById('bot-detail-goal-input');
+    const botDetailSendBtn = document.getElementById('bot-detail-send-btn');
+    const botDetailBackBtn = document.getElementById('bot-detail-back');
+
+    let selectedBotId = null;
+
+    function getStatusLabel(status) {
+      const labels = {
+        idle: 'Idle',
+        working: 'Working',
+        done: 'Complete',
+        error: 'Error'
+      };
+      return labels[status] || status;
+    }
+
+    function renderBots() {
+      botsListEl.innerHTML = '';
+
+      BOTS.forEach(bot => {
+        const botState = state.bots[bot.id] || { status: 'idle', progress: 0 };
+        const card = document.createElement('div');
+        card.className = 'bot-card' + (selectedBotId === bot.id ? ' selected' : '');
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', bot.name + ' - ' + bot.role + ' - ' + getStatusLabel(botState.status));
+
+        card.innerHTML = `
+          <div class="bot-avatar" style="background: ${bot.color}">
+            ${bot.initials}
+          </div>
+          <div class="bot-info">
+            <div class="bot-name">${bot.name}</div>
+            <div class="bot-role">${bot.role}</div>
+            <div class="bot-status-row">
+              <span class="status-badge ${botState.status}">
+                <span class="status-dot-small ${botState.status}"></span>
+                ${getStatusLabel(botState.status)}
+              </span>
+              <div class="bot-progress">
+                <div class="bot-progress-bar ${botState.status === 'working' ? 'working' : ''}" style="width: ${botState.progress}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => openBotDetail(bot.id));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openBotDetail(bot.id);
+          }
+        });
+
+        botsListEl.appendChild(card);
+      });
+    }
+
+    // ============================================
+    // BOT DETAIL PANEL
+    // ============================================
+    function openBotDetail(botId) {
+      const bot = BOTS.find(b => b.id === botId);
+      const botState = state.bots[botId] || { status: 'idle', progress: 0, currentGoal: null, recentTools: [] };
+
+      selectedBotId = botId;
+      botDetailNameEl.textContent = bot.name;
+      botDetailRoleEl.textContent = bot.role;
+      botDetailStatusEl.textContent = getStatusLabel(botState.status);
+      botDetailGoalEl.textContent = botState.currentGoal || 'No active goal';
+
+      // Render recent tool activity
+      if (botState.recentTools && botState.recentTools.length > 0) {
+        botDetailToolsEl.innerHTML = botState.recentTools.slice(0, 5).map(tool => `
+          <div class="tool-activity-item">
+            <div class="tool-icon">&#128736;</div>
+            <span>${tool}</span>
+          </div>
+        `).join('');
+      } else {
+        botDetailToolsEl.innerHTML = '<div class="tool-activity-item">No recent activity</div>';
+      }
+
+      botDetailEl.classList.add('open');
+      renderBots(); // Update selection highlight
+    }
+
+    function closeBotDetail() {
+      botDetailEl.classList.remove('open');
+      selectedBotId = null;
+      botDetailGoalInput.value = '';
+      renderBots();
+    }
+
+    botDetailBackBtn.addEventListener('click', closeBotDetail);
+
+    botDetailSendBtn.addEventListener('click', () => {
+      const goal = botDetailGoalInput.value.trim();
+      if (!goal || !selectedBotId) return;
+
+      dispatchGoal(selectedBotId, goal);
+      botDetailGoalInput.value = '';
+      closeBotDetail();
+    });
+
+    // ============================================
+    // ACTIVITY FEED
+    // ============================================
+    const activityFeedEl = document.getElementById('activity-feed');
+    const cmdBotSelect = document.getElementById('cmd-bot-select');
+    const cmdGoalInput = document.getElementById('cmd-goal-input');
+    const cmdDispatchBtn = document.getElementById('cmd-dispatch-btn');
+    const cmdStatusEl = document.getElementById('cmd-status');
+
+    function formatTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    }
+
+    function getPhaseLabel(phase) {
+      const labels = {
+        start: 'Start',
+        tool: 'Tool',
+        end: 'End',
+        info: 'Info',
+        error: 'Error'
+      };
+      return labels[phase] || phase;
+    }
+
+    function renderActivity() {
+      if (state.events.length === 0) {
+        activityFeedEl.innerHTML = '<div class="activity-empty">No activity yet. Events will appear here as bots work.</div>';
+        return;
+      }
+
+      activityFeedEl.innerHTML = state.events.slice().reverse().slice(0, 50).map(event => {
+        const bot = BOTS.find(b => b.id === event.agent);
+        const botName = bot ? bot.name : event.agent;
+        return `
+          <div class="activity-item">
+            <div class="activity-header">
+              <span class="activity-time">${formatTime(event.ts)}</span>
+              <span class="activity-bot ${event.agent}">${botName}</span>
+              <span class="activity-phase ${event.phase}">${getPhaseLabel(event.phase)}</span>
+            </div>
+            <div class="activity-detail">${event.detail || ''}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addEvent(event) {
+      state.events.push({
+        ts: event.ts || new Date().toISOString(),
+        agent: event.agent,
+        phase: event.phase,
+        detail: event.detail || '',
+        tool: event.tool || null
+      });
+
+      // Keep only last 100 events
+      if (state.events.length > 100) {
+        state.events = state.events.slice(-100);
+      }
+
+      // Update bot state
+      const botState = state.bots[event.agent] || { status: 'idle', progress: 0, recentTools: [] };
+
+      if (event.phase === 'start') {
+        botState.status = 'working';
+        botState.progress = 0;
+        botState.currentGoal = event.detail || 'Working on task';
+      } else if (event.phase === 'tool') {
+        botState.status = 'working';
+        botState.progress = Math.min(90, botState.progress + 15);
+        if (event.tool) {
+          botState.recentTools.unshift(event.tool + ': ' + (event.detail || ''));
+          botState.recentTools = botState.recentTools.slice(0, 5);
+        }
+      } else if (event.phase === 'end') {
+        botState.status = 'done';
+        botState.progress = 100;
+        if (event.detail) {
+          botState.currentGoal = event.detail;
+        }
+      } else if (event.phase === 'error') {
+        botState.status = 'error';
+      }
+
+      state.bots[event.agent] = botState;
+      state.lastActivity = Date.now();
+
+      saveState();
+      renderBots();
+      renderActivity();
+    }
+
+    // ============================================
+    // GOAL DISPATCH
+    // ============================================
+    function populateBotSelect() {
+      cmdBotSelect.innerHTML = BOTS.map(bot => 
+        `<option value="${bot.id}">${bot.name} - ${bot.role}</option>`
+      ).join('');
+    }
+
+    function dispatchGoal(botId, goal) {
+      const bot = BOTS.find(b => b.id === botId);
+      if (!bot) return;
+
+      // Add start event
+      addEvent({
+        ts: new Date().toISOString(),
+        agent: botId,
+        phase: 'start',
+        detail: goal
+      });
+
+      // Store goal
+      state.goals[botId] = {
+        goal: goal,
+        dispatchedAt: Date.now()
+      };
+      saveState();
+
+      // Show success
+      cmdStatusEl.textContent = 'Goal dispatched to ' + bot.name;
+      cmdStatusEl.className = 'command-status visible success';
+
+      setTimeout(() => {
+        cmdStatusEl.classList.remove('visible');
+      }, 3000);
+    }
+
+    cmdDispatchBtn.addEventListener('click', () => {
+      const botId = cmdBotSelect.value;
+      const goal = cmdGoalInput.value.trim();
+
+      if (!goal) {
+        cmdStatusEl.textContent = 'Please enter a goal';
+        cmdStatusEl.className = 'command-status visible error';
+        return;
+      }
+
+      dispatchGoal(botId, goal);
+      cmdGoalInput.value = '';
+    });
+
+    // ============================================
+    // SIMULATION ENGINE
+    // ============================================
+    const SIMULATION_SCRIPT = [
+      // Standup sequence
+      { agent: 'leader', phase: 'start', detail: 'Daily standup initiating' },
+      { agent: 'media', phase: 'start', detail: 'Joining standup' },
+      { agent: 'coder', phase: 'start', detail: 'Joining standup' },
+      { agent: 'tester', phase: 'start', detail: 'Joining standup' },
+      { agent: 'checker', phase: 'start', detail: 'Joining standup' },
+      { agent: 'explore', phase: 'start', detail: 'Joining standup' },
+      { agent: 'leader', phase: 'tool', tool: 'standup', detail: 'Reviewing sprint progress' },
+      { agent: 'coder', phase: 'tool', tool: 'report', detail: 'Completed auth module' },
+      { agent: 'tester', phase: 'tool', tool: 'report', detail: 'Tests passing' },
+      { agent: 'leader', phase: 'end', detail: 'Standup complete' },
+
+      // Work sequence
+      { agent: 'coder', phase: 'start', detail: 'Implementing new feature' },
+      { agent: 'coder', phase: 'tool', tool: 'file_write', detail: 'Writing authentication handlers' },
+      { agent: 'coder', phase: 'tool', tool: 'git_commit', detail: 'Commit: Add OAuth integration' },
+      { agent: 'tester', phase: 'start', detail: 'Writing test cases' },
+      { agent: 'tester', phase: 'tool', tool: 'run_tests', detail: 'Running unit tests' },
+      { agent: 'tester', phase: 'tool', tool: 'test_write', detail: 'Adding edge cases' },
+      { agent: 'checker', phase: 'start', detail: 'Code review initiated' },
+      { agent: 'checker', phase: 'tool', tool: 'review_diff', detail: 'Reviewing auth module' },
+      { agent: 'checker', phase: 'tool', tool: 'comment', detail: 'Suggested improvements' },
+      { agent: 'coder', phase: 'end', detail: 'Feature implementation complete' },
+      { agent: 'tester', phase: 'end', detail: 'All tests passing' },
+      { agent: 'checker', phase: 'end', detail: 'Review approved' },
+
+      // Media/Explore work
+      { agent: 'media', phase: 'start', detail: 'Creating marketing assets' },
+      { agent: 'media', phase: 'tool', tool: 'image_gen', detail: 'Generating hero image' },
+      { agent: 'media', phase: 'tool', tool: 'copy_write', detail: 'Writing landing page copy' },
+      { agent: 'media', phase: 'end', detail: 'Assets delivered' },
+
+      { agent: 'explore', phase: 'start', detail: 'Researching best practices' },
+      { agent: 'explore', phase: 'tool', tool: 'web_search', detail: 'Searching OAuth patterns' },
+      { agent: 'explore', phase: 'tool', tool: 'summarize', detail: 'Compiled research notes' },
+      { agent: 'explore', phase: 'end', detail: 'Research complete' },
+
+      // Leader wrap-up
+      { agent: 'leader', phase: 'tool', tool: 'sync', detail: 'Team sync complete' },
+      { agent: 'leader', phase: 'end', detail: 'Sprint goals achieved' }
+    ];
+
+    let simIndex = 0;
+    let simTimer = null;
+
+    function runSimulation() {
+      if (simIndex >= SIMULATION_SCRIPT.length) {
+        // Loop back
+        simIndex = 0;
+        // Reset bot states for fresh loop
+        BOTS.forEach(bot => {
+          state.bots[bot.id] = { status: 'idle', progress: 0, currentGoal: null, recentTools: [] };
+        });
+        state.events = [];
+        saveState();
+        renderBots();
+        renderActivity();
+      }
+
+      const step = SIMULATION_SCRIPT[simIndex];
+      addEvent(step);
+      simIndex++;
+
+      // Variable delay for natural feel
+      const delay = 1500 + Math.random() * 2000;
+      simTimer = setTimeout(runSimulation, delay);
+    }
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    function init() {
+      renderBots();
+      renderActivity();
+      populateBotSelect();
+
+      // Update header status
+      document.getElementById('header-status-text').textContent = 'SIM';
+
+      // Start simulation after 1 second
+      setTimeout(runSimulation, 1000);
+
+      // Persist state periodically
+      setInterval(saveState, 5000);
+    }
+
+    init();
+  })();
+  </script>
+  <!--
+    SECTIONS:
+    1. Theme tokens - Midnight dark theme (exact match to desktop index.html)
+    2. Mobile layout - Fixed bottom tab bar, safe-area support, 44px+ tap targets
+    3. Bots tab - Roster grid with avatar, status, progress bar, detail panel
+    4. Activity tab - Reverse-chronological event feed with phase badges
+    5. Command tab - Bot selector, goal input, dispatch button
+    6. About tab - Description with persistent "Simulation mode" badge
+    7. State management - localStorage persistence under virtual-bots-mobile-v1
+    8. Simulation engine - Scripted event emitter driving bot statuses
+  -->
+</body>
+</html>

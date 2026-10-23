@@ -87,6 +87,11 @@ APPS = [
         "desc": "Turn a rough app idea into a checkable plan — brief, capability matrix, Definition of Done, scaffold preview and catalog",
         "links": [("App", "sweep/app.html"), ("Web", "sweep/"), ("Mobile", "sweep/mobile.html")],
     },
+    {
+        "name": "Virtual Bots",
+        "desc": "An office of AI bots you can watch and command \u2014 live activity, goals and progress across App, Web and Mobile",
+        "links": [("App", "virtual-bots/app.html"), ("Web", "virtual-bots/"), ("Mobile", "virtual-bots/mobile.html")],
+    },
 ]
 
 
@@ -263,6 +268,7 @@ def main():
         ("lingua", "lingua"),
         ("hazel", "hazel"),
         ("sweep", "sweep"),
+        ("virtual-bots", "virtual-bots"),
     ]
 
     for app_name, site_subdir in apps_config:
