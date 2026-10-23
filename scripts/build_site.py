@@ -46,26 +46,28 @@ def write_nojekyll(out_dir):
     print(f"Created {nojekyll}")
 
 
-# Each app ships a desktop and a mobile build. These are the entry points the
-# landing page links to (paths are relative to the site root).
+# Each app lists the entry points the landing page links to (paths are relative
+# to the site root). Apps without a mobile build just list one link.
 APPS = [
     {
         "name": "Orbis",
         "desc": "Communication, identity and protection in one app",
-        "desktop": "orbis/app.html",
-        "mobile": "orbis/app-mobile.html",
+        "links": [("Desktop", "orbis/app.html"), ("Mobile", "orbis/app-mobile.html")],
     },
     {
         "name": "Peers",
         "desc": "Verified reviews for food, travel and products",
-        "desktop": "peers/",
-        "mobile": "peers/mobile.html",
+        "links": [("Desktop", "peers/"), ("Mobile", "peers/mobile.html")],
     },
     {
         "name": "House of Articles",
         "desc": "Athlete-moment sneaker news + live market feed",
-        "desktop": "house-of-articles/desktop.html",
-        "mobile": "house-of-articles/",
+        "links": [("Desktop", "house-of-articles/desktop.html"), ("Mobile", "house-of-articles/")],
+    },
+    {
+        "name": "Productivity Widget",
+        "desc": "\"The Morning Paper\" — always-on-top Pomodoro timer + soundscapes + app tracking + coaching",
+        "links": [("Overview", "productivity-widget/")],
     },
 ]
 
@@ -76,13 +78,16 @@ def generate_index(out_dir, repo_name):
 
     cards = []
     for app in APPS:
+        buttons = "\n".join(
+            f'          <a class="btn" href="{href}">{label}</a>'
+            for label, href in app["links"]
+        )
         cards.append(
             f'''      <div class="card">
         <h2>{app["name"]}</h2>
         <p>{app["desc"]}</p>
         <div class="variants">
-          <a class="btn" href="{app["desktop"]}">Desktop</a>
-          <a class="btn" href="{app["mobile"]}">Mobile</a>
+{buttons}
         </div>
       </div>'''
         )
@@ -236,6 +241,7 @@ def main():
         ("orbis", "orbis"),
         ("peers", "peers"),
         ("house-of-articles", "house-of-articles"),
+        ("productivity-widget", "productivity-widget"),
     ]
 
     for app_name, site_subdir in apps_config:
