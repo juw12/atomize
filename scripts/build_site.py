@@ -74,6 +74,11 @@ APPS = [
         "desc": "Live-translated Microsoft Teams captions in an always-on-top overlay",
         "links": [("Overview", "lingua/")],
     },
+    {
+        "name": "Desk Verdict",
+        "desc": "Verdict Scorecard — test an AI tool on a real work task, rate the 5-point scorecard, get Use it / Wait / Skip",
+        "links": [("Open", "desk-verdict/")],
+    },
 ]
 
 
@@ -248,6 +253,7 @@ def main():
         ("house-of-articles", "house-of-articles"),
         ("productivity-widget", "productivity-widget"),
         ("lingua", "lingua"),
+        ("desk-verdict", "desk-verdict"),
     ]
 
     for app_name, site_subdir in apps_config:

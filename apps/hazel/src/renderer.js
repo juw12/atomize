@@ -617,6 +617,24 @@ $('clearStats').addEventListener('click', onClearStats);
 $('scanFolder').addEventListener('click', onScanFolder);
 $('archiveDupes').addEventListener('click', onArchiveDupes);
 
+// Guide navigation
+$('guideNav').addEventListener('click', showGuide);
+$('closeGuide').addEventListener('click', hideGuide);
+$('startTour').addEventListener('click', showTourOverlay);
+
+// Tour controls
+$('tourContinue').addEventListener('click', nextTourStep);
+$('tourBack').addEventListener('click', prevTourStep);
+$('tourSkip').addEventListener('click', skipTour);
+$('tourDone').addEventListener('click', completeTour);
+
+// Keyboard: Esc to skip tour
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && tourIsActive) {
+    skipTour();
+  }
+});
+
 $('minSilence').addEventListener('input', (e) => {
   $('threshVal').textContent = parseFloat(e.target.value).toFixed(2) + 's';
 });
@@ -624,6 +642,12 @@ $('minSilence').addEventListener('input', (e) => {
 initPublish();
 initTraffic();
 initSettings();
+
+// First-run tour auto-launch
+if (!getTourCompleted()) {
+  // Delay slightly to ensure DOM is ready
+  setTimeout(showTourOverlay, 500);
+}
 
 if (window.hazel && window.hazel.onProgress) {
   window.hazel.onProgress((p) => {
