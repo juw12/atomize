@@ -66,7 +66,7 @@ APPS = [
     },
     {
         "name": "Productivity Widget",
-        "desc": "\"The Morning Paper\" — always-on-top Pomodoro timer + soundscapes + app tracking + coaching",
+        "desc": "\"The Morning Paper\" ΓÇö always-on-top Pomodoro timer + soundscapes + app tracking + coaching",
         "links": [("Overview", "productivity-widget/")],
     },
     {
@@ -76,8 +76,13 @@ APPS = [
     },
     {
         "name": "Sweep",
-        "desc": "Turn a rough app idea into a checkable plan — brief, capability matrix, Definition of Done, scaffold preview and catalog",
+        "desc": "Turn a rough app idea into a checkable plan ΓÇö brief, capability matrix, Definition of Done, scaffold preview and catalog",
         "links": [("Open", "sweep/")],
+    },
+    {
+        "name": "Hazel",
+        "desc": "Desktop studio for creators — generate a video from a prompt, refine it, fan it out to every platform, and keep your storage from overfilling",
+        "links": [("Web", "hazel/"), ("Mobile", "hazel/mobile.html")],
     },
 ]
 
@@ -213,14 +218,14 @@ def generate_index(out_dir, repo_name):
 <body>
   <div class="container">
     <h1>{repo_name}</h1>
-    <p class="subtitle">Product projects — each with a desktop and a mobile build</p>
+    <p class="subtitle">Product projects ΓÇö each with a desktop and a mobile build</p>
 
     <div class="grid">
 {cards_html}
     </div>
 
     <footer>
-      <p>Built with Python stdlib only · Deployed to GitHub Pages</p>
+      <p>Built with Python stdlib only ┬╖ Deployed to GitHub Pages</p>
     </footer>
   </div>
 </body>
@@ -254,6 +259,7 @@ def main():
         ("productivity-widget", "productivity-widget"),
         ("lingua", "lingua"),
         ("sweep", "sweep"),
+        ("hazel", "hazel"),
     ]
 
     for app_name, site_subdir in apps_config:
