@@ -217,6 +217,20 @@ def main():
         for tab_label in ['Repair', 'Assembly', 'Build', 'Simulate', 'Answers', 'Reverse', 'Drawing', 'Automation']:
             check(f'index.html has "{tab_label}" tab', False, 'file does not exist')
     
+    # === Check: Guide overlay exists in all 3 screens ===
+    guide_overlay_variants = [
+        ('app.html', app_html_content),
+        ('index.html', index_html_content),
+        ('mobile.html', mobile_html_content)
+    ]
+    
+    for variant_name, content in guide_overlay_variants:
+        has_guide_overlay = 'id="guide-overlay"' in content
+        check(f'{variant_name} has guide-overlay', has_guide_overlay)
+        
+        has_guide_open_control = 'id="btn-guide"' in content or 'Guide' in content
+        check(f'{variant_name} has guide open control', has_guide_open_control)
+    
     # === Summary ===
     print()
     print(f'Summary: {checks_passed} passed, {checks_failed} failed')

@@ -43,6 +43,14 @@
         </div>
         <span class="mode-badge" id="mode-badge">Simulation — nothing is written to CAD</span>
         <button id="btn-install-app" class="btn btn-secondary" hidden aria-label="Install app" title="Install Vertex as an app">Install</button>
+        <button id="btn-guide" class="btn btn-ghost" aria-label="Open Vertex Guide" title="Vertex Guide" style="margin-left: var(--space-2);">
+          <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          Guide
+        </button>
       </div>
     </header>
 
@@ -639,6 +647,104 @@
         </div>
       </form>
     </dialog>
+
+    <!-- Guide Overlay -->
+    <div id="guide-overlay" class="guide-overlay" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-describedby="guide-description" hidden>
+      <div class="guide-overlay-backdrop" id="guide-backdrop"></div>
+      <div class="guide-modal">
+        <div class="guide-header">
+          <h2 id="guide-title" class="guide-title">Welcome to Vertex</h2>
+          <button class="guide-close-btn" id="guide-close-btn" aria-label="Close guide">
+            <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="guide-content" id="guide-description">
+          <p class="guide-intro">
+            Vertex is a local, offline 3D engineering copilot for CAD repair, assembly, and simulation. 
+            Works fully offline · Deterministic results · Review-gated changes
+          </p>
+          
+          <section class="guide-section">
+            <h3 class="guide-section-title">Quick Start</h3>
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <span class="step-num">0 1</span>
+                <span class="step-text"><strong>Load a sample:</strong> Switch to Repair tab → click "Load Sample"</span>
+              </li>
+              <li class="guide-step">
+                <span class="step-num">0 2</span>
+                <span class="step-text"><strong>Read Diagnosis + Plan:</strong> Review findings and proposed repairs</span>
+              </li>
+              <li class="guide-step">
+                <span class="step-num">0 3</span>
+                <span class="step-text"><strong>Dry-run, then Apply:</strong> Click "Dry-run", tick the confirm box, then "Apply"</span>
+              </li>
+              <li class="guide-step">
+                <span class="step-num">0 4</span>
+                <span class="step-text"><strong>Build & Export:</strong> Switch to Build tab → create a part → Export (STL/OBJ/glTF/3MF/DXF)</span>
+              </li>
+            </ol>
+          </section>
+          
+          <section class="guide-section">
+            <h3 class="guide-section-title">Workspaces</h3>
+            <div class="guide-workspaces">
+              <div class="workspace-item">
+                <span class="workspace-name">Repair</span>
+                <span class="workspace-desc">Diagnose broken models and plan fixes</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Assembly</span>
+                <span class="workspace-desc">Plan parts, mates, and validation checks</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Build</span>
+                <span class="workspace-desc">Parametric part design → export to CAD formats</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Simulate</span>
+                <span class="workspace-desc">Kinematic motion, mass properties, clearance analysis</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Answers</span>
+                <span class="workspace-desc">Ask questions about your design with evidence</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Reverse</span>
+                <span class="workspace-desc">Scan point cloud → fit to parametric CAD</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Drawing</span>
+                <span class="workspace-desc">2D drawing spec → 3D model generation</span>
+              </div>
+              <div class="workspace-item">
+                <span class="workspace-name">Automation</span>
+                <span class="workspace-desc">Batch export, patterns, and sheet operations</span>
+              </div>
+            </div>
+          </section>
+          
+          <section class="guide-section">
+            <h3 class="guide-section-title">Good to Know</h3>
+            <ul class="guide-notes">
+              <li class="guide-note"><strong>Offline first:</strong> Works fully offline — no internet required</li>
+              <li class="guide-note"><strong>Local bridge optional:</strong> Connector status shows adapter availability</li>
+              <li class="guide-note"><strong>Simulation mode:</strong> Nothing is written to CAD — dry-run only</li>
+              <li class="guide-note"><strong>Universal adapters:</strong> Templates for Fusion/SOLIDWORKS/FreeCAD/Blender — no host here</li>
+            </ul>
+          </section>
+        </div>
+        
+        <div class="guide-footer">
+          <button class="btn btn-primary" id="guide-got-it-btn">Got it</button>
+          <button class="btn btn-ghost" id="guide-dont-show-btn">Don't show again</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Variant Nav -->
     <nav class="variant-nav">

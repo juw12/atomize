@@ -151,6 +151,17 @@
   var adaptersStrip = document.getElementById('adapters-strip');
   var modeBadge = document.getElementById('mode-badge');
 
+  /* === DOM Elements - Guide Overlay === */
+  var guideOverlay = document.getElementById('guide-overlay');
+  var guideBackdrop = document.getElementById('guide-backdrop');
+  var guideCloseBtn = document.getElementById('guide-close-btn');
+  var guideGotItBtn = document.getElementById('guide-got-it-btn');
+  var guideDontShowBtn = document.getElementById('guide-dont-show-btn');
+  var btnGuide = document.getElementById('btn-guide');
+  var btnHeroLearnMore = document.getElementById('btn-hero-learn-more');
+  var lastFocusedElement = null;
+  var GUIDE_STORAGE_KEY = 'vertex.guide.v1';
+
   /* === Initialize Viewports === */
   function initViewports() {
     var repairCanvas = document.getElementById('repair-viewport-canvas');
@@ -1332,9 +1343,101 @@
   
   if (btnHeroLearnMore) {
     btnHeroLearnMore.addEventListener('click', function() {
-      window.open('https://vertex.co', '_blank', 'noopener');
+      /* Open guide instead of external link */
+      openGuide();
     });
   }
+
+  /* === Guide Overlay Functions === */
+  function openGuide() {
+    if (!guideOverlay) return;
+    
+    /* Store currently focused element for restoration */
+    lastFocusedElement = document.activeElement;
+    
+    /* Show the guide */
+    guideOverlay.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    /* Focus the close button for accessibility */
+    if (guideCloseBtn) {
+      guideCloseBtn.focus();
+    }
+  }
+
+  function closeGuide() {
+    if (!guideOverlay) return;
+    
+    guideOverlay.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    
+    /* Restore focus to previously focused element */
+    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+      lastFocusedElement.focus();
+    }
+  }
+
+  function setGuideDismissed() {
+    try {
+      localStorage.setItem(GUIDE_STORAGE_KEY, '1');
+    } catch (e) {
+      /* Ignore localStorage errors (offline/file:// safety) */
+    }
+  }
+
+  function isGuideDismissed() {
+    try {
+      return localStorage.getItem(GUIDE_STORAGE_KEY) === '1';
+    } catch (e) {
+      /* Ignore localStorage errors (offline/file:// safety) */
+      return false;
+    }
+  }
+
+  function showGuideIfNeeded() {
+    if (!isGuideDismissed()) {
+      openGuide();
+    }
+  }
+
+  /* === Guide Event Listeners === */
+  if (btnGuide) {
+    btnGuide.addEventListener('click', function() {
+      openGuide();
+    });
+  }
+
+  if (guideCloseBtn) {
+    guideCloseBtn.addEventListener('click', function() {
+      closeGuide();
+    });
+  }
+
+  if (guideGotItBtn) {
+    guideGotItBtn.addEventListener('click', function() {
+      closeGuide();
+    });
+  }
+
+  if (guideDontShowBtn) {
+    guideDontShowBtn.addEventListener('click', function() {
+      setGuideDismissed();
+      closeGuide();
+    });
+  }
+
+  if (guideBackdrop) {
+    guideBackdrop.addEventListener('click', function() {
+      closeGuide();
+    });
+  }
+
+  /* ESC key closes guide */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && guideOverlay && !guideOverlay.hasAttribute('hidden')) {
+      closeGuide();
+    }
+  });
 
   /* === Utilities === */
   function escapeHtml(str) {
@@ -1365,6 +1468,9 @@
           console.log('SW registration failed:', err);
         });
     }
+
+    /* Show guide on first visit */
+    showGuideIfNeeded();
   });
 
 })();
