@@ -1,0 +1,38 @@
+{
+  "name": "Vertex — Engineering Cockpit",
+  "short_name": "Vertex",
+  "description": "Local, deterministic, review-gated engineering copilot for CAD repair and assembly with 3D viewport",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0E0E0E",
+  "theme_color": "#0E0E0E",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "en-US",
+  "shortcuts": [
+    {
+      "name": "App",
+      "url": "./app.html",
+      "description": "Installable PWA build"
+    },
+    {
+      "name": "Web",
+      "url": "./index.html",
+      "description": "Desktop web build"
+    },
+    {
+      "name": "Mobile",
+      "url": "./mobile.html",
+      "description": "Mobile-first build"
+    }
+  ]
+}

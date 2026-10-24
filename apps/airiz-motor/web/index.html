@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airiz Motor Test Console</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f172a" id="theme-color-meta">
+  <meta name="description" content="Serial console for AIRIZ device motor testing">
+  <link rel="icon" type="image/svg+xml" href="icons/app-icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Airiz Console">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var theme = localStorage.getItem('airiz.theme');
+      if (theme === 'light' || theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <!-- Install Gate Overlay -->
+  <div id="install-gate" class="install-gate" role="dialog" aria-modal="true" aria-labelledby="install-gate-title" hidden>
+    <div class="install-gate-card">
+      <svg class="install-gate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      <h2 id="install-gate-title" class="install-gate-title">Install Airiz Console</h2>
+      <p id="install-gate-desc" class="install-gate-desc">Get quick access and a cleaner, full-screen experience.</p>
+      <div class="install-gate-actions">
+        <button id="btn-gate-install" class="btn btn-primary btn-lg">Install</button>
+        <button id="btn-gate-skip" class="btn btn-secondary">Continue in the browser</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <h1>Airiz Motor Test Console</h1>
+      </div>
+      <div class="header-meta">
+        <span class="meta-item">FW: <strong id="fw-version">-</strong></span>
+        <span class="meta-item">Source: <strong id="data-source">-</strong></span>
+        <button id="btn-install-app" class="theme-switcher" hidden title="Install app" aria-label="Install Airiz Console as app">
+          <svg class="theme-switcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Install app</span>
+        </button>
+        <button id="theme-toggle" class="theme-switcher" aria-label="Theme: System">
+          <svg class="theme-switcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <span id="theme-label">System</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-left">
+        <button id="btn-connect" class="btn btn-primary">Connect</button>
+        <button id="btn-disconnect" class="btn btn-danger" disabled>Disconnect</button>
+        <select id="baud-select" class="select" disabled>
+          <option value="9600">9600</option>
+          <option value="19200">19200</option>
+          <option value="38400">38400</option>
+          <option value="57600">57600</option>
+          <option value="115200" selected>115200</option>
+          <option value="230400">230400</option>
+          <option value="460800">460800</option>
+          <option value="921600">921600</option>
+        </select>
+        <button id="btn-demo" class="btn btn-secondary" title="Use demo device (no hardware)">Demo Device</button>
+      </div>
+      <div class="status-right">
+        <span id="connection-status" class="status-indicator">Disconnected</span>
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar" role="tablist" aria-label="View switcher">
+      <button id="tab-console" class="tab-btn" role="tab" aria-selected="true" aria-controls="view-console">Console</button>
+      <button id="tab-camera" class="tab-btn" role="tab" aria-selected="false" aria-controls="view-camera">Camera</button>
+    </div>
+
+    <!-- Console View -->
+    <div id="view-console">
+      <main class="main-grid">
+        <!-- A. Command Library (Left) -->
+        <section class="panel panel-commands" aria-label="Command Library">
+          <div class="panel-header">
+            <h2>Command Library</h2>
+            <div class="search-box">
+              <input type="text" id="command-search" class="input" placeholder="Search commands..." aria-label="Search commands">
+            </div>
+          </div>
+          <div id="command-list" class="command-list" role="region" aria-live="polite">
+            <!-- Commands rendered by JS -->
+          </div>
+        </section>
+
+        <!-- B. Console (Center) -->
+        <section class="panel panel-console" aria-label="Console">
+          <div class="panel-header">
+            <h2>Console</h2>
+            <div class="console-controls">
+              <button id="btn-clear" class="btn btn-sm">Clear</button>
+              <button id="btn-save-log" class="btn btn-sm">Save Log</button>
+              <label class="checkbox-label">
+                <input type="checkbox" id="chk-autoscroll" checked>
+                Autoscroll
+              </label>
+            </div>
+          </div>
+          <div id="console-output" class="console-output" role="log" aria-live="off" aria-relevant="additions">
+            <div class="console-line welcome">Airiz Motor Test Console — Ready</div>
+          </div>
+          <div class="console-input-area">
+            <input type="text" id="raw-command" class="input input-monospace" placeholder="Enter raw command..." aria-label="Raw command input">
+          </div>
+        </section>
+
+        <!-- C. Macro Notepad (Right) -->
+        <section class="panel panel-macros" aria-label="Macro Notepad">
+          <div class="panel-header">
+            <h2>Macro Notepad</h2>
+          </div>
+          
+          <!-- Macro Selector -->
+          <div class="macro-selector">
+            <label for="macro-select" class="label">Select Macro:</label>
+            <select id="macro-select" class="select select-full"></select>
+          </div>
+
+          <!-- Macro Info -->
+          <div id="macro-info" class="macro-info">
+            <p id="macro-desc" class="macro-desc"></p>
+            <p id="macro-source" class="macro-source"></p>
+          </div>
+
+          <!-- Macro Params -->
+          <div id="macro-params" class="macro-params"></div>
+
+          <!-- Repeat Count -->
+          <div class="macro-repeat">
+            <label for="macro-repeat" class="label">Repeat:</label>
+            <input type="number" id="macro-repeat" class="input input-number" min="1" max="999" value="1">
+          </div>
+
+          <!-- Step Editor -->
+          <div class="step-editor">
+            <div class="step-editor-header">
+              <h3>Steps</h3>
+              <div class="step-add-buttons">
+                <button id="btn-add-blank" class="btn btn-sm btn-step" data-type="blank">+ Blank</button>
+                <button id="btn-add-command" class="btn btn-sm btn-step" data-type="command">+ Command</button>
+                <button id="btn-add-wait" class="btn btn-sm btn-step" data-type="wait">+ Wait</button>
+                <button id="btn-add-pause" class="btn btn-sm btn-step" data-type="pause">+ Pause</button>
+                <button id="btn-add-note" class="btn btn-sm btn-step" data-type="note">+ Note</button>
+              </div>
+            </div>
+            <div id="step-list" class="step-list" role="list">
+              <!-- Steps rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Macro Actions -->
+          <div class="macro-actions">
+            <button id="btn-save-macro" class="btn btn-sm">Save</button>
+            <button id="btn-save-as-macro" class="btn btn-sm">Save As…</button>
+            <button id="btn-delete-macro" class="btn btn-sm btn-danger">Delete</button>
+            <button id="btn-export-ttl" class="btn btn-sm btn-secondary">Export .ttl</button>
+          </div>
+
+          <!-- Run Controls -->
+          <div class="macro-run-controls">
+            <button id="btn-run-macro" class="btn btn-primary btn-lg">Run</button>
+            <button id="btn-pause-macro" class="btn btn-warning btn-lg" disabled>Pause</button>
+            <button id="btn-stop-macro" class="btn btn-danger btn-lg" disabled>Stop</button>
+          </div>
+
+          <!-- Progress -->
+          <div id="macro-progress" class="macro-progress" aria-live="polite" aria-atomic="true">
+            <span class="progress-text">Ready</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Camera View -->
+    <div id="view-camera" hidden>
+      <!-- Device Camera (UVC) Panel - Full Width, Collapsible -->
+      <section class="panel panel-camera" aria-label="Device Camera (UVC)">
+      <div class="panel-header">
+        <h2>Device Camera (UVC)</h2>
+        <div class="camera-header-controls">
+          <button id="btn-camera-toggle" class="btn btn-sm btn-secondary" aria-expanded="false" aria-controls="camera-panel-content">
+            <svg class="camera-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="camera-panel-content" class="camera-panel-content hidden">
+        <div class="camera-controls">
+          <div class="camera-device-select">
+            <label for="camera-device-select" class="label">Camera:</label>
+            <select id="camera-device-select" class="select select-full"></select>
+          </div>
+          <div class="camera-mode-select">
+            <label for="camera-mode-select" class="label">Mode:</label>
+            <select id="camera-mode-select" class="select select-full">
+              <option value="auto">Auto (device default)</option>
+              <option value="3840x2160x30">3840×2160 @ 30</option>
+              <option value="2560x1440x30">2560×1440 @ 30</option>
+              <option value="1920x1080x60">1920×1080 @ 60</option>
+              <option value="1920x1080x30">1920×1080 @ 30</option>
+              <option value="1280x720x60">1280×720 @ 60</option>
+              <option value="1280x720x30">1280×720 @ 30</option>
+              <option value="640x480x30">640×480 @ 30</option>
+            </select>
+          </div>
+          <div class="camera-exact-mode">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-camera-exact">
+              Exact mode (test)
+            </label>
+          </div>
+          <div class="camera-buttons">
+            <button id="btn-camera-refresh" class="btn btn-sm">Refresh</button>
+            <button id="btn-camera-start" class="btn btn-sm btn-primary">Start Preview</button>
+            <button id="btn-camera-stop" class="btn btn-sm btn-danger" disabled>Stop Preview</button>
+          </div>
+        </div>
+        <div class="camera-preview-container">
+          <video id="camera-preview" class="camera-preview" autoplay muted playsinline></video>
+          <div id="camera-placeholder" class="camera-placeholder">
+            <p>Preview not started</p>
+          </div>
+        </div>
+        <div id="camera-status" class="camera-status" aria-live="polite"></div>
+        <div id="camera-diagnostic" class="camera-diagnostic hidden"></div>
+
+        <!-- Still Capture Section -->
+        <div class="camera-still-capture">
+          <h3 class="camera-still-title">Still Capture</h3>
+          <div class="camera-still-controls">
+            <button id="btn-camera-capture" class="btn btn-sm btn-primary">Capture still (full res)</button>
+            <button id="btn-camera-photo-caps" class="btn btn-sm btn-secondary">Photo capabilities</button>
+            <button id="btn-camera-download-still" class="btn btn-sm btn-secondary" disabled>Download still</button>
+            <button id="btn-camera-copy-diag" class="btn btn-sm btn-secondary">Copy diagnostics</button>
+          </div>
+          <div class="camera-still-preview-area">
+            <img id="camera-still-preview" class="camera-still-preview" alt="Captured still" hidden>
+            <div id="camera-still-info" class="camera-still-info"></div>
+          </div>
+        </div>
+
+        <!-- Day/Night & Lights Quick Control Block -->
+        <div class="day-night-control-block">
+          <h3 class="day-night-title">Day/Night &amp; Lights</h3>
+
+          <!-- IR-cut (ICR) -->
+          <div class="control-row">
+            <span class="control-label">IR-cut (ICR):</span>
+            <div class="control-buttons">
+              <button id="btn-ircut-day" class="btn btn-sm btn-secondary" aria-label="Switch IR-cut to Day mode">Day</button>
+              <button id="btn-ircut-night" class="btn btn-sm btn-secondary" aria-label="Switch IR-cut to Night mode">Night</button>
+            </div>
+          </div>
+
+          <!-- IR LED -->
+          <div class="control-row">
+            <span class="control-label">IR LED:</span>
+            <div class="control-buttons">
+              <button id="btn-irled-on" class="btn btn-sm btn-secondary" aria-label="Turn IR LED on">On</button>
+              <button id="btn-irled-off" class="btn btn-sm btn-secondary" aria-label="Turn IR LED off">Off</button>
+              <input type="range" id="irled-duty-range" class="duty-range" min="0" max="100" value="50" aria-label="IR LED duty cycle 0 to 100">
+              <span id="irled-duty-value" class="duty-value">50</span>
+              <button id="btn-irled-apply" class="btn btn-sm btn-primary" aria-label="Apply IR LED duty cycle">Apply</button>
+            </div>
+          </div>
+
+          <!-- Spot LED -->
+          <div class="control-row">
+            <span class="control-label">Spot LED:</span>
+            <div class="control-buttons">
+              <button id="btn-spotled-on" class="btn btn-sm btn-secondary" aria-label="Turn Spot LED on">On</button>
+              <button id="btn-spotled-off" class="btn btn-sm btn-secondary" aria-label="Turn Spot LED off">Off</button>
+              <input type="range" id="spotled-duty-range" class="duty-range" min="0" max="100" value="50" aria-label="Spot LED duty cycle 0 to 100">
+              <span id="spotled-duty-value" class="duty-value">50</span>
+              <button id="btn-spotled-apply" class="btn btn-sm btn-primary" aria-label="Apply Spot LED duty cycle">Apply</button>
+            </div>
+          </div>
+
+          <!-- ALS -->
+          <div class="control-row">
+            <span class="control-label">ALS:</span>
+            <div class="control-buttons">
+              <button id="btn-als-value" class="btn btn-sm btn-secondary" aria-label="Read ALS sensor value">Read value</button>
+              <button id="btn-als-id" class="btn btn-sm btn-secondary" aria-label="Read ALS sensor ID">Read ID</button>
+            </div>
+          </div>
+
+          <!-- Daylight Fix -->
+          <div class="control-row control-row-highlight">
+            <button id="btn-daylight-fix" class="btn btn-sm btn-warning" aria-label="Execute daylight fix: turn off IR LED, turn off Spot LED, switch IR-cut to Day">Daylight fix</button>
+          </div>
+
+          <!-- Hint -->
+          <p class="control-hint">Results appear in the Console.</p>
+        </div>
+
+        <!-- Session Folder Section -->
+        <div class="camera-session">
+          <h3 class="camera-session-title">Session Folder</h3>
+          <div class="camera-session-controls">
+            <button id="btn-camera-session-start" class="btn btn-sm btn-primary">Start session (pick folder)</button>
+            <button id="btn-camera-session-end" class="btn btn-sm btn-danger" disabled>End session</button>
+            <button id="btn-camera-session-log" class="btn btn-sm btn-secondary" disabled>Download session log</button>
+          </div>
+          <div id="camera-session-info" class="camera-session-info"></div>
+        </div>
+
+        <!-- Video Recording Section -->
+        <div class="camera-recording">
+          <h3 class="camera-recording-title">Video Recording</h3>
+          <div class="camera-recording-controls">
+            <button id="btn-camera-record" class="btn btn-sm btn-primary" aria-pressed="false" disabled>● Record</button>
+            <div id="camera-record-info" class="camera-record-info"></div>
+          </div>
+          <!-- ffmpeg Helper -->
+          <div class="camera-ffmpeg-helper">
+            <label for="camera-ffmpeg-cmd" class="label">ffmpeg command (DirectShow):</label>
+            <textarea id="camera-ffmpeg-cmd" class="camera-ffmpeg-cmd" readonly></textarea>
+            <div class="camera-ffmpeg-actions">
+              <button id="btn-camera-ffmpeg-copy" class="btn btn-sm btn-secondary">Copy ffmpeg command</button>
+            </div>
+            <div id="camera-ffmpeg-note" class="camera-ffmpeg-note"></div>
+          </div>
+        </div>
+
+        <!-- Snapshot Section -->
+        <div class="camera-snapshot">
+          <h3 class="camera-snapshot-title">Snapshot</h3>
+          <div class="camera-snapshot-controls">
+            <button id="btn-camera-snapshot" class="btn btn-sm btn-secondary">Take picture</button>
+          </div>
+          <div class="camera-snapshot-preview-area">
+            <img id="camera-snapshot-preview" class="camera-snapshot-preview" alt="Snapshot preview" hidden>
+            <div id="camera-snapshot-info" class="camera-snapshot-info"></div>
+          </div>
+        </div>
+
+        <!-- Camera Settings Section -->
+        <div class="camera-settings">
+          <h3 class="camera-settings-title">Camera Settings</h3>
+          <div class="camera-settings-controls">
+            <button id="btn-camera-settings-reset" class="btn btn-sm btn-secondary">Reset settings</button>
+            <div id="camera-settings-note" class="camera-settings-note"></div>
+          </div>
+          <div id="camera-settings-panel" class="camera-settings-panel"></div>
+          
+          <!-- Display Transforms -->
+          <div class="camera-display-transforms">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-camera-mirror">
+              Mirror (display only)
+            </label>
+            <label class="label-inline">
+              Rotate:
+              <select id="camera-rotate-select" class="select select-sm">
+                <option value="0">0°</option>
+                <option value="90">90°</option>
+                <option value="180">180°</option>
+                <option value="270">270°</option>
+              </select>
+            </label>
+            <p class="camera-transform-note">Display transforms do NOT affect recorded video or snapshots.</p>
+          </div>
+        </div>
+      </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Save As Modal -->
+  <dialog id="modal-save-as" class="modal">
+    <form method="dialog" class="modal-content">
+      <h3>Save Macro As</h3>
+      <label for="save-as-name" class="label">Name:</label>
+      <input type="text" id="save-as-name" class="input input-full" required>
+      <label for="save-as-desc" class="label">Description:</label>
+      <textarea id="save-as-desc" class="input input-full input-textarea" rows="3"></textarea>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" id="btn-cancel-save" class="btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Export TTL Modal -->
+  <dialog id="modal-export-ttl" class="modal modal-large">
+    <form method="dialog" class="modal-content">
+      <h3>Export TeraTerm Macro (.ttl)</h3>
+      <p class="modal-hint">Copy this code and save it as a .ttl file for use in TeraTerm:</p>
+      <textarea id="ttl-export" class="input input-full input-textarea input-monospace" rows="20" readonly></textarea>
+      <div class="modal-actions">
+        <button type="button" id="btn-copy-ttl" class="btn btn-primary">Copy to Clipboard</button>
+        <button type="button" id="btn-download-ttl" class="btn btn-secondary">Download .ttl</button>
+        <button type="button" id="btn-close-export" class="btn btn-secondary">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="data/commands.js"></script>
+  <script src="data/macros.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

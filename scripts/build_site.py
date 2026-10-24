@@ -77,7 +77,7 @@ def build_landing_apps(catalog):
 
 # Apps that were renamed: old site path -> the app's current id. A tiny redirect
 # stub is emitted at the old path so existing links/bookmarks keep working.
-REDIRECTS = {"productivity-widget": "pips"}
+REDIRECTS = {"productivity-widget": "pips", "ziris-motor": "airiz-motor"}
 
 
 def write_redirects(out_dir, catalog):
@@ -87,11 +87,13 @@ def write_redirects(out_dir, catalog):
         if new_id not in ids:
             continue
         targets = [
-            ("index.html", f"../{new_id}/"),
-            ("web.html", f"../{new_id}/web.html"),
-            ("mobile.html", f"../{new_id}/mobile.html"),
+            ("index.html", f"../{new_id}/", out_dir / new_id),
+            ("web.html", f"../{new_id}/web.html", out_dir / new_id / "web.html"),
+            ("mobile.html", f"../{new_id}/mobile.html", out_dir / new_id / "mobile.html"),
         ]
-        for page, target in targets:
+        for page, target, target_path in targets:
+            if not target_path.exists():
+                continue
             dst = out_dir / old_id / page
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_text(
