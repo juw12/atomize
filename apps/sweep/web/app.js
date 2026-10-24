@@ -37,8 +37,26 @@ const DEMO_OPERATOR = {
   credits: { welcome: 45, daily: 5, lastTopup: new Date().toISOString().split('T')[0], spent: 12 },
   runMode: 'ask', // 'ask' or 'auto'
   power: 'steady', // 'light', 'steady', 'big', 'full'
+  workQuality: 'standard', // 'standard' or 'premium'
+  permissions: {
+    publish: true,    // Allow publishing posts
+    reply: false,     // Allow replying to audience
+    outreach: false,  // Allow sending outreach emails
+    newsletter: false,// Allow sending newsletters
+    autoApprove: false // OFF = Ask first, ON = On its own
+  },
+  decisions: [
+    { id: 'dec-1', question: 'Which price point?', options: ['$19/mo', '$29/mo', '$49/mo'], chosen: null, skipped: false },
+    { id: 'dec-2', question: 'Which launch channel?', options: ['Twitter/X', 'LinkedIn', 'Indie Hackers'], chosen: null, skipped: false },
+    { id: 'dec-3', question: 'Posting cadence?', options: ['Daily', '3x/week', 'Weekly'], chosen: null, skipped: false }
+  ],
+  decidedChoices: {},
+  scheduledTasks: [
+    { id: 'task-1', name: 'Weekly newsletter', cadence: 'weekly', nextRun: new Date(Date.now() + 604800000).toISOString(), paused: false },
+    { id: 'task-2', name: 'Daily post', cadence: 'daily', nextRun: new Date(Date.now() + 86400000).toISOString(), paused: false }
+  ],
   runs: [
-    { at: new Date(Date.now() - 172800000).toISOString(), mode: 'ask', power: 'steady', artifacts: 6, credits: 25 }
+    { at: new Date(Date.now() - 172800000).toISOString(), mode: 'ask', power: 'steady', artifacts: 6, credits: 25, summary: { byType: { post: 2, email: 1, research: 1 }, creditsSpent: 25, decisionsRaised: 0, heldItems: 0 } }
   ],
   runLog: [
     { action: 'brand', result: 'Generated brand kit (-3 credits)', timestamp: new Date(Date.now() - 86400000).toISOString() },
@@ -222,6 +240,14 @@ function ensureOperator(project) {
     if (!op.power) op.power = 'steady';
     if (!op.runs) op.runs = [];
     if (!op.siteVersions) op.siteVersions = [];
+    // V4 fields: workQuality, permissions, decisions, decidedChoices, scheduledTasks
+    if (!op.workQuality) op.workQuality = 'standard';
+    if (!op.permissions) op.permissions = { publish: true, reply: false, outreach: false, newsletter: false, autoApprove: false };
+    if (!op.decisions) op.decisions = [];
+    if (!op.decidedChoices) op.decidedChoices = {};
+    if (!op.scheduledTasks) op.scheduledTasks = [];
+    // Ensure all runs have summary field
+    op.runs.forEach(run => { if (!run.summary) run.summary = { byType: {}, creditsSpent: run.credits || 0, decisionsRaised: 0, heldItems: 0 }; });
   }
   // Daily credit topup
   const today = new Date().toISOString().split('T')[0];
@@ -493,6 +519,9 @@ const POWER_PRESETS = {
   big: { artifacts: 10, credits: 50, label: 'Big swing' },
   full: { artifacts: 16, credits: 90, label: 'Full send' }
 };
+
+// Work quality multiplier
+const QUALITY_MULTIPLIER = { standard: 1, premium: 2 };
 
 function getAvailableCredits(project) {
   const op = ensureOperator(project);
@@ -2097,7 +2126,9 @@ function renderOverviewTab(op, project) {
   const salesRows = op.ledger.sheets?.sales?.rows || [];
   const totalRevenue = salesRows.reduce((sum, row) => sum + (row.revenue || 0), 0);
   const pendingCount = op.outbox.filter(a => a.status === 'pending').length;
+  const heldCount = op.outbox.filter(a => a.status === 'held').length;
   const integrationsActive = Object.values(op.integrations || {}).filter(v => v).length;
+  const decisionCount = (op.decisions || []).filter(d => !d.chosen && !d.skipped).length;
   
   return `
     <div class="operator-hero-stats">
@@ -2106,8 +2137,16 @@ function renderOverviewTab(op, project) {
         <span class="operator-stat-value" style="color:var(--color-accent)">${getAvailableCredits(project)}</span>
       </div>
       <div class="operator-stat-tile">
+        <span class="operator-stat-label">Decisions</span>
+        <span class="operator-stat-value" style="color:${decisionCount > 0 ? 'var(--color-accent)' : 'var(--color-ink)'}">${decisionCount}</span>
+      </div>
+      <div class="operator-stat-tile">
         <span class="operator-stat-label">Pending</span>
         <span class="operator-stat-value">${pendingCount}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Held</span>
+        <span class="operator-stat-value">${heldCount}</span>
       </div>
       <div class="operator-stat-tile">
         <span class="operator-stat-label">Passes</span>
@@ -2117,15 +2156,59 @@ function renderOverviewTab(op, project) {
         <span class="operator-stat-label">Revenue</span>
         <span class="operator-stat-value">$${totalRevenue.toLocaleString()}</span>
       </div>
-      <div class="operator-stat-tile">
-        <span class="operator-stat-label">Integrations</span>
-        <span class="operator-stat-value">${integrationsActive}</span>
-      </div>
     </div>
     
     <div class="operator-grid">
       <div class="operator-main">
         <div id="operator-run-panel"></div>
+        
+        <!-- Permissions Panel -->
+        <div class="operator-card" style="margin-bottom:var(--spacing-lg)">
+          <h3 class="operator-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Permissions — What Otto is allowed to do
+          </h3>
+          <p class="operator-note">Toggle permissions to control what Otto can do automatically. When a channel is OFF, artifacts are marked "held".</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--spacing-md);margin-top:var(--spacing-md)">
+            ${renderPermissionToggle('publish', 'Publish posts', op.permissions.publish)}
+            ${renderPermissionToggle('reply', 'Reply to audience', op.permissions.reply)}
+            ${renderPermissionToggle('outreach', 'Send outreach', op.permissions.outreach)}
+            ${renderPermissionToggle('newsletter', 'Send newsletters', op.permissions.newsletter)}
+          </div>
+          <div style="margin-top:var(--spacing-md);padding-top:var(--spacing-md);border-top:1px solid var(--color-border-light)">
+            <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Approval mode</span>
+            <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm)">
+              <button class="operator-seg-btn ${!op.permissions.autoApprove ? 'active' : ''}" onclick="setAutoApprove(false)">Ask first</button>
+              <button class="operator-seg-btn ${op.permissions.autoApprove ? 'active' : ''}" onclick="setAutoApprove(true)">On its own</button>
+            </div>
+            <p style="font-size:11px;color:var(--color-muted);margin-top:var(--spacing-xs)">${!op.permissions.autoApprove ? 'Otto will wait for your approval before creating artifacts' : 'Otto will auto-approve all generated artifacts'}</p>
+          </div>
+        </div>
+        
+        <!-- Decisions Panel -->
+        ${(op.decisions || []).filter(d => !d.chosen && !d.skipped).length > 0 ? `
+        <div class="operator-card" style="margin-bottom:var(--spacing-lg)">
+          <h3 class="operator-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Decisions — Otto needs you
+          </h3>
+          <p class="operator-note">Answer these questions to guide Otto's work. Your choices are used in subsequent generation.</p>
+          <div style="display:flex;flex-direction:column;gap:var(--spacing-md);margin-top:var(--spacing-md)">
+            ${(op.decisions || []).filter(d => !d.chosen && !d.skipped).map(dec => `
+              <div style="padding:var(--spacing-md);background:var(--color-border-light);border-radius:var(--radius-card)">
+                <div style="font-weight:600;margin-bottom:var(--spacing-sm)">${escapeHtml(dec.question)}</div>
+                <div style="display:flex;gap:var(--spacing-sm);flex-wrap:wrap">
+                  ${(dec.options || []).map(opt => `
+                    <button class="btn btn-sm btn-secondary" onclick="answerDecision('${dec.id}', '${escapeHtml(opt)}')">${escapeHtml(opt)}</button>
+                  `).join('')}
+                  <button class="btn btn-sm btn-text" onclick="skipDecision('${dec.id}')">Skip</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+        
         <div class="operator-card">
           <h3 class="operator-card-title">Chat with Otto</h3>
           <div id="operator-chat-thread" class="operator-chat-thread"></div>
@@ -2146,12 +2229,27 @@ function renderOverviewTab(op, project) {
   `;
 }
 
+function renderPermissionToggle(key, label, enabled) {
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-sm);background:var(--color-border-light);border-radius:var(--radius-card)">
+      <span style="font-size:13px">${escapeHtml(label)}</span>
+      <label class="toggle-switch">
+        <input type="checkbox" ${enabled ? 'checked' : ''} onchange="togglePermission('${key}')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  `;
+}
+
 function renderRunPanel(op, project) {
   const container = document.getElementById('operator-run-panel');
   if (!container) return;
   
   const powerCfg = POWER_PRESETS[op.power] || POWER_PRESETS.steady;
+  const qualityMult = QUALITY_MULTIPLIER[op.workQuality] || 1;
+  const effectiveCredits = powerCfg.credits * qualityMult;
   const modeLabel = op.runMode === 'auto' ? 'On its own (auto-approve)' : 'Ask first (pending approval)';
+  const isRunning = autopilotState.running;
   
   container.innerHTML = `
     <div class="operator-card" style="margin-bottom:var(--spacing-lg)">
@@ -2165,10 +2263,30 @@ function renderRunPanel(op, project) {
           <p style="font-size:14px;font-weight:600;margin-top:4px">${modeLabel}</p>
         </div>
         <div>
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Work quality</span>
+          <select onchange="setWorkQuality(this.value)" style="margin-top:4px;padding:6px 10px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+            <option value="standard" ${op.workQuality === 'standard' ? 'selected' : ''}>Standard</option>
+            <option value="premium" ${op.workQuality === 'premium' ? 'selected' : ''}>Premium (×2 credits)</option>
+          </select>
+        </div>
+        <div>
           <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Current power</span>
-          <p style="font-size:14px;font-weight:600;margin-top:4px">${powerCfg.label} (${powerCfg.artifacts} artifacts, ${powerCfg.credits} credits)</p>
+          <p style="font-size:14px;font-weight:600;margin-top:4px">${powerCfg.label} (${powerCfg.artifacts} artifacts)</p>
+        </div>
+        <div>
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Effective cost</span>
+          <p style="font-size:14px;font-weight:600;margin-top:4px;color:var(--color-accent)">${effectiveCredits} credits</p>
         </div>
       </div>
+      ${isRunning ? `
+        <div style="margin-top:var(--spacing-md);padding:var(--spacing-md);background:var(--color-border-light);border-radius:var(--radius-card)">
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Run in progress</span>
+          <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm)">
+            <button class="btn btn-sm btn-secondary" id="autopilot-pause-btn" onclick="toggleAutopilotPause()">${autopilotState.paused ? 'Resume' : 'Pause'}</button>
+            <button class="btn btn-sm btn-secondary" style="color:var(--color-distracting)" onclick="stopAutopilot()">Stop</button>
+          </div>
+        </div>
+      ` : ''}
       ${op.runs.length > 0 ? `
         <div style="margin-top:var(--spacing-md)">
           <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Run history</span>
@@ -2177,7 +2295,8 @@ function renderRunPanel(op, project) {
               <div class="run-history-entry">
                 <div style="flex:1">
                   <span style="font-size:12px;font-weight:600">${new Date(run.at).toLocaleDateString()}</span>
-                  <span style="font-size:11px;color:var(--color-muted);margin-left:8px">${run.mode === 'auto' ? 'Auto' : 'Ask'} · ${POWER_PRESETS[run.power]?.label || run.power}</span>
+                  <span style="font-size:11px;color:var(--color-muted);margin-left:8px">${run.mode === 'auto' ? 'Auto' : 'Ask'} · ${POWER_PRESETS[run.power]?.label || run.power} · ${run.quality || 'standard'}</span>
+                  ${run.stopped ? '<span style="font-size:10px;color:var(--color-distracting);margin-left:8px">(stopped)</span>' : ''}
                 </div>
                 <div style="font-size:11px;color:var(--color-muted)">${run.artifacts} artifacts · ${run.credits} credits</div>
                 <button class="btn btn-sm btn-text" onclick="undoRun(${idx})" style="font-size:11px;padding:2px 8px">Undo</button>
@@ -2188,6 +2307,14 @@ function renderRunPanel(op, project) {
       ` : ''}
     </div>
   `;
+}
+
+function setWorkQuality(quality) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.workQuality = quality;
+  saveState();
+  renderOperatorView(state.currentProject);
 }
 
 function renderCreateTab(op, project) {
@@ -2222,6 +2349,7 @@ function renderSitePanel(op, project) {
   if (!container) return;
   
   const hasSite = op.siteVersions && op.siteVersions.length > 0;
+  const currentVersion = hasSite ? op.siteVersions[0] : null;
   
   container.innerHTML = `
     <div class="operator-card" style="margin-top:var(--spacing-lg)">
@@ -2230,37 +2358,175 @@ function renderSitePanel(op, project) {
         Multi-page Site
       </h3>
       <p class="operator-note">Generate a 4-page site (index, about, pricing, contact) with shared styles and navigation.</p>
-      <div class="operator-actions" style="margin-top:var(--spacing-md)">
+      <div class="operator-actions" style="margin-top:var(--spacing-md);display:flex;gap:var(--spacing-sm);flex-wrap:wrap">
         <button class="btn btn-sm btn-primary" onclick="generateAndPreviewSite()">Generate Site</button>
-        ${hasSite ? `<button class="btn btn-sm btn-secondary" onclick="viewSiteVersions()">View versions (${op.siteVersions.length})</button>` : ''}
+        ${hasSite ? `
+          <button class="btn btn-sm btn-secondary" onclick="viewSiteVersions()">Versions (${op.siteVersions.length})</button>
+          <button class="btn btn-sm btn-secondary" onclick="duplicateSiteVersion()">Duplicate</button>
+          <button class="btn btn-sm btn-secondary" onclick="runSecurityScan()">Security Scan</button>
+        ` : ''}
       </div>
+      ${hasSite ? `
+        <div style="margin-top:var(--spacing-md);padding:var(--spacing-md);background:var(--color-border-light);border-radius:var(--radius-card)">
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Device Preview</span>
+          <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm);flex-wrap:wrap">
+            <button class="btn btn-sm btn-secondary" onclick="previewSiteDevice('desktop')">Desktop (1440×900)</button>
+            <button class="btn btn-sm btn-secondary" onclick="previewSiteDevice('tablet')">Tablet (768×1024)</button>
+            <button class="btn btn-sm btn-secondary" onclick="previewSiteDevice('phone')">Phone (390×844)</button>
+          </div>
+          <div id="site-device-preview" style="margin-top:var(--spacing-md);border:1px solid var(--color-border);border-radius:var(--radius-card);overflow:hidden">
+            <div style="padding:var(--spacing-md);text-align:center;color:var(--color-muted);font-size:12px">Select a device to preview</div>
+          </div>
+        </div>
+      ` : ''}
+      <div id="site-security-results" style="margin-top:var(--spacing-md)"></div>
     </div>
   `;
 }
 
+function duplicateSiteVersion() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  if (!op.siteVersions || op.siteVersions.length === 0) return;
+  
+  const original = op.siteVersions[0];
+  const duplicate = {
+    at: new Date().toISOString(),
+    files: JSON.parse(JSON.stringify(original.files)),
+    artifactId: 'site-' + Date.now(),
+    duplicatedFrom: original.artifactId
+  };
+  
+  op.siteVersions.unshift(duplicate);
+  if (op.siteVersions.length > 5) op.siteVersions.pop();
+  
+  saveState();
+  renderOperatorView(state.currentProject);
+  showToast('Site duplicated');
+}
+
+function runSecurityScan() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  if (!op.siteVersions || op.siteVersions.length === 0) return;
+  
+  const container = document.getElementById('site-security-results');
+  if (!container) return;
+  
+  const files = op.siteVersions[0].files || {};
+  const results = { pass: [], fail: [] };
+  
+  // Scan for risky patterns
+  const riskyPatterns = [
+    { pattern: /<script\b/i, name: 'Inline <script> tag', severity: 'high' },
+    { pattern: /javascript:/i, name: 'javascript: URL', severity: 'high' },
+    { pattern: /on\w+\s*=/i, name: 'Inline event handler', severity: 'medium' },
+    { pattern: /api[_-]?key\s*[=:]\s*["'][^"']+["']/i, name: 'Potential API key', severity: 'high' },
+    { pattern: /password\s*[=:]\s*["'][^"']+["']/i, name: 'Hardcoded password', severity: 'high' },
+    { pattern: /secret\s*[=:]\s*["'][^"']+["']/i, name: 'Hardcoded secret', severity: 'high' },
+    { pattern: /https?:\/\/[^\s"']+\/(api|webhook|callback)/i, name: 'External API reference', severity: 'low' }
+  ];
+  
+  Object.entries(files).forEach(([filename, content]) => {
+    riskyPatterns.forEach(({ pattern, name, severity }) => {
+      const matches = content.match(pattern);
+      if (matches) {
+        results.fail.push({ file: filename, issue: name, severity, context: matches[0].substring(0, 50) });
+      }
+    });
+    
+    // Check for missing external refs (good practice)
+    if (filename.endsWith('.html') && !content.includes('href="http')) {
+      results.pass.push({ file: filename, check: 'No external resource refs (offline-first)' });
+    }
+  });
+  
+  const hasFails = results.fail.length > 0;
+  container.innerHTML = `
+    <div style="padding:var(--spacing-md);background:${hasFails ? 'rgba(179,38,30,0.1)' : 'rgba(26,127,55,0.1)'};border-radius:var(--radius-card)">
+      <div style="font-weight:600;color:${hasFails ? 'var(--color-distracting)' : 'var(--color-productive)'};margin-bottom:var(--spacing-sm)">
+        ${hasFails ? '⚠ Security Issues Found' : '✓ Security Scan Passed'}
+      </div>
+      ${results.fail.length > 0 ? `
+        <div style="font-size:12px;margin-bottom:var(--spacing-sm)">${results.fail.length} issue(s) detected:</div>
+        <div style="display:flex;flex-direction:column;gap:var(--spacing-xs)">
+          ${results.fail.map(r => `
+            <div style="padding:var(--spacing-xs);background:var(--color-paper);border-radius:var(--radius-card);font-size:11px">
+              <span style="color:var(--color-distracting);font-weight:600">[${r.severity.toUpperCase()}]</span>
+              <strong>${escapeHtml(r.issue)}</strong> in ${escapeHtml(r.file)}
+              ${r.context ? `<br><code style="font-size:10px;color:var(--color-muted)">${escapeHtml(r.context)}...</code>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : `
+        <div style="font-size:12px">No security issues detected. Site follows offline-first best practices.</div>
+      `}
+      ${results.pass.length > 0 ? `
+        <div style="margin-top:var(--spacing-sm);font-size:11px;color:var(--color-muted)">
+          ${results.pass.map(p => `<div>✓ ${escapeHtml(p.check)}: ${escapeHtml(p.file)}</div>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function previewSiteDevice(device) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  if (!op.siteVersions || op.siteVersions.length === 0) return;
+  
+  const container = document.getElementById('site-device-preview');
+  if (!container) return;
+  
+  const dimensions = {
+    desktop: { width: 1440, height: 900, label: 'Desktop' },
+    tablet: { width: 768, height: 1024, label: 'Tablet' },
+    phone: { width: 390, height: 844, label: 'Phone' }
+  };
+  
+  const dims = dimensions[device];
+  const files = op.siteVersions[0].files || {};
+  const html = (files['index.html'] || '').replace(/<link[^>]*href=["']styles\.css["'][^>]*>/i, `<style>${files['styles.css'] || ''}</style>`);
+  
+  container.innerHTML = `
+    <div style="text-align:center;padding:var(--spacing-sm);background:var(--color-border-light);border-bottom:1px solid var(--color-border)">
+      <span style="font-size:11px;color:var(--color-muted)">${dims.label} preview (${dims.width}×${dims.height})</span>
+    </div>
+    <div style="display:flex;justify-content:center;padding:var(--spacing-md);background:var(--color-outer)">
+      <iframe srcdoc="${html.replace(/"/g, '&quot;')}" sandbox="" style="width:${dims.width}px;height:${dims.height}px;border:1px solid var(--color-border);border-radius:var(--radius-card);transform:scale(0.4);transform-origin:top center"></iframe>
+    </div>
+  `;
+}
+
+let libraryGroupFilter = 'all'; // 'all', 'social', 'files'
+
 function renderLibraryTab(op, project) {
   const allArtifacts = op.outbox || [];
   const types = ['all', 'brand', 'post', 'email', 'outreach', 'research', 'deck', 'site', 'newsletter'];
-  const statuses = ['all', 'pending', 'approved', 'rejected'];
-  
-  // Get unique types from artifacts
-  const artifactTypes = [...new Set(allArtifacts.map(a => a.type))];
+  const statuses = ['all', 'pending', 'approved', 'rejected', 'held'];
   
   return `
     <div class="operator-grid">
       <div class="operator-main">
         <div class="operator-card">
           <h3 class="operator-card-title">Library</h3>
-          <p class="operator-note">All generated artifacts across all types and statuses.</p>
-          <div class="library-filters" style="margin-top:var(--spacing-md);display:flex;gap:var(--spacing-sm);flex-wrap:wrap">
-            <select id="library-type-filter" onchange="renderLibraryList()" style="padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
-              ${types.map(t => `<option value="${t}">${t === 'all' ? 'All types' : t.charAt(0).toUpperCase() + t.slice(1)}</option>`).join('')}
-            </select>
-            <select id="library-status-filter" onchange="renderLibraryList()" style="padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
-              ${statuses.map(s => `<option value="${s}">${s === 'all' ? 'All statuses' : s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}
-            </select>
-            <input type="text" id="library-search" placeholder="Search..." oninput="renderLibraryList()" style="flex:1;min-width:150px;padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
-            <button class="btn btn-sm btn-secondary" onclick="exportLibraryMarkdown()">Export (MD)</button>
+          <p class="operator-note">All generated artifacts. Group by content type.</p>
+          <div class="library-filters" style="margin-top:var(--spacing-md)">
+            <div style="display:flex;gap:var(--spacing-xs);margin-bottom:var(--spacing-sm);border-bottom:1px solid var(--color-border-light);padding-bottom:var(--spacing-xs)">
+              <button class="operator-seg-btn ${libraryGroupFilter === 'all' ? 'active' : ''}" onclick="setLibraryGroup('all')">All</button>
+              <button class="operator-seg-btn ${libraryGroupFilter === 'social' ? 'active' : ''}" onclick="setLibraryGroup('social')">Social</button>
+              <button class="operator-seg-btn ${libraryGroupFilter === 'files' ? 'active' : ''}" onclick="setLibraryGroup('files')">Files</button>
+            </div>
+            <div style="display:flex;gap:var(--spacing-sm);flex-wrap:wrap">
+              <select id="library-type-filter" onchange="renderLibraryList()" style="padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+                ${types.map(t => `<option value="${t}">${t === 'all' ? 'All types' : t.charAt(0).toUpperCase() + t.slice(1)}</option>`).join('')}
+              </select>
+              <select id="library-status-filter" onchange="renderLibraryList()" style="padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+                ${statuses.map(s => `<option value="${s}">${s === 'all' ? 'All statuses' : s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}
+              </select>
+              <input type="text" id="library-search" placeholder="Search..." oninput="renderLibraryList()" style="flex:1;min-width:150px;padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+              <button class="btn btn-sm btn-secondary" onclick="exportLibraryMarkdown()">Export (MD)</button>
+            </div>
           </div>
         </div>
         <div id="operator-library-list"></div>
@@ -2268,6 +2534,11 @@ function renderLibraryTab(op, project) {
       <div class="operator-sidebar" id="operator-sidebar"></div>
     </div>
   `;
+}
+
+function setLibraryGroup(group) {
+  libraryGroupFilter = group;
+  if (state.currentProject) renderOperatorView(state.currentProject);
 }
 
 function renderLibraryList(op) {
@@ -2279,6 +2550,13 @@ function renderLibraryList(op) {
   const searchQuery = (document.getElementById('library-search')?.value || '').toLowerCase();
   
   let filtered = op.outbox || [];
+  
+  // Apply group filter
+  if (libraryGroupFilter === 'social') {
+    filtered = filtered.filter(a => a.type === 'post');
+  } else if (libraryGroupFilter === 'files') {
+    filtered = filtered.filter(a => ['brand', 'email', 'outreach', 'research', 'deck', 'site', 'newsletter'].includes(a.type));
+  }
   
   if (typeFilter !== 'all') {
     filtered = filtered.filter(a => a.type === typeFilter);
@@ -2310,6 +2588,7 @@ function renderLibraryList(op) {
               <span class="library-item-type">${artifact.type}</span>
               <span class="library-item-title">${escapeHtml(artifact.title)}</span>
               <span class="library-item-status ${artifact.status}">${artifact.status}</span>
+              <span class="library-item-cost" style="font-size:10px;color:var(--color-muted);margin-left:8px">${artifact.cost || 'N/A'} credits</span>
               <span class="library-item-date">${new Date(artifact.createdAt).toLocaleDateString()}</span>
             </div>
             <div class="library-item-actions">
@@ -2576,10 +2855,17 @@ function renderMoneyTab(op, project) {
 }
 
 function renderDataTab(op, project) {
+  const scheduledTasksHtml = renderScheduledTasks(op);
+  
   return `
     <div class="operator-grid">
       <div class="operator-main">
         <div class="operator-card">
+          <h3 class="operator-card-title">Scheduled Tasks</h3>
+          <p class="operator-note">Local recurring tasks — runs when app is open. No network required.</p>
+          ${scheduledTasksHtml}
+        </div>
+        <div class="operator-card" style="margin-top:var(--spacing-lg)">
           <h3 class="operator-card-title">Global Search</h3>
           <p class="operator-note">Search your outbox, chat history, and research locally.</p>
           <div class="operator-command-bar" style="margin-top:var(--spacing-md)">
@@ -2604,6 +2890,97 @@ function renderDataTab(op, project) {
       <div class="operator-sidebar" id="operator-sidebar"></div>
     </div>
   `;
+}
+
+function renderScheduledTasks(op) {
+  const tasks = op.scheduledTasks || [];
+  
+  if (tasks.length === 0) {
+    return `
+      <div class="operator-empty" style="padding:var(--spacing-xl)">
+        <p>No scheduled tasks yet.</p>
+        <button class="btn btn-sm btn-primary" onclick="addScheduledTask()" style="margin-top:var(--spacing-sm)">Add task</button>
+      </div>
+    `;
+  }
+  
+  return `
+    <div style="margin-top:var(--spacing-md)">
+      ${tasks.map(task => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-sm);background:var(--color-border-light);border-radius:var(--radius-card);margin-bottom:var(--spacing-sm)">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${escapeHtml(task.name)}</div>
+            <div style="font-size:11px;color:var(--color-muted)">
+              ${task.cadence} · Next: ${new Date(task.nextRun).toLocaleString()}
+              ${task.paused ? ' <span style="color:var(--color-muted)">(paused)</span>' : ''}
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--spacing-xs)">
+            <button class="btn btn-sm btn-secondary" onclick="runScheduledTask('${task.id}')">Run now</button>
+            <button class="btn btn-sm btn-text" onclick="toggleScheduledTaskPause('${task.id}')">${task.paused ? 'Resume' : 'Pause'}</button>
+            <button class="btn btn-sm btn-text" style="color:var(--color-distracting)" onclick="deleteScheduledTask('${task.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn btn-sm btn-secondary" onclick="addScheduledTask()" style="margin-top:var(--spacing-sm)">Add task</button>
+    </div>
+  `;
+}
+
+function addScheduledTask() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const name = prompt('Task name (e.g., "Weekly newsletter"):');
+  if (!name) return;
+  const cadence = prompt('Cadence: daily, weekly, or monthly:', 'weekly');
+  if (!['daily', 'weekly', 'monthly'].includes(cadence)) { showToast('Invalid cadence'); return; }
+  
+  const now = new Date();
+  const nextRun = new Date(now.getTime() + (cadence === 'daily' ? 86400000 : cadence === 'weekly' ? 604800000 : 2592000000));
+  
+  op.scheduledTasks.push({
+    id: 'task-' + Date.now(),
+    name,
+    cadence,
+    nextRun: nextRun.toISOString(),
+    paused: false
+  });
+  saveState();
+  renderOperatorView(state.currentProject);
+  showToast('Task scheduled (local only)');
+}
+
+function runScheduledTask(taskId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const task = op.scheduledTasks.find(t => t.id === taskId);
+  if (!task) return;
+  
+  showToast(`Running "${task.name}"... (simulated)`);
+  // Simulate task execution
+  const nextRun = new Date(new Date().getTime() + (task.cadence === 'daily' ? 86400000 : task.cadence === 'weekly' ? 604800000 : 2592000000));
+  task.nextRun = nextRun.toISOString();
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function toggleScheduledTaskPause(taskId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const task = op.scheduledTasks.find(t => t.id === taskId);
+  if (task) {
+    task.paused = !task.paused;
+    saveState();
+    renderOperatorView(state.currentProject);
+  }
+}
+
+function deleteScheduledTask(taskId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.scheduledTasks = (op.scheduledTasks || []).filter(t => t.id !== taskId);
+  saveState();
+  renderOperatorView(state.currentProject);
 }
 
 // === NEW HELPER FUNCTIONS FOR OPERATOR V2 ===
@@ -2834,6 +3211,7 @@ function renderMultiSheetLedger(op) {
   const rows = (op.ledger.sheets?.[currentSheet]?.rows) || [];
   
   const total = rows.reduce((sum, row) => {
+    if (row.refunded) return sum;
     return {
       orders: sum.orders + (row.orders || 0),
       revenue: sum.revenue + (row.revenue || 0),
@@ -2862,13 +3240,16 @@ function renderMultiSheetLedger(op) {
           <thead><tr><th>Period</th><th>Orders</th><th>Revenue</th><th>Cost</th><th>Margin</th><th></th></tr></thead>
           <tbody>
             ${rows.map(row => `
-              <tr>
+              <tr style="${row.refunded ? 'opacity:0.5;text-decoration:line-through' : ''}">
                 <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'period', this.textContent)">${escapeHtml(row.period)}</td>
-                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'orders', parseInt(this.textContent)||0)">${row.orders}</td>
-                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'revenue', parseInt(this.textContent)||0)">${row.revenue}</td>
+                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'orders', parseInt(this.textContent)||0)">${row.refunded ? 0 : row.orders}</td>
+                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'revenue', parseInt(this.textContent)||0)">${row.refunded ? 0 : row.revenue}</td>
                 <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'cost', parseInt(this.textContent)||0)">${row.cost}</td>
-                <td>${(row.revenue || 0) - (row.cost || 0)}</td>
-                <td><button class="btn-icon" onclick="deleteLedgerRow('${currentSheet}', ${row.id})" aria-label="Delete" style="width:24px;height:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></td>
+                <td>${row.refunded ? 0 : ((row.revenue || 0) - (row.cost || 0))}</td>
+                <td>
+                  ${currentSheet === 'sales' && !row.refunded ? `<button class="btn btn-sm btn-text" onclick="refundSale(${row.id})" style="font-size:10px;padding:2px 6px;color:var(--color-distracting)">Refund</button>` : ''}
+                  <button class="btn-icon" onclick="deleteLedgerRow('${currentSheet}', ${row.id})" aria-label="Delete" style="width:24px;height:24px;display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                </td>
               </tr>
             `).join('')}
             <tr class="ledger-totals">
@@ -2882,7 +3263,7 @@ function renderMultiSheetLedger(op) {
           </tbody>
         </table>
         <div class="ledger-chart">
-          ${rows.map(row => `<div class="ledger-bar" style="height:${maxRevenue > 0 ? Math.max(10, ((row.revenue || 0) / maxRevenue) * 100) : 10}%" title="${row.period}: $${row.revenue}"></div>`).join('')}
+          ${rows.filter(r => !r.refunded).map(row => `<div class="ledger-bar" style="height:${maxRevenue > 0 ? Math.max(10, ((row.revenue || 0) / maxRevenue) * 100) : 10}%" title="${row.period}: $${row.revenue}"></div>`).join('')}
         </div>
         <button class="btn btn-sm btn-secondary" onclick="addLedgerRow('${currentSheet}')" style="margin-top:var(--spacing-sm)">Add row</button>
       `}
@@ -2928,6 +3309,12 @@ function updateLedgerCell(sheet, rowId, field, value) {
 
 function renderPaymentsPlans(op) {
   const plans = op.payments.plans || [];
+  const testMode = op.payments.testMode || false;
+  const products = op.payments.products || [{ id: 'prod-1', name: 'Pro Plan', price: op.payments.price || 29 }];
+  
+  // Get sales with refund status
+  const salesRows = op.ledger.sheets?.sales?.rows || [];
+  const hasRefunded = salesRows.some(r => r.refunded);
   
   return `
     <div class="operator-plans-grid">
@@ -2941,6 +3328,45 @@ function renderPaymentsPlans(op) {
         </div>
       `).join('')}
     </div>
+    
+    <!-- Products List -->
+    <div class="operator-card" style="margin-top:var(--spacing-lg)">
+      <h3 class="operator-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Products
+      </h3>
+      <p class="operator-note">Define your product offerings. Each product can have its own price point.</p>
+      <div style="margin-top:var(--spacing-md)">
+        ${products.map((prod, idx) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-sm);background:var(--color-border-light);border-radius:var(--radius-card);margin-bottom:var(--spacing-sm)">
+            <div style="flex:1">
+              <input type="text" value="${escapeHtml(prod.name)}" onchange="updateProduct(${idx}, 'name', this.value)" style="padding:6px 10px;background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px;width:200px">
+              <span style="margin-left:var(--spacing-sm);font-size:13px;color:var(--color-muted)">$</span>
+              <input type="number" value="${prod.price}" onchange="updateProduct(${idx}, 'price', parseInt(this.value)||0)" style="padding:6px 10px;background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px;width:80px">
+            </div>
+            <button class="btn btn-sm btn-text" style="color:var(--color-distracting)" onclick="removeProduct(${idx})">Remove</button>
+          </div>
+        `).join('')}
+        <button class="btn btn-sm btn-secondary" onclick="addProduct()">Add product</button>
+      </div>
+    </div>
+    
+    <!-- Test Mode Toggle -->
+    <div class="operator-card" style="margin-top:var(--spacing-lg)">
+      <h3 class="operator-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Test Mode
+      </h3>
+      <p class="operator-note">Enable test mode to use Stripe test keys and show test card hints.</p>
+      <div style="display:flex;align-items:center;gap:var(--spacing-sm);margin-top:var(--spacing-sm)">
+        <label class="toggle-switch">
+          <input type="checkbox" ${testMode ? 'checked' : ''} onchange="toggleTestMode()">
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:13px;font-weight:600">${testMode ? 'Test mode ON' : 'Test mode OFF'}</span>
+      </div>
+    </div>
+    
     <div class="payments-config" style="margin-top:var(--spacing-md)">
       <div class="form-group">
         <label>Active plan</label>
@@ -2960,17 +3386,78 @@ function renderPaymentsPlans(op) {
       </div>
     </div>
     <div class="payments-export" style="margin-top:var(--spacing-md)">
-      <h4>Stripe snippet</h4>
+      <h4>Stripe snippet ${testMode ? '<span style="font-size:11px;color:var(--color-accent)">(TEST MODE)</span>' : ''}</h4>
       <pre><code>const price = {
-  id: 'price_${toKebabCase(op.payments.plan)}',
+  id: '${testMode ? 'test_' : ''}price_${toKebabCase(op.payments.plan)}',
   unit_amount: ${op.payments.price * 100},
   currency: '${op.payments.currency.toLowerCase()}',
   product_data: { name: '${escapeHtml(state.currentProject?.name || 'Product')}' }
-};</code></pre>
+};
+${testMode ? `\n// Test card: 4242 4242 4242 4242\n// Any future date, any CVC` : ''}</code></pre>
       <button class="btn btn-sm btn-secondary" onclick="copyPaymentsConfig()">Copy</button>
     </div>
-    <p class="operator-note">Sweep takes no fee — you own the Stripe account</p>
+    <p class="operator-note">Sweep: no fee, you own the Stripe account</p>
+    ${hasRefunded ? `
+      <div style="margin-top:var(--spacing-md);padding:var(--spacing-sm);background:rgba(26,127,55,0.1);border-radius:var(--radius-card);font-size:12px">
+        <span style="color:var(--color-productive);font-weight:600">✓</span> Refund tracking active - check Sales ledger for refunded transactions
+      </div>
+    ` : ''}
   `;
+}
+
+function addProduct() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  if (!op.payments.products) op.payments.products = [];
+  op.payments.products.push({ id: 'prod-' + Date.now(), name: 'New Product', price: 0 });
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function updateProduct(index, field, value) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  if (op.payments.products && op.payments.products[index]) {
+    op.payments.products[index][field] = value;
+    saveState();
+    // Don't re-render on every keystroke
+  }
+}
+
+function removeProduct(index) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  if (op.payments.products) {
+    op.payments.products.splice(index, 1);
+    saveState();
+    renderOperatorView(state.currentProject);
+  }
+}
+
+function toggleTestMode() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.payments.testMode = !op.payments.testMode;
+  saveState();
+  renderOperatorView(state.currentProject);
+  showToast(`Test mode ${op.payments.testMode ? 'ON' : 'OFF'}`);
+}
+
+function refundSale(rowId) {
+  if (!state.currentProject) return;
+  if (!confirm('Mark this sale as refunded? This will update totals.')) return;
+  
+  const op = ensureOperator(state.currentProject);
+  const row = op.ledger.sheets.sales.rows.find(r => r.id === rowId);
+  if (row) {
+    row.refunded = true;
+    // Update totals to reflect refund
+    row.revenue = 0;
+    row.orders = 0;
+    saveState();
+    renderOperatorView(state.currentProject);
+    showToast('Sale marked as refunded');
+  }
 }
 
 function renderInsights(op) {
@@ -3692,11 +4179,14 @@ function handleOperatorCommand() {
   showToast(`Generated ${artifact.type} → Outbox (-${creditsCost} credits)`);
 }
 
-function runAutopilotPass() {
+let autopilotState = { running: false, paused: false, stopRequested: false, currentRun: null };
+
+async function runAutopilotPass() {
   if (!state.currentProject) return;
   const op = ensureOperator(state.currentProject);
   const powerCfg = POWER_PRESETS[op.power] || POWER_PRESETS.steady;
-  const creditsNeeded = powerCfg.credits;
+  const qualityMult = QUALITY_MULTIPLIER[op.workQuality] || 1;
+  const creditsNeeded = powerCfg.credits * qualityMult;
   
   if (getAvailableCredits(state.currentProject) < creditsNeeded) {
     showToast(`Insufficient credits. Need ${creditsNeeded}, have ${getAvailableCredits(state.currentProject)}`);
@@ -3705,59 +4195,165 @@ function runAutopilotPass() {
   
   // Push undo snapshot before this run
   pushUndoSnapshot(state.currentProject);
-  
-  // Capture which run index this is so we can undo to it
-  const runIndexBefore = op.runs.length;
   const undoSnapshotIndex = op.undoStack.length - 1;
   
   spendCredits(state.currentProject, creditsNeeded);
-
+  
+  // Initialize run summary tracking
+  const summary = { byType: {}, creditsSpent: creditsNeeded, decisionsRaised: 0, heldItems: 0 };
+  const artifacts = [];
+  const artifactIds = [];
+  
   // Generate artifacts based on power level
   const generators = [
-    () => generateBrandKit(state.currentProject),
-    () => generateSocialPosts(state.currentProject, 'twitter'),
-    () => generateSocialPosts(state.currentProject, 'linkedin'),
-    () => generateSocialPosts(state.currentProject, 'instagram'),
-    () => generateEmailDraft(state.currentProject),
-    () => generateOutreach(state.currentProject),
-    () => generateResearch(state.currentProject),
-    () => generateDeck(state.currentProject),
-    () => generateSite(state.currentProject),
-    () => generateNewsletter(state.currentProject),
-    () => generateSocialPosts(state.currentProject, 'linkedin'),
-    () => generateEmailDraft(state.currentProject),
-    () => generateResearch(state.currentProject),
-    () => generateOutreach(state.currentProject),
-    () => generateBrandKit(state.currentProject),
-    () => generateNewsletter(state.currentProject)
+    { fn: () => generateBrandKit(state.currentProject), type: 'brand', needsPublish: false },
+    { fn: () => generateSocialPosts(state.currentProject, 'twitter'), type: 'post', needsPublish: true },
+    { fn: () => generateSocialPosts(state.currentProject, 'linkedin'), type: 'post', needsPublish: true },
+    { fn: () => generateSocialPosts(state.currentProject, 'instagram'), type: 'post', needsPublish: true },
+    { fn: () => generateEmailDraft(state.currentProject), type: 'email', needsPublish: false },
+    { fn: () => generateOutreach(state.currentProject), type: 'outreach', needsPublish: false },
+    { fn: () => generateResearch(state.currentProject), type: 'research', needsPublish: false },
+    { fn: () => generateDeck(state.currentProject), type: 'deck', needsPublish: false },
+    { fn: () => generateSite(state.currentProject), type: 'site', needsPublish: false },
+    { fn: () => generateNewsletter(state.currentProject), type: 'newsletter', needsPublish: true },
+    { fn: () => generateSocialPosts(state.currentProject, 'linkedin'), type: 'post', needsPublish: true },
+    { fn: () => generateEmailDraft(state.currentProject), type: 'email', needsPublish: false },
+    { fn: () => generateResearch(state.currentProject), type: 'research', needsPublish: false },
+    { fn: () => generateOutreach(state.currentProject), type: 'outreach', needsPublish: false },
+    { fn: () => generateBrandKit(state.currentProject), type: 'brand', needsPublish: false },
+    { fn: () => generateNewsletter(state.currentProject), type: 'newsletter', needsPublish: true }
   ];
   
-  const artifacts = [];
   for (let i = 0; i < powerCfg.artifacts && i < generators.length; i++) {
-    const art = generators[i]();
-    if (op.runMode === 'auto') {
-      art.status = 'approved';
+    if (autopilotState.stopRequested) break;
+    if (autopilotState.paused) { await sleep(500); i--; continue; }
+    
+    const gen = generators[i];
+    const art = gen.fn();
+    
+    // Apply work quality differences
+    if (op.workQuality === 'premium') {
+      applyPremiumQuality(art, gen.type);
     }
+    
+    // Check permissions and set status
+    let status = 'pending';
+    if (op.permissions.autoApprove) {
+      status = 'approved';
+    }
+    // Check if channel is disabled
+    if (gen.needsPublish && !op.permissions.publish) {
+      status = 'held';
+      summary.heldItems++;
+    } else if (gen.type === 'email' && !op.permissions.outreach) {
+      status = 'held';
+      summary.heldItems++;
+    } else if (gen.type === 'newsletter' && !op.permissions.newsletter) {
+      status = 'held';
+      summary.heldItems++;
+    }
+    
+    art.status = status;
+    art.cost = Math.ceil((gen.type === 'site' ? 10 : gen.type === 'deck' ? 8 : gen.type === 'research' || gen.type === 'outreach' ? 5 : gen.type === 'brand' ? 3 : 2) * qualityMult);
+    
     addToOutbox(state.currentProject, art);
-    addToRunLog(state.currentProject, `run: ${art.type}`, 'Generated');
     artifacts.push(art);
+    artifactIds.push(art.id);
+    
+    // Track by type
+    summary.byType[gen.type] = (summary.byType[gen.type] || 0) + 1;
+    
+    addToRunLog(state.currentProject, `run: ${art.type}`, `Generated (${status})`);
   }
   
-  // Record run history
+  // Record run history with summary
   op.runs.unshift({
     at: new Date().toISOString(),
     mode: op.runMode,
     power: op.power,
+    quality: op.workQuality,
     artifacts: artifacts.length,
     credits: creditsNeeded,
     undoSnapshotIndex: undoSnapshotIndex,
-    artifactIds: artifacts.map(a => a.id)
+    artifactIds: artifactIds,
+    summary: summary,
+    stopped: autopilotState.stopRequested
   });
   if (op.runs.length > 20) op.runs.pop();
   
+  autopilotState.running = false;
+  autopilotState.paused = false;
+  autopilotState.stopRequested = false;
+  
   saveState();
   renderOperatorView(state.currentProject);
-  showToast(`Run complete: ${artifacts.length} artifacts (${powerCfg.label}, ${op.runMode === 'auto' ? 'auto-approved' : 'pending approval'})`);
+  
+  // Show run summary modal
+  showRunSummaryModal({ artifacts, summary, creditsNeeded, quality: op.workQuality });
+  
+  const statusMsg = autopilotState.stopRequested ? 'Run stopped' : `Run complete: ${artifacts.length} artifacts`;
+  showToast(`${statusMsg} (${powerCfg.label} × ${op.workQuality}, ${summary.heldItems} held)`);
+}
+
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function applyPremiumQuality(artifact, type) {
+  // Premium quality adds richness to artifacts
+  if (type === 'research' && artifact.actions) {
+    artifact.deepDive = 'Additional premium analysis: Market trends show 23% YoY growth in this segment. Key differentiator opportunity: focus on underserved niche.';
+  } else if (type === 'post' && artifact.copy) {
+    artifact.variants = [artifact.copy, artifact.copy.replace(/!/g, '.') + ' Let us know your thoughts.'];
+  } else if (type === 'deck' && artifact.slides) {
+    artifact.slides.forEach(slide => { slide.presenterNotes = slide.notes ? slide.notes + ' — Emphasize this point with data.' : 'Presenter note: Pause here for questions.'; });
+  }
+}
+
+function showRunSummaryModal(runData) {
+  const { artifacts, summary, creditsNeeded, quality } = runData;
+  const modalHtml = `
+    <div class="operator-modal-backdrop" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRunSummaryModal()">
+      <div class="operator-modal" style="max-width:500px">
+        <div class="operator-modal-header">
+          <h3 class="operator-modal-title">Run Summary</h3>
+          <button class="operator-modal-close" onclick="closeRunSummaryModal()">&times;</button>
+        </div>
+        <div class="operator-modal-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);margin-bottom:var(--spacing-md)">
+            <div><span style="font-size:11px;color:var(--color-muted)">Artifacts</span><div style="font-size:20px;font-weight:700">${artifacts.length}</div></div>
+            <div><span style="font-size:11px;color:var(--color-muted)">Credits</span><div style="font-size:20px;font-weight:700">${creditsNeeded}</div></div>
+            <div><span style="font-size:11px;color:var(--color-muted)">Quality</span><div style="font-size:20px;font-weight:700;text-transform:capitalize">${quality}</div></div>
+            <div><span style="font-size:11px;color:var(--color-muted)">Held</span><div style="font-size:20px;font-weight:700">${summary.heldItems}</div></div>
+          </div>
+          <div style="margin-bottom:var(--spacing-md)">
+            <span style="font-size:11px;color:var(--color-muted);text-transform:uppercase">By Type</span>
+            <div style="display:flex;gap:var(--spacing-sm);flex-wrap:wrap;margin-top:var(--spacing-xs)">
+              ${Object.entries(summary.byType).map(([type, count]) => `<span style="font-size:12px;padding:4px 8px;background:var(--color-border-light);border-radius:4px">${type}: ${count}</span>`).join('')}
+            </div>
+          </div>
+          ${summary.heldItems > 0 ? `<p style="font-size:12px;color:var(--color-muted)">Note: ${summary.heldItems} item(s) held — channel disabled in Permissions</p>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  const existing = document.querySelector('.operator-modal-backdrop');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeRunSummaryModal() {
+  const modal = document.querySelector('.operator-modal-backdrop');
+  if (modal) { modal.remove(); }
+}
+
+function toggleAutopilotPause() {
+  autopilotState.paused = !autopilotState.paused;
+  const btn = document.getElementById('autopilot-pause-btn');
+  if (btn) btn.textContent = autopilotState.paused ? 'Resume' : 'Pause';
+}
+
+function stopAutopilot() {
+  autopilotState.stopRequested = true;
+  autopilotState.paused = false;
 }
 
 function undoRun(runIndex) {
@@ -3794,6 +4390,46 @@ function setPower(power) {
   op.power = power;
   saveState();
   renderOperatorView(state.currentProject);
+}
+
+function togglePermission(key) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.permissions[key] = !op.permissions[key];
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function setAutoApprove(enabled) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.permissions.autoApprove = enabled;
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function answerDecision(decisionId, choice) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const decision = op.decisions.find(d => d.id === decisionId);
+  if (decision) {
+    decision.chosen = choice;
+    op.decidedChoices[decisionId] = choice;
+    saveState();
+    renderOperatorView(state.currentProject);
+    showToast(`Decision saved: ${choice}`);
+  }
+}
+
+function skipDecision(decisionId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const decision = op.decisions.find(d => d.id === decisionId);
+  if (decision) {
+    decision.skipped = true;
+    saveState();
+    renderOperatorView(state.currentProject);
+  }
 }
 
 function exportOperatorBundle() {
