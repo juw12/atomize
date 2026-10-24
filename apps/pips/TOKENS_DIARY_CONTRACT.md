@@ -176,3 +176,70 @@ Add, following existing THEME + patterns:
 - `python app.py --selftest` must still exit `0`.
 - `tokens.py` / `diary.py`: provide a stdlib test (`tests/` style) that uses a **temp DB + a tiny fixture log** and exits `0`/`1`.
 - Do NOT break existing commands (`--no-track`, `--reset-pos`).
+
+---
+
+## 6. `maas_tokens.py` — MAAS account token usage
+
+Live token usage for your Pegatron **AICC MAAS** account, read from the gateway
+REST API. Standard library only (`urllib.request`, `urllib.parse`,
+`urllib.error`, `json`, `ssl`, `datetime`, `time`). TLS verification is **always
+on** (default `ssl` context — never disabled). Importable with **zero side
+effects**; every public function catches its own errors and returns a safe
+default — it never raises to the caller.
+
+### API (verified)
+
+Base URL: `https://aicc-gateway.pegatroncorp.com/maas/api/v1`
+
+- **Login** — `POST {base}/auth/login`, header `Content-Type: application/x-www-form-urlencoded`,
+  body `username=<u>&password=<p>` → JSON containing `access_token` (string) and
+  `user` (`{username,email,full_name}`).
+- **Daily usage** — `GET {base}/token-usage/daily`, header `Authorization: Bearer <token>`
+  → `{"date", "total_tokens", "breakdown": [{"ai_model", "prompt_tokens",
+  "completion_tokens", "model_type", "total_tokens", ...}]}`.
+- **Range usage** — `GET {base}/token-usage/range?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`,
+  header `Authorization: Bearer <token>` → `{"period", "data": [{"date", "total_tokens"}]}`.
+
+`total_tokens` values are **floats**. A missing/expired bearer yields HTTP 401
+`{"detail":"Not authenticated"}` → the module **re-logs-in once and retries**,
+then gives up gracefully.
+
+### Config block (`config.json` → `"maas"`)
+
+```jsonc
+"maas": {
+  "enabled": true,
+  "base_url": "https://aicc-gateway.pegatroncorp.com/maas/api/v1",
+  "username": "",
+  "password": "",
+  "verify_ssl": true,
+  "cache_minutes": 10
+}
+```
+
+A missing/invalid config (or missing `config.json`) falls back to **disabled**.
+
+### Public API
+
+```python
+def enabled() -> bool
+    # True only if maas.enabled AND username+password are non-empty.
+def today_summary(force: bool = False) -> dict
+    # {"ok","date","total","prompt","completion","models","error"};
+    # models = [{"model","prompt","completion","total"}] sorted by total desc.
+def daily_totals(days: int = 7, force: bool = False) -> dict
+    # {"YYYY-MM-DD": int} ascending, zero-filled for days with no data.
+def format_tokens(n) -> str        # 1234567 -> "1.23M", 12345 -> "12.3k", 950 -> "950"
+def invalidate_cache() -> None     # drop cached token + usage responses + logged-failure set
+```
+
+### Behaviour rules
+- **Caching**: the `access_token` is cached and reused for ~25 min (or until a 401
+  forces a re-login + one retry); usage responses are cached for
+  `maas.cache_minutes` (default 10). `force=True` bypasses the usage cache.
+- **No network at import, and none during `python app.py --selftest`.** The widget
+  fetches only from the slow periodic updater (~every 5 min, off the UI thread),
+  never from the render/draw path (the chart draws only from the cached dict).
+- **Failure logging is de-duplicated** — each distinct failure reason is logged at
+  most once per process; `invalidate_cache()` resets it.

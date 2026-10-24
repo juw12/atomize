@@ -50,6 +50,7 @@ dashboard or open your history; right-click for everything else.
 | `scoring.py` | Categorisation, daily score/stars, streaks/XP, heatmap aggregation. |
 | `coach.py` | Coach insights, weekly report, optional LLM hook. |
 | `audio.py` | Soundscape synthesis + `winsound` looping playback. |
+| `maas_tokens.py` | Live MAAS (Model-as-a-Service) account token usage from the AICC gateway. |
 | `config.json` | **Edit this**: app categories, title rules, Pomodoro lengths, goals, scoring, coach. |
 | `CONTRACT.md` | Internal data contract shared by all modules. |
 | `Launch Widget.bat` | Double-click to start the widget with no console window. |
@@ -144,6 +145,36 @@ tooltip; **click** a segment/bar/cell to inspect it. The dashboard scrolls (mous
 Step through previous days (Prev / Next / Today) and see each day's score, stars,
 Pomodoros and app breakdown.
 
+### MAAS token usage
+
+The **MAAS Token Usage (account)** dashboard panel shows live token usage for your
+Pegatron **AICC MAAS** account, read from the gateway REST API:
+
+- today's **total** tokens (big number) with the prompt/completion split,
+- a **7-day bar chart** of daily account totals,
+- today's **per-model** breakdown (top models by tokens).
+
+The compact card also gains a `MAAS · <total> tok today` line, and the right-click
+menu has **Refresh MAAS Tokens** to force an immediate refresh.
+
+Add your MAAS credentials to `config.json`:
+
+```jsonc
+"maas": {
+  "enabled": true,
+  "base_url": "https://aicc-gateway.pegatroncorp.com/maas/api/v1",
+  "username": "your.aicc.username",
+  "password": "your-password",
+  "verify_ssl": true,
+  "cache_minutes": 10
+}
+```
+
+Usage is fetched **at most once every ~5 minutes** (and cached for `cache_minutes`),
+never during `--selftest`. With no credentials (or the module/config missing) the
+widget **degrades gracefully**: the panel shows *No MAAS data*, the card line stays
+empty, and nothing is fetched.
+
 ## Break & health reminders
 
 When a work Pomodoro **finishes**, an always-on-top popup grabs your attention with a rotating
@@ -221,6 +252,8 @@ Open `config.json`:
 - **`coach`** — `enabled`, and an optional `llm` block (`enabled`, `endpoint`,
   `api_key`, `model`) pointing at an OpenAI-compatible chat endpoint. When disabled
   (default), the coach is fully offline and rule-based.
+- **`maas`** — `enabled`, `base_url`, `username`, `password` (your AICC MAAS
+  account; blank disables the panel), `verify_ssl`, `cache_minutes`.
 - **`ui`** — `alpha` (card opacity), `pos` (saved window position), `compact_width`,
   `card_height`.
 
@@ -243,8 +276,9 @@ The score is monotonic: more productive time never lowers it unless distraction 
 ## Data & privacy
 
 - **Everything stays local** in `data/productivity.db` (SQLite). Nothing is uploaded.
-- The **only** network call is the optional coach LLM — and only if you enable it in
-  `config.json`. Leave it off for a fully offline tool.
+- The **only** network calls are the optional coach LLM and the optional MAAS
+  gateway — and only if you enable each in `config.json`. Leave both off for a
+  fully offline tool.
 - The tracker never counts the widget itself as usage, and never counts idle/AFK time
   toward an app.
 

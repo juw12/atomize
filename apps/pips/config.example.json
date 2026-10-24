@@ -115,6 +115,14 @@
     "enabled": true,
     "log_path": ""
   },
+  "maas": {
+    "enabled": true,
+    "base_url": "https://aicc-gateway.pegatroncorp.com/maas/api/v1",
+    "username": "",
+    "password": "",
+    "verify_ssl": true,
+    "cache_minutes": 10
+  },
   "diary": {
     "enabled": false,
     "repo_dir": "",

@@ -102,6 +102,14 @@ DEFAULT_CONFIG = {
         "card_height": 310
     },
     "tokens": {"enabled": True, "log_path": ""},
+    "maas": {
+        "enabled": True,
+        "base_url": "https://aicc-gateway.pegatroncorp.com/maas/api/v1",
+        "username": "",
+        "password": "",
+        "verify_ssl": True,
+        "cache_minutes": 10
+    },
     "diary": {"enabled": True,
               "repo_dir": str(Path(__file__).parent.parent / "productivity-diary"),
               "auto_write": True, "auto_publish": False}
@@ -181,10 +189,11 @@ Tracker = None
 SoundEngine = None
 tokens = None
 diary = None
+maas_tokens = None
 
 def import_modules():
     """Import sibling modules with graceful degradation."""
-    global tracker, scoring, coach, audio, reminders, Tracker, SoundEngine, tokens, diary
+    global tracker, scoring, coach, audio, reminders, Tracker, SoundEngine, tokens, diary, maas_tokens
     
     try:
         import tracker as tracker_mod
@@ -236,6 +245,13 @@ def import_modules():
         logger.info("diary module loaded")
     except ImportError as e:
         logger.warning(f"diary module not available: {e}")
+    
+    try:
+        import maas_tokens as maas_tokens_mod
+        maas_tokens = maas_tokens_mod
+        logger.info("maas_tokens module loaded")
+    except ImportError as e:
+        logger.warning(f"maas_tokens module not available: {e}")
 
 
 # =============================================================================
@@ -529,6 +545,12 @@ class ProductivityWidget:
         self._card_widgets = {}
         self._dashboard_widgets = {}
         self._history_widgets = {}
+        
+        # MAAS account usage (fetched on a slow cadence; drawn from cache only)
+        self._maas_today: dict = {}
+        self._maas_daily: dict = {}
+        self._maas_fetching = False
+        self._maas_dirty = False
         
         # Focus sound selection (initialized from config, fallback to "rain")
         self._focus_sound: Optional[str] = None
@@ -849,6 +871,17 @@ class ProductivityWidget:
         tokens_label.pack(fill=tk.X, pady=(2, 0))
         self._card_widgets["tokens_label"] = tokens_label
         
+        maas_label = tk.Label(
+            day_strip_frame,
+            text="",
+            font=("Segoe UI", 7),
+            fg=THEME["muted"],
+            bg=bg_color,
+            anchor="w"
+        )
+        maas_label.pack(fill=tk.X, pady=(2, 0))
+        self._card_widgets["maas_label"] = maas_label
+        
         # === Footer: Stars + Expand + Close ===
         footer_frame = tk.Frame(main_frame, bg=bg_color)
         footer_frame.pack(fill=tk.X, side=tk.BOTTOM)
@@ -1073,6 +1106,21 @@ class ProductivityWidget:
         tokens_canvas.pack(padx=5, pady=5)
         self._dashboard_widgets["tokens_chart"] = tokens_canvas
         
+        # === MAAS Token Usage ===
+        maas_frame = tk.LabelFrame(
+            content_frame,
+            text="  MAAS Token Usage (account)  ",
+            font=("Georgia", 11, "bold"),
+            fg=fg_color,
+            bg=bg_color,
+            padx=5,
+            pady=5
+        )
+        maas_frame.pack(fill=tk.X, padx=15, pady=5)
+        maas_canvas = tk.Canvas(maas_frame, width=820, height=180, bg=bg_color, highlightthickness=0)
+        maas_canvas.pack(padx=5, pady=5)
+        self._dashboard_widgets["maas_chart"] = maas_canvas
+        
         # === Goals Progress ===
         goals_frame = tk.LabelFrame(
             content_frame,
@@ -1162,7 +1210,7 @@ class ProductivityWidget:
         self._tooltip: Optional[tk.Toplevel] = None
         
         # Bind motion for tooltips
-        for widget_name in ["donut", "top_apps", "trend", "heatmap", "focus_timeline", "pomodoros_chart", "tokens_chart"]:
+        for widget_name in ["donut", "top_apps", "trend", "heatmap", "focus_timeline", "pomodoros_chart", "tokens_chart", "maas_chart"]:
             c = self._dashboard_widgets.get(widget_name)
             if c and isinstance(c, tk.Canvas):
                 c.bind("<Motion>", lambda e, n=widget_name: self._on_chart_motion(e, n))
@@ -1394,6 +1442,15 @@ class ProductivityWidget:
                 except Exception as e:
                     logger.warning(f"Tokens refresh error: {e}")
             
+            self._maas_tick = getattr(self, "_maas_tick", 0) + 1
+            if maas_tokens and self._maas_tick % 300 == 1:
+                self._refresh_maas_async()
+            
+            if self._maas_dirty:
+                self._maas_dirty = False
+                if self.dashboard_window and self.dashboard_window.winfo_viewable():
+                    self._update_dashboard()
+            
             if self.pomodoro:
                 state, remaining, running = self.pomodoro.get_state()
                 now = time.monotonic()
@@ -1428,6 +1485,46 @@ class ProductivityWidget:
                 
         except Exception as e:
             logger.error(f"Card refresh error: {e}")
+    
+    def _refresh_maas_async(self):
+        """Fetch MAAS usage off the UI thread; store results for the draw path.
+
+        Runs at most one fetch at a time and swallows all errors so the periodic
+        updater can never crash the widget.
+        """
+        if not maas_tokens or self._maas_fetching:
+            return
+        self._maas_fetching = True
+        
+        def worker():
+            try:
+                if maas_tokens.enabled():
+                    today = maas_tokens.today_summary(force=True)
+                    daily = maas_tokens.daily_totals(7, force=True)
+                    self._maas_today = today
+                    self._maas_daily = daily
+                    self._maas_dirty = True
+            except Exception as e:
+                logger.warning(f"MAAS fetch error: {e}")
+            finally:
+                self._maas_fetching = False
+        
+        try:
+            threading.Thread(target=worker, daemon=True).start()
+        except Exception as e:
+            self._maas_fetching = False
+            logger.warning(f"MAAS fetch thread failed: {e}")
+    
+    def _refresh_maas_now(self):
+        """Force a MAAS refresh: drop caches, then fetch asynchronously."""
+        try:
+            if not maas_tokens:
+                logger.warning("maas_tokens module not available")
+                return
+            maas_tokens.invalidate_cache()
+            self._refresh_maas_async()
+        except Exception as e:
+            logger.error(f"Refresh MAAS failed: {e}")
     
     def _update_card(self):
         """Update card widget values."""
@@ -1510,6 +1607,17 @@ class ProductivityWidget:
                 )
             except Exception as e:
                 logger.warning(f"Tokens card update error: {e}")
+        
+        if maas_tokens:
+            try:
+                label = self._card_widgets.get("maas_label")
+                data = self._maas_today or {}
+                if label and maas_tokens.enabled() and data.get("ok"):
+                    label.config(text="MAAS \u00b7 %s tok today" % maas_tokens.format_tokens(data.get("total", 0)))
+                elif label:
+                    label.config(text="")
+            except Exception as e:
+                logger.warning(f"MAAS card update error: {e}")
     
     def _update_status_pill(self, state: str, running: bool, total: int, remaining: int):
         """Update status pill text and color based on pomodoro state."""
@@ -2164,6 +2272,7 @@ class ProductivityWidget:
             self._draw_focus_timeline()
             self._draw_pomodoros_chart()
             self._draw_tokens_chart()
+            self._draw_maas_chart()
             
             # Coach
             if self.cfg["coach"]["enabled"]:
@@ -2743,6 +2852,88 @@ class ProductivityWidget:
         except Exception as e:
             logger.warning(f"Tokens chart error: {e}")
     
+    def _draw_maas_chart(self):
+        """Draw MAAS account usage: today's total, 7-day bars, per-model split.
+
+        Uses only data already fetched by the slow periodic updater -- it never
+        performs a network request itself.
+        """
+        canvas = self._dashboard_widgets.get("maas_chart")
+        if not canvas:
+            return
+        
+        self._hide_tooltip()
+        canvas.delete("all")
+        
+        try:
+            if not maas_tokens:
+                canvas.create_text(410, 90, text="MAAS module unavailable", font=("Segoe UI", 11), fill=THEME["muted"])
+                return
+            
+            today = self._maas_today or {}
+            daily = self._maas_daily or {}
+            
+            canvas.create_text(14, 12, text="Today (account)", font=("Georgia", 11, "bold"), fill=THEME["ink_black"], anchor="nw")
+            if today.get("ok"):
+                canvas.create_text(14, 36, text=maas_tokens.format_tokens(today.get("total", 0)), font=("Courier New", 24, "bold"), fill=THEME["accent_red"], anchor="nw")
+                canvas.create_text(14, 80, text="in %s \u00b7 out %s" % (
+                    maas_tokens.format_tokens(today.get("prompt", 0)),
+                    maas_tokens.format_tokens(today.get("completion", 0))
+                ), font=("Segoe UI", 8), fill=THEME["muted"], anchor="nw")
+                
+                models = today.get("models") or []
+                if models:
+                    canvas.create_text(14, 100, text="By model", font=("Segoe UI", 8, "bold"), fill=THEME["ink_light"], anchor="nw")
+                    for i, model in enumerate(models[:4]):
+                        name = str(model.get("model", "unknown")).split("/")[-1]
+                        if len(name) > 26:
+                            name = name[:25] + "\u2026"
+                        canvas.create_text(14, 116 + i * 14, text="%s  %s" % (
+                            name, maas_tokens.format_tokens(model.get("total", 0))
+                        ), font=("Segoe UI", 7), fill=THEME["ink_light"], anchor="nw")
+            else:
+                canvas.create_text(14, 48, text="No MAAS data", font=("Segoe UI", 11), fill=THEME["muted"], anchor="nw")
+            
+            chart_left = 340
+            chart_right = 806
+            chart_top = 30
+            chart_bottom = 148
+            chart_height = chart_bottom - chart_top
+            
+            canvas.create_text(chart_left, 12, text="Last 7 days (account)", font=("Georgia", 11, "bold"), fill=THEME["ink_black"], anchor="nw")
+            
+            now = date.today()
+            days_data = []
+            for i in range(6, -1, -1):
+                d = now - timedelta(days=i)
+                day_str = d.isoformat()
+                days_data.append((day_str, d.strftime("%a"), int(daily.get(day_str, 0) or 0)))
+            
+            max_total = max((d[2] for d in days_data), default=0)
+            if max_total <= 0:
+                canvas.create_text((chart_left + chart_right) // 2, 90, text="No MAAS data", font=("Segoe UI", 11), fill=THEME["muted"])
+                return
+            
+            bar_span = (chart_right - chart_left) / 7.0
+            bar_width = bar_span - 12
+            
+            canvas.create_line(chart_left, chart_top, chart_left, chart_bottom, fill=THEME["border"], width=1)
+            canvas.create_line(chart_left, chart_bottom, chart_right, chart_bottom, fill=THEME["border"], width=1)
+            
+            for i, (day_str, weekday, day_total) in enumerate(days_data):
+                x = chart_left + 6 + i * bar_span
+                bar_height = (day_total / max_total) * chart_height if day_total > 0 else 2
+                y = chart_bottom - bar_height
+                
+                canvas.create_rectangle(x, y, x + bar_width, chart_bottom, fill=THEME["accent_red"], outline="", tags=f"maas_{day_str}")
+                
+                if day_total > 0:
+                    canvas.create_text(x + bar_width // 2, y - 4, text=maas_tokens.format_tokens(day_total), font=("Segoe UI", 8, "bold"), fill=THEME["ink_black"], anchor="s")
+                
+                canvas.create_text(x + bar_width // 2, chart_bottom + 10, text=weekday, font=("Segoe UI", 8), fill=THEME["ink_light"], anchor="n")
+        except Exception as e:
+            logger.warning(f"MAAS chart error: {e}")
+    
     def _delta_str(self, cur: float, prev: float, higher_is_better: bool) -> str:
         """
         Return a small delta text like '▲ 12m vs last wk' / '▼ 8m vs last wk' / '– no change'.
@@ -2963,6 +3154,7 @@ class ProductivityWidget:
         menu.add_command(label="Generate Diary Now", command=self._generate_diary)
         menu.add_command(label="Open Diary Folder", command=self._open_diary_folder)
         menu.add_command(label="Publish Diary to GitHub", command=self._publish_diary)
+        menu.add_command(label="Refresh MAAS Tokens", command=self._refresh_maas_now)
         menu.add_separator()
         
         # Sound submenu

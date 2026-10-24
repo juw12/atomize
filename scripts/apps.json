@@ -53,9 +53,9 @@
       "id": "pips",
       "name": "Pips",
       "category": "Software",
-      "desc": "\"The Morning Paper\" \u2014 Pomodoro timer + daily focus score (native app, plus web and mobile builds)",
-      "description": "\"The Morning Paper\" \u2014 an always-on-top Pomodoro timer with soundscapes, live app-usage tracking, a daily score, and coaching. Python + tkinter, standard library only.",
-      "tags": ["Python", "tkinter", "Pomodoro", "app tracking"],
+      "desc": "\"The Morning Paper\" \u2014 Pomodoro timer + daily focus score + live MAAS AI-token usage (native app, plus web and mobile builds)",
+      "description": "\"The Morning Paper\" \u2014 an always-on-top Pomodoro timer with soundscapes, live app-usage tracking, a daily score, coaching, and live AI token usage pulled from the Pegatron MAAS gateway. Python + tkinter, standard library only.",
+      "tags": ["Python", "tkinter", "Pomodoro", "app tracking", "MAAS tokens"],
       "image": "pips.png",
       "image_alt": "Pips (The Morning Paper) showing a Pomodoro timer and daily score",
       "links": {"app": "pips/", "web": "pips/web.html", "mobile": "pips/mobile.html"},
@@ -151,7 +151,7 @@
       "tags": ["AI CAD", "CadQuery", "open source", "GPL-3.0", "3D printing"],
       "image": "soma-hero.svg",
       "image_alt": "SOMA: a CadQuery code panel beside a rebuilt parametric part and a build log",
-      "order": 12
+      "order": 13
     },
     {
       "id": "vector",
@@ -164,7 +164,7 @@
       "tags": ["AI copilot", "Autodesk Fusion", "SOLIDWORKS", "CAD repair", "review-gated"],
       "image": "vector-hero.svg",
       "image_alt": "Vector: connected Fusion and SOLIDWORKS integrations beside a chat panel showing a ranked repair plan",
-      "order": 13
+      "order": 14
     },
     {
       "id": "mbs-miniature",
@@ -181,6 +181,19 @@
       ],
       "files": "https://github.com/juwpegatron/projects/tree/main/outputs/mbs",
       "order": 11
+    },
+    {
+      "id": "eiffel-tower",
+      "name": "Eiffel Tower",
+      "category": "3D Works",
+      "work": true,
+      "desc": "A 1:1000 solid Eiffel Tower, 330 mm tall, modelled with open CASCADE in Vector",
+      "description": "A simplified solid Eiffel Tower modelled at 1:1000 in millimetres, so the 330 mm miniature matches the real tower metre for metre: a 125 m base square, the first floor at 57.6 m, the second at 115.7 m, the third at 276 m and the antenna tip at 330 m. Four lofted legs splay from the base and merge into the tapering shaft, joined by elliptical arch plates; cut-back slabs mark each floor, topped by a lantern and a two-stage spire. Modelled programmatically with open CASCADE (OCP) in Vector and exported as STEP, with a triangulated STL preview. The iron lattice is not modelled &mdash; legs, arches, floors and spire are solid, and the whole part is one watertight solid (1,744-triangle preview).",
+      "tags": ["Eiffel Tower", "1:1000", "open CASCADE", "STEP", "STL", "watertight", "miniature"],
+      "image": "eiffel-render.png",
+      "image_alt": "Eiffel Tower: a 330 mm solid miniature rendered in three-quarter view on a dark background, showing the four splayed legs, arched base and spire",
+      "files": "https://github.com/juwpegatron/projects/tree/main/outputs/eiffel",
+      "order": 12
     }
   ]
 }
