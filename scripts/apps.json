@@ -126,6 +126,19 @@
       "links": {"app": "ziris-motor/", "web": "ziris-motor/", "mobile": "ziris-motor/"},
       "featured": true,
       "order": 9
+    },
+    {
+      "id": "partlab",
+      "name": "Part Lab",
+      "category": "Software",
+      "desc": "Local, offline-first parametric part builder — describe a part as parameters, preview it in 3D and export STL. No account, no cloud, no CAD licence",
+      "description": "A local, offline-first parametric part builder. Describe a mechanical part as a portable JSON document — numeric parameters, additive solids (box / cylinder / cone / sphere / prism) and subtractive holes — and Part Lab returns an instant 3D preview, deterministic volume / mass / bounding-box stats and an STL export. The geometry core is a pure function (identical input yields byte-identical output), runs entirely in the browser or a zero-dependency Python-stdlib server, and never touches the network. It complements cloud AI CAD copilots (like Vector) by staying local, open, deterministic, free and review-gated.",
+      "tags": ["parametric CAD", "offline-first", "STL export", "zero-dependency", "deterministic"],
+      "image": "partlab-hero.svg",
+      "image_alt": "Part Lab parametric part builder showing a 3D preview of a bracket with parameter sliders, a live stats panel and an STL export button",
+      "links": {"app": "partlab/", "web": "partlab/", "mobile": "partlab/"},
+      "featured": true,
+      "order": 10
     }
   ]
 }
