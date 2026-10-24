@@ -86,11 +86,23 @@ def render_card(app):
         lines.append(f'{ind}      <span class="tag">{tag}</span>')
     lines.append(f"{ind}    </div>")
     lines.append(f'{ind}    <div class="project-links">')
-    for label, key in (("App", "app"), ("Web", "web"), ("Mobile", "mobile")):
+    if app.get("external"):
         lines.append(
-            f'{ind}      <a class="project-link" href="{SITE_BASE}{app["links"][key]}" '
-            f'target="_blank" rel="noopener noreferrer">{label}</a>'
+            f'{ind}      <a class="project-link" href="{app["url"]}" '
+            f'target="_blank" rel="noopener noreferrer">Open site</a>'
         )
+    elif app.get("work"):
+        if app.get("files"):
+            lines.append(
+                f'{ind}      <a class="project-link" href="{app["files"]}" '
+                f'target="_blank" rel="noopener noreferrer">Files</a>'
+            )
+    else:
+        for label, key in (("App", "app"), ("Web", "web"), ("Mobile", "mobile")):
+            lines.append(
+                f'{ind}      <a class="project-link" href="{SITE_BASE}{app["links"][key]}" '
+                f'target="_blank" rel="noopener noreferrer">{label}</a>'
+            )
     lines.append(f"{ind}    </div>")
     lines.append(f"{ind}  </div>")
     lines.append(f"{ind}</article>")
@@ -125,11 +137,41 @@ def app_url(app, key):
 
 
 def render_note(app, today):
+    tags_yaml = "[" + ", ".join(unescape(t) for t in app["tags"]) + "]"
+    if app.get("external"):
+        return (
+            "---\n"
+            f"id: {app['id']}\n"
+            "type: shared\n"
+            "status: shared\n"
+            f"date: {today}\n"
+            f"tags: {tags_yaml}\n"
+            f"links: [\"{app['url']}\"]\n"
+            "---\n\n"
+            f"{unescape(app['description'])}\n\n"
+            f"- **Site** \u2014 {app['url']}\n"
+        )
+    if app.get("work"):
+        files = app.get("files")
+        links_str = f'["{files}"]' if files else "[]"
+        body = (
+            "---\n"
+            f"id: {app['id']}\n"
+            "type: work\n"
+            "status: modeled\n"
+            f"date: {today}\n"
+            f"tags: {tags_yaml}\n"
+            f"links: {links_str}\n"
+            "---\n\n"
+            f"{unescape(app['description'])}\n\n"
+        )
+        if files:
+            body += f"- **Files** \u2014 {files}\n"
+        return body
     links_yaml = (
         ", ".join(f'"{app_url(app, k)}"' for k in ("app", "web", "mobile"))
         + f', "apps/{app["id"]}/"'
     )
-    tags_yaml = "[" + ", ".join(unescape(t) for t in app["tags"]) + "]"
     return (
         "---\n"
         f"id: {app['id']}\n"
@@ -278,6 +320,8 @@ def main():
         notes = write_notes(vault, apps, today, args.dry_run)
         print(f"Obsidian notes: {len(notes)} -> {vault / 'Portfolio' / 'Projects'}")
 
+    changed_files = git_changed_files(portfolio_dir) if not args.dry_run else ["index.html"]
+
     pushed = False
     if args.push and not args.dry_run:
         git_commit_push(portfolio_dir)
@@ -286,7 +330,6 @@ def main():
 
     if args.no_notes:
         return
-    changed_files = git_changed_files(portfolio_dir) if not args.dry_run else ["index.html"]
     log = write_update_log(
         vault, apps, portfolio_dir, today, stamp, changed_files, pushed, args.dry_run
     )

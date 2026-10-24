@@ -139,6 +139,74 @@
       "links": {"app": "vertex/app.html", "web": "vertex/index.html", "mobile": "vertex/mobile.html"},
       "featured": true,
       "order": 10
+    },
+    {
+      "id": "soma",
+      "name": "SOMA",
+      "category": "3D Works",
+      "external": true,
+      "url": "https://somacad.app/",
+      "desc": "Open-source AI CAD \u2014 describe a part, your coding agent writes CadQuery, SOMA builds it",
+      "description": "SOMA is an open-source desktop CAD app where a coding agent does the CAD &mdash; you describe the part, the agent writes it as CadQuery Python, and SOMA rebuilds and shows the result on every change. Measure, mark up the view, tune parameters, step through history, run overhang and wall-thickness checks plus FEM analysis, then export STEP/STL/3MF/DXF with PDF drawings. Bring your own CLI agent (Claude Code, Codex, OpenCode, Gemini CLI). By Kai Jungsth&ouml;fel. GPL-3.0. Windows / macOS / Linux.",
+      "tags": ["AI CAD", "CadQuery", "open source", "GPL-3.0", "3D printing"],
+      "image": "soma-hero.svg",
+      "image_alt": "SOMA: a CadQuery code panel beside a rebuilt parametric part and a build log",
+      "order": 12
+    },
+    {
+      "id": "vector",
+      "name": "Vector",
+      "category": "3D Works",
+      "external": true,
+      "url": "https://heyvector.co/",
+      "desc": "Engineering copilot that works inside Autodesk Fusion and SOLIDWORKS",
+      "description": "Vector is an AI engineering copilot for real hardware that runs inside your existing CAD &mdash; Autodesk Fusion (macOS / Windows) and SOLIDWORKS (Windows). It reads the open document, answers questions about the design, creates and edits native features through the host application's own API, repairs broken models end to end (failed fillets, broken references, features that stop rebuilding), and shows every change for review before it lands in your feature tree. By Vector Copilot LLC.",
+      "tags": ["AI copilot", "Autodesk Fusion", "SOLIDWORKS", "CAD repair", "review-gated"],
+      "image": "vector-hero.svg",
+      "image_alt": "Vector: connected Fusion and SOLIDWORKS integrations beside a chat panel showing a ranked repair plan",
+      "order": 13
+    },
+    {
+      "id": "mbs-miniature",
+      "name": "Marina Bay Sands Miniature",
+      "category": "3D Works",
+      "work": true,
+      "desc": "Agentic-CAD tabletop miniature \u2014 three curved glass towers joined by the boat-shaped SkyPark",
+      "description": "A tabletop miniature of Marina Bay Sands, modelled as parametric CadQuery by an AI agent in SOMA. Three curved glass hotel towers &mdash; bowed bay-facing facade, slight taper &mdash; stand in a straight row and are joined on top by the boat-shaped SkyPark, whose long cantilever curls upward like a ship's bow past the last tower. About 250 mm tall, Z-up on the z=0 ground plane, and driven entirely by twelve live parameters (tower height, width, depth and gap; facade bow; taper; SkyPark width, thickness, cantilever, tip rise and far-end overhang). Every edit rebuilds deterministically and exports to STEP and glTF.",
+      "tags": ["CadQuery", "parametric", "SOMA", "agentic CAD", "STEP", "glTF", "miniature"],
+      "image": "mbs-iso.png",
+      "image_alt": "Marina Bay Sands miniature: three curved glass towers joined by the boat-shaped SkyPark with its upturned cantilever tip",
+      "thumbnails": [
+        {"src": "mbs-front.png", "alt": "Marina Bay Sands miniature, front elevation", "label": "View front elevation"}
+      ],
+      "files": "https://github.com/juwpegatron/projects/tree/main/outputs/mbs",
+      "order": 14
+    },
+    {
+      "id": "bracket",
+      "name": "Mounting Bracket",
+      "category": "3D Works",
+      "work": true,
+      "desc": "A 60 by 40 by 10 mm mounting bracket, exported as STEP (AP214) and binary STL",
+      "description": "A compact 60 &times; 40 &times; 10 mm mounting bracket &mdash; a single watertight solid (2,044 triangles, 23.2 cm&sup3;, printable as-is) exported twice from the same geometry: STEP AP214 for CAD and binary STL for printing.",
+      "tags": ["STEP AP214", "STL", "watertight", "3D printing", "bracket"],
+      "image": "bracket-render.png",
+      "image_alt": "Mounting bracket: a flat 60 by 40 by 10 mm bracket solid rendered in isometric view on a dark background",
+      "files": "https://github.com/juwpegatron/projects/tree/main/outputs/bracket",
+      "order": 15
+    },
+    {
+      "id": "triposr-mesh",
+      "name": "Image-to-3D Chair",
+      "category": "3D Works",
+      "work": true,
+      "desc": "A tufted dining chair reconstructed from a single photo into a 3D mesh (TripoSR)",
+      "description": "An image-to-3D reconstruction: one product photo of a tufted cream-and-walnut side chair turned into a triangle mesh by TripoSR. The source photo and the resulting mesh are kept side by side so the whole pipeline stays reproducible.",
+      "tags": ["TripoSR", "image-to-3D", "mesh", "OBJ", "reconstruction"],
+      "image": "triposr-input.png",
+      "image_alt": "Source photo of a tufted cream and walnut dining chair, reconstructed into a 3D mesh with TripoSR",
+      "files": "https://github.com/juwpegatron/projects/tree/main/outputs/triposr/0",
+      "order": 16
     }
   ]
 }

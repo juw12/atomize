@@ -66,6 +66,8 @@ def build_landing_apps(catalog):
     """Map catalog entries to the {name, desc, links} rows the landing page needs."""
     landing = []
     for app in catalog:
+        if app.get("external") or app.get("work"):
+            continue
         links = app["links"]
         landing.append({
             "name": app["name"],
@@ -276,6 +278,8 @@ def main():
 
     print("Copying app web directories:")
     for app in catalog:
+        if app.get("external") or app.get("work"):
+            continue
         copy_app_web(apps_dir, app["id"], out_dir, app["id"])
 
     print()
