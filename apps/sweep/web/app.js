@@ -317,6 +317,11 @@ function init() {
   
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('signout-btn').addEventListener('click', signOut);
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    const modal = document.querySelector('.operator-modal-backdrop');
+    if (modal) { modal.remove(); document.body.style.overflow = ''; }
+  });
   
   document.querySelectorAll('.nav-item').forEach(n => {
     n.addEventListener('click', (e) => {
@@ -2445,7 +2450,7 @@ function runSecurityScan() {
   container.innerHTML = `
     <div style="padding:var(--spacing-md);background:${hasFails ? 'rgba(179,38,30,0.1)' : 'rgba(26,127,55,0.1)'};border-radius:var(--radius-card)">
       <div style="font-weight:600;color:${hasFails ? 'var(--color-distracting)' : 'var(--color-productive)'};margin-bottom:var(--spacing-sm)">
-        ${hasFails ? '⚠ Security Issues Found' : '✓ Security Scan Passed'}
+        ${hasFails ? 'Security Issues Found' : 'Security Scan Passed'}
       </div>
       ${results.fail.length > 0 ? `
         <div style="font-size:12px;margin-bottom:var(--spacing-sm)">${results.fail.length} issue(s) detected:</div>
@@ -2463,7 +2468,7 @@ function runSecurityScan() {
       `}
       ${results.pass.length > 0 ? `
         <div style="margin-top:var(--spacing-sm);font-size:11px;color:var(--color-muted)">
-          ${results.pass.map(p => `<div>✓ ${escapeHtml(p.check)}: ${escapeHtml(p.file)}</div>`).join('')}
+          ${results.pass.map(p => `<div>● ${escapeHtml(p.check)}: ${escapeHtml(p.file)}</div>`).join('')}
         </div>
       ` : ''}
     </div>
@@ -3399,7 +3404,7 @@ ${testMode ? `\n// Test card: 4242 4242 4242 4242\n// Any future date, any CVC` 
     <p class="operator-note">Sweep: no fee, you own the Stripe account</p>
     ${hasRefunded ? `
       <div style="margin-top:var(--spacing-md);padding:var(--spacing-sm);background:rgba(26,127,55,0.1);border-radius:var(--radius-card);font-size:12px">
-        <span style="color:var(--color-productive);font-weight:600">✓</span> Refund tracking active - check Sales ledger for refunded transactions
+        <span style="color:var(--color-productive);font-weight:600">●</span> Refund tracking active - check Sales ledger for refunded transactions
       </div>
     ` : ''}
   `;
@@ -4338,6 +4343,13 @@ function showRunSummaryModal(runData) {
   const existing = document.querySelector('.operator-modal-backdrop');
   if (existing) existing.remove();
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  const onKey = (e) => {
+    if (e.key === 'Escape') {
+      closeRunSummaryModal();
+      document.removeEventListener('keydown', onKey);
+    }
+  };
+  document.addEventListener('keydown', onKey);
 }
 
 function closeRunSummaryModal() {
