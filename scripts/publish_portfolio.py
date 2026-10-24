@@ -254,6 +254,7 @@ def main():
     )
     parser.add_argument("--dry-run", action="store_true", help="Print changes, write nothing")
     parser.add_argument("--push", action="store_true", help="Commit and push the portfolio repo")
+    parser.add_argument("--no-notes", action="store_true", help="Skip Obsidian notes + update log (CI)")
     args = parser.parse_args()
 
     portfolio_dir = Path(args.portfolio_dir).expanduser().resolve()
@@ -271,8 +272,11 @@ def main():
     changed = update_index(portfolio_dir, apps, args.dry_run)
     print(f"index.html: {'would change' if changed else 'unchanged'}")
 
-    notes = write_notes(vault, apps, today, args.dry_run)
-    print(f"Obsidian notes: {len(notes)} -> {vault / 'Portfolio' / 'Projects'}")
+    if args.no_notes:
+        print("Obsidian notes: skipped (--no-notes)")
+    else:
+        notes = write_notes(vault, apps, today, args.dry_run)
+        print(f"Obsidian notes: {len(notes)} -> {vault / 'Portfolio' / 'Projects'}")
 
     pushed = False
     if args.push and not args.dry_run:
@@ -280,6 +284,8 @@ def main():
         pushed = True
         print("Pushed portfolio repo")
 
+    if args.no_notes:
+        return
     changed_files = git_changed_files(portfolio_dir) if not args.dry_run else ["index.html"]
     log = write_update_log(
         vault, apps, portfolio_dir, today, stamp, changed_files, pushed, args.dry_run
