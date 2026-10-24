@@ -1,4 +1,4 @@
-# Productivity Widget
+# Pips
 
 An always-on-top desktop widget that turns your day into a score. It combines a
 **Pomodoro timer**, looping **rain / thunder / brown-noise / café soundscapes**,
@@ -80,7 +80,7 @@ Already satisfied on this machine:
 Double-click **`Launch Widget.bat`** — or from a terminal:
 
 ```powershell
-cd productivity-widget
+cd pips
 pythonw app.py                 # normal run, no console window
 python  app.py                 # run with a console (for debugging)
 python  app.py --selftest      # init everything, render offscreen, exit 0
@@ -113,7 +113,7 @@ If autostart ever doesn't fire — or you simply closed the widget — launch it
 powershell -ExecutionPolicy Bypass -File make_shortcuts.ps1
 ```
 
-This places **"Productivity Widget"** on your **Desktop** and in the **Start Menu**
+This places **"Pips"** on your **Desktop** and in the **Start Menu**
 (searchable), each running `pythonw app.py` (no console) with the widget's own icon.
 Double-click to launch; right-click → *Pin to taskbar* to keep it one click away.
 Remove the shortcuts with `-Remove`.

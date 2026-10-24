@@ -1,8 +1,8 @@
-# make_shortcuts.ps1 - creates clickable launchers for the Productivity Widget.
+# make_shortcuts.ps1 - creates clickable launchers for the Pips.
 #
 # Adds two shortcuts (each runs `pythonw.exe app.py`, so no console window):
-#   - "Productivity Widget.lnk"  on the Desktop
-#   - "Productivity Widget.lnk"  in the Start Menu (searchable)
+#   - "Pips.lnk"  on the Desktop
+#   - "Pips.lnk"  in the Start Menu (searchable)
 #
 # Use these to (re)launch the widget by hand - e.g. if the login autostart
 # (install_autostart.ps1) did not fire, or if you closed the widget.
@@ -19,7 +19,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $appPy = Join-Path $here "app.py"
 $icon  = Join-Path $here "assets\widget.ico"
-$name  = "Productivity Widget.lnk"
+$name  = "Pips.lnk"
 
 # Desktop + Start Menu programs folder (per-user).
 $targets = @(
@@ -57,7 +57,7 @@ foreach ($lnk in $targets) {
     $shortcut.Arguments        = "`"$appPy`""
     $shortcut.WorkingDirectory = $here
     if (Test-Path -LiteralPath $icon) { $shortcut.IconLocation = "$icon,0" }
-    $shortcut.Description      = "Launch the Productivity Widget"
+    $shortcut.Description      = "Launch the Pips"
     $shortcut.Save()
     Write-Host "Created: $lnk"
 }

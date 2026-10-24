@@ -1,4 +1,4 @@
-# Productivity Widget — Tokens & Diary Extension Contract
+# Pips — Tokens & Diary Extension Contract
 
 Addendum to `CONTRACT.md`. Same rules apply, non-negotiable:
 

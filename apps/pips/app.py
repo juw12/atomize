@@ -1,5 +1,5 @@
 """
-Productivity Widget — Main Application
+Pips — Main Application
 Tkinter front-end: compact floating card, dashboard, history browser.
 Orchestrates tracker, scoring, coach, audio modules per CONTRACT.md.
 """
@@ -612,7 +612,7 @@ class ProductivityWidget:
     def build(self):
         """Build all UI components (offscreen for selftest)."""
         self.root = tk.Tk()
-        self.root.title("Productivity Widget")
+        self.root.title("Pips")
         self.root.withdraw()  # Start hidden; show card only
         
         # Build card (always)
@@ -3141,7 +3141,7 @@ class ProductivityWidget:
 
 def main(argv=None) -> int:
     """Main entry point with CLI flags."""
-    parser = argparse.ArgumentParser(description="Productivity Widget")
+    parser = argparse.ArgumentParser(description="Pips")
     parser.add_argument("--selftest", action="store_true", help="Self-test mode: init all, render offscreen, exit 0")
     parser.add_argument("--no-track", action="store_true", help="Disable tracker")
     parser.add_argument("--reset-pos", action="store_true", help="Reset window position")

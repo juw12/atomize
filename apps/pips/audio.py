@@ -1,4 +1,4 @@
-"""Soundscape engine for the Productivity Widget.
+"""Soundscape engine for the Pips.
 
 Synthesises seamlessly loopable mono 22.05 kHz 16-bit PCM WAVs with the pure
 standard library and plays them through ``winsound``.
@@ -69,7 +69,7 @@ _SEEDS = {"rain": 101, "thunder": 202, "brown": 303, "cafe": 404,
           "fireplace": 808, "forest": 909}
 
 # --- Lazy logging -----------------------------------------------------------
-_LOG = logging.getLogger("productivity_widget.audio")
+_LOG = logging.getLogger("pips.audio")
 _LOG.propagate = False
 _LOG_READY = False
 

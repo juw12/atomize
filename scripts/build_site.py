@@ -75,6 +75,37 @@ def build_landing_apps(catalog):
     return landing
 
 
+# Apps that were renamed: old site path -> the app's current id. A tiny redirect
+# stub is emitted at the old path so existing links/bookmarks keep working.
+REDIRECTS = {"productivity-widget": "pips"}
+
+
+def write_redirects(out_dir, catalog):
+    """Emit redirect stubs for renamed apps (old path -> current path)."""
+    ids = {app["id"] for app in catalog}
+    for old_id, new_id in REDIRECTS.items():
+        if new_id not in ids:
+            continue
+        targets = [
+            ("index.html", f"../{new_id}/"),
+            ("web.html", f"../{new_id}/web.html"),
+            ("mobile.html", f"../{new_id}/mobile.html"),
+        ]
+        for page, target in targets:
+            dst = out_dir / old_id / page
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_text(
+                '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+                '<meta charset="UTF-8">\n'
+                f'<meta http-equiv="refresh" content="0; url={target}">\n'
+                f'<link rel="canonical" href="{target}">\n'
+                '<title>Moved</title>\n</head>\n<body>\n'
+                f'<p>This page moved to <a href="{target}">{new_id}</a>.</p>\n'
+                '</body>\n</html>\n',
+                encoding="utf-8")
+        print(f"  [redirect] {old_id}/ -> {new_id}/")
+
+
 def generate_index(out_dir, repo_name, apps):
     """Generate the main index.html landing page with Desktop/Mobile links."""
     index_html = out_dir / "index.html"
@@ -247,6 +278,7 @@ def main():
 
     print()
 
+    write_redirects(out_dir, catalog)
     write_nojekyll(out_dir)
 
     repo_name = get_repo_name().replace("-", " ").title()

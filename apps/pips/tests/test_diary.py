@@ -4,7 +4,7 @@ Seeds a temp SQLite DB (daily_summary + app_usage + hour_usage + sessions +
 meta + token_usage), exercises every public function of ``diary`` and writes
 only into a temp directory. Exits 0 on success, 1 on failure.
 
-Run:  python tests\\test_diary.py   (from the productivity-widget folder)
+Run:  python tests\\test_diary.py   (from the pips folder)
 """
 
 from __future__ import annotations

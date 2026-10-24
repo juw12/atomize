@@ -1,4 +1,4 @@
-"""scoring.py -- pure metrics for the productivity widget.
+"""scoring.py -- pure metrics for Pips.
 
 Implements the `scoring.py` section of CONTRACT.md. No I/O happens at import
 time; every function only reads the ``sqlite3`` connection passed to it (plus an

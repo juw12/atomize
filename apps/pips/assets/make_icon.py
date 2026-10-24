@@ -1,4 +1,4 @@
-# make_icon.py - renders the Productivity Widget icon.
+# make_icon.py - renders the Pips icon.
 #
 # Produces, next to this script (so it works from any CWD):
 #   assets/widget.ico  (16 / 32 / 48 / 64 / 128 / 256 px)

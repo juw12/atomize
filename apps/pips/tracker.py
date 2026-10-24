@@ -1,4 +1,4 @@
-"""Foreground-window usage tracker for the productivity widget.
+"""Foreground-window usage tracker for Pips.
 
 Samples the active window (app exe basename + title + pid + idle state) and
 persists per-second usage into sqlite. See CONTRACT.md for the locked interface.

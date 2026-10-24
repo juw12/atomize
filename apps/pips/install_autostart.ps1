@@ -1,4 +1,4 @@
-# install_autostart.ps1 - registers the Productivity Widget to start at login.
+# install_autostart.ps1 - registers the Pips to start at login.
 #
 # Creates a shortcut in the current user's Startup folder that runs
 # pythonw.exe "<project>\app.py" (with the project as working dir), so the
@@ -15,7 +15,7 @@ $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $appPy     = Join-Path $here "app.py"
-$shortName = "Productivity Widget.lnk"
+$shortName = "Pips.lnk"
 
 # The per-user Startup folder (opens at log in).
 $startup = [Environment]::GetFolderPath('Startup')
@@ -47,7 +47,7 @@ $shortcut = $shell.CreateShortcut($lnk)
 $shortcut.TargetPath       = $pythonw
 $shortcut.Arguments        = "`"$appPy`""
 $shortcut.WorkingDirectory = $here
-$shortcut.Description      = "Launch the Productivity Widget at log in (no console)."
+$shortcut.Description      = "Launch the Pips at log in (no console)."
 $shortcut.Save()
 
 Write-Host "Created autostart shortcut: $lnk"

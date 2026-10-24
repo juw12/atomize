@@ -1,4 +1,4 @@
-"""tokens.py -- AI token usage ingest for the productivity widget.
+"""tokens.py -- AI token usage ingest for Pips.
 
 Implements the ``tokens.py`` section of TOKENS_DIARY_CONTRACT.md. Parses the
 OpenCode log (``~/.local/share/opencode/log/opencode.log``) for

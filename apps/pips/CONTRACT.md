@@ -1,4 +1,4 @@
-# Productivity Widget — Internal Contract
+# Pips — Internal Contract
 
 Every module obeys this file. If a field name, function signature, or DB column
 changes, update **all** consumers. Modules must be **importable without side effects**

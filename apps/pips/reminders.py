@@ -1,4 +1,4 @@
-"""Reminder scheduling and rotating health tips for the Productivity Widget.
+"""Reminder scheduling and rotating health tips for the Pips.
 
 Pure logic only: the scheduler receives the current monotonic time as an
 argument, so it can be tested without sleeping. `app.py` owns the popup UI,
