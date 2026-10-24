@@ -83,14 +83,46 @@ const DEMO_OPERATOR = {
     }
   ],
   integrations: { gmail: false, calendar: false, slack: false, notion: false, hubspot: false, stripe: false, sheets: false, twitter: false, linkedin: false, instagram: false },
-  payments: { price: 29, currency: 'USD', plan: 'Pro' },
-  ledger: {
-    rows: [
-      { id: 1, period: 'Week 1', orders: 12, revenue: 348, cost: 120 },
-      { id: 2, period: 'Week 2', orders: 18, revenue: 522, cost: 180 },
-      { id: 3, period: 'Week 3', orders: 25, revenue: 725, cost: 250 },
-      { id: 4, period: 'Week 4', orders: 31, revenue: 899, cost: 310 }
+  payments: { 
+    price: 29, 
+    currency: 'USD', 
+    plan: 'Pro',
+    plans: [
+      { name: 'Free', price: 0, features: ['Basic features', 'Community support', '1 project'] },
+      { name: 'Pro', price: 29, features: ['All features', 'Priority support', 'Unlimited projects', 'Analytics'] },
+      { name: 'Max', price: 99, features: ['Everything in Pro', 'Dedicated support', 'Custom integrations', 'SLA'] }
     ]
+  },
+  ledger: {
+    sheets: {
+      sales: {
+        rows: [
+          { id: 1, period: 'Week 1', orders: 12, revenue: 348, cost: 120 },
+          { id: 2, period: 'Week 2', orders: 18, revenue: 522, cost: 180 },
+          { id: 3, period: 'Week 3', orders: 25, revenue: 725, cost: 250 },
+          { id: 4, period: 'Week 4', orders: 31, revenue: 899, cost: 310 }
+        ]
+      },
+      stock: { rows: [] },
+      costs: { rows: [] }
+    }
+  },
+  chat: [
+    { role: 'otto', text: 'Hi! I\'m Otto, your operator. I can help you draft your brand, site, posts, outreach, research, or a deck. What would you like to create?', at: new Date(Date.now() - 60000).toISOString() }
+  ],
+  undoStack: [],
+  schedule: [],
+  inbox: [
+    { id: 'inbox-1', from: 'Sarah Chen', channel: 'LinkedIn', message: 'This looks interesting! Would love to learn more about how it handles sprint tracking.', receivedAt: new Date(Date.now() - 3600000).toISOString(), read: false },
+    { id: 'inbox-2', from: 'Mike Ross', channel: 'Email', message: 'Can you share more details about pricing for teams?', receivedAt: new Date(Date.now() - 7200000).toISOString(), read: false },
+    { id: 'inbox-3', from: 'Alex Kumar', channel: 'Twitter', message: 'Just saw your post. How does this compare to Linear?', receivedAt: new Date(Date.now() - 86400000).toISOString(), read: true }
+  ],
+  insights: {
+    visitors: 1250,
+    conversionRate: 2.4,
+    orders: 30,
+    revenue: 870,
+    bestChannel: 'Direct outreach'
   }
 };
 
@@ -142,12 +174,44 @@ function ensureOperator(project) {
     project.operator.credits.lastTopup = new Date().toISOString().split('T')[0];
     // Non-demo projects start with empty ledger, outbox, and run log
     if (project.id !== DEMO_PROJECT.id) {
-      project.operator.ledger.rows = [];
+      project.operator.ledger.sheets.sales.rows = [];
+      project.operator.ledger.sheets.stock.rows = [];
+      project.operator.ledger.sheets.costs.rows = [];
       project.operator.outbox = [];
       project.operator.runLog = [];
+      project.operator.chat = [];
+      project.operator.inbox = [];
+      project.operator.schedule = [];
+      project.operator.undoStack = [];
     }
   } else {
-    // Demo project already has populated data, just ensure credit topup
+    // Backward compatibility: migrate old ledger.rows to sheets.sales
+    const op = project.operator;
+    if (op.ledger && op.ledger.rows && !op.ledger.sheets) {
+      op.ledger = {
+        sheets: {
+          sales: { rows: op.ledger.rows },
+          stock: { rows: [] },
+          costs: { rows: [] }
+        }
+      };
+    } else if (op.ledger && op.ledger.sheets) {
+      // Ensure all sheets exist
+      if (!op.ledger.sheets.sales) op.ledger.sheets.sales = { rows: [] };
+      if (!op.ledger.sheets.stock) op.ledger.sheets.stock = { rows: [] };
+      if (!op.ledger.sheets.costs) op.ledger.sheets.costs = { rows: [] };
+    }
+    // Ensure new fields exist
+    if (!op.chat) op.chat = [];
+    if (!op.undoStack) op.undoStack = [];
+    if (!op.schedule) op.schedule = [];
+    if (!op.inbox) op.inbox = [];
+    if (!op.insights) op.insights = { visitors: 0, conversionRate: 0, orders: 0, revenue: 0, bestChannel: 'N/A' };
+    if (!op.payments.plans) op.payments.plans = [
+      { name: 'Free', price: 0, features: ['Basic features', 'Community support', '1 project'] },
+      { name: 'Pro', price: op.payments.price || 29, features: ['All features', 'Priority support', 'Unlimited projects'] },
+      { name: 'Max', price: 99, features: ['Everything in Pro', 'Dedicated support', 'Custom integrations'] }
+    ];
   }
   // Daily credit topup
   const today = new Date().toISOString().split('T')[0];
@@ -439,6 +503,75 @@ function addToOutbox(project, artifact) {
   artifact.createdAt = new Date().toISOString();
   op.outbox.unshift(artifact);
   if (op.outbox.length > 100) op.outbox.pop();
+}
+
+// Undo stack management
+function pushUndoSnapshot(project) {
+  const op = ensureOperator(project);
+  const snapshot = {
+    outbox: JSON.parse(JSON.stringify(op.outbox)),
+    ledger: JSON.parse(JSON.stringify(op.ledger)),
+    credits: JSON.parse(JSON.stringify(op.credits)),
+    schedule: JSON.parse(JSON.stringify(op.schedule || [])),
+    inbox: JSON.parse(JSON.stringify(op.inbox || []))
+  };
+  op.undoStack.push(snapshot);
+  if (op.undoStack.length > 10) op.undoStack.shift();
+}
+
+function undoLastChange(project) {
+  const op = ensureOperator(project);
+  if (op.undoStack.length === 0) return false;
+  const snapshot = op.undoStack.pop();
+  op.outbox = snapshot.outbox;
+  op.ledger = snapshot.ledger;
+  op.credits = snapshot.credits;
+  if (snapshot.schedule) op.schedule = snapshot.schedule;
+  if (snapshot.inbox) op.inbox = snapshot.inbox;
+  saveState();
+  return true;
+}
+
+// Chat with Otto
+function addChatMessage(project, role, text) {
+  const op = ensureOperator(project);
+  op.chat.push({ role, text, at: new Date().toISOString() });
+  if (op.chat.length > 50) op.chat.shift();
+}
+
+function getOttoResponse(project, userInput) {
+  const input = userInput.toLowerCase();
+  const project_context = state.currentProject;
+  
+  // Greetings
+  if (/^(hi|hello|hey|greetings)/.test(input)) {
+    return "Hello! I'm Otto, your local operator. I can help you create brand kits, social posts, email drafts, outreach lists, research snapshots, pitch decks, or landing sites. What would you like to work on?";
+  }
+  
+  // Help
+  if (input.includes('help') || input.includes('what can') || input.includes('how to')) {
+    return "I can generate: brand kits, social posts (Twitter/LinkedIn/Instagram), email drafts, outreach target lists, market research, pitch decks, and landing sites. Just type what you need, e.g., 'create a brand' or 'draft an email'.";
+  }
+  
+  // Route to generators
+  if (input.includes('brand')) return 'brand';
+  if (input.includes('post') || input.includes('twitter') || input.includes('linkedin') || input.includes('instagram')) return 'post';
+  if (input.includes('email')) return 'email';
+  if (input.includes('outreach') || input.includes('customer') || input.includes('find')) return 'outreach';
+  if (input.includes('research') || input.includes('market')) return 'research';
+  if (input.includes('deck') || input.includes('pitch') || input.includes('slide')) return 'deck';
+  if (input.includes('site') || input.includes('landing') || input.includes('web')) return 'site';
+  
+  // Questions about project
+  if (input.includes('project') || input.includes('app') || input.includes('idea')) {
+    if (project_context) {
+      return `Your project "${project_context.name}" is ${project_context.oneLiner}. I can help you create marketing materials, research, or a landing site for it. What would you like?`;
+    }
+    return "I don't see a project selected. Open a project from the catalog first, then I can help you create materials for it.";
+  }
+  
+  // Default conversational response
+  return "I can help you draft your brand, site, posts, outreach, research, or a deck. What would you like to create? Try typing 'brand', 'post', 'email', 'research', 'deck', or 'site'.";
 }
 
 function generateBrandKit(project) {
@@ -1697,37 +1830,800 @@ function downloadBundle() {
 // === OPERATOR UI FUNCTIONS ===
 
 let operatorOutboxTab = 'pending';
+let operatorActiveTab = 'overview';
+let operatorLedgerSheet = 'sales';
+let globalSearchQuery = '';
 
 function renderOperatorView(project) {
   const op = ensureOperator(project);
   const credits = getAvailableCredits(project);
+  const salesRows = op.ledger.sheets?.sales?.rows || [];
+  const totalRevenue = salesRows.reduce((sum, row) => sum + (row.revenue || 0), 0);
+  const pendingCount = op.outbox.filter(a => a.status === 'pending').length;
+  const integrationsActive = Object.values(op.integrations || {}).filter(v => v).length;
   
-  // Update credits display
+  // Update hero stats
   const creditsEl = document.getElementById('operator-credits');
   if (creditsEl) creditsEl.textContent = `${credits} credits`;
   
-  // Update autopilot toggle
   const autopilotToggle = document.getElementById('operator-autopilot');
-  if (autopilotToggle) autopilotToggle.checked = op.autopilot;
+  if (autopilotToggle) {
+    autopilotToggle.checked = op.autopilot;
+    autopilotToggle.parentElement.title = op.autopilot ? 'On its own (auto-approves)' : 'Ask first (requires approval)';
+  }
   
-  // Render brand kit
-  renderBrandKit(op);
+  // Render tabs
+  renderOperatorTabs(op);
   
-  // Render run log
-  renderRunLog(op);
+  // Render active tab content
+  const undoBtn = document.getElementById('operator-undo-btn');
+  if (undoBtn) undoBtn.disabled = !(op.undoStack && op.undoStack.length);
+
+  const tabContent = document.getElementById('operator-tab-content');
+  if (!tabContent) return;
   
-  // Render outbox
-  renderOutbox(op);
+  switch (operatorActiveTab) {
+    case 'overview':
+      tabContent.innerHTML = renderOverviewTab(op, project);
+      renderBrandKit(op);
+      renderOperatorChat(op);
+      attachChatHandlers();
+      break;
+    case 'create':
+      tabContent.innerHTML = renderCreateTab(op, project);
+      renderOutbox(op);
+      break;
+    case 'grow':
+      tabContent.innerHTML = renderGrowTab(op, project);
+      attachCalendarHandlers();
+      attachInboxHandlers();
+      break;
+    case 'money':
+      tabContent.innerHTML = renderMoneyTab(op, project);
+      attachLedgerSheetHandlers();
+      attachPaymentsHandlers();
+      break;
+    case 'data':
+      tabContent.innerHTML = renderDataTab(op, project);
+      attachSearchHandlers();
+      attachDataHandlers();
+      break;
+  }
   
-  // Render ledger
-  renderLedger(op);
-  
-  // Render integrations
-  renderIntegrations(op);
-  
-  // Render payments
-  renderPayments(op);
+  // Render sidebar (common)
+  renderOperatorSidebar(op);
 }
+
+function renderOperatorTabs(op) {
+  const container = document.getElementById('operator-tabs');
+  if (!container) return;
+  
+  const tabs = ['overview', 'create', 'grow', 'money', 'data'];
+  container.innerHTML = tabs.map(tab => `
+    <button class="operator-tab ${operatorActiveTab === tab ? 'active' : ''}" 
+            data-tab="${tab}" 
+            role="tab" 
+            aria-selected="${operatorActiveTab === tab}"
+            onclick="switchOperatorTab('${tab}')">
+      ${tab.charAt(0).toUpperCase() + tab.slice(1)}
+    </button>
+  `).join('');
+}
+
+function switchOperatorTab(tab) {
+  operatorActiveTab = tab;
+  if (state.currentProject) {
+    renderOperatorView(state.currentProject);
+  }
+}
+
+function renderOverviewTab(op, project) {
+  const salesRows = op.ledger.sheets?.sales?.rows || [];
+  const totalRevenue = salesRows.reduce((sum, row) => sum + (row.revenue || 0), 0);
+  const pendingCount = op.outbox.filter(a => a.status === 'pending').length;
+  const integrationsActive = Object.values(op.integrations || {}).filter(v => v).length;
+  
+  return `
+    <div class="operator-hero-stats">
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Credits</span>
+        <span class="operator-stat-value" style="color:var(--color-accent)">${getAvailableCredits(project)}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Pending</span>
+        <span class="operator-stat-value">${pendingCount}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Passes</span>
+        <span class="operator-stat-value">${op.runLog.length}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Revenue</span>
+        <span class="operator-stat-value">$${totalRevenue.toLocaleString()}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Integrations</span>
+        <span class="operator-stat-value">${integrationsActive}</span>
+      </div>
+    </div>
+    
+    <div class="operator-grid">
+      <div class="operator-main">
+        <div class="operator-card">
+          <h3 class="operator-card-title">Chat with Otto</h3>
+          <div id="operator-chat-thread" class="operator-chat-thread"></div>
+          <div class="operator-chat-input-row">
+            <input type="text" id="operator-chat-input" placeholder="Type a message..." autocomplete="off">
+            <button class="btn btn-primary" id="operator-chat-send">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+          ${op.chat.length < 3 ? '<div class="operator-chat-suggestions"><button class="operator-chip" data-suggest="Create a brand kit">Brand kit</button><button class="operator-chip" data-suggest="Draft a LinkedIn post">LinkedIn post</button><button class="operator-chip" data-suggest="Write an email">Email</button><button class="operator-chip" data-suggest="Market research">Research</button></div>' : ''}
+        </div>
+        
+        <div id="operator-brand-kit"></div>
+        <div id="operator-ledger"></div>
+      </div>
+      <div class="operator-sidebar" id="operator-sidebar"></div>
+    </div>
+  `;
+}
+
+function renderCreateTab(op, project) {
+  return `
+    <div class="operator-grid">
+      <div class="operator-main">
+        <div class="operator-card">
+          <h3 class="operator-card-title">Create Content</h3>
+          <p class="operator-note">All content is generated locally and deterministically from your project brief. Use the command bar above, or pick a quick action.</p>
+          <div class="operator-quick-actions" style="margin-top:var(--spacing-md)">
+            <button class="operator-chip" onclick="quickCommand('brand')">Brand Kit</button>
+            <button class="operator-chip" onclick="quickCommand('twitter post')">Twitter Post</button>
+            <button class="operator-chip" onclick="quickCommand('linkedin post')">LinkedIn Post</button>
+            <button class="operator-chip" onclick="quickCommand('email')">Email Draft</button>
+            <button class="operator-chip" onclick="quickCommand('outreach')">Outreach List</button>
+            <button class="operator-chip" onclick="quickCommand('research')">Market Research</button>
+            <button class="operator-chip" onclick="quickCommand('deck')">Pitch Deck</button>
+            <button class="operator-chip" onclick="quickCommand('site')">Landing Site</button>
+          </div>
+        </div>
+        <div id="operator-outbox"></div>
+      </div>
+      <div class="operator-sidebar" id="operator-sidebar"></div>
+    </div>
+  `;
+}
+
+function renderGrowTab(op, project) {
+  const scheduleHtml = renderContentCalendar(op);
+  const inboxHtml = renderInbox(op);
+  
+  return `
+    <div class="operator-grid">
+      <div class="operator-main">
+        <div class="operator-card">
+          <h3 class="operator-card-title">Content Calendar</h3>
+          <p class="operator-note">Schedule posts locally — no network sync. Simulated for planning.</p>
+          ${scheduleHtml}
+        </div>
+        <div class="operator-card" style="margin-top:var(--spacing-lg)">
+          <h3 class="operator-card-title">Unified Inbox</h3>
+          <p class="operator-note">Simulated locally — no network. Replies generated from outreach.</p>
+          ${inboxHtml}
+        </div>
+      </div>
+      <div class="operator-sidebar" id="operator-sidebar"></div>
+    </div>
+  `;
+}
+
+function renderMoneyTab(op, project) {
+  const ledgerHtml = renderMultiSheetLedger(op);
+  const paymentsHtml = renderPaymentsPlans(op);
+  const insightsHtml = renderInsights(op);
+  
+  return `
+    <div class="operator-grid">
+      <div class="operator-main">
+        <div class="operator-card">
+          <h3 class="operator-card-title">Insights</h3>
+          ${insightsHtml}
+        </div>
+        <div class="operator-card" style="margin-top:var(--spacing-lg)">
+          <h3 class="operator-card-title">Ledger</h3>
+          ${ledgerHtml}
+        </div>
+        <div class="operator-card" style="margin-top:var(--spacing-lg)">
+          <h3 class="operator-card-title">Payments</h3>
+          ${paymentsHtml}
+        </div>
+      </div>
+      <div class="operator-sidebar" id="operator-sidebar"></div>
+    </div>
+  `;
+}
+
+function renderDataTab(op, project) {
+  return `
+    <div class="operator-grid">
+      <div class="operator-main">
+        <div class="operator-card">
+          <h3 class="operator-card-title">Global Search</h3>
+          <p class="operator-note">Search your outbox, chat history, and research locally.</p>
+          <div class="operator-command-bar" style="margin-top:var(--spacing-md)">
+            <input type="text" id="operator-search-input" placeholder="Search artifacts, chat, research..." value="${escapeHtml(globalSearchQuery)}" oninput="handleGlobalSearch(this.value)">
+          </div>
+          <div id="operator-search-results" style="margin-top:var(--spacing-md)"></div>
+        </div>
+        <div class="operator-card" style="margin-top:var(--spacing-lg)">
+          <h3 class="operator-card-title">Data & Privacy</h3>
+          <p class="operator-note">Your data is stored locally in browser storage. It is never sent to any server or used for training.</p>
+          <div class="operator-actions" style="margin-top:var(--spacing-md)">
+            <button class="btn btn-secondary" onclick="exportOperatorBundle()">Export All (JSON)</button>
+            <button class="btn btn-secondary" onclick="exportOperatorMarkdown()">Export Markdown</button>
+            <button class="btn btn-secondary" onclick="copyWorkspaceJson()">Copy Workspace JSON</button>
+          </div>
+          <div class="operator-actions" style="margin-top:var(--spacing-sm)">
+            <button class="btn btn-secondary" style="color:var(--color-distracting);border-color:var(--color-distracting)" onclick="wipeOperatorData()">Wipe Operator Data</button>
+          </div>
+          <p class="operator-note" style="margin-top:var(--spacing-md);font-size:11px">Wiping resets Otto's data (chat, outbox, ledger, inbox, schedule) to defaults. Your project brief remains unchanged.</p>
+        </div>
+      </div>
+      <div class="operator-sidebar" id="operator-sidebar"></div>
+    </div>
+  `;
+}
+
+// === NEW HELPER FUNCTIONS FOR OPERATOR V2 ===
+
+function renderOperatorChat(op) {
+  const container = document.getElementById('operator-chat-thread');
+  if (!container) return;
+  
+  if (op.chat.length === 0) {
+    container.innerHTML = '<div class="operator-empty">Start a conversation with Otto...</div>';
+    return;
+  }
+  
+  container.innerHTML = op.chat.map(msg => `
+    <div class="operator-chat-bubble ${msg.role}">
+      ${msg.role === 'otto' ? '<div class="operator-chat-avatar">O</div>' : ''}
+      <div class="operator-chat-text">${escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>
+      <div class="operator-chat-time">${new Date(msg.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+  `).join('');
+  
+  container.scrollTop = container.scrollHeight;
+}
+
+function attachChatHandlers() {
+  const input = document.getElementById('operator-chat-input');
+  const sendBtn = document.getElementById('operator-chat-send');
+  const suggestBtns = document.querySelectorAll('.operator-chip[data-suggest]');
+  
+  if (!input || !sendBtn) return;
+  
+  sendBtn.addEventListener('click', () => handleChatSubmit());
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleChatSubmit();
+  });
+  
+  suggestBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      input.value = btn.dataset.suggest;
+      handleChatSubmit();
+    });
+  });
+}
+
+function handleChatSubmit() {
+  if (!state.currentProject) return;
+  const input = document.getElementById('operator-chat-input');
+  if (!input) return;
+  
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const op = ensureOperator(state.currentProject);
+  
+  // Add user message
+  addChatMessage(state.currentProject, 'user', text);
+  input.value = '';
+  
+  // Get Otto's response
+  const response = getOttoResponse(state.currentProject, text);
+  
+  // If it's a generator command, execute it
+  if (['brand', 'post', 'email', 'outreach', 'research', 'deck', 'site'].includes(response)) {
+    const cmdMap = { brand: 'brand', post: 'twitter post', email: 'email', outreach: 'outreach', research: 'research', deck: 'deck', site: 'site' };
+    const originalCmd = input.value || text;
+    
+    // Simulate command execution
+    const cmdInput = document.getElementById('operator-command-input');
+    if (cmdInput) {
+      cmdInput.value = cmdMap[response];
+      handleOperatorCommand();
+    }
+    
+    addChatMessage(state.currentProject, 'otto', `I've generated a ${response} and added it to your Outbox. Check the Create tab to review.`);
+  } else {
+    // Conversational response
+    addChatMessage(state.currentProject, 'otto', response);
+  }
+  
+  saveState();
+  renderOperatorChat(op);
+}
+
+function renderContentCalendar(op) {
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
+  
+  const postsByDay = {};
+  (op.schedule || []).forEach(s => {
+    if (!postsByDay[s.date]) postsByDay[s.date] = [];
+    postsByDay[s.date].push(s);
+  });
+  
+  return `
+    <div class="operator-calendar-grid">
+      ${days.map(day => {
+        const dateStr = day.toISOString().split('T')[0];
+        const dayName = day.toLocaleDateString('en-US', {weekday:'short'});
+        const dayNum = day.getDate();
+        const scheduled = postsByDay[dateStr] || [];
+        
+        return `
+          <div class="operator-calendar-day" data-date="${dateStr}">
+            <div class="operator-calendar-day-header">
+              <span class="operator-calendar-day-name">${dayName}</span>
+              <span class="operator-calendar-day-num">${dayNum}</span>
+            </div>
+            <div class="operator-calendar-day-items">
+              ${scheduled.length === 0 ? '<span class="operator-calendar-empty">No posts</span>' : scheduled.map(s => `
+                <div class="operator-calendar-chip ${s.platform}">
+                  <span>${s.platform}</span>
+                  <button class="operator-calendar-remove" data-schedule-id="${s.id}">&times;</button>
+                </div>
+              `).join('')}
+            </div>
+            ${scheduled.length === 0 ? `<button class="btn btn-sm btn-secondary operator-calendar-add" data-date="${dateStr}">+ Schedule</button>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function attachCalendarHandlers() {
+  document.querySelectorAll('.operator-calendar-add').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const date = btn.dataset.date;
+      if (!state.currentProject) return;
+      const op = ensureOperator(state.currentProject);
+      const pendingPosts = op.outbox.filter(a => a.type === 'post' && a.status === 'pending');
+      if (pendingPosts.length === 0) {
+        showToast('No pending posts to schedule');
+        return;
+      }
+      const post = pendingPosts[0];
+      op.schedule = op.schedule || [];
+      op.schedule.push({
+        id: 'sched-' + Date.now(),
+        artifactId: post.id,
+        date,
+        time: '09:00',
+        platform: post.platform || 'generic'
+      });
+      saveState();
+      renderOperatorView(state.currentProject);
+    });
+  });
+  
+  document.querySelectorAll('.operator-calendar-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!state.currentProject) return;
+      const op = ensureOperator(state.currentProject);
+      const id = btn.dataset.scheduleId;
+      op.schedule = (op.schedule || []).filter(s => s.id !== id);
+      saveState();
+      renderOperatorView(state.currentProject);
+    });
+  });
+}
+
+function renderInbox(op) {
+  const inbox = op.inbox || [];
+  
+  if (inbox.length === 0) {
+    return '<div class="operator-empty">No messages yet. Generate outreach to receive simulated replies.</div>';
+  }
+  
+  return `
+    <div class="operator-inbox-list">
+      ${inbox.map(msg => `
+        <div class="operator-inbox-item ${msg.read ? '' : 'unread'}">
+          <div class="operator-inbox-header">
+            <span class="operator-inbox-from">${escapeHtml(msg.from)}</span>
+            <span class="operator-inbox-channel">${escapeHtml(msg.channel)}</span>
+            <span class="operator-inbox-time">${new Date(msg.receivedAt).toLocaleDateString()}</span>
+          </div>
+          <div class="operator-inbox-message">${escapeHtml(msg.message)}</div>
+          <div class="operator-inbox-actions">
+            <button class="btn btn-sm btn-secondary" onclick="draftReply('${msg.id}')">Draft reply</button>
+            <button class="btn btn-sm btn-text" onclick="archiveMessage('${msg.id}')">Archive</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function attachInboxHandlers() {
+  // Handlers are inline onclick for simplicity
+}
+
+function draftReply(msgId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const msg = (op.inbox || []).find(m => m.id === msgId);
+  if (!msg) return;
+  
+  const artifact = {
+    type: 'email',
+    title: `Re: ${msg.from}`,
+    subject: `Re: Your inquiry`,
+    body: `Hi ${msg.from.split(' ')[0]},\n\nThanks for reaching out! ${msg.message}\n\nI'd be happy to help. Let me know if you have any questions.\n\nBest,\n[Your name]`
+  };
+  
+  pushUndoSnapshot(state.currentProject);
+  addToOutbox(state.currentProject, artifact);
+  saveState();
+  renderOperatorView(state.currentProject);
+  showToast('Draft reply added to Outbox');
+}
+
+function archiveMessage(msgId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.inbox = (op.inbox || []).filter(m => m.id !== msgId);
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function renderMultiSheetLedger(op) {
+  const sheets = ['sales', 'stock', 'costs'];
+  const currentSheet = operatorLedgerSheet || 'sales';
+  const rows = (op.ledger.sheets?.[currentSheet]?.rows) || [];
+  
+  const total = rows.reduce((sum, row) => {
+    return {
+      orders: sum.orders + (row.orders || 0),
+      revenue: sum.revenue + (row.revenue || 0),
+      cost: sum.cost + (row.cost || 0)
+    };
+  }, { orders: 0, revenue: 0, cost: 0 });
+  
+  const maxRevenue = rows.length > 0 ? Math.max(...rows.map(r => r.revenue || 0)) : 0;
+  
+  return `
+    <div class="operator-ledger-sheets">
+      <div class="operator-ledger-tabs">
+        ${sheets.map(s => `
+          <button class="operator-ledger-tab ${currentSheet === s ? 'active' : ''}" data-sheet="${s}" onclick="switchLedgerSheet('${s}')">
+            ${s.charAt(0).toUpperCase() + s.slice(1)}
+          </button>
+        `).join('')}
+      </div>
+      ${rows.length === 0 ? `
+        <div class="operator-empty">
+          <p>No entries in ${currentSheet} sheet.</p>
+          <button class="btn btn-sm btn-primary" onclick="addLedgerRow('${currentSheet}')" style="margin-top:var(--spacing-sm)">Add first row</button>
+        </div>
+      ` : `
+        <table class="ledger-table">
+          <thead><tr><th>Period</th><th>Orders</th><th>Revenue</th><th>Cost</th><th>Margin</th><th></th></tr></thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'period', this.textContent)">${escapeHtml(row.period)}</td>
+                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'orders', parseInt(this.textContent)||0)">${row.orders}</td>
+                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'revenue', parseInt(this.textContent)||0)">${row.revenue}</td>
+                <td contenteditable="true" onblur="updateLedgerCell('${currentSheet}', ${row.id}, 'cost', parseInt(this.textContent)||0)">${row.cost}</td>
+                <td>${(row.revenue || 0) - (row.cost || 0)}</td>
+                <td><button class="btn-icon" onclick="deleteLedgerRow('${currentSheet}', ${row.id})" aria-label="Delete" style="width:24px;height:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></td>
+              </tr>
+            `).join('')}
+            <tr class="ledger-totals">
+              <td><strong>Totals</strong></td>
+              <td>${total.orders}</td>
+              <td>${total.revenue}</td>
+              <td>${total.cost}</td>
+              <td>${total.revenue - total.cost}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ledger-chart">
+          ${rows.map(row => `<div class="ledger-bar" style="height:${maxRevenue > 0 ? Math.max(10, ((row.revenue || 0) / maxRevenue) * 100) : 10}%" title="${row.period}: $${row.revenue}"></div>`).join('')}
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="addLedgerRow('${currentSheet}')" style="margin-top:var(--spacing-sm)">Add row</button>
+      `}
+    </div>
+  `;
+}
+
+function switchLedgerSheet(sheet) {
+  operatorLedgerSheet = sheet;
+  if (state.currentProject) renderOperatorView(state.currentProject);
+}
+
+function addLedgerRow(sheet = 'sales') {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  pushUndoSnapshot(state.currentProject);
+  const rows = op.ledger.sheets[sheet].rows;
+  const newId = rows.length > 0 ? Math.max(...rows.map(r => r.id)) + 1 : 1;
+  rows.push({ id: newId, period: `Week ${rows.length + 1}`, orders: 0, revenue: 0, cost: 0 });
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function deleteLedgerRow(sheet, rowId) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  pushUndoSnapshot(state.currentProject);
+  op.ledger.sheets[sheet].rows = op.ledger.sheets[sheet].rows.filter(r => r.id !== rowId);
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function updateLedgerCell(sheet, rowId, field, value) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const row = op.ledger.sheets[sheet].rows.find(r => r.id === rowId);
+  if (row) {
+    row[field] = value;
+    saveState();
+    renderOperatorView(state.currentProject);
+  }
+}
+
+function renderPaymentsPlans(op) {
+  const plans = op.payments.plans || [];
+  
+  return `
+    <div class="operator-plans-grid">
+      ${plans.map(plan => `
+        <div class="operator-plan-card">
+          <h4 class="operator-plan-name">${escapeHtml(plan.name)}</h4>
+          <div class="operator-plan-price">$${plan.price}<span class="operator-plan-period">/mo</span></div>
+          <ul class="operator-plan-features">
+            ${(plan.features || []).map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('')}
+    </div>
+    <div class="payments-config" style="margin-top:var(--spacing-md)">
+      <div class="form-group">
+        <label>Active plan</label>
+        <input type="text" id="payment-plan" value="${escapeHtml(op.payments.plan)}" onchange="updatePayments('plan', this.value)">
+      </div>
+      <div class="form-group">
+        <label>Price</label>
+        <input type="number" id="payment-price" value="${op.payments.price}" onchange="updatePayments('price', parseInt(this.value)||0)">
+      </div>
+      <div class="form-group">
+        <label>Currency</label>
+        <select id="payment-currency" onchange="updatePayments('currency', this.value)">
+          <option value="USD" ${op.payments.currency === 'USD' ? 'selected' : ''}>USD</option>
+          <option value="EUR" ${op.payments.currency === 'EUR' ? 'selected' : ''}>EUR</option>
+          <option value="GBP" ${op.payments.currency === 'GBP' ? 'selected' : ''}>GBP</option>
+        </select>
+      </div>
+    </div>
+    <div class="payments-export" style="margin-top:var(--spacing-md)">
+      <h4>Stripe snippet</h4>
+      <pre><code>const price = {
+  id: 'price_${toKebabCase(op.payments.plan)}',
+  unit_amount: ${op.payments.price * 100},
+  currency: '${op.payments.currency.toLowerCase()}',
+  product_data: { name: '${escapeHtml(state.currentProject?.name || 'Product')}' }
+};</code></pre>
+      <button class="btn btn-sm btn-secondary" onclick="copyPaymentsConfig()">Copy</button>
+    </div>
+    <p class="operator-note">Sweep takes no fee — you own the Stripe account</p>
+  `;
+}
+
+function renderInsights(op) {
+  const insights = op.insights || { visitors: 0, conversionRate: 0, orders: 0, revenue: 0, bestChannel: 'N/A' };
+  const salesRows = op.ledger.sheets?.sales?.rows || [];
+  const maxRev = salesRows.length ? Math.max(...salesRows.map(r => r.revenue || 0)) : 0;
+  
+  // Compute from ledger if insights are empty
+  if (insights.revenue === 0 && salesRows.length > 0) {
+    insights.revenue = salesRows.reduce((sum, r) => sum + (r.revenue || 0), 0);
+    insights.orders = salesRows.reduce((sum, r) => sum + (r.orders || 0), 0);
+    insights.conversionRate = insights.orders > 0 ? ((insights.orders / (insights.visitors || 1)) * 100).toFixed(1) : 0;
+  }
+  
+  return `
+    <div class="operator-insights-grid">
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Visitors</span>
+        <span class="operator-stat-value">${insights.visitors.toLocaleString()}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Conversion</span>
+        <span class="operator-stat-value">${insights.conversionRate}%</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Orders</span>
+        <span class="operator-stat-value">${insights.orders}</span>
+      </div>
+      <div class="operator-stat-tile">
+        <span class="operator-stat-label">Revenue</span>
+        <span class="operator-stat-value">$${insights.revenue.toLocaleString()}</span>
+      </div>
+    </div>
+    ${salesRows.length > 0 ? `
+      <p class="operator-note" style="margin-top:var(--spacing-md);margin-bottom:var(--spacing-xs)">Revenue by period (from Sales ledger)</p>
+      <div class="operator-chart">
+        ${salesRows.map(r => `<div class="operator-chart-col"><div class="operator-chart-bar" style="height:${maxRev > 0 ? Math.max(8, ((r.revenue || 0) / maxRev) * 100) : 8}%" title="${escapeHtml(r.period)}: $${r.revenue || 0}"></div><span class="operator-chart-x">${escapeHtml(r.period)}</span></div>`).join('')}
+      </div>
+    ` : ''}
+    <p class="operator-note" style="margin-top:var(--spacing-sm)">Best channel: <strong>${escapeHtml(insights.bestChannel)}</strong></p>
+    <p class="operator-note" style="font-size:11px">Projection based on ledger data (local simulation — no network)</p>
+  `;
+}
+
+function renderOperatorSidebar(op) {
+  const container = document.getElementById('operator-sidebar');
+  if (!container) return;
+  
+  container.innerHTML = `
+    <div class="operator-card">
+      <h3 class="operator-card-title">Run Log</h3>
+      ${renderRunLogContent(op)}
+    </div>
+    <div class="operator-card">
+      <h3 class="operator-card-title">Outbox</h3>
+      ${renderOutboxSummary(op)}
+    </div>
+    <div class="operator-actions">
+      <button class="btn btn-secondary btn-sm" onclick="exportOperatorBundle()">Export JSON</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportOperatorMarkdown()">Export MD</button>
+    </div>
+  `;
+}
+
+function renderRunLogContent(op) {
+  if (op.runLog.length === 0) return '<div class="operator-empty">No actions yet</div>';
+  return `<div class="run-log-list">${op.runLog.slice(-10).reverse().map(entry => `
+    <div class="run-log-entry">
+      <span class="run-log-action">${escapeHtml(entry.action)}</span>
+      <span class="run-log-time">${new Date(entry.timestamp).toLocaleTimeString()}</span>
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderOutboxSummary(op) {
+  const pending = op.outbox.filter(a => a.status === 'pending').length;
+  const approved = op.outbox.filter(a => a.status === 'approved').length;
+  return `<div class="operator-outbox-summary"><div>Pending: <strong>${pending}</strong></div><div>Approved: <strong>${approved}</strong></div><button class="btn btn-sm btn-secondary" onclick="navigateTo('operator');switchOperatorTab('create')" style="margin-top:var(--spacing-sm);width:100%">View all</button></div>`;
+}
+
+function handleUndo() {
+  if (!state.currentProject) return;
+  if (undoLastChange(state.currentProject)) {
+    addToRunLog(state.currentProject, 'undo', 'Restored previous state');
+    saveState();
+    renderOperatorView(state.currentProject);
+    showToast('Undone last change');
+  } else {
+    showToast('Nothing to undo');
+  }
+}
+
+function handleGlobalSearch(query) {
+  globalSearchQuery = query;
+  const resultsEl = document.getElementById('operator-search-results');
+  if (!resultsEl || !state.currentProject) return;
+  
+  const op = ensureOperator(state.currentProject);
+  const q = query.toLowerCase().trim();
+  
+  if (q.length < 2) {
+    resultsEl.innerHTML = '<div class="operator-empty">Type 2+ characters to search</div>';
+    return;
+  }
+  
+  const matches = [];
+  
+  // Search outbox
+  op.outbox.forEach(a => {
+    const text = `${a.title} ${a.copy || ''} ${a.body || ''} ${a.subject || ''} ${a.positioning || ''}`.toLowerCase();
+    if (text.includes(q)) {
+      matches.push({ type: 'Outbox', title: a.title, preview: (a.copy || a.body || a.subject || '').substring(0, 100) });
+    }
+  });
+  
+  // Search chat
+  op.chat.forEach(c => {
+    if (c.text.toLowerCase().includes(q)) {
+      matches.push({ type: 'Chat', title: `${c.role === 'user' ? 'You' : 'Otto'}`, preview: c.text.substring(0, 100) });
+    }
+  });
+  
+  // Search research/deck
+  if (op.outbox) {
+    op.outbox.filter(a => a.type === 'research' || a.type === 'deck').forEach(a => {
+      if (a.title.toLowerCase().includes(q)) {
+        matches.push({ type: a.type === 'research' ? 'Research' : 'Deck', title: a.title, preview: (a.positioning || '').substring(0, 100) });
+      }
+    });
+  }
+  
+  if (matches.length === 0) {
+    resultsEl.innerHTML = '<div class="operator-empty">No matches found</div>';
+  } else {
+    resultsEl.innerHTML = `<div class="operator-search-results">${matches.slice(0, 20).map(m => `
+      <div class="operator-search-result">
+        <span class="operator-search-type">${m.type}</span>
+        <span class="operator-search-title">${escapeHtml(m.title)}</span>
+        <span class="operator-search-preview">${escapeHtml(m.preview)}${m.preview.length >= 100 ? '...' : ''}</span>
+      </div>
+    `).join('')}</div>`;
+  }
+}
+
+function attachSearchHandlers() {
+  // Input handler is inline oninput
+}
+
+function attachDataHandlers() {
+  // Handlers are inline onclick
+}
+
+function copyWorkspaceJson() {
+  if (!state.currentProject) return;
+  const json = JSON.stringify(state.currentProject, null, 2);
+  navigator.clipboard.writeText(json).then(() => showToast('Workspace JSON copied'));
+}
+
+function wipeOperatorData() {
+  if (!state.currentProject) return;
+  if (!confirm('This will reset all Operator data (chat, outbox, ledger, inbox, schedule). Your project brief will remain. Continue?')) return;
+  
+  const op = ensureOperator(state.currentProject);
+  op.chat = [];
+  op.outbox = [];
+  op.runLog = [];
+  op.undoStack = [];
+  op.schedule = [];
+  op.inbox = [];
+  op.ledger = { sheets: { sales: { rows: [] }, stock: { rows: [] }, costs: { rows: [] } } };
+  
+  saveState();
+  renderOperatorView(state.currentProject);
+  showToast('Operator data wiped');
+}
+
+function attachLedgerSheetHandlers() {
+  // Tab handlers are inline onclick
+}
+
+function attachPaymentsHandlers() {
+  // Handlers are inline onchange
+}
+
+// === END NEW HELPER FUNCTIONS ===
 
 function renderBrandKit(op) {
   const container = document.getElementById('operator-brand-kit');
@@ -1828,6 +2724,7 @@ function approveArtifact(artifactId) {
   const op = ensureOperator(state.currentProject);
   const artifact = op.outbox.find(a => a.id === artifactId);
   if (artifact) {
+    pushUndoSnapshot(state.currentProject);
     artifact.status = 'approved';
     saveState();
     renderOutbox(op);
@@ -1840,6 +2737,7 @@ function rejectArtifact(artifactId) {
   const op = ensureOperator(state.currentProject);
   const artifact = op.outbox.find(a => a.id === artifactId);
   if (artifact) {
+    pushUndoSnapshot(state.currentProject);
     artifact.status = 'rejected';
     saveState();
     renderOutbox(op);
@@ -2066,34 +2964,6 @@ function renderLedger(op) {
   `;
 }
 
-function addLedgerRow() {
-  if (!state.currentProject) return;
-  const op = ensureOperator(state.currentProject);
-  const newId = op.ledger.rows.length > 0 ? Math.max(...op.ledger.rows.map(r => r.id)) + 1 : 1;
-  op.ledger.rows.push({ id: newId, period: `Week ${op.ledger.rows.length + 1}`, orders: 0, revenue: 0, cost: 0 });
-  saveState();
-  renderLedger(op);
-}
-
-function deleteLedgerRow(rowId) {
-  if (!state.currentProject) return;
-  const op = ensureOperator(state.currentProject);
-  op.ledger.rows = op.ledger.rows.filter(r => r.id !== rowId);
-  saveState();
-  renderLedger(op);
-}
-
-function updateLedgerCell(rowId, field, value) {
-  if (!state.currentProject) return;
-  const op = ensureOperator(state.currentProject);
-  const row = op.ledger.rows.find(r => r.id === rowId);
-  if (row) {
-    row[field] = value;
-    saveState();
-    renderLedger(op);
-  }
-}
-
 function renderIntegrations(op) {
   const container = document.getElementById('operator-integrations');
   if (!container) return;
@@ -2260,11 +3130,13 @@ function handleOperatorCommand() {
     return;
   }
   
-  if (!spendCredits(state.currentProject, creditsCost)) {
+  if (getAvailableCredits(state.currentProject) < creditsCost) {
     showToast(`Insufficient credits. Need ${creditsCost}, have ${getAvailableCredits(state.currentProject)}`);
     return;
   }
-  
+  pushUndoSnapshot(state.currentProject);
+  spendCredits(state.currentProject, creditsCost);
+
   addToOutbox(state.currentProject, artifact);
   addToRunLog(state.currentProject, command, `Generated ${artifact.type} (-${creditsCost} credits)`);
   saveState();
@@ -2278,12 +3150,13 @@ function runAutopilotPass() {
   const op = ensureOperator(state.currentProject);
   const creditsNeeded = 25;
   
-  if (!spendCredits(state.currentProject, creditsNeeded)) {
+  if (getAvailableCredits(state.currentProject) < creditsNeeded) {
     showToast(`Insufficient credits for autopilot pass. Need ${creditsNeeded}`);
     return;
   }
-  
-  // Generate batch
+  pushUndoSnapshot(state.currentProject);
+  spendCredits(state.currentProject, creditsNeeded);
+
   const artifacts = [
     generateBrandKit(state.currentProject),
     generateSocialPosts(state.currentProject, 'twitter'),

@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#faf8f3">
 <title>Sweep Mobile — From idea to checkable plan</title>
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 <style>
 /* Mobile-first overrides — optimized for touch and small screens */
 @media (max-width: 480px) {
@@ -701,33 +701,16 @@
             <span style="font-size:11px">Autopilot</span>
           </label>
         </div>
-        <div class="operator-command-bar">
-          <input type="text" id="operator-command-input" placeholder="Command: brand, post, email..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
-          <button class="btn btn-primary btn-sm" onclick="handleOperatorCommand()">Run</button>
+        <div class="operator-command-bar" style="margin-top:var(--spacing-sm)">
+          <input type="text" id="operator-command-input" placeholder="Type: brand, post, email, research..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
+          <button class="btn btn-primary btn-sm" onclick="handleOperatorCommand()">Generate</button>
         </div>
-        <div class="operator-quick-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:var(--spacing-sm)">
-          <button class="operator-chip" onclick="quickCommand('brand')">Brand</button>
-          <button class="operator-chip" onclick="quickCommand('post')">Post</button>
-          <button class="operator-chip" onclick="quickCommand('email')">Email</button>
-          <button class="operator-chip" onclick="quickCommand('research')">Research</button>
+        <div class="operator-actions" style="margin-top:var(--spacing-xs)">
+          <button class="btn btn-secondary btn-sm" onclick="runAutopilotPass()">Run a pass</button>
+          <button class="btn btn-secondary btn-sm" id="operator-undo-btn" onclick="handleUndo()" disabled>Undo</button>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="runAutopilotPass()" style="width:100%;margin-top:var(--spacing-sm)">Run a pass (-25 credits)</button>
-      </div>
-
-      <div class="operator-main" style="display:flex;flex-direction:column;gap:var(--spacing-md)">
-        <div id="operator-brand-kit"></div>
-        <div id="operator-ledger"></div>
-        <div class="operator-card">
-          <h3 class="operator-card-title">Run Log</h3>
-          <div id="operator-run-log" class="operator-run-log"></div>
-        </div>
-        <div id="operator-outbox"></div>
-        <div id="operator-integrations"></div>
-        <div id="operator-payments"></div>
-        <div class="operator-actions">
-          <button class="btn btn-secondary btn-sm" onclick="exportOperatorBundle()" style="flex:1">Export JSON</button>
-          <button class="btn btn-secondary btn-sm" onclick="exportOperatorMarkdown()" style="flex:1">Export MD</button>
-        </div>
+        <div class="operator-tabs" id="operator-tabs" role="tablist" style="margin-top:var(--spacing-md);overflow-x:auto"></div>
+        <div id="operator-tab-content" style="margin-top:var(--spacing-md)"></div>
       </div>
     </div>
   </section>
@@ -737,7 +720,7 @@
 <!-- Toast notification -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
 // Mobile-specific: sync bottom nav with section changes
 (function() {
