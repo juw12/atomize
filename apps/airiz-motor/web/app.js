@@ -863,7 +863,30 @@
         paramDiv.appendChild(label);
         
         let input;
-        if (param.type === 'enum' && param.options) {
+        if (param.type === 'sfx') {
+          input = document.createElement('select');
+          const lib = window.AIRIZ_SOUNDS || { sounds: [], categories: [] };
+          const byCategory = {};
+          for (const s of lib.sounds) {
+            (byCategory[s.category] = byCategory[s.category] || []).push(s);
+          }
+          for (const cat of lib.categories) {
+            const effects = byCategory[cat.id] || [];
+            if (effects.length === 0) continue;
+            const group = document.createElement('optgroup');
+            group.label = cat.name;
+            for (const s of effects) {
+              const option = document.createElement('option');
+              option.value = s.id;
+              option.textContent = s.name;
+              group.appendChild(option);
+            }
+            input.appendChild(group);
+          }
+          const firstId = lib.sounds.length ? lib.sounds[0].id : '';
+          input.value = param.default || firstId;
+          paramValues[param.key] = input.value;
+        } else if (param.type === 'enum' && param.options) {
           input = document.createElement('select');
           for (const opt of param.options) {
             const option = document.createElement('option');
@@ -905,9 +928,21 @@
     
     const sendBtn = document.createElement('button');
     sendBtn.className = 'btn btn-sm btn-primary';
-    sendBtn.textContent = 'Send';
+    sendBtn.textContent = cmd.browserSound ? 'Play' : 'Send';
     
     sendBtn.addEventListener('click', async () => {
+      if (cmd.browserSound) {
+        const sfxParam = (cmd.params || []).find(p => p.type === 'sfx');
+        const soundId = sfxParam ? paramValues[sfxParam.key] : '';
+        const sound = (((window.AIRIZ_SOUNDS || {}).sounds) || []).find(s => s.id === soundId);
+        if (sound) {
+          playSfx(sound);
+          if (elements.sfxStatus) elements.sfxStatus.textContent = 'Playing: ' + sound.name;
+          logToConsole(`Played sound effect: ${sound.name}`, 'note');
+        }
+        return;
+      }
+      
       if (cmd.destructive) {
         const confirmed = await showConfirm(
           'Destructive Command',
@@ -2338,6 +2373,7 @@
     // Display transforms
     mirrorEnabled: false,
     rotateDegrees: 0,
+    previewSize: 'fit',
     // Session folder state
     sessionActive: false,
     sessionDirHandle: null,
@@ -2379,6 +2415,7 @@
     elements.cameraStop = document.getElementById('btn-camera-stop');
     elements.cameraPreview = document.getElementById('camera-preview');
     elements.cameraPlaceholder = document.getElementById('camera-placeholder');
+    elements.previewSizeButtons = Array.from(document.querySelectorAll('.camera-preview-toolbar [data-preview-size]'));
     elements.cameraStatus = document.getElementById('camera-status');
     elements.cameraDiagnostic = document.getElementById('camera-diagnostic');
     
@@ -2450,7 +2487,17 @@
     if (elements.cameraStop) {
       elements.cameraStop.addEventListener('click', stopCameraPreview);
     }
-    
+    elements.previewSizeButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.previewSize === 'fullscreen') {
+          togglePreviewFullscreen();
+        } else {
+          setPreviewSize(btn.dataset.previewSize);
+        }
+      });
+    });
+    document.addEventListener('fullscreenchange', updatePreviewSizeUI);
+
     // Day/Night & Lights event listeners
     if (elements.btnIrcutDay) {
       elements.btnIrcutDay.addEventListener('click', () => sendLine('diag ircut day'));
@@ -2561,6 +2608,7 @@
     
     // Initial enumeration
     enumerateCameraDevices();
+    setPreviewSize(localStorage.getItem('airiz.previewSize') === 'fill' ? 'fill' : 'fit');
   }
   
   function toggleCameraPanel() {
@@ -2694,6 +2742,12 @@
       });
       
       await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const previewBox = elements.cameraPreview.parentElement;
+      const previewAr = elements.cameraPreview.videoWidth / elements.cameraPreview.videoHeight;
+      if (previewBox && isFinite(previewAr) && previewAr > 0) {
+        previewBox.style.setProperty('--preview-ar', String(previewAr));
+      }
       
       const requestedMode = modeValue === 'auto' ? 'Auto' : modeValue.replace(/x(\d+)$/, '@$1');
       
@@ -3591,6 +3645,47 @@
     }
   }
   
+  // ========================================================================
+  // PREVIEW DISPLAY SIZE
+  // ========================================================================
+
+  function getPreviewBox() {
+    return elements.cameraPreview ? elements.cameraPreview.parentElement : null;
+  }
+
+  function updatePreviewSizeUI() {
+    if (!elements.previewSizeButtons) return;
+    const box = getPreviewBox();
+    const isFullscreen = !!document.fullscreenElement && document.fullscreenElement === box;
+    elements.previewSizeButtons.forEach((btn) => {
+      const mode = btn.dataset.previewSize;
+      const pressed = mode === 'fullscreen' ? isFullscreen : mode === cameraState.previewSize;
+      btn.setAttribute('aria-pressed', String(pressed));
+    });
+  }
+
+  function setPreviewSize(mode) {
+    cameraState.previewSize = mode === 'fill' ? 'fill' : 'fit';
+    try { localStorage.setItem('airiz.previewSize', cameraState.previewSize); } catch (e) {}
+    const box = getPreviewBox();
+    if (box) box.classList.toggle('is-fill', cameraState.previewSize === 'fill');
+    updatePreviewSizeUI();
+  }
+
+  async function togglePreviewFullscreen() {
+    const box = getPreviewBox();
+    if (!box) return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (box.requestFullscreen) {
+        await box.requestFullscreen();
+      }
+    } catch (e) {
+      updateCameraStatus('Fullscreen failed: ' + e.message);
+    }
+  }
+
   // ========================================================================
   // DISPLAY TRANSFORMS
   // ========================================================================

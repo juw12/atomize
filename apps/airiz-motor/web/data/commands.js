@@ -101,7 +101,9 @@ window.AIRIZ_COMMANDS = {
           params: [ { key: "level", label: "Volume", type: "int", default: 10, min: 0, max: 100, hint: "0 – 100" } ],
           expect: "Done" },
         { id: "audio-play", label: "Play test WAV", cmd: "diag audio play /audio/16K_16bit_Stereo_Loud.wav",
-          expect: "Done" }
+          browserSound: true,
+          params: [ { key: "sound", label: "Sound effect", type: "sfx" } ],
+          note: "Picks a built-in sound effect and previews it in this browser (no serial command is sent). Full board in the Sound FX tab." }
       ]
     },
 

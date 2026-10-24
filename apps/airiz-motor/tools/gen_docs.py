@@ -74,7 +74,9 @@ def param_table(params):
     rows = ["| Param | Type | Range / options | Default | Hint |",
             "| --- | --- | --- | --- | --- |"]
     for p in params:
-        if p["type"] == "enum":
+        if p["type"] == "sfx":
+            rng = "built-in sound effect"
+        elif p["type"] == "enum":
             rng = " · ".join(p.get("options", []))
         elif p["type"] == "text":
             rng = "text"
