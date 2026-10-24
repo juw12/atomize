@@ -17,8 +17,15 @@
     <a href="web.html">Web</a>
     <a href="mobile.html">Mobile</a>
     <span class="spacer"></span>
+    <button id="btn-install-app" class="ghost" hidden aria-label="Install app" title="Install via your browser menu (Chrome/Edge → Install app)">Install</button>
     <button id="themeToggle" class="ghost" aria-label="Toggle theme">Light</button>
   </nav>
+
+  <div id="install-callout" class="install-callout" hidden>
+    <span class="callout-text">Install Lingua as an app</span>
+    <button id="callout-install-btn" class="ghost" aria-label="Install app">Install</button>
+    <button id="callout-dismiss-btn" class="ghost" aria-label="Dismiss" title="Dismiss">×</button>
+  </div>
 
   <main class="wrap">
     <section class="hero">
@@ -121,6 +128,97 @@
         navigator.serviceWorker.register("./sw.js").catch(() => { /* offline-only */ });
       });
     }
+  </script>
+  <script>
+    // PWA install affordance — shared logic across all pages.
+    (function () {
+      const INSTALL_KEY = "lingua.installCalloutDismissed";
+      let deferredPrompt = null;
+
+      const btnInstall = document.getElementById("btn-install-app");
+      const callout = document.getElementById("install-callout");
+      const calloutInstallBtn = document.getElementById("callout-install-btn");
+      const calloutDismissBtn = document.getElementById("callout-dismiss-btn");
+
+      // Check if already running as standalone app.
+      function isStandalone() {
+        return window.matchMedia("(display-mode: standalone)").matches;
+      }
+
+      // Hide install UI if already standalone.
+      function hideIfStandalone() {
+        if (isStandalone()) {
+          if (btnInstall) btnInstall.hidden = true;
+          if (callout) callout.hidden = true;
+          return true;
+        }
+        return false;
+      }
+
+      // Show install UI.
+      function showInstallUI() {
+        if (btnInstall) btnInstall.hidden = false;
+        // Only show callout if not dismissed.
+        if (callout) {
+          try {
+            const dismissed = localStorage.getItem(INSTALL_KEY) === "1";
+            if (!dismissed) callout.hidden = false;
+          } catch (_) { /* ignore */ }
+        }
+      }
+
+      // Handle install button click.
+      async function handleInstallClick() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          if (btnInstall) btnInstall.hidden = true;
+          if (callout) callout.hidden = true;
+        }
+        deferredPrompt = null;
+      }
+
+      // beforeinstallprompt — browser supports install.
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!hideIfStandalone()) {
+          showInstallUI();
+        }
+      });
+
+      // appinstalled — app was installed.
+      window.addEventListener("appinstalled", function () {
+        if (btnInstall) btnInstall.hidden = true;
+        if (callout) callout.hidden = true;
+        deferredPrompt = null;
+      });
+
+      // Standalone mode check on load.
+      if (hideIfStandalone()) {
+        // Already standalone, nothing more to do.
+      } else if (!btnInstall || btnInstall.hidden) {
+        // Not installable (no beforeinstallprompt yet) — keep hidden with tooltip.
+        // The title already explains browser menu install.
+      }
+
+      // Event listeners.
+      if (btnInstall) {
+        btnInstall.addEventListener("click", handleInstallClick);
+      }
+      if (calloutInstallBtn) {
+        calloutInstallBtn.addEventListener("click", handleInstallClick);
+      }
+      if (calloutDismissBtn) {
+        calloutDismissBtn.addEventListener("click", function () {
+          if (callout) callout.hidden = true;
+          try {
+            localStorage.setItem(INSTALL_KEY, "1");
+          } catch (_) { /* ignore */ }
+        });
+      }
+    })();
   </script>
   <script>
     // Minimal theme toggle for the landing page.

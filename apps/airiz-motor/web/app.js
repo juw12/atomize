@@ -38,7 +38,10 @@
     currentSteps: [],
     
     // User macros
-    userMacros: []
+    userMacros: [],
+
+    audioAutoSave: true,
+    capture: { active: false, chunks: [], tail: '', sentinel: '', done: false, resolve: null }
   };
 
   // ========================================================================
@@ -65,8 +68,20 @@
     // Tab bar
     elements.tabConsole = document.getElementById('tab-console');
     elements.tabCamera = document.getElementById('tab-camera');
+    elements.tabSfx = document.getElementById('tab-sfx');
     elements.viewConsole = document.getElementById('view-console');
     elements.viewCamera = document.getElementById('view-camera');
+    elements.viewSfx = document.getElementById('view-sfx');
+    
+    // Sound FX panel
+    elements.sfxSearch = document.getElementById('sfx-search');
+    elements.sfxChips = document.getElementById('sfx-chips');
+    elements.sfxGrid = document.getElementById('sfx-grid');
+    elements.sfxStatus = document.getElementById('sfx-status');
+    elements.sfxVolume = document.getElementById('sfx-volume');
+    elements.btnSfxStop = document.getElementById('btn-sfx-stop');
+    elements.btnSfxAddFile = document.getElementById('btn-sfx-add-file');
+    elements.sfxFileInput = document.getElementById('sfx-file-input');
     
     // Status bar
     elements.btnConnect = document.getElementById('btn-connect');
@@ -85,6 +100,8 @@
     elements.btnSaveLog = document.getElementById('btn-save-log');
     elements.chkAutoscroll = document.getElementById('chk-autoscroll');
     elements.rawCommand = document.getElementById('raw-command');
+    elements.chkAudioAutosave = document.getElementById('chk-audio-autosave');
+    elements.audioAutosaveStatus = document.getElementById('audio-autosave-status');
     
     // Macro panel
     elements.macroSelect = document.getElementById('macro-select');
@@ -136,6 +153,9 @@
     registerServiceWorker();
     initTheme();
     initCameraPanel();
+    renderSfxBoard();
+    
+    window.addEventListener('beforeunload', cleanupSfx);
     
     logToConsole('Airiz Motor Test Console initialized', 'welcome');
   }
@@ -192,6 +212,16 @@
     elements.chkAutoscroll.addEventListener('change', (e) => {
       state.autoscroll = e.target.checked;
     });
+    if (elements.chkAudioAutosave) {
+      const stored = localStorage.getItem('airiz.audioAutoSave');
+      state.audioAutoSave = stored === null ? true : stored === '1';
+      elements.chkAudioAutosave.checked = state.audioAutoSave;
+      elements.chkAudioAutosave.addEventListener('change', () => {
+        state.audioAutoSave = elements.chkAudioAutosave.checked;
+        localStorage.setItem('airiz.audioAutoSave', state.audioAutoSave ? '1' : '0');
+        if (!state.audioAutoSave) setAudioAutosaveStatus('');
+      });
+    }
     elements.rawCommand.addEventListener('keydown', handleRawCommandKeydown);
     
     // Command search
@@ -232,6 +262,38 @@
     
     // Theme switcher
     elements.themeToggle.addEventListener('click', handleThemeToggle);
+    
+    // Sound FX
+    if (elements.sfxSearch) {
+      elements.sfxSearch.addEventListener('input', (e) => {
+        sfxState.search = e.target.value;
+        renderSfxBoard();
+      });
+    }
+    if (elements.sfxVolume) {
+      elements.sfxVolume.addEventListener('input', (e) => {
+        sfxState.volume = parseInt(e.target.value, 10) / 100;
+        if (sfxState.master) {
+          sfxState.master.gain.value = sfxState.volume;
+        }
+      });
+    }
+    if (elements.btnSfxStop) {
+      elements.btnSfxStop.addEventListener('click', stopAllSfx);
+    }
+    if (elements.btnSfxAddFile) {
+      elements.btnSfxAddFile.addEventListener('click', () => {
+        if (elements.sfxFileInput) {
+          elements.sfxFileInput.click();
+        }
+      });
+    }
+    if (elements.sfxFileInput) {
+      elements.sfxFileInput.addEventListener('change', (e) => {
+        addUserSfxFiles(e.target.files);
+        e.target.value = '';
+      });
+    }
     
     setupInstallPrompt();
     setupInstallGate();
@@ -363,8 +425,24 @@
             if (done) break;
             if (value) {
               const text = decoder.decode(value);
-              appendToConsole(text, 'response');
-              
+
+              if (state.capture.active) {
+                state.capture.chunks.push(text);
+                const probe = state.capture.tail + text;
+                if (probe.indexOf(state.capture.sentinel) !== -1) {
+                  state.capture.active = false;
+                  state.capture.done = true;
+                  if (state.capture.resolve) {
+                    state.capture.resolve();
+                    state.capture.resolve = null;
+                  }
+                } else {
+                  state.capture.tail = probe.slice(-(state.capture.sentinel.length - 1));
+                }
+              } else {
+                appendToConsole(text, 'response');
+              }
+
               // If in demo mode, also add to demo buffer for wait pattern matching
               if (state.demoMode) {
                 state.demoBuffer += text;
@@ -414,6 +492,11 @@
       appendToConsole(`> ${line}`, 'command');
     } catch (error) {
       logToConsole(`Send error: ${error.message}`, 'error');
+      return;
+    }
+
+    if (/\bdiag\s+audio\s+record\b/i.test(line)) {
+      autoSaveDeviceRecording(line);
     }
   }
 
@@ -446,6 +529,151 @@
     
     appendToConsole(response, 'response');
     state.demoBuffer += response;
+  }
+
+  // ========================================================================
+  // DEVICE AUDIO AUTO-SAVE
+  // ========================================================================
+
+  const DEVICE_WAV_PATH = '/tmp/dmic_record_output.wav';
+  const B64_START = '__B64_START__';
+  const B64_END = '__XFER_END__';
+
+  function setAudioAutosaveStatus(text) {
+    if (elements.audioAutosaveStatus) {
+      elements.audioAutosaveStatus.textContent = text || '';
+    }
+  }
+
+  function parseRecordParams(cmd) {
+    const secs = /-t\s+(\d+)/.exec(cmd);
+    const gain = /-v\s+(\d+)/.exec(cmd);
+    return {
+      seconds: secs ? parseInt(secs[1], 10) : 0,
+      gain: gain ? parseInt(gain[1], 10) : null
+    };
+  }
+
+  function buildAudioFilename(params) {
+    let name = 'dmic_' + formatTimestamp(new Date()) + '_' + (params.seconds || 0) + 's';
+    if (params.gain !== null) {
+      name += '_' + params.gain;
+    }
+    return name + '.wav';
+  }
+
+  function base64ToBytes(b64) {
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+      out[i] = bin.charCodeAt(i);
+    }
+    return out;
+  }
+
+  async function autoSaveDeviceRecording(recordCmd) {
+    if (!state.audioAutoSave || state.demoMode || !state.port) return;
+    if (state.capture.active) {
+      logToConsole('[AUDIO] A capture is already running — skipping auto-save.', 'warning');
+      return;
+    }
+
+    const params = parseRecordParams(recordCmd);
+    state.capture.active = true;
+    state.capture.chunks = [];
+    state.capture.tail = '';
+    state.capture.sentinel = B64_END;
+    state.capture.done = false;
+    state.capture.resolve = null;
+
+    setAudioAutosaveStatus('Recording ' + (params.seconds || '?') + 's — will save when done…');
+    logToConsole('[AUDIO] Recording started; will fetch ' + DEVICE_WAV_PATH + ' when it finishes…', 'note');
+
+    const finished = new Promise((resolve) => { state.capture.resolve = resolve; });
+
+    try {
+      const encoder = new TextEncoder();
+      state.writer = state.port.writable.getWriter();
+      // The end echo is written as __X""FER_END__ so the command line the device
+      // echoes back does not itself contain the sentinel this capture scans for.
+      await state.writer.write(encoder.encode('echo ' + B64_START + '; base64 ' + DEVICE_WAV_PATH + '; echo __X""FER_END__\r\n'));
+      state.writer.releaseLock();
+    } catch (e) {
+      state.capture.active = false;
+      logToConsole('[AUDIO] Could not queue export: ' + e.message, 'error');
+      setAudioAutosaveStatus('Export failed: ' + e.message);
+      return;
+    }
+
+    const timeoutMs = Math.max((params.seconds || 0) * 1000 + 20000, 30000);
+    await Promise.race([finished, sleep(timeoutMs)]);
+
+    const timedOut = !state.capture.done;
+    const all = state.capture.chunks.join('');
+    state.capture.active = false;
+    state.capture.resolve = null;
+
+    if (timedOut) {
+      logToConsole('[AUDIO] Timed out waiting for the WAV dump.', 'warning');
+      setAudioAutosaveStatus('Timed out waiting for device.');
+      return;
+    }
+
+    const start = all.lastIndexOf(B64_START);
+    if (start < 0) {
+      logToConsole('[AUDIO] No data marker in device output.', 'error');
+      setAudioAutosaveStatus('No data received.');
+      return;
+    }
+    let body = all.slice(start + B64_START.length);
+    const end = body.indexOf(B64_END);
+    if (end !== -1) body = body.slice(0, end);
+
+    const b64 = body.replace(/[^A-Za-z0-9+/=]/g, '');
+    if (!b64 || b64.length % 4 !== 0) {
+      logToConsole('[AUDIO] Malformed base64 from device (length ' + b64.length + ').', 'error');
+      setAudioAutosaveStatus('Malformed data from device.');
+      return;
+    }
+
+    let bytes;
+    try {
+      bytes = base64ToBytes(b64);
+    } catch (e) {
+      logToConsole('[AUDIO] base64 decode failed: ' + e.message, 'error');
+      setAudioAutosaveStatus('Decode failed.');
+      return;
+    }
+
+    if (bytes.length < 44 || bytes[0] !== 0x52 || bytes[1] !== 0x49 || bytes[2] !== 0x46 || bytes[3] !== 0x46) {
+      logToConsole('[AUDIO] Pulled data is not a RIFF/WAVE file — not saving.', 'error');
+      setAudioAutosaveStatus('Not a valid WAV.');
+      return;
+    }
+
+    await saveAudioToServer(buildAudioFilename(params), bytes);
+  }
+
+  async function saveAudioToServer(filename, bytes) {
+    try {
+      const res = await fetch('api/audio?name=' + encodeURIComponent(filename), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: bytes
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.ok) {
+        logToConsole('[AUDIO] Saved ' + bytes.length + ' bytes to ' + json.path, 'welcome');
+        setAudioAutosaveStatus('Saved: ' + filename);
+      } else {
+        const why = json.error || ('HTTP ' + res.status);
+        logToConsole('[AUDIO] Save failed: ' + why, 'error');
+        setAudioAutosaveStatus('Save failed: ' + why);
+      }
+    } catch (e) {
+      logToConsole('[AUDIO] Save failed: ' + e.message + ' — is the app served by server/serve.py?', 'error');
+      setAudioAutosaveStatus('Save failed — start server/serve.py');
+    }
   }
 
   // ========================================================================
@@ -1580,24 +1808,28 @@
     if (!elements.tabConsole || !elements.tabCamera) return;
     
     function switchToConsole() {
-      if (elements.viewConsole && elements.viewCamera) {
+      if (elements.viewConsole && elements.viewCamera && elements.viewSfx) {
         elements.viewConsole.hidden = false;
         elements.viewCamera.hidden = true;
+        if (elements.viewSfx) elements.viewSfx.hidden = true;
       }
-      if (elements.tabConsole && elements.tabCamera) {
+      if (elements.tabConsole && elements.tabCamera && elements.tabSfx) {
         elements.tabConsole.setAttribute('aria-selected', 'true');
         elements.tabCamera.setAttribute('aria-selected', 'false');
+        elements.tabSfx.setAttribute('aria-selected', 'false');
       }
     }
     
     function switchToCamera() {
-      if (elements.viewConsole && elements.viewCamera) {
+      if (elements.viewConsole && elements.viewCamera && elements.viewSfx) {
         elements.viewConsole.hidden = true;
         elements.viewCamera.hidden = false;
+        if (elements.viewSfx) elements.viewSfx.hidden = true;
       }
-      if (elements.tabConsole && elements.tabCamera) {
+      if (elements.tabConsole && elements.tabCamera && elements.tabSfx) {
         elements.tabConsole.setAttribute('aria-selected', 'false');
         elements.tabCamera.setAttribute('aria-selected', 'true');
+        elements.tabSfx.setAttribute('aria-selected', 'false');
       }
       
       // Ensure camera panel is expanded in Camera view
@@ -1631,12 +1863,452 @@
       }, 100);
     }
     
+    function switchToSfx() {
+      if (elements.viewConsole && elements.viewCamera && elements.viewSfx) {
+        elements.viewConsole.hidden = true;
+        elements.viewCamera.hidden = true;
+        elements.viewSfx.hidden = false;
+      }
+      if (elements.tabConsole && elements.tabCamera && elements.tabSfx) {
+        elements.tabConsole.setAttribute('aria-selected', 'false');
+        elements.tabCamera.setAttribute('aria-selected', 'false');
+        elements.tabSfx.setAttribute('aria-selected', 'true');
+      }
+      // Render the SFX board on tab switch
+      if (typeof renderSfxBoard === 'function') {
+        renderSfxBoard();
+      }
+    }
+    
     if (elements.tabConsole) {
       elements.tabConsole.addEventListener('click', switchToConsole);
     }
     if (elements.tabCamera) {
       elements.tabCamera.addEventListener('click', switchToCamera);
     }
+    if (elements.tabSfx) {
+      elements.tabSfx.addEventListener('click', switchToSfx);
+    }
+  }
+
+  // ========================================================================
+  // SOUND FX ENGINE
+  // ========================================================================
+  
+  function ensureAudioContext() {
+    if (!sfxState.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        sfxState.ctx = new AudioCtx();
+        sfxState.master = sfxState.ctx.createGain();
+        sfxState.master.gain.value = sfxState.volume;
+        sfxState.master.connect(sfxState.ctx.destination);
+      }
+    }
+    if (sfxState.ctx && sfxState.ctx.state === 'suspended') {
+      sfxState.ctx.resume();
+    }
+    return sfxState.ctx;
+  }
+  
+  function playSpec(spec) {
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    
+    const recipe = spec.recipe;
+    const gain = spec.gain !== undefined ? spec.gain : 0.5;
+    const now = ctx.currentTime;
+    const sources = [];
+    
+    function createFilter(node, filterSpec) {
+      if (!filterSpec) return node;
+      const filter = ctx.createBiquadFilter();
+      filter.type = filterSpec.type || 'lowpass';
+      filter.frequency.value = filterSpec.freq || 1000;
+      filter.Q.value = filterSpec.q || 1;
+      node.connect(filter);
+      filter.connect(sfxState.master);
+      return filter;
+    }
+    
+    function scheduleADSR(gainNode, attack, release, dur) {
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(gain, now + attack);
+      gainNode.gain.setValueAtTime(gain, now + dur - release);
+      gainNode.gain.linearRampToValueAtTime(0, now + dur);
+    }
+    
+    switch (recipe) {
+      case 'tone': {
+        const osc = ctx.createOscillator();
+        osc.type = spec.wave || 'sine';
+        osc.frequency.value = spec.freq || 440;
+        const env = ctx.createGain();
+        env.gain.value = 0;
+        osc.connect(env);
+        createFilter(env, spec.filter);
+        osc.start(now);
+        osc.stop(now + spec.dur);
+        scheduleADSR(env, spec.attack || 0.01, spec.release || 0.1, spec.dur || 0.3);
+        sources.push(osc);
+        break;
+      }
+      
+      case 'sweep': {
+        const osc = ctx.createOscillator();
+        osc.type = spec.wave || 'sine';
+        osc.frequency.setValueAtTime(spec.freqFrom || 440, now);
+        osc.frequency.exponentialRampToValueAtTime(spec.freqTo || 880, now + (spec.dur || 0.5));
+        const env = ctx.createGain();
+        env.gain.value = 0;
+        osc.connect(env);
+        createFilter(env, spec.filter);
+        osc.start(now);
+        osc.stop(now + spec.dur);
+        scheduleADSR(env, spec.attack || 0.01, spec.release || 0.1, spec.dur || 0.5);
+        sources.push(osc);
+        break;
+      }
+      
+      case 'chord': {
+        const freqs = spec.freqs || [440];
+        for (const freq of freqs) {
+          const osc = ctx.createOscillator();
+          osc.type = spec.wave || 'sine';
+          osc.frequency.value = freq;
+          const env = ctx.createGain();
+          env.gain.value = 0;
+          osc.connect(env);
+          createFilter(env, spec.filter);
+          osc.start(now);
+          osc.stop(now + spec.dur);
+          scheduleADSR(env, spec.attack || 0.01, spec.release || 0.2, spec.dur || 0.4);
+          sources.push(osc);
+        }
+        break;
+      }
+      
+      case 'arp': {
+        let time = now;
+        const release = spec.release || 0.05;
+        for (const note of (spec.notes || [])) {
+          const osc = ctx.createOscillator();
+          osc.type = spec.wave || 'sine';
+          osc.frequency.value = note.freq;
+          const env = ctx.createGain();
+          env.gain.setValueAtTime(0, time);
+          env.gain.linearRampToValueAtTime(gain, time + 0.01);
+          env.gain.setValueAtTime(gain, time + note.dur - release);
+          env.gain.linearRampToValueAtTime(0, time + note.dur);
+          osc.connect(env);
+          createFilter(env, spec.filter);
+          osc.start(time);
+          osc.stop(time + note.dur);
+          sources.push(osc);
+          time += note.dur;
+        }
+        break;
+      }
+      
+      case 'noise': {
+        const bufferSize = ctx.sampleRate * (spec.dur || 0.5);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = spec.filterType || 'lowpass';
+        filter.frequency.setValueAtTime(spec.freqFrom || 1000, now);
+        if (spec.freqTo !== undefined) {
+          filter.frequency.exponentialRampToValueAtTime(spec.freqTo, now + (spec.dur || 0.5));
+        }
+        filter.Q.value = spec.q || 1;
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(gain, now);
+        env.gain.linearRampToValueAtTime(0, now + (spec.dur || 0.5));
+        noise.connect(filter);
+        filter.connect(env);
+        env.connect(sfxState.master);
+        noise.start(now);
+        sources.push(noise);
+        break;
+      }
+      
+      case 'impact': {
+        // Noise burst
+        const bufferSize = ctx.sampleRate * (spec.dur || 0.1);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 3000;
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(gain * 0.7, now);
+        env.gain.exponentialRampToValueAtTime(0.01, now + (spec.dur || 0.1));
+        noise.connect(filter);
+        filter.connect(env);
+        env.connect(sfxState.master);
+        noise.start(now);
+        sources.push(noise);
+        
+        // Boom sine
+        const boom = ctx.createOscillator();
+        boom.type = 'sine';
+        boom.frequency.value = spec.boomFreq || 150;
+        const boomEnv = ctx.createGain();
+        boomEnv.gain.setValueAtTime(gain, now);
+        boomEnv.gain.exponentialRampToValueAtTime(0.01, now + (spec.dur || 0.1));
+        boom.connect(boomEnv);
+        boomEnv.connect(sfxState.master);
+        boom.start(now);
+        boom.stop(now + (spec.dur || 0.1));
+        sources.push(boom);
+        break;
+      }
+      
+      case 'siren': {
+        const cycles = spec.cycles || 2;
+        const dur = spec.dur || 1.0;
+        const osc = ctx.createOscillator();
+        osc.type = spec.wave || 'sawtooth';
+        osc.frequency.setValueAtTime(spec.freqFrom || 600, now);
+        // Multiple sweep cycles
+        for (let i = 0; i < cycles; i++) {
+          const t0 = now + (i * dur / cycles);
+          const t1 = t0 + (dur / cycles / 2);
+          const t2 = t0 + (dur / cycles);
+          osc.frequency.setValueAtTime(spec.freqFrom, t0);
+          osc.frequency.linearRampToValueAtTime(spec.freqTo, t1);
+          osc.frequency.linearRampToValueAtTime(spec.freqFrom, t2);
+        }
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0, now);
+        env.gain.linearRampToValueAtTime(gain, now + 0.05);
+        env.gain.setValueAtTime(gain, now + dur - 0.1);
+        env.gain.linearRampToValueAtTime(0, now + dur);
+        osc.connect(env);
+        createFilter(env, spec.filter);
+        osc.start(now);
+        osc.stop(now + dur);
+        sources.push(osc);
+        break;
+      }
+      
+      case 'beeps': {
+        const count = spec.count || 2;
+        const beepDur = spec.beepDur || 0.1;
+        const gap = spec.gap || 0.1;
+        for (let i = 0; i < count; i++) {
+          const t = now + i * (beepDur + gap);
+          const osc = ctx.createOscillator();
+          osc.type = spec.wave || 'sine';
+          osc.frequency.value = spec.freq || 880;
+          const env = ctx.createGain();
+          env.gain.setValueAtTime(0, t);
+          env.gain.linearRampToValueAtTime(gain, t + 0.01);
+          env.gain.setValueAtTime(gain, t + beepDur - 0.02);
+          env.gain.linearRampToValueAtTime(0, t + beepDur);
+          osc.connect(env);
+          createFilter(env, spec.filter);
+          osc.start(t);
+          osc.stop(t + beepDur);
+          sources.push(osc);
+        }
+        break;
+      }
+    }
+    
+    for (const src of sources) {
+      sfxState.active.push(src);
+      src.onended = () => {
+        const idx = sfxState.active.indexOf(src);
+        if (idx > -1) sfxState.active.splice(idx, 1);
+      };
+    }
+  }
+  
+  function stopAllSfx() {
+    for (const src of sfxState.active) {
+      try { src.stop(); } catch (e) {}
+      try { src.disconnect(); } catch (e) {}
+    }
+    sfxState.active = [];
+  }
+  
+  function playSfx(sound) {
+    if (sound.isUser && sound.url) {
+      const audio = document.createElement('audio');
+      audio.src = sound.url;
+      audio.volume = sfxState.volume;
+      audio.play();
+      if (sound.element) {
+        sound.element.classList.add('is-playing');
+        audio.onended = () => sound.element.classList.remove('is-playing');
+      }
+      sfxState.active.push({ stop: () => { audio.pause(); audio.currentTime = 0; }, element: sound.element });
+    } else {
+      playSpec(sound.spec);
+    }
+  }
+  
+  function renderSfxBoard() {
+    if (!elements.sfxGrid || !elements.sfxChips || !elements.sfxStatus) return;
+    
+    const sounds = window.AIRIZ_SOUNDS ? window.AIRIZ_SOUNDS.sounds : [];
+    const categories = window.AIRIZ_SOUNDS ? window.AIRIZ_SOUNDS.categories : [];
+    const filter = sfxState.filterCategory;
+    const search = sfxState.search.toLowerCase();
+    
+    // Render category chips
+    elements.sfxChips.innerHTML = '';
+    const allChip = document.createElement('button');
+    allChip.className = 'sfx-chip' + (filter === 'all' ? ' selected' : '');
+    allChip.textContent = 'All';
+    allChip.dataset.category = 'all';
+    allChip.addEventListener('click', () => {
+      sfxState.filterCategory = 'all';
+      renderSfxBoard();
+    });
+    elements.sfxChips.appendChild(allChip);
+    
+    for (const cat of categories) {
+      const chip = document.createElement('button');
+      chip.className = 'sfx-chip' + (filter === cat.id ? ' selected' : '');
+      chip.textContent = cat.name;
+      chip.dataset.category = cat.id;
+      chip.addEventListener('click', () => {
+        sfxState.filterCategory = cat.id;
+        renderSfxBoard();
+      });
+      elements.sfxChips.appendChild(chip);
+    }
+    
+    // Filter sounds
+    const filtered = sounds.filter(s => {
+      const matchesCat = filter === 'all' || s.category === filter;
+      const matchesSearch = !search || 
+        s.name.toLowerCase().includes(search) || 
+        s.desc.toLowerCase().includes(search) ||
+        s.category.toLowerCase().includes(search);
+      return matchesCat && matchesSearch;
+    });
+    
+    // Add user sounds section
+    const userSounds = sfxState.userSounds || [];
+    const allSounds = [...filtered, ...userSounds];
+    
+    // Render grid
+    elements.sfxGrid.innerHTML = '';
+    if (allSounds.length === 0) {
+      elements.sfxGrid.innerHTML = '<div class="sfx-empty">No sounds found</div>';
+      elements.sfxStatus.textContent = '';
+      return;
+    }
+    
+    // Built-in sounds section
+    if (filtered.length > 0) {
+      const sectionTitle = document.createElement('div');
+      sectionTitle.className = 'sfx-section-title';
+      sectionTitle.textContent = 'Built-in sounds';
+      elements.sfxGrid.appendChild(sectionTitle);
+      
+      for (const sound of filtered) {
+        const card = document.createElement('button');
+        card.className = 'sfx-card';
+        card.dataset.id = sound.id;
+        card.innerHTML = `
+          <div class="sfx-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </div>
+          <div class="sfx-card-name">${sound.name}</div>
+          <div class="sfx-card-desc">${sound.desc}</div>
+        `;
+        card.addEventListener('click', () => {
+          playSfx(sound);
+          card.classList.add('is-playing');
+          setTimeout(() => card.classList.remove('is-playing'), 500);
+          if (elements.sfxStatus) {
+            elements.sfxStatus.textContent = 'Playing: ' + sound.name;
+          }
+        });
+        elements.sfxGrid.appendChild(card);
+      }
+    }
+    
+    // User sounds section
+    if (userSounds.length > 0) {
+      const sectionTitle = document.createElement('div');
+      sectionTitle.className = 'sfx-section-title';
+      sectionTitle.textContent = 'Your sounds';
+      elements.sfxGrid.appendChild(sectionTitle);
+      
+      for (const sound of userSounds) {
+        const card = document.createElement('button');
+        card.className = 'sfx-card sfx-card-user';
+        card.dataset.id = sound.id;
+        sound.element = card;
+        card.innerHTML = `
+          <div class="sfx-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
+          </div>
+          <div class="sfx-card-name">${sound.name}</div>
+          <div class="sfx-card-desc">User loaded</div>
+        `;
+        card.addEventListener('click', () => {
+          playSfx(sound);
+        });
+        elements.sfxGrid.appendChild(card);
+      }
+    }
+    
+    elements.sfxStatus.textContent = filtered.length + ' sound' + (filtered.length !== 1 ? 's' : '');
+  }
+  
+  function addUserSfxFiles(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    
+    for (const file of fileList) {
+      if (!file.type.startsWith('audio/')) continue;
+      
+      const url = URL.createObjectURL(file);
+      const id = 'user-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      const name = file.name.replace(/\.[^/.]+$/, '');
+      
+      sfxState.userSounds.push({
+        id: id,
+        name: name,
+        url: url,
+        isUser: true,
+        element: null
+      });
+      sfxState.objectUrls.push(url);
+    }
+    
+    renderSfxBoard();
+  }
+  
+  function cleanupSfx() {
+    stopAllSfx();
+    for (const url of sfxState.objectUrls) {
+      try { URL.revokeObjectURL(url); } catch (e) {}
+    }
+    sfxState.objectUrls = [];
+    sfxState.userSounds = [];
   }
 
   // ========================================================================
@@ -1680,6 +2352,21 @@
       picture: { count: 0, bytes: 0 },
       still: { count: 0, bytes: 0 }
     }
+  };
+
+  // ========================================================================
+  // SOUND FX STATE
+  // ========================================================================
+  
+  const sfxState = {
+    ctx: null,
+    master: null,
+    volume: 0.7,
+    active: [],
+    userSounds: [],
+    objectUrls: [],
+    filterCategory: 'all',
+    search: ''
   };
   
   function initCameraPanel() {

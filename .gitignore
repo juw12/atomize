@@ -33,3 +33,6 @@ desktop.ini
 .idea/
 *.swp
 *~
+
+# ---- Local scratch (not part of the monorepo) ----
+3d/

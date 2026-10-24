@@ -1327,6 +1327,10 @@
           <button class="toggle-btn" id="themeToggle" aria-label="Toggle dark mode">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           </button>
+          <button id="btn-install-app" hidden aria-label="Install app" class="toggle-btn" title="Install app" style="font-size: 13px; font-weight: 500;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
           <button class="user-avatar" id="userAvatarBtn" aria-label="User profile" aria-haspopup="menu" aria-expanded="false">AR</button>
           <div class="avatar-menu" id="avatarMenu" role="menu">
             <div class="avatar-menu-header">
@@ -1339,6 +1343,20 @@
           </div>
         </div>
       </header>
+
+      <!-- INSTALL CALLOUT -->
+      <div id="install-callout" hidden style="background: var(--brand-50); border-bottom: 1px solid var(--brand); padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--brand-600)" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span style="font-size: 13px; color: var(--ink);">Install Orbis as an app for quick access and offline support</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button id="btn-install-callout" class="btn btn-sm btn-primary" style="padding: 6px 12px; font-size: 13px;">Install</button>
+          <button id="btn-dismiss-callout" aria-label="Dismiss" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--muted); border-radius: 4px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
 
       <!-- Content Area -->
       <div class="content">
@@ -4765,6 +4783,62 @@
           navigator.serviceWorker.register('sw.js').catch(() => {});
         }
       }
+
+      // Install button logic
+      let deferredPrompt = null;
+      const installBtn = document.getElementById('btn-install-app');
+      const callout = document.getElementById('install-callout');
+      const installCalloutBtn = document.getElementById('btn-install-callout');
+      const dismissCalloutBtn = document.getElementById('btn-dismiss-callout');
+      const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isInstalled) {
+        if (installBtn) installBtn.hidden = true;
+        if (callout) callout.hidden = true;
+        return;
+      }
+
+      function handleInstallClick() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+            if (installBtn) installBtn.hidden = true;
+            if (callout) callout.hidden = true;
+          }
+          deferredPrompt = null;
+        });
+      }
+
+      if (installBtn) {
+        installBtn.addEventListener('click', handleInstallClick);
+        installBtn.title = 'Install via your browser menu (Chrome/Edge → Install app)';
+      }
+
+      if (installCalloutBtn) {
+        installCalloutBtn.addEventListener('click', handleInstallClick);
+      }
+
+      if (dismissCalloutBtn && callout) {
+        dismissCalloutBtn.addEventListener('click', function() {
+          callout.hidden = true;
+          localStorage.setItem('orbis.installCalloutDismissed', 'true');
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        const dismissed = localStorage.getItem('orbis.installCalloutDismissed') === 'true';
+        if (installBtn) installBtn.hidden = false;
+        if (callout && !dismissed) callout.hidden = false;
+      });
+
+      window.addEventListener('appinstalled', function() {
+        if (installBtn) installBtn.hidden = true;
+        if (callout) callout.hidden = true;
+        deferredPrompt = null;
+      });
     }
 
     // === AUTH GATE ===

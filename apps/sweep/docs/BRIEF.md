@@ -60,7 +60,7 @@ the user through the front half of the `/sweep` pipeline:
 
 ## Overlap check vs existing `apps/*`
 No existing app does idea→app planning/scaffolding (orbis, peers, house-of-articles,
-hazel, lingua, productivity-widget, desk-verdict each *are* apps — none *plan* apps).
+hazel, lingua, pips, desk-verdict each *are* apps — none *plan* apps).
 **No duplicate.** This is the productization of the `/sweep` pipeline itself.
 
 ## Size estimate

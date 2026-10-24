@@ -3,7 +3,7 @@
  * Cache-first strategy with network fallback
  */
 
-const CACHE_NAME = 'airiz-console-v17';
+const CACHE_NAME = 'airiz-console-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
   './app.js',
   './data/commands.js',
   './data/macros.js',
+  './data/sounds.js',
   './icons/app-icon.svg',
   './manifest.webmanifest'
 ];
@@ -44,6 +45,10 @@ self.addEventListener('activate', (event) => {
 
 // Fetch: cache-first, network fallback
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((cached) => {

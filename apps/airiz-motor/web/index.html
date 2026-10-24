@@ -99,6 +99,7 @@
     <div class="tab-bar" role="tablist" aria-label="View switcher">
       <button id="tab-console" class="tab-btn" role="tab" aria-selected="true" aria-controls="view-console">Console</button>
       <button id="tab-camera" class="tab-btn" role="tab" aria-selected="false" aria-controls="view-camera">Camera</button>
+      <button id="tab-sfx" class="tab-btn" role="tab" aria-selected="false" aria-controls="view-sfx">Sound FX</button>
     </div>
 
     <!-- Console View -->
@@ -128,6 +129,10 @@
                 <input type="checkbox" id="chk-autoscroll" checked>
                 Autoscroll
               </label>
+              <label class="checkbox-label" title="After each DMIC record, pull the WAV from the device and save it to the Audio folder">
+                <input type="checkbox" id="chk-audio-autosave" checked>
+                Auto-save recording
+              </label>
             </div>
           </div>
           <div id="console-output" class="console-output" role="log" aria-live="off" aria-relevant="additions">
@@ -136,6 +141,7 @@
           <div class="console-input-area">
             <input type="text" id="raw-command" class="input input-monospace" placeholder="Enter raw command..." aria-label="Raw command input">
           </div>
+          <div id="audio-autosave-status" class="audio-autosave-status" aria-live="polite"></div>
         </section>
 
         <!-- C. Macro Notepad (Right) -->
@@ -400,6 +406,25 @@
       </div>
       </section>
     </div>
+
+    <!-- Sound FX View -->
+    <div id="view-sfx" hidden>
+      <section class="panel panel-sfx">
+        <div class="panel-header">
+          <h2>Sound Effects</h2>
+          <input type="text" id="sfx-search" class="input" placeholder="Search sounds..." aria-label="Search sounds">
+        </div>
+        <div class="panel-header">
+          <div id="sfx-chips" class="sfx-chips" role="group" aria-label="Filter by category"></div>
+          <label>Volume <input type="range" id="sfx-volume" min="0" max="100" value="70"></label>
+          <button id="btn-sfx-stop" class="btn btn-sm">Stop all</button>
+          <button id="btn-sfx-add-file" class="btn btn-sm btn-secondary">Add sounds…</button>
+          <input type="file" id="sfx-file-input" accept="audio/*" multiple hidden>
+        </div>
+        <div id="sfx-grid" class="sfx-grid" role="list"></div>
+        <div id="sfx-status" class="sfx-status" aria-live="polite"></div>
+      </section>
+    </div>
   </div>
 
   <!-- Save As Modal -->
@@ -434,6 +459,7 @@
   <!-- Scripts -->
   <script src="data/commands.js"></script>
   <script src="data/macros.js"></script>
+  <script src="data/sounds.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

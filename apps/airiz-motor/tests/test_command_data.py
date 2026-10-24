@@ -229,12 +229,35 @@ def main():
     check(not any(s.get("text", "").startswith("diag rled") for s in no_light["steps"]),
           "no-light mode sends no rled command")
 
+    # ---- sound library ----------------------------------------------------
+    print("\n[ sound library ]")
+    sounds = load_js_object(DATA_DIR / "sounds.js", "window.AIRIZ_SOUNDS")
+    check(len(sounds.get("sounds", [])) >= 30,
+          f"sounds library has >= 30 sounds (got {len(sounds.get('sounds', []))})")
+    
+    cat_ids = [c["id"] for c in sounds.get("categories", [])]
+    check(len(cat_ids) == len(set(cat_ids)), "sound category ids are unique")
+    
+    sound_ids = [s["id"] for s in sounds.get("sounds", [])]
+    check(len(sound_ids) == len(set(sound_ids)), "sound ids are unique")
+    
+    for s in sounds.get("sounds", []):
+        check(s["category"] in cat_ids,
+              f"sound '{s['id']}' has valid category")
+    
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    check("data/sounds.js" in html, "index.html loads sounds.js")
+    
+    order = [html.find("data/commands.js"), html.find("data/macros.js"), html.find("data/sounds.js"), html.find("app.js")]
+    check(all(i >= 0 for i in order) and order == sorted(order),
+          "index.html loads commands.js → macros.js → sounds.js → app.js in order")
+    
+    sw_text = (WEB_DIR / "sw.js").read_text(encoding="utf-8")
+    check("'./data/sounds.js'" in sw_text, "sw.js caches sounds.js")
+    
     # ---- web shell safety -------------------------------------------------
     print("\n[ web shell ]")
     html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
-    order = [html.find("data/commands.js"), html.find("data/macros.js"), html.find("app.js")]
-    check(all(i >= 0 for i in order) and order == sorted(order),
-          "index.html loads commands.js → macros.js → app.js in order")
 
     web_files = [p for p in WEB_DIR.rglob("*") if p.suffix.lower() in (".html", ".js", ".webmanifest")]
     offenders = []

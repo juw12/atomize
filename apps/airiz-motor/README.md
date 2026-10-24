@@ -7,6 +7,8 @@ A complete, production-quality, dependency-free browser app that replaces the Te
 - **Command Library**: Browse all diagnostic commands by category, with live parameter inputs
 - **Serial Console**: Dark terminal with scrollback, log saving, and raw command input
 - **Macro Notepad**: Visual step editor for creating and running test macros
+- **Sound FX**: Browseable, searchable sound effects board (synthesised in-browser, offline) + load your own audio files
+- **Device Audio Auto-Save**: after each DMIC record, the console pulls the WAV off the device over serial and saves it to a folder
 - **PWA Support**: Installable app with offline caching via service worker
 - **Demo Mode**: Test the full UI without hardware connected
 
@@ -24,6 +26,7 @@ apps/airiz-motor/web/
   data/
     commands.js        # Command library (read-only)
     macros.js          # Macro definitions (read-only)
+    sounds.js          # Built-in sound-effects library (read-only)
 ```
 
 ## Running the App
@@ -34,9 +37,14 @@ The Web Serial API only works in a **secure context** — `http://localhost` cou
 python server/serve.py                 # serve web/ on a free port and open the browser
 python server/serve.py --port 8777     # pin the port
 python server/serve.py --no-browser    # don't auto-open
+python server/serve.py --audio-dir "D:\recordings"   # where device audio is saved
 ```
 
 It prints the URL (e.g. `http://127.0.0.1:8777/`). Open it in **Chrome or Edge** (the only browsers with Web Serial). Any other static server also works as long as it serves over `http://localhost` or `https://`.
+
+### Device audio auto-save
+
+After a `diag audio record …` command completes, the console (with **Auto-save recording** ticked) pulls `/tmp/dmic_record_output.wav` from the device over the serial link as base64, decodes it, and `POST`s it to the local server, which writes it into the audio folder (default `E:\Work\RD ME\Project\1-Juwen Project\ARLO\ZIRIS\Console\Audio`, override with `--audio-dir`). Files are named `dmic_<YYYYMMDD-HHMMSS>_<seconds>s_<gain>.wav`. This needs the app served by `server/serve.py` — a plain static server exposes no `/api/audio` endpoint.
 
 > This app is intentionally **not** wired into the public GitHub Pages build
 > (`scripts/build_site.py`) because it exposes internal device commands.
