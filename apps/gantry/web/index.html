@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gantry — Engineering Cockpit</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b0f19" id="theme-color-meta">
+  <meta name="description" content="Local, deterministic, review-gated engineering copilot for CAD repair and assembly">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gantry">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="topbar-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 8h24M4 16h24M4 24h24M8 4v24M16 4v24M24 4v24"/>
+        </svg>
+        <h1>Gantry</h1>
+        <span class="topbar-tagline">local · deterministic · review-gated</span>
+      </div>
+      <div class="topbar-status">
+        <div class="connector-strip" id="connector-strip" aria-label="Connector status">
+          <span class="connector-label">Connectors:</span>
+          <span class="connector-item" data-connector="fusion">
+            <span class="connector-indicator unavailable"></span>
+            <span class="connector-name">Fusion</span>
+          </span>
+          <span class="connector-item" data-connector="solidworks">
+            <span class="connector-indicator unavailable"></span>
+            <span class="connector-name">SOLIDWORKS</span>
+          </span>
+          <span class="connector-item" data-connector="simulated">
+            <span class="connector-indicator available"></span>
+            <span class="connector-name">Simulated</span>
+          </span>
+        </div>
+        <span class="mode-badge" id="mode-badge">Simulation — nothing is written to CAD</span>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav" role="tablist" aria-label="Workspace tabs">
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="repair-panel" id="tab-repair" data-tab="repair">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        Repair
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="assembly-panel" id="tab-assembly" data-tab="assembly">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        Assembly
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Repair Tab Panel -->
+      <section class="tab-panel active" id="repair-panel" role="tabpanel" aria-labelledby="tab-repair">
+        <div class="panel-header">
+          <h2>Repair Workspace</h2>
+          <div class="load-controls">
+            <button class="btn btn-secondary" id="btn-load-sample">Load Sample</button>
+            <button class="btn btn-secondary" id="btn-paste-json">Paste JSON</button>
+            <label class="btn btn-secondary">
+              File Input
+              <input type="file" id="file-input-report" accept=".json" hidden>
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- Diagnosis Panel -->
+          <section class="subpanel diagnosis-panel" aria-label="Diagnosis">
+            <h3>Diagnosis</h3>
+            <div class="diagnosis-content" id="diagnosis-content">
+              <p class="placeholder">Load a ModelReport to see diagnosis</p>
+            </div>
+          </section>
+
+          <!-- Repair Plan Panel -->
+          <section class="subpanel plan-panel" aria-label="Repair Plan">
+            <h3>Repair Plan</h3>
+            <div class="plan-content" id="repair-plan-content">
+              <p class="placeholder">Diagnosis required before planning</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+          <button class="btn btn-primary" id="btn-dry-run" disabled>Dry-run</button>
+          <div class="dry-run-results" id="dry-run-results" aria-live="polite"></div>
+          <label class="review-gate">
+            <input type="checkbox" id="chk-confirm-repair" disabled>
+            <span>I have reviewed the plan and confirm it is correct</span>
+          </label>
+          <button class="btn btn-apply" id="btn-apply-repair" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Apply (Simulation)
+          </button>
+        </div>
+      </section>
+
+      <!-- Assembly Tab Panel -->
+      <section class="tab-panel" id="assembly-panel" role="tabpanel" aria-labelledby="tab-assembly">
+        <div class="panel-header">
+          <h2>Assembly Workspace</h2>
+          <div class="load-controls">
+            <button class="btn btn-secondary" id="btn-load-assembly-sample">Load Sample</button>
+            <button class="btn btn-secondary" id="btn-paste-assembly-json">Paste JSON</button>
+            <label class="btn btn-secondary">
+              File Input
+              <input type="file" id="file-input-assembly" accept=".json" hidden>
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- Assembly Plan Panel -->
+          <section class="subpanel assembly-plan-panel" aria-label="Assembly Plan">
+            <h3>Assembly Plan</h3>
+            <div class="assembly-plan-content" id="assembly-plan-content">
+              <p class="placeholder">Load an AssemblySpec to see the plan</p>
+            </div>
+          </section>
+
+          <!-- Checks Panel -->
+          <section class="subpanel checks-panel" aria-label="Assembly Checks">
+            <h3>Checks</h3>
+            <div class="checks-content" id="assembly-checks-content">
+              <p class="placeholder">No checks yet</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+          <button class="btn btn-primary" id="btn-dry-run-assembly" disabled>Dry-run</button>
+          <div class="dry-run-results" id="dry-run-results-assembly" aria-live="polite"></div>
+          <label class="review-gate">
+            <input type="checkbox" id="chk-confirm-assembly" disabled>
+            <span>I have reviewed the plan and confirm it is correct</span>
+          </label>
+          <button class="btn btn-apply" id="btn-apply-assembly" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Build (Simulation)
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Paste Modal -->
+    <dialog class="modal" id="modal-paste-report" aria-labelledby="modal-paste-report-title">
+      <form method="dialog" class="modal-content">
+        <h3 id="modal-paste-report-title">Paste ModelReport JSON</h3>
+        <textarea class="modal-textarea" id="paste-report-json" rows="15" placeholder='{"schema": "gantry/model-report/v1", ...}'></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-paste-report">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btn-submit-paste-report">Load</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="modal-paste-assembly" aria-labelledby="modal-paste-assembly-title">
+      <form method="dialog" class="modal-content">
+        <h3 id="modal-paste-assembly-title">Paste AssemblySpec JSON</h3>
+        <textarea class="modal-textarea" id="paste-assembly-json" rows="15" placeholder='{"schema": "gantry/assembly-spec/v1", ...}'></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-paste-assembly">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btn-submit-paste-assembly">Load</button>
+        </div>
+      </form>
+    </dialog>
+  </div>
+
+  <!-- Scripts: load in order per spec -->
+  <script src="js/gantry.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

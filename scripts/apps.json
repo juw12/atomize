@@ -139,6 +139,19 @@
       "links": {"app": "partlab/", "web": "partlab/", "mobile": "partlab/"},
       "featured": true,
       "order": 10
+    },
+    {
+      "id": "gantry",
+      "name": "Gantry",
+      "category": "Software",
+      "desc": "Local desktop engineering copilot — diagnose and fix broken Fusion/SOLIDWORKS models, plan whole assemblies, and review every change before it touches CAD",
+      "description": "A local, offline, zero-dependency desktop engineering copilot for Autodesk Fusion and SOLIDWORKS. Gantry reads a host-agnostic ModelReport (features, components, mates) and produces a typed Diagnosis of what is broken (failed fillets, broken references, dangling or circular dependencies, failed mates), an ordered upstream-first Repair plan, and an Assembly plan (base part + insert/mate steps + structural checks). Every plan passes a dry-run and review gate before anything is applied, and plans are applied to the live CAD model through host connectors (Fusion Python API / SOLIDWORKS COM). With no CAD host attached it runs in a fully usable, deterministic simulation mode and never writes to CAD. It complements cloud AI CAD copilots (like Vector) by staying local, deterministic, auditable and review-gated.",
+      "tags": ["CAD copilot", "Fusion", "SOLIDWORKS", "deterministic", "offline-first"],
+      "image": "gantry-hero.svg",
+      "image_alt": "Gantry cockpit showing a diagnosed broken model with a ranked repair plan, a connector status strip and a review-gated apply step",
+      "links": {"app": "gantry/", "web": "gantry/", "mobile": "gantry/"},
+      "featured": true,
+      "order": 11
     }
   ]
 }
