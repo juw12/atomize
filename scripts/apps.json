@@ -143,7 +143,7 @@
     {
       "id": "soma",
       "name": "SOMA",
-      "category": "3D Works",
+      "category": "Public Software",
       "external": true,
       "url": "https://somacad.app/",
       "desc": "Open-source AI CAD \u2014 describe a part, your coding agent writes CadQuery, SOMA builds it",
@@ -156,7 +156,7 @@
     {
       "id": "vector",
       "name": "Vector",
-      "category": "3D Works",
+      "category": "Public Software",
       "external": true,
       "url": "https://heyvector.co/",
       "desc": "Engineering copilot that works inside Autodesk Fusion and SOLIDWORKS",
@@ -180,33 +180,7 @@
         {"src": "mbs-front.png", "alt": "Marina Bay Sands miniature, front elevation", "label": "View front elevation"}
       ],
       "files": "https://github.com/juwpegatron/projects/tree/main/outputs/mbs",
-      "order": 14
-    },
-    {
-      "id": "bracket",
-      "name": "Mounting Bracket",
-      "category": "3D Works",
-      "work": true,
-      "desc": "A 60 by 40 by 10 mm mounting bracket, exported as STEP (AP214) and binary STL",
-      "description": "A compact 60 &times; 40 &times; 10 mm mounting bracket &mdash; a single watertight solid (2,044 triangles, 23.2 cm&sup3;, printable as-is) exported twice from the same geometry: STEP AP214 for CAD and binary STL for printing.",
-      "tags": ["STEP AP214", "STL", "watertight", "3D printing", "bracket"],
-      "image": "bracket-render.png",
-      "image_alt": "Mounting bracket: a flat 60 by 40 by 10 mm bracket solid rendered in isometric view on a dark background",
-      "files": "https://github.com/juwpegatron/projects/tree/main/outputs/bracket",
-      "order": 15
-    },
-    {
-      "id": "triposr-mesh",
-      "name": "Image-to-3D Chair",
-      "category": "3D Works",
-      "work": true,
-      "desc": "A tufted dining chair reconstructed from a single photo into a 3D mesh (TripoSR)",
-      "description": "An image-to-3D reconstruction: one product photo of a tufted cream-and-walnut side chair turned into a triangle mesh by TripoSR. The source photo and the resulting mesh are kept side by side so the whole pipeline stays reproducible.",
-      "tags": ["TripoSR", "image-to-3D", "mesh", "OBJ", "reconstruction"],
-      "image": "triposr-input.png",
-      "image_alt": "Source photo of a tufted cream and walnut dining chair, reconstructed into a 3D mesh with TripoSR",
-      "files": "https://github.com/juwpegatron/projects/tree/main/outputs/triposr/0",
-      "order": 16
+      "order": 11
     }
   ]
 }
