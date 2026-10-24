@@ -3286,7 +3286,7 @@ class ProductivityWidget:
                 os.getenv("APPDATA"),
                 r"Microsoft\Windows\Start Menu\Programs\Startup"
             )
-            shortcut_path = os.path.join(startup_folder, "ProductivityWidget.lnk")
+            shortcut_path = os.path.join(startup_folder, "Pips.lnk")
             
             if os.path.exists(shortcut_path):
                 os.remove(shortcut_path)
