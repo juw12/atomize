@@ -4,7 +4,7 @@
  * Updated to include viewport.js
  */
 
-const CACHE_NAME = 'vertex-cockpit-v3';
+const CACHE_NAME = 'vertex-cockpit-v4';
 const ASSETS = [
   './',
   './index.html',

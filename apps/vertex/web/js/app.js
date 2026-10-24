@@ -1348,6 +1348,97 @@
     });
   }
 
+  /* === Theme Toggle === */
+  var THEME_STORAGE_KEY = 'vertex.theme';
+  var THEME_STATES = ['system', 'light', 'dark'];
+  var btnThemeToggle = document.getElementById('btn-theme-toggle');
+  var themeToggleLabel = document.getElementById('theme-toggle-label');
+  
+  function getThemeState() {
+    return localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+  }
+  
+  function setThemeState(state) {
+    if (state === 'system') {
+      localStorage.setItem(THEME_STORAGE_KEY, 'system');
+      document.documentElement.removeAttribute('data-theme');
+      /* Check system preference */
+      var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } else {
+      localStorage.setItem(THEME_STORAGE_KEY, state);
+      document.documentElement.setAttribute('data-theme', state);
+    }
+    updateThemeColorMeta();
+    updateThemeToggleButton();
+    updateViewportThemes();
+  }
+  
+  function updateThemeColorMeta() {
+    var meta = document.getElementById('theme-color-meta');
+    if (!meta) return;
+    var state = getThemeState();
+    var isDark;
+    if (state === 'system') {
+      isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } else {
+      isDark = state === 'dark';
+    }
+    meta.setAttribute('content', isDark ? '#0E0E0E' : '#F5F5F7');
+  }
+  
+  function updateThemeToggleButton() {
+    if (!btnThemeToggle) return;
+    var state = getThemeState();
+    var labelEl = document.getElementById('theme-toggle-label');
+    var displayState = state.charAt(0).toUpperCase() + state.slice(1);
+    btnThemeToggle.setAttribute('title', 'Theme: ' + displayState);
+    btnThemeToggle.setAttribute('aria-label', 'Toggle theme (System/Light/Dark), current: ' + displayState);
+    if (labelEl) labelEl.textContent = displayState;
+  }
+  
+  function updateViewportThemes() {
+    /* Notify all viewports to update their colors */
+    if (typeof window.VertexView !== 'undefined' && window.VertexView.updateTheme) {
+      window.VertexView.updateTheme();
+    }
+    /* Re-render all active viewports */
+    var viewports = [repairView, assemblyView, buildView, simulateView, reverseView, drawingView];
+    viewports.forEach(function(view) {
+      if (view && typeof view.render === 'function') {
+        view.render();
+      }
+    });
+  }
+  
+  function cycleTheme() {
+    var currentState = getThemeState();
+    var currentIndex = THEME_STATES.indexOf(currentState);
+    var nextState = THEME_STATES[(currentIndex + 1) % THEME_STATES.length];
+    setThemeState(nextState);
+  }
+  
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', function() {
+      cycleTheme();
+    });
+    /* Initialize button state */
+    updateThemeToggleButton();
+  }
+  
+  /* Listen for system theme changes when in system mode */
+  if (window.matchMedia) {
+    var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', function(e) {
+      if (getThemeState() === 'system') {
+        updateThemeColorMeta();
+        updateViewportThemes();
+      }
+    });
+  }
+
   /* === Guide Overlay Functions === */
   function openGuide() {
     if (!guideOverlay) return;

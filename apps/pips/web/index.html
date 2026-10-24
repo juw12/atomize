@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pips — The Morning Paper</title>
   <meta name="description" content="The Morning Paper — an always-on-top desktop widget: Pomodoro timer, soundscapes, live app-usage tracking and a daily productivity score.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="icons/pips-icon.svg">
+  <meta name="theme-color" content="#8b1a1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Pips">
   <style>
     :root{
       --paper:#faf8f3; --outer:#f0ede6; --ink:#1a1a1a; --ink-light:#4a4a4a; --muted:#6b6b6b;
@@ -27,6 +35,17 @@
     a.btn{font-family:var(--sans);font-weight:600;font-size:.9rem;text-decoration:none;padding:10px 16px;border:1px solid var(--accent);border-radius:4px;color:var(--accent)}
     a.btn.primary{background:var(--accent);color:#fff}
     footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border-light);color:var(--muted);font-size:.85rem;font-family:var(--sans)}
+    #btn-install-app{display:none;font-family:var(--sans);font-weight:600;font-size:.85rem;text-decoration:none;padding:8px 14px;border:1px solid var(--accent);border-radius:3px;color:var(--accent);background:transparent;cursor:pointer;margin-left:10px}
+    #btn-install-app:hover{background:var(--accent);color:#fff}
+    #install-callout{position:fixed;bottom:20px;right:20px;background:var(--paper);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:16px;max-width:320px;z-index:9999}
+    #install-callout.hidden{display:none}
+    #install-callout .callout-header{font-family:var(--sans);font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
+    #install-callout .callout-body{font-size:.9rem;color:var(--ink-light);margin-bottom:12px}
+    #install-callout .callout-actions{display:flex;gap:8px;align-items:center}
+    #install-callout .callout-close{position:absolute;top:8px;right:10px;font-size:1.2rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:0;line-height:1}
+    #install-callout .callout-close:hover{color:var(--ink)}
+    #install-callout .btn-install{font-family:var(--sans);font-weight:600;font-size:.85rem;padding:8px 14px;border:1px solid var(--accent);border-radius:3px;background:var(--accent);color:#fff;cursor:pointer}
+    #install-callout .btn-install:hover{background:#6b1212}
   </style>
 </head>
 <body>
@@ -49,11 +68,105 @@
       <li>Double-click <code>Launch Widget.bat</code>, or run <code>pythonw app.py</code></li>
       <li>Copy <code>config.example.json</code> to <code>config.json</code> and edit as needed</li>
     </ul>
-    <div class="btns">
+    <div class="btns" style="align-items:center">
       <a class="btn primary" href="https://github.com/juwpegatron/projects/tree/main/apps/pips">Source on GitHub</a>
       <a class="btn" href="../">Back to projects</a>
+      <button id="btn-install-app" title="Install Pips as an app">Install App</button>
     </div>
     <footer>Python 3 &middot; Tkinter &middot; SQLite &middot; standard library only — runs locally on Windows.</footer>
   </div>
+
+  <div id="install-callout" class="hidden">
+    <button class="callout-close" id="btn-dismiss-callout" title="Dismiss">×</button>
+    <div class="callout-header">Install Pips</div>
+    <div class="callout-body">Install Pips as an app for quick access and a better experience.</div>
+    <div class="callout-actions">
+      <button class="btn-install" id="btn-callout-install">Install</button>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js')
+          .then(function(reg) {
+            console.log('Service Worker registered:', reg.scope);
+          })
+          .catch(function(err) {
+            console.log('Service Worker registration failed:', err);
+          });
+      });
+    }
+
+    // Install prompt handling
+    var deferredPrompt = null;
+    var btnInstall = document.getElementById('btn-install-app');
+    var callout = document.getElementById('install-callout');
+    var btnCalloutInstall = document.getElementById('btn-callout-install');
+    var btnDismissCallout = document.getElementById('btn-dismiss-callout');
+
+    // Check if already in standalone mode
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             (window.navigator.standalone === true);
+    }
+
+    // Hide install UI if in standalone or already dismissed
+    function hideInstallUI() {
+      if (btnInstall) btnInstall.style.display = 'none';
+      if (callout) callout.classList.add('hidden');
+    }
+
+    if (isStandalone()) {
+      hideInstallUI();
+    } else if (localStorage.getItem('pips.installCalloutDismissed') === 'true') {
+      if (callout) callout.classList.add('hidden');
+    }
+
+    window.addEventListener('beforeinstallprompt', function(event) {
+      event.preventDefault();
+      deferredPrompt = event;
+      if (btnInstall) btnInstall.style.display = 'inline-block';
+      if (callout && localStorage.getItem('pips.installCalloutDismissed') !== 'true') {
+        callout.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', function() {
+      hideInstallUI();
+      deferredPrompt = null;
+    });
+
+    function handleInstallClick() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt()
+        .then(function(choice) {
+          if (choice.outcome === 'accepted') {
+            hideInstallUI();
+          }
+          deferredPrompt = null;
+        })
+        .catch(function(err) {
+          console.log('Install prompt error:', err);
+          deferredPrompt = null;
+        });
+    }
+
+    if (btnInstall) {
+      btnInstall.addEventListener('click', handleInstallClick);
+    }
+    if (btnCalloutInstall) {
+      btnCalloutInstall.addEventListener('click', handleInstallClick);
+    }
+    if (btnDismissCallout) {
+      btnDismissCallout.addEventListener('click', function() {
+        callout.classList.add('hidden');
+        localStorage.setItem('pips.installCalloutDismissed', 'true');
+      });
+    }
+  })();
+  </script>
 </body>
 </html>

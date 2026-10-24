@@ -20,12 +20,6 @@
   'use strict';
 
   /* === Constants === */
-  var BG_COLOR = '#0B0C0E';
-  var GRID_COLOR = '#1C1E22';
-  var GEOMETRY_COLOR = '#C8CED8';
-  var ACCENT_COLOR = '#7C9CFF';
-  var HOLE_COLOR = '#6B7C99';
-  
   var DEFAULT_OPTIONS = {
     grid: true,
     wireframe: true,
@@ -33,6 +27,28 @@
     dims: true,
     crop: true
   };
+  
+  /* Theme-aware colors - read from CSS or compute */
+  function getThemeColors() {
+    var isDark = true;
+    if (typeof document !== 'undefined') {
+      var html = document.documentElement;
+      var dataTheme = html.getAttribute('data-theme');
+      if (dataTheme === 'light') {
+        isDark = false;
+      } else if (dataTheme === 'system' || !dataTheme) {
+        isDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      }
+    }
+    
+    return {
+      bg: isDark ? '#0B0C0E' : '#E8E8EA',
+      grid: isDark ? '#1C1E22' : '#C7C7CC',
+      geometry: isDark ? '#C8CED8' : '#3A3A3C',
+      accent: isDark ? '#7C9CFF' : '#5A7AE8',
+      hole: isDark ? '#6B7C99' : '#8E8E93'
+    };
+  }
 
   /* === Matrix Helpers (column-major 4x4) === */
   function mat4Identity() {
@@ -336,8 +352,11 @@
     var w = this.width;
     var h = this.height;
     
-    /* Clear */
-    ctx.fillStyle = BG_COLOR;
+    /* Get theme colors */
+    var colors = getThemeColors();
+    
+    /* Clear with theme-aware background */
+    ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, w, h);
     
     /* Build view matrix: translate to center, scale, rotate, then pan */
@@ -366,7 +385,8 @@
 
   /* === Drawing Helpers === */
   VertexView.prototype._drawGrid = function(ctx, w, h, viewMatrix) {
-    ctx.strokeStyle = GRID_COLOR;
+    var colors = getThemeColors();
+    ctx.strokeStyle = colors.grid;
     ctx.lineWidth = 1;
     ctx.beginPath();
     
@@ -401,6 +421,7 @@
   VertexView.prototype._drawMesh = function(ctx, w, h, viewMatrix) {
     var self = this;
     var parts = this.mesh.parts || [];
+    var colors = getThemeColors();
     
     /* Get motion transform if sim is active */
     var motionTransforms = {};
@@ -422,7 +443,7 @@
       var partTransform = motionTransforms[part.id] ? motionTransforms[part.id] : mat4Identity();
       var fullTransform = mat4Multiply(viewMatrix, partTransform);
       
-      ctx.strokeStyle = GEOMETRY_COLOR;
+      ctx.strokeStyle = colors.geometry;
       ctx.lineWidth = 1.5;
       
       if (self.options.wireframe) {
@@ -475,11 +496,12 @@
 
     /* Draw holes (subtractive features) in a distinct muted-blue stroke */
     if (self.options.showHoles && self.mesh && self.mesh.holes) {
+      var colors = getThemeColors();
       self.mesh.holes.forEach(function(hole) {
         var hv = hole.vertices || [];
         var ht = hole.triangles || [];
         if (hv.length === 0) return;
-        ctx.strokeStyle = HOLE_COLOR;
+        ctx.strokeStyle = colors.hole;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ht.forEach(function(tri) {
@@ -523,8 +545,9 @@
     
     if (!p1 || !p2) return;
     
-    ctx.strokeStyle = ACCENT_COLOR;
-    ctx.fillStyle = ACCENT_COLOR;
+    var colors = getThemeColors();
+    ctx.strokeStyle = colors.accent;
+    ctx.fillStyle = colors.accent;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 2]);
     
@@ -559,8 +582,9 @@
   VertexView.prototype._drawCropMarks = function(ctx, w, h) {
     var margin = 20;
     var length = 15;
+    var colors = getThemeColors();
     
-    ctx.strokeStyle = ACCENT_COLOR;
+    ctx.strokeStyle = colors.accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
     
@@ -610,4 +634,11 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = VertexView;
   }
+  
+  /* Static method for theme updates - called by app.js when theme changes */
+  VertexView.updateTheme = function() {
+    /* Forces all viewports to re-render with new theme colors */
+    /* This is a no-op here since individual instances call getThemeColors() on each render */
+    /* but we expose it for consistency with the app.js API */
+  };
 })();

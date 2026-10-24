@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vertex — App</title>
-  <meta name="theme-color" content="#0E0E0E" id="theme-color-meta">
+  <meta name="theme-color" content="#F5F5F7" id="theme-color-meta">
   <meta name="description" content="Vertex App: local, deterministic, review-gated engineering copilot for CAD repair and assembly">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -12,7 +12,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Vertex">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      var theme = localStorage.getItem('vertex.theme');
+      if (theme !== 'light' && theme !== 'dark' && theme !== 'system') { theme = 'light'; }
+      if (theme === 'system') {
+        theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('theme-color-meta').setAttribute('content', theme === 'dark' ? '#0E0E0E' : '#F5F5F7');
+    })();
+  </script>
 </head>
 <body class="app-body">
   <div class="app-container app-shell-container">
@@ -42,7 +54,14 @@
           </span>
         </div>
         <span class="mode-badge" id="mode-badge">Simulation — nothing is written to CAD</span>
-        <button id="btn-install-app" class="btn btn-secondary" hidden aria-label="Install app" title="Install Vertex as an app">Install</button>
+        <button id="btn-install-app" class="btn btn-secondary" hidden aria-label="Install app" title="Install Vertex as an app" style="margin-left: var(--space-2);">Install</button>
+        <button id="btn-theme-toggle" class="btn btn-ghost" aria-label="Toggle theme (System/Light/Dark)" title="Theme: System" style="margin-left: var(--space-2);">
+          <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <span id="theme-toggle-label" style="margin-left: var(--space-1);">Light</span>
+        </button>
         <button id="btn-guide" class="btn btn-ghost" aria-label="Open Vertex Guide" title="Vertex Guide" style="margin-left: var(--space-2);">
           <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>

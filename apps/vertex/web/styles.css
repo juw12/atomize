@@ -5,7 +5,7 @@
 
 /* === Design Tokens === */
 :root {
-  /* Colors - Vector-style near-black */
+  /* Colors - Vector-style near-black (dark theme default) */
   --bg: #0E0E0E;
   --panel: #0E0E0E;
   --raised: #16171A;
@@ -21,6 +21,7 @@
   /* Semantic - Vector periwinkle blue accent */
   --accent: #7C9CFF;
   --accent-dim: rgba(124, 156, 255, 0.14);
+  --accent-contrast: #5A7AE8; /* Darker for light theme contrast */
   --ok: #7DCB9A;
   --warn: #E0B15E;
   --err: #E8777F;
@@ -57,6 +58,57 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
+  
+  /* Color scheme hint */
+  color-scheme: dark;
+}
+
+/* Light Theme Overrides */
+:root[data-theme="light"] {
+  --bg: #F5F5F7;
+  --panel: #FFFFFF;
+  --raised: #F0F0F2;
+  --inset: #E8E8EA;
+  --line: #D2D2D7;
+  --hairline: #C7C7CC;
+  
+  --text: #1D1D1F;
+  --text-2: #6E6E73;
+  --text-3: #98989D;
+  
+  --accent: #5A7AE8; /* Darker periwinkle for light theme */
+  --accent-dim: rgba(90, 122, 232, 0.12);
+  --accent-contrast: #5A7AE8;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  
+  color-scheme: light;
+}
+
+/* System Theme (follows prefers-color-scheme when no data-theme attribute) */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F5F5F7;
+    --panel: #FFFFFF;
+    --raised: #F0F0F2;
+    --inset: #E8E8EA;
+    --line: #D2D2D7;
+    --hairline: #C7C7CC;
+    
+    --text: #1D1D1F;
+    --text-2: #6E6E73;
+    --text-3: #98989D;
+    
+    --accent: #5A7AE8;
+    --accent-dim: rgba(90, 122, 232, 0.12);
+    --accent-contrast: #5A7AE8;
+    
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+    
+    color-scheme: light;
+  }
 }
 
 /* === Reset & Base === */
@@ -182,7 +234,7 @@ body {
   font-size: 0.7rem;
   font-family: var(--font-mono);
   color: var(--warn);
-  background: rgba(224, 177, 94, 0.1);
+  background: var(--accent-dim);
   border: 1px solid var(--warn);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-1);
@@ -311,8 +363,8 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #6B8BE8;
-  border-color: #6B8BE8;
+  background: var(--accent-contrast);
+  border-color: var(--accent-contrast);
 }
 
 .btn-apply {
@@ -345,7 +397,7 @@ body {
   width: 100%;
   height: 100%;
   display: block;
-  background: #0B0C0E;
+  background: var(--inset);
 }
 
 .viewport-toolbar {
@@ -925,11 +977,11 @@ body {
 }
 
 .clearance-row.clear {
-  background: rgba(125, 203, 154, 0.05);
+  background: rgba(125, 203, 154, 0.08);
 }
 
 .clearance-row.interfere {
-  background: rgba(232, 119, 127, 0.05);
+  background: rgba(232, 119, 127, 0.08);
 }
 
 .verdict-chip {
@@ -1049,7 +1101,7 @@ body {
 }
 
 .modal::backdrop {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
 
@@ -1763,7 +1815,7 @@ body {
 .guide-overlay-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
 

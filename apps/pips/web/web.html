@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pips — Web — The Morning Paper</title>
   <meta name="description" content="Browser version of Pips (The Morning Paper): Pomodoro timer, daily focus score, and session history.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="icons/pips-icon.svg">
+  <meta name="theme-color" content="#8b1a1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Pips">
   <style>
     :root{
       --paper:#faf8f3; --outer:#f0ede6; --ink:#1a1a1a; --ink-light:#4a4a4a; --muted:#6b6b6b;
@@ -101,6 +109,17 @@
     .cycle-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px;background:var(--border-light)}
     .cycle-dot.active{background:var(--accent)}
     .cycle-dot.completed{background:var(--muted)}
+    #btn-install-app{display:none;font-family:var(--sans);font-weight:600;font-size:.75rem;padding:4px 10px;border:1px solid var(--accent);border-radius:3px;background:transparent;color:var(--accent);cursor:pointer;margin-left:8px}
+    #btn-install-app:hover{background:var(--accent);color:#fff}
+    #install-callout{position:fixed;bottom:20px;right:20px;background:var(--paper);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:16px;max-width:320px;z-index:9999}
+    #install-callout.hidden{display:none}
+    #install-callout .callout-header{font-family:var(--sans);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
+    #install-callout .callout-body{font-size:.85rem;color:var(--ink-light);margin-bottom:12px}
+    #install-callout .callout-actions{display:flex;gap:8px;align-items:center}
+    #install-callout .callout-close{position:absolute;top:8px;right:10px;font-size:1.2rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:0;line-height:1}
+    #install-callout .callout-close:hover{color:var(--ink)}
+    #install-callout .btn-install{font-family:var(--sans);font-weight:600;font-size:.8rem;padding:8px 14px;border:1px solid var(--accent);border-radius:3px;background:var(--accent);color:#fff;cursor:pointer}
+    #install-callout .btn-install:hover{background:#6b1212}
   </style>
 </head>
 <body>
@@ -113,6 +132,7 @@
       <a href="mobile.html">Mobile</a>
       <span class="sep">·</span>
       <a href="../">All projects</a>
+      <button id="btn-install-app" title="Install Pips as an app">Install</button>
     </nav>
     
     <header class="header">
@@ -211,8 +231,96 @@
       Web version — runs in any modern browser, works offline, zero dependencies.
     </footer>
   </div>
-  
+
+  <div id="install-callout" class="hidden">
+    <button class="callout-close" id="btn-dismiss-callout" title="Dismiss">×</button>
+    <div class="callout-header">Install Pips</div>
+    <div class="callout-body">Install Pips as an app for quick access and a better experience.</div>
+    <div class="callout-actions">
+      <button class="btn-install" id="btn-callout-install">Install</button>
+    </div>
+  </div>
+
   <script>
+  // Service Worker registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./sw.js')
+        .then(function(reg) {
+          console.log('Service Worker registered:', reg.scope);
+        })
+        .catch(function(err) {
+          console.log('Service Worker registration failed:', err);
+        });
+    });
+  }
+
+  // Install prompt handling
+  (function(){
+    var deferredPrompt = null;
+    var btnInstall = document.getElementById('btn-install-app');
+    var callout = document.getElementById('install-callout');
+    var btnCalloutInstall = document.getElementById('btn-callout-install');
+    var btnDismissCallout = document.getElementById('btn-dismiss-callout');
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             (window.navigator.standalone === true);
+    }
+
+    function hideInstallUI() {
+      if (btnInstall) btnInstall.style.display = 'none';
+      if (callout) callout.classList.add('hidden');
+    }
+
+    if (isStandalone()) {
+      hideInstallUI();
+    } else if (localStorage.getItem('pips.installCalloutDismissed') === 'true') {
+      if (callout) callout.classList.add('hidden');
+    }
+
+    window.addEventListener('beforeinstallprompt', function(event) {
+      event.preventDefault();
+      deferredPrompt = event;
+      if (btnInstall) btnInstall.style.display = 'inline-block';
+      if (callout && localStorage.getItem('pips.installCalloutDismissed') !== 'true') {
+        callout.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', function() {
+      hideInstallUI();
+      deferredPrompt = null;
+    });
+
+    function handleInstallClick() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt()
+        .then(function(choice) {
+          if (choice.outcome === 'accepted') {
+            hideInstallUI();
+          }
+          deferredPrompt = null;
+        })
+        .catch(function(err) {
+          console.log('Install prompt error:', err);
+          deferredPrompt = null;
+        });
+    }
+
+    if (btnInstall) {
+      btnInstall.addEventListener('click', handleInstallClick);
+    }
+    if (btnCalloutInstall) {
+      btnCalloutInstall.addEventListener('click', handleInstallClick);
+    }
+    if (btnDismissCallout) {
+      btnDismissCallout.addEventListener('click', function() {
+        callout.classList.add('hidden');
+        localStorage.setItem('pips.installCalloutDismissed', 'true');
+      });
+    }
+  })();
   (function(){
     // State
     const MODES = {work:{name:'Work',duration:25*60},shortBreak:{name:'Short Break',duration:5*60},longBreak:{name:'Long Break',duration:15*60}};
@@ -286,7 +394,7 @@
       document.getElementById('timerMode').textContent = MODES[currentMode].name;
       
       // Dots
-      const dots = '';
+      let dots = '';
       const cycleInSet = (totalCycles % 4);
       for(let i=0;i<4;i++){
         if(i < cycleInSet) dots += '● ';
