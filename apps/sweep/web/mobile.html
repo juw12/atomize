@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#faf8f3">
 <title>Sweep Mobile — From idea to checkable plan</title>
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 <style>
 /* Mobile-first overrides — optimized for touch and small screens */
 @media (max-width: 480px) {
@@ -696,16 +696,30 @@
       <div class="operator-cockpit-header">
         <div class="operator-status-row">
           <div class="operator-credits" id="operator-credits">45 credits</div>
-          <label class="operator-autopilot">
-            <input type="checkbox" id="operator-autopilot" onchange="toggleAutopilot()">
-            <span style="font-size:11px">Autopilot</span>
-          </label>
+          <div class="operator-mode-controls" style="flex-wrap:wrap;gap:var(--spacing-sm)">
+            <div class="operator-segmented" style="flex:1;min-width:120px">
+              <span class="operator-segmented-label">Mode</span>
+              <div style="display:flex;gap:4px">
+                <button type="button" class="operator-seg-btn" style="flex:1;font-size:11px;padding:4px 8px" data-mode="ask" onclick="setRunMode('ask')">Ask</button>
+                <button type="button" class="operator-seg-btn" style="flex:1;font-size:11px;padding:4px 8px" data-mode="auto" onclick="setRunMode('auto')">Auto</button>
+              </div>
+            </div>
+            <div class="operator-segmented" style="flex:1;min-width:120px">
+              <span class="operator-segmented-label">Power</span>
+              <select onchange="setPower(this.value)" style="flex:1;padding:4px 8px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:11px">
+                <option value="light">Light</option>
+                <option value="steady" selected>Steady</option>
+                <option value="big">Big</option>
+                <option value="full">Full</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div class="operator-command-bar" style="margin-top:var(--spacing-sm)">
-          <input type="text" id="operator-command-input" placeholder="Type: brand, post, email, research..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
+          <input type="text" id="operator-command-input" placeholder="Type: brand, post, email, newsletter..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
           <button class="btn btn-primary btn-sm" onclick="handleOperatorCommand()">Generate</button>
         </div>
-        <div class="operator-actions" style="margin-top:var(--spacing-xs)">
+        <div class="operator-actions" style="margin-top:var(--spacing-xs);display:flex;gap:var(--spacing-xs);flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" onclick="runAutopilotPass()">Run a pass</button>
           <button class="btn btn-secondary btn-sm" id="operator-undo-btn" onclick="handleUndo()" disabled>Undo</button>
         </div>
@@ -720,7 +734,7 @@
 <!-- Toast notification -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 <script>
 // Mobile-specific: sync bottom nav with section changes
 (function() {

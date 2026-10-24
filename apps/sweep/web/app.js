@@ -35,13 +35,18 @@ const DEMO_OPERATOR = {
     fonts: { heading: "Georgia,'Times New Roman',serif", body: "Georgia,'Times New Roman',serif" }
   },
   credits: { welcome: 45, daily: 5, lastTopup: new Date().toISOString().split('T')[0], spent: 12 },
-  autopilot: false,
+  runMode: 'ask', // 'ask' or 'auto'
+  power: 'steady', // 'light', 'steady', 'big', 'full'
+  runs: [
+    { at: new Date(Date.now() - 172800000).toISOString(), mode: 'ask', power: 'steady', artifacts: 6, credits: 25 }
+  ],
   runLog: [
     { action: 'brand', result: 'Generated brand kit (-3 credits)', timestamp: new Date(Date.now() - 86400000).toISOString() },
     { action: 'linkedin post', result: 'Generated post (-2 credits)', timestamp: new Date(Date.now() - 80000000).toISOString() },
     { action: 'email', result: 'Generated email draft (-2 credits)', timestamp: new Date(Date.now() - 75000000).toISOString() },
     { action: 'research', result: 'Generated market snapshot (-5 credits)', timestamp: new Date(Date.now() - 70000000).toISOString() }
   ],
+  siteVersions: [],
   outbox: [
     {
       id: 'demo-art-1',
@@ -212,6 +217,11 @@ function ensureOperator(project) {
       { name: 'Pro', price: op.payments.price || 29, features: ['All features', 'Priority support', 'Unlimited projects'] },
       { name: 'Max', price: 99, features: ['Everything in Pro', 'Dedicated support', 'Custom integrations'] }
     ];
+    // V3 fields: runMode, power, runs, siteVersions
+    if (!op.runMode) op.runMode = 'ask';
+    if (!op.power) op.power = 'steady';
+    if (!op.runs) op.runs = [];
+    if (!op.siteVersions) op.siteVersions = [];
   }
   // Daily credit topup
   const today = new Date().toISOString().split('T')[0];
@@ -475,6 +485,14 @@ function simpleHash(str) {
 }
 
 // === OPERATOR MODULE: Otto ===
+
+// Power presets: artifacts count and credit cost
+const POWER_PRESETS = {
+  light: { artifacts: 3, credits: 10, label: 'Light touch' },
+  steady: { artifacts: 6, credits: 25, label: 'Steady clip' },
+  big: { artifacts: 10, credits: 50, label: 'Big swing' },
+  full: { artifacts: 16, credits: 90, label: 'Full send' }
+};
 
 function getAvailableCredits(project) {
   const op = ensureOperator(project);
@@ -743,10 +761,32 @@ function generateSite(project) {
   const op = ensureOperator(project);
   const brand = op.brand;
   const appName = escapeHtml(project.name);
+  const navItems = [
+    { name: 'Home', file: 'index.html' },
+    { name: 'About', file: 'about.html' },
+    { name: 'Pricing', file: 'pricing.html' },
+    { name: 'Contact', file: 'contact.html' }
+  ];
   
+  const sharedStyles = `/* ${appName} brand styles */
+:root{--accent:${brand.palette[0]};--paper:${brand.palette[4]};--ink:${brand.palette[3]}}
+body{font-family:${brand.fonts.body};background:${brand.palette[4]};color:var(--ink);margin:0;line-height:1.6}
+.masthead{padding:24px;background:var(--paper);border-bottom:3px solid var(--accent)}
+.masthead nav{display:flex;gap:16px;justify-content:center;margin-top:16px}
+.masthead nav a{color:var(--ink);text-decoration:none;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:0.06em}
+.masthead nav a:hover{color:var(--accent)}
+.masthead h1{font-family:${brand.fonts.heading};color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin:0}
+.hero{max-width:720px;margin:60px auto;padding:0 24px;text-align:center}
+.hero h2{font-size:28px;margin-bottom:16px}
+.cta{display:inline-block;background:var(--accent);color:white;padding:14px 32px;text-decoration:none;border-radius:4px;margin-top:24px;font-weight:600}
+.features{max-width:900px;margin:60px auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:32px}
+.feature{padding:24px;background:var(--paper);border:1px solid #d4cfc7;border-radius:4px}
+.content{max-width:720px;margin:48px auto;padding:0 24px}
+footer{text-align:center;padding:32px;color:#6b6b6b;font-size:14px;border-top:1px solid #d4cfc7;margin-top:48px}`;
+
   return {
     type: 'site',
-    title: 'Landing Site',
+    title: 'Multi-page Site',
     files: {
       'index.html': `<!DOCTYPE html>
 <html lang="en">
@@ -754,22 +794,17 @@ function generateSite(project) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${appName}</title>
-<style>
-:root{--accent:${brand.palette[0]};--paper:${brand.palette[4]};--ink:${brand.palette[3]}}
-body{font-family:${brand.fonts.body};background:${brand.palette[4]};color:var(--ink);margin:0;line-height:1.6}
-.masthead{padding:48px;text-align:center;border-bottom:3px solid var(--accent)}
-.masthead h1{font-family:${brand.fonts.heading};color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin:0}
-.hero{max-width:720px;margin:60px auto;padding:0 24px;text-align:center}
-.hero h2{font-size:28px;margin-bottom:16px}
-.cta{display:inline-block;background:var(--accent);color:white;padding:14px 32px;text-decoration:none;border-radius:4px;margin-top:24px;font-weight:600}
-.features{max-width:900px;margin:60px auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:32px}
-.feature{padding:24px;background:var(--paper);border:1px solid #d4cfc7;border-radius:4px}
-footer{text-align:center;padding:32px;color:#6b6b6b;font-size:14px}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header class="masthead">
   <h1>${appName.toUpperCase()}</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="contact.html">Contact</a>
+  </nav>
 </header>
 <main>
 <section class="hero">
@@ -786,8 +821,124 @@ footer{text-align:center;padding:32px;color:#6b6b6b;font-size:14px}
 <footer>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</footer>
 </body>
 </html>`,
-      'styles.css': `/* ${appName} brand styles */\n:root{--accent:${brand.palette[0]}}`
+      'about.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About - ${appName}</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="masthead">
+  <h1>${appName.toUpperCase()}</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+<main class="content">
+  <h2>About ${appName}</h2>
+  <p>${escapeHtml(project.oneLiner)}</p>
+  <p>${escapeHtml(project.problem)}</p>
+  <p>Built for: ${escapeHtml(project.targetUser)}</p>
+</main>
+<footer>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</footer>
+</body>
+</html>`,
+      'pricing.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing - ${appName}</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="masthead">
+  <h1>${appName.toUpperCase()}</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+<main class="content">
+  <h2>Pricing</h2>
+  <p>Simple, transparent pricing for ${escapeHtml(project.targetUser)}.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:32px">
+    <div class="feature" style="text-align:center">
+      <h3 style="font-size:18px">Free</h3>
+      <p style="font-size:32px;font-weight:700;margin:16px 0">$0</p>
+      <p style="font-size:13px;color:#6b6b6b">Basic features</p>
+    </div>
+    <div class="feature" style="text-align:center;border-color:var(--accent)">
+      <h3 style="font-size:18px">Pro</h3>
+      <p style="font-size:32px;font-weight:700;margin:16px 0;color:var(--accent)">$29</p>
+      <p style="font-size:13px;color:#6b6b6b">All features</p>
+    </div>
+  </div>
+</main>
+<footer>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</footer>
+</body>
+</html>`,
+      'contact.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact - ${appName}</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="masthead">
+  <h1>${appName.toUpperCase()}</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+<main class="content">
+  <h2>Contact Us</h2>
+  <p>Have questions? We'd love to hear from you.</p>
+  <p style="margin-top:24px"><a href="mailto:hello@example.com" class="cta">Email Us</a></p>
+</main>
+<footer>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</footer>
+</body>
+</html>`,
+      'styles.css': sharedStyles
     }
+  };
+}
+
+function generateNewsletter(project) {
+  const op = ensureOperator(project);
+  const seed = seededRandom(project.name + 'newsletter' + Date.now());
+  
+  // Get recent posts from outbox for inspiration
+  const recentPosts = op.outbox.filter(a => a.type === 'post').slice(0, 2);
+  const postInspiration = recentPosts.length > 0 ? recentPosts[0].copy || '' : '';
+  
+  const subject = `New from ${project.name}: ${project.oneLiner.substring(0, 40)}...`;
+  const intro = `Hi there,\\n\\nWe've been working on something exciting for ${project.targetUser.toLowerCase()}. Here's what's new:`;
+  
+  const productHighlight = `\\n\\n**What is ${project.name}?**\\n${project.oneLiner}\\n\\nIt solves: ${project.problem}`;
+  
+  const insight = `\\n\\n**Why this matters:**\\nBased on our research, ${project.targetUser} needs simpler tools that focus on what matters most. ${project.name} delivers exactly that.`;
+  
+  const cta = `\\n\\n**Ready to try it?**\\n[Get Early Access](mailto:hello@example.com)\\n\\nBest regards,\\nThe ${project.name} Team`;
+  
+  return {
+    type: 'newsletter',
+    title: 'Newsletter Draft',
+    subject,
+    body: intro + productHighlight + insight + cta,
+    platform: 'email'
   };
 }
 
@@ -1868,10 +2019,16 @@ function renderOperatorView(project) {
       renderBrandKit(op);
       renderOperatorChat(op);
       attachChatHandlers();
+      renderRunPanel(op, project);
       break;
     case 'create':
       tabContent.innerHTML = renderCreateTab(op, project);
       renderOutbox(op);
+      renderSitePanel(op, project);
+      break;
+    case 'library':
+      tabContent.innerHTML = renderLibraryTab(op, project);
+      renderLibraryList(op);
       break;
     case 'grow':
       tabContent.innerHTML = renderGrowTab(op, project);
@@ -1892,13 +2049,16 @@ function renderOperatorView(project) {
   
   // Render sidebar (common)
   renderOperatorSidebar(op);
+  
+  // Update mode/power button states
+  updateModePowerButtons();
 }
 
 function renderOperatorTabs(op) {
   const container = document.getElementById('operator-tabs');
   if (!container) return;
   
-  const tabs = ['overview', 'create', 'grow', 'money', 'data'];
+  const tabs = ['overview', 'create', 'library', 'grow', 'money', 'data'];
   container.innerHTML = tabs.map(tab => `
     <button class="operator-tab ${operatorActiveTab === tab ? 'active' : ''}" 
             data-tab="${tab}" 
@@ -1935,7 +2095,7 @@ function renderOverviewTab(op, project) {
       </div>
       <div class="operator-stat-tile">
         <span class="operator-stat-label">Passes</span>
-        <span class="operator-stat-value">${op.runLog.length}</span>
+        <span class="operator-stat-value">${op.runs.length}</span>
       </div>
       <div class="operator-stat-tile">
         <span class="operator-stat-label">Revenue</span>
@@ -1949,6 +2109,7 @@ function renderOverviewTab(op, project) {
     
     <div class="operator-grid">
       <div class="operator-main">
+        <div id="operator-run-panel"></div>
         <div class="operator-card">
           <h3 class="operator-card-title">Chat with Otto</h3>
           <div id="operator-chat-thread" class="operator-chat-thread"></div>
@@ -1969,6 +2130,50 @@ function renderOverviewTab(op, project) {
   `;
 }
 
+function renderRunPanel(op, project) {
+  const container = document.getElementById('operator-run-panel');
+  if (!container) return;
+  
+  const powerCfg = POWER_PRESETS[op.power] || POWER_PRESETS.steady;
+  const modeLabel = op.runMode === 'auto' ? 'On its own (auto-approve)' : 'Ask first (pending approval)';
+  
+  container.innerHTML = `
+    <div class="operator-card" style="margin-bottom:var(--spacing-lg)">
+      <h3 class="operator-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Run Settings
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);margin-top:var(--spacing-md)">
+        <div>
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Current mode</span>
+          <p style="font-size:14px;font-weight:600;margin-top:4px">${modeLabel}</p>
+        </div>
+        <div>
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Current power</span>
+          <p style="font-size:14px;font-weight:600;margin-top:4px">${powerCfg.label} (${powerCfg.artifacts} artifacts, ${powerCfg.credits} credits)</p>
+        </div>
+      </div>
+      ${op.runs.length > 0 ? `
+        <div style="margin-top:var(--spacing-md)">
+          <span style="font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase">Run history</span>
+          <div class="run-history-list" style="margin-top:var(--spacing-sm)">
+            ${op.runs.slice(0, 5).map((run, idx) => `
+              <div class="run-history-entry">
+                <div style="flex:1">
+                  <span style="font-size:12px;font-weight:600">${new Date(run.at).toLocaleDateString()}</span>
+                  <span style="font-size:11px;color:var(--color-muted);margin-left:8px">${run.mode === 'auto' ? 'Auto' : 'Ask'} · ${POWER_PRESETS[run.power]?.label || run.power}</span>
+                </div>
+                <div style="font-size:11px;color:var(--color-muted)">${run.artifacts} artifacts · ${run.credits} credits</div>
+                <button class="btn btn-sm btn-text" onclick="undoRun(${idx})" style="font-size:11px;padding:2px 8px">Undo</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
 function renderCreateTab(op, project) {
   return `
     <div class="operator-grid">
@@ -1985,13 +2190,324 @@ function renderCreateTab(op, project) {
             <button class="operator-chip" onclick="quickCommand('research')">Market Research</button>
             <button class="operator-chip" onclick="quickCommand('deck')">Pitch Deck</button>
             <button class="operator-chip" onclick="quickCommand('site')">Landing Site</button>
+            <button class="operator-chip" onclick="quickCommand('newsletter')">Newsletter</button>
           </div>
         </div>
+        <div id="operator-site-panel"></div>
         <div id="operator-outbox"></div>
       </div>
       <div class="operator-sidebar" id="operator-sidebar"></div>
     </div>
   `;
+}
+
+function renderSitePanel(op, project) {
+  const container = document.getElementById('operator-site-panel');
+  if (!container) return;
+  
+  const hasSite = op.siteVersions && op.siteVersions.length > 0;
+  
+  container.innerHTML = `
+    <div class="operator-card" style="margin-top:var(--spacing-lg)">
+      <h3 class="operator-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Multi-page Site
+      </h3>
+      <p class="operator-note">Generate a 4-page site (index, about, pricing, contact) with shared styles and navigation.</p>
+      <div class="operator-actions" style="margin-top:var(--spacing-md)">
+        <button class="btn btn-sm btn-primary" onclick="generateAndPreviewSite()">Generate Site</button>
+        ${hasSite ? `<button class="btn btn-sm btn-secondary" onclick="viewSiteVersions()">View versions (${op.siteVersions.length})</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderLibraryTab(op, project) {
+  const allArtifacts = op.outbox || [];
+  const types = ['all', 'brand', 'post', 'email', 'outreach', 'research', 'deck', 'site', 'newsletter'];
+  const statuses = ['all', 'pending', 'approved', 'rejected'];
+  
+  // Get unique types from artifacts
+  const artifactTypes = [...new Set(allArtifacts.map(a => a.type))];
+  
+  return `
+    <div class="operator-grid">
+      <div class="operator-main">
+        <div class="operator-card">
+          <h3 class="operator-card-title">Library</h3>
+          <p class="operator-note">All generated artifacts across all types and statuses.</p>
+          <div class="library-filters" style="margin-top:var(--spacing-md);display:flex;gap:var(--spacing-sm);flex-wrap:wrap">
+            <select id="library-type-filter" onchange="renderLibraryList()" style="padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+              ${types.map(t => `<option value="${t}">${t === 'all' ? 'All types' : t.charAt(0).toUpperCase() + t.slice(1)}</option>`).join('')}
+            </select>
+            <select id="library-status-filter" onchange="renderLibraryList()" style="padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+              ${statuses.map(s => `<option value="${s}">${s === 'all' ? 'All statuses' : s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}
+            </select>
+            <input type="text" id="library-search" placeholder="Search..." oninput="renderLibraryList()" style="flex:1;min-width:150px;padding:8px 12px;background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);font-size:13px">
+            <button class="btn btn-sm btn-secondary" onclick="exportLibraryMarkdown()">Export (MD)</button>
+          </div>
+        </div>
+        <div id="operator-library-list"></div>
+      </div>
+      <div class="operator-sidebar" id="operator-sidebar"></div>
+    </div>
+  `;
+}
+
+function renderLibraryList(op) {
+  const container = document.getElementById('operator-library-list');
+  if (!container) return;
+  
+  const typeFilter = document.getElementById('library-type-filter')?.value || 'all';
+  const statusFilter = document.getElementById('library-status-filter')?.value || 'all';
+  const searchQuery = (document.getElementById('library-search')?.value || '').toLowerCase();
+  
+  let filtered = op.outbox || [];
+  
+  if (typeFilter !== 'all') {
+    filtered = filtered.filter(a => a.type === typeFilter);
+  }
+  if (statusFilter !== 'all') {
+    filtered = filtered.filter(a => a.status === statusFilter);
+  }
+  if (searchQuery) {
+    filtered = filtered.filter(a => 
+      (a.title || '').toLowerCase().includes(searchQuery) ||
+      (a.copy || '').toLowerCase().includes(searchQuery) ||
+      (a.body || '').toLowerCase().includes(searchQuery) ||
+      (a.subject || '').toLowerCase().includes(searchQuery)
+    );
+  }
+  
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="operator-empty" style="padding:var(--spacing-xl)">No artifacts match your filters</div>';
+    return;
+  }
+  
+  container.innerHTML = `
+    <div class="operator-card">
+      <h3 class="operator-card-title">${filtered.length} artifact${filtered.length !== 1 ? 's' : ''}</h3>
+      <div class="library-list" style="margin-top:var(--spacing-md)">
+        ${filtered.map(artifact => `
+          <div class="library-item">
+            <div class="library-item-header">
+              <span class="library-item-type">${artifact.type}</span>
+              <span class="library-item-title">${escapeHtml(artifact.title)}</span>
+              <span class="library-item-status ${artifact.status}">${artifact.status}</span>
+              <span class="library-item-date">${new Date(artifact.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="library-item-actions">
+              <button class="btn btn-sm btn-text" onclick="viewArtifact('${artifact.id}')">Open</button>
+              <button class="btn btn-sm btn-text" onclick="copyArtifactContent('${artifact.id}')">Copy</button>
+              <button class="btn btn-sm btn-text" onclick="downloadArtifact('${artifact.id}')">Download</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function exportLibraryMarkdown() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  
+  let md = `# ${state.currentProject.name} — Artifact Library\n\n`;
+  md += `Exported: ${new Date().toISOString()}\n\n`;
+  
+  op.outbox.forEach((artifact, i) => {
+    md += `## ${i + 1}. ${artifact.title} [${artifact.type} · ${artifact.status}]\n\n`;
+    if (artifact.copy) md += `${artifact.copy}\n\n`;
+    if (artifact.body) md += `${artifact.body}\n\n`;
+    if (artifact.subject) md += `**Subject:** ${artifact.subject}\n\n`;
+    if (artifact.positioning) md += `${artifact.positioning}\n\n`;
+    md += `---\n\n`;
+  });
+  
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${toKebabCase(state.currentProject.name)}-library.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Library exported as Markdown');
+}
+
+function generateAndPreviewSite() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  
+  pushUndoSnapshot(state.currentProject);
+  const siteArtifact = generateSite(state.currentProject);
+  siteArtifact.status = 'approved';
+  siteArtifact.createdAt = new Date().toISOString();
+  siteArtifact.id = 'site-' + Date.now();
+  
+  // Save to site versions
+  op.siteVersions.unshift({
+    at: new Date().toISOString(),
+    files: siteArtifact.files,
+    artifactId: siteArtifact.id
+  });
+  if (op.siteVersions.length > 5) op.siteVersions.pop();
+  
+  addToOutbox(state.currentProject, siteArtifact);
+  addToRunLog(state.currentProject, 'site', 'Generated multi-page site');
+  saveState();
+  
+  // Preview the site in a modal
+  viewSiteVersion(0);
+  renderOperatorView(state.currentProject);
+  showToast('Site generated and added to library');
+}
+
+function viewSiteVersions() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  
+  const modalHtml = `
+    <div class="operator-modal-backdrop" role="dialog" aria-modal="true" onclick="if(event.target===this)closeSiteVersions()">
+      <div class="operator-modal" style="max-width:600px">
+        <div class="operator-modal-header">
+          <h3 class="operator-modal-title">Site Versions</h3>
+          <button class="operator-modal-close" onclick="closeSiteVersions()" aria-label="Close">&times;</button>
+        </div>
+        <div class="operator-modal-body">
+          ${op.siteVersions.length === 0 ? '<div class="operator-empty">No site versions yet</div>' : op.siteVersions.map((v, idx) => `
+            <div class="library-item">
+              <div class="library-item-header">
+                <span class="library-item-type">Site</span>
+                <span class="library-item-title">Version ${idx + 1}</span>
+                <span class="library-item-date">${new Date(v.at).toLocaleDateString()}</span>
+              </div>
+              <div class="library-item-actions">
+                <button class="btn btn-sm btn-text" onclick="viewSiteVersion(${idx})">Preview</button>
+                <button class="btn btn-sm btn-text" onclick="downloadSiteVersion(${idx})">Download</button>
+                ${idx > 0 ? `<button class="btn btn-sm btn-text" style="color:var(--color-distracting)" onclick="restoreSiteVersion(${idx})">Restore</button>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const existing = document.querySelector('.operator-modal-backdrop');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSiteVersions() {
+  const modal = document.querySelector('.operator-modal-backdrop');
+  if (modal) {
+    modal.remove();
+    document.body.style.overflow = '';
+  }
+}
+
+function buildSitePreviewHtml(files) {
+  const html = (files && files['index.html']) || '';
+  const css = (files && files['styles.css']) || '';
+  return html.replace(/<link[^>]*href=["']styles\.css["'][^>]*>/i, `<style>${css}</style>`);
+}
+
+function viewSiteVersion(versionIndex) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const version = op.siteVersions[versionIndex];
+  if (!version) return;
+  
+  const previewHtml = buildSitePreviewHtml(version.files);
+  
+  const modalHtml = `
+    <div class="operator-modal-backdrop" role="dialog" aria-modal="true" onclick="if(event.target===this)closeSiteVersion()">
+      <div class="operator-modal" style="max-width:900px;max-height:90vh">
+        <div class="operator-modal-header">
+          <h3 class="operator-modal-title">Site Preview (Version ${versionIndex + 1})</h3>
+          <div class="operator-modal-actions">
+            <button class="btn btn-sm btn-secondary" onclick="copySiteVersion(${versionIndex})">Copy HTML</button>
+            <button class="btn btn-sm btn-secondary" onclick="downloadSiteVersion(${versionIndex})">Download</button>
+            <button class="operator-modal-close" onclick="closeSiteVersion()" aria-label="Close">&times;</button>
+          </div>
+        </div>
+        <div class="operator-modal-body" style="padding:0">
+          <iframe srcdoc="${previewHtml.replace(/"/g, '&quot;')}" sandbox="" style="width:100%;height:600px;border:none;border-top:1px solid var(--color-border)"></iframe>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const existing = document.querySelector('.operator-modal-backdrop');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSiteVersion() {
+  const modal = document.querySelector('.operator-modal-backdrop');
+  if (modal) {
+    modal.remove();
+    document.body.style.overflow = '';
+  }
+}
+
+function downloadSiteVersion(versionIndex) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const version = op.siteVersions[versionIndex];
+  if (!version) return;
+  
+  // Create a ZIP-like bundle (JSON for now)
+  const bundle = {
+    project: state.currentProject.name,
+    version: versionIndex + 1,
+    exportedAt: new Date().toISOString(),
+    files: version.files
+  };
+  
+  const dataStr = JSON.stringify(bundle, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${toKebabCase(state.currentProject.name)}-site-v${versionIndex + 1}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Site bundle downloaded');
+}
+
+function copySiteVersion(versionIndex) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const version = op.siteVersions[versionIndex];
+  if (!version) return;
+  
+  const indexHtml = version.files['index.html'] || '';
+  navigator.clipboard.writeText(indexHtml).then(() => showToast('Site HTML copied'));
+}
+
+function restoreSiteVersion(versionIndex) {
+  if (!state.currentProject) return;
+  if (!confirm('Restore this site version? This will replace the current version.')) return;
+  
+  const op = ensureOperator(state.currentProject);
+  const version = op.siteVersions[versionIndex];
+  if (!version) return;
+  
+  // Move current version to history
+  const currentVersion = op.siteVersions[0];
+  op.siteVersions.splice(versionIndex, 0, currentVersion);
+  op.siteVersions.shift();
+  
+  showToast('Site version restored');
+  closeSiteVersions();
+  renderOperatorView(state.currentProject);
 }
 
 function renderGrowTab(op, project) {
@@ -3086,6 +3602,18 @@ function quickCommand(cmd) {
   }
 }
 
+function updateModePowerButtons() {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  
+  document.querySelectorAll('[data-mode]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === op.runMode);
+  });
+  document.querySelectorAll('[data-power]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.power === op.power);
+  });
+}
+
 function handleOperatorCommand() {
   if (!state.currentProject) return;
   const input = document.getElementById('operator-command-input');
@@ -3121,6 +3649,9 @@ function handleOperatorCommand() {
   } else if (command.includes('site') || command.includes('landing') || command.includes('web')) {
     artifact = generateSite(state.currentProject);
     creditsCost = 10;
+  } else if (command.includes('newsletter')) {
+    artifact = generateNewsletter(state.currentProject);
+    creditsCost = 4;
   } else if (command.includes('sheet') || command.includes('ledger')) {
     showToast('Ledger is already visible below');
     input.value = '';
@@ -3148,35 +3679,105 @@ function handleOperatorCommand() {
 function runAutopilotPass() {
   if (!state.currentProject) return;
   const op = ensureOperator(state.currentProject);
-  const creditsNeeded = 25;
+  const powerCfg = POWER_PRESETS[op.power] || POWER_PRESETS.steady;
+  const creditsNeeded = powerCfg.credits;
   
   if (getAvailableCredits(state.currentProject) < creditsNeeded) {
-    showToast(`Insufficient credits for autopilot pass. Need ${creditsNeeded}`);
+    showToast(`Insufficient credits. Need ${creditsNeeded}, have ${getAvailableCredits(state.currentProject)}`);
     return;
   }
+  
+  // Push undo snapshot before this run
   pushUndoSnapshot(state.currentProject);
+  
+  // Capture which run index this is so we can undo to it
+  const runIndexBefore = op.runs.length;
+  const undoSnapshotIndex = op.undoStack.length - 1;
+  
   spendCredits(state.currentProject, creditsNeeded);
 
-  const artifacts = [
-    generateBrandKit(state.currentProject),
-    generateSocialPosts(state.currentProject, 'twitter'),
-    generateSocialPosts(state.currentProject, 'linkedin'),
-    generateEmailDraft(state.currentProject),
-    generateOutreach(state.currentProject),
-    generateResearch(state.currentProject)
+  // Generate artifacts based on power level
+  const generators = [
+    () => generateBrandKit(state.currentProject),
+    () => generateSocialPosts(state.currentProject, 'twitter'),
+    () => generateSocialPosts(state.currentProject, 'linkedin'),
+    () => generateSocialPosts(state.currentProject, 'instagram'),
+    () => generateEmailDraft(state.currentProject),
+    () => generateOutreach(state.currentProject),
+    () => generateResearch(state.currentProject),
+    () => generateDeck(state.currentProject),
+    () => generateSite(state.currentProject),
+    () => generateNewsletter(state.currentProject),
+    () => generateSocialPosts(state.currentProject, 'linkedin'),
+    () => generateEmailDraft(state.currentProject),
+    () => generateResearch(state.currentProject),
+    () => generateOutreach(state.currentProject),
+    () => generateBrandKit(state.currentProject),
+    () => generateNewsletter(state.currentProject)
   ];
   
-  artifacts.forEach(artifact => {
-    if (op.autopilot) {
-      artifact.status = 'approved';
+  const artifacts = [];
+  for (let i = 0; i < powerCfg.artifacts && i < generators.length; i++) {
+    const art = generators[i]();
+    if (op.runMode === 'auto') {
+      art.status = 'approved';
     }
-    addToOutbox(state.currentProject, artifact);
-    addToRunLog(state.currentProject, `autopilot: ${artifact.type}`, 'Generated');
+    addToOutbox(state.currentProject, art);
+    addToRunLog(state.currentProject, `run: ${art.type}`, 'Generated');
+    artifacts.push(art);
+  }
+  
+  // Record run history
+  op.runs.unshift({
+    at: new Date().toISOString(),
+    mode: op.runMode,
+    power: op.power,
+    artifacts: artifacts.length,
+    credits: creditsNeeded,
+    undoSnapshotIndex: undoSnapshotIndex,
+    artifactIds: artifacts.map(a => a.id)
   });
+  if (op.runs.length > 20) op.runs.pop();
   
   saveState();
   renderOperatorView(state.currentProject);
-  showToast(`Autopilot pass complete: ${artifacts.length} artifacts generated (-${creditsNeeded} credits)`);
+  showToast(`Run complete: ${artifacts.length} artifacts (${powerCfg.label}, ${op.runMode === 'auto' ? 'auto-approved' : 'pending approval'})`);
+}
+
+function undoRun(runIndex) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  const run = op.runs[runIndex];
+  if (!run) return;
+  
+  // Remove artifacts generated by this run
+  if (run.artifactIds && run.artifactIds.length > 0) {
+    op.outbox = op.outbox.filter(a => !run.artifactIds.includes(a.id));
+  }
+  // Refund credits
+  op.credits.spent = Math.max(0, op.credits.spent - run.credits);
+  // Remove this run from history
+  op.runs.splice(runIndex, 1);
+  // Remove corresponding run log entries (heuristic: those with 'run:' prefix)
+  saveState();
+  renderOperatorView(state.currentProject);
+  showToast('Run undone');
+}
+
+function setRunMode(mode) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.runMode = mode;
+  saveState();
+  renderOperatorView(state.currentProject);
+}
+
+function setPower(power) {
+  if (!state.currentProject) return;
+  const op = ensureOperator(state.currentProject);
+  op.power = power;
+  saveState();
+  renderOperatorView(state.currentProject);
 }
 
 function exportOperatorBundle() {

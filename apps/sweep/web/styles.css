@@ -268,6 +268,12 @@ code{font-family:var(--font-mono);font-size:0.9em;background:var(--color-border-
 .operator-cockpit-header{background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--spacing-lg);margin-bottom:var(--spacing-lg);transition:background-color 240ms ease}
 .operator-status-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-md);flex-wrap:wrap;gap:var(--spacing-sm)}
 .operator-credits{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--color-accent);background:var(--color-border-light);padding:6px 12px;border-radius:9999px}
+.operator-mode-controls{display:flex;gap:var(--spacing-md);flex-wrap:wrap}
+.operator-segmented{display:flex;align-items:center;gap:var(--spacing-xs)}
+.operator-segmented-label{font-size:11px;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.06em}
+.operator-seg-btn{padding:6px 12px;font-size:12px;font-weight:600;color:var(--color-ink-light);background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);cursor:pointer;transition:all 120ms ease}
+.operator-seg-btn:hover{background:var(--color-border)}
+.operator-seg-btn.active,.operator-seg-btn[aria-pressed="true"]{background:var(--color-accent);border-color:var(--color-accent);color:white}
 .operator-autopilot{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-ink-light)}
 .operator-autopilot input{accent-color:var(--color-accent)}
 .operator-command-bar{display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-md);flex-wrap:wrap}
@@ -299,6 +305,21 @@ code{font-family:var(--font-mono);font-size:0.9em;background:var(--color-border-
 .run-log-entry{display:flex;justify-content:space-between;align-items:center;padding:var(--spacing-xs);background:var(--color-border-light);border-radius:var(--radius-card);font-size:12px}
 .run-log-action{font-weight:600;color:var(--color-ink)}
 .run-log-time{font-family:var(--font-mono);font-size:10px;color:var(--color-muted)}
+.run-history-list{display:flex;flex-direction:column;gap:var(--spacing-xs)}
+.run-history-entry{display:flex;align-items:center;gap:var(--spacing-sm);padding:var(--spacing-sm);background:var(--color-border-light);border-radius:var(--radius-card);font-size:12px}
+
+.library-list{display:flex;flex-direction:column;gap:var(--spacing-sm)}
+.library-item{padding:var(--spacing-sm);background:var(--color-border-light);border:1px solid var(--color-border);border-radius:var(--radius-card);transition:all 120ms ease}
+.library-item:hover{border-color:var(--color-ink-light)}
+.library-item-header{display:flex;align-items:center;gap:var(--spacing-sm);margin-bottom:var(--spacing-xs);font-size:12px}
+.library-item-type{text-transform:uppercase;font-size:10px;font-weight:700;color:var(--color-muted);padding:2px 6px;background:var(--color-border);border-radius:4px}
+.library-item-title{font-weight:600;color:var(--color-ink);flex:1}
+.library-item-status{font-size:10px;font-weight:600;text-transform:uppercase;padding:2px 6px;border-radius:4px}
+.library-item-status.pending{background:#fef3c7;color:#92400e}
+.library-item-status.approved{background:#d1fae5;color:#065f46}
+.library-item-status.rejected{background:#fee2e2;color:#991b1b}
+.library-item-date{font-family:var(--font-mono);font-size:10px;color:var(--color-muted)}
+.library-item-actions{display:flex;gap:var(--spacing-xs)}
 
 .operator-outbox{max-height:400px;overflow-y:auto}
 .outbox-tabs{display:flex;gap:var(--spacing-xs);margin-bottom:var(--spacing-sm);border-bottom:1px solid var(--color-border-light)}
@@ -467,3 +488,4 @@ code{font-family:var(--font-mono);font-size:0.9em;background:var(--color-border-
 .operator-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
 .operator-chart-bar{width:100%;max-width:38px;background:var(--color-accent);border-radius:2px 2px 0 0;min-height:6px;transition:height 240ms ease}
 .operator-chart-x{font-family:var(--font-mono);font-size:9px;color:var(--color-ink-light);white-space:nowrap}
+.operator-modal-close{color:var(--color-ink-light)}

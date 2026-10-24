@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <title>Sweep — From idea to checkable plan</title>
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 
@@ -544,7 +544,7 @@
           <div class="guide-step-number">7</div>
           <div class="guide-step-content">
             <h3>Use Operator (Otto) to create content</h3>
-            <p>Open the Operator tab to access Otto, your local AI operator. Chat with Otto to generate brand kits, social posts, emails, outreach lists, research, pitch decks, or landing sites. Review the 5 tabs: <strong>Overview</strong> (chat + stats), <strong>Create</strong> (generate + outbox), <strong>Grow</strong> (calendar + inbox), <strong>Money</strong> (insights + ledger + payments), and <strong>Data</strong> (search + privacy). All content is generated locally and deterministically — no network calls.</p>
+            <p>Open the Operator tab to access Otto, your local AI operator. Chat with Otto to generate brand kits, social posts, emails, outreach lists, research, pitch decks, landing sites, or newsletters. The 6 tabs provide: <strong>Overview</strong> (chat + stats + run panel), <strong>Create</strong> (generate + multi-page site), <strong>Library</strong> (all artifacts with filtering), <strong>Grow</strong> (calendar + inbox), <strong>Money</strong> (insights + ledger + payments), and <strong>Data</strong> (search + privacy). Use the <strong>Mode</strong> selector to choose "Ask first" (pending approval) or "On its own" (auto-approve). Use the <strong>Power</strong> selector to choose how many artifacts to generate: Light touch (3), Steady clip (6), Big swing (10), or Full send (16). Run history with per-run Undo is available on Overview.</p>
           </div>
         </div>
       </div>
@@ -579,19 +579,29 @@
       </div>
     </div>
 
-    <!-- Operator v2 cockpit (when project is open) -->
+    <!-- Operator v3 cockpit (when project is open) -->
     <div id="operator-cockpit" style="display:block">
       <!-- Cockpit header -->
       <div class="operator-cockpit-header">
         <div class="operator-status-row">
           <div class="operator-credits" id="operator-credits">45 credits</div>
-          <label class="operator-autopilot">
-            <input type="checkbox" id="operator-autopilot" onchange="toggleAutopilot()">
-            <span id="operator-autopilot-label">Autopilot (Ask first)</span>
-          </label>
+          <div class="operator-mode-controls">
+            <div class="operator-segmented" role="radiogroup" aria-label="Run mode">
+              <span class="operator-segmented-label">Mode</span>
+              <button type="button" class="operator-seg-btn" data-mode="ask" onclick="setRunMode('ask')">Ask first</button>
+              <button type="button" class="operator-seg-btn" data-mode="auto" onclick="setRunMode('auto')">On its own</button>
+            </div>
+            <div class="operator-segmented" role="radiogroup" aria-label="Run power">
+              <span class="operator-segmented-label">Power</span>
+              <button type="button" class="operator-seg-btn" data-power="light" onclick="setPower('light')">Light touch</button>
+              <button type="button" class="operator-seg-btn" data-power="steady" onclick="setPower('steady')">Steady clip</button>
+              <button type="button" class="operator-seg-btn" data-power="big" onclick="setPower('big')">Big swing</button>
+              <button type="button" class="operator-seg-btn" data-power="full" onclick="setPower('full')">Full send</button>
+            </div>
+          </div>
         </div>
         <div class="operator-command-bar">
-          <input type="text" id="operator-command-input" placeholder="Type: brand, post, email, outreach, research, deck, site..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
+          <input type="text" id="operator-command-input" placeholder="Type: brand, post, email, outreach, research, deck, site, newsletter..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
           <button class="btn btn-primary" onclick="handleOperatorCommand()">Generate</button>
           <button class="btn btn-secondary" onclick="runAutopilotPass()">Run a pass</button>
           <button class="btn btn-secondary" id="operator-undo-btn" onclick="handleUndo()" disabled>Undo</button>
@@ -611,6 +621,6 @@
 <!-- Toast notification -->
 <div class="toast" id="toast" aria-live="polite"></div>
 
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
