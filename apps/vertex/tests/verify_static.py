@@ -207,6 +207,16 @@ def main():
     else:
         check('sw.js caches js/viewport.js', False, 'sw.js does not exist')
     
+    # === Check: 8 tab labels exist in index.html ===
+    if index_html_file.exists():
+        tab_labels = ['Repair', 'Assembly', 'Build', 'Simulate', 'Answers', 'Reverse', 'Drawing', 'Automation']
+        for tab_label in tab_labels:
+            has_tab = tab_label in index_html_content
+            check(f'index.html has "{tab_label}" tab', has_tab)
+    else:
+        for tab_label in ['Repair', 'Assembly', 'Build', 'Simulate', 'Answers', 'Reverse', 'Drawing', 'Automation']:
+            check(f'index.html has "{tab_label}" tab', False, 'file does not exist')
+    
     # === Summary ===
     print()
     print(f'Summary: {checks_passed} passed, {checks_failed} failed')

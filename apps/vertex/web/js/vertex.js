@@ -1885,6 +1885,312 @@ var Vertex = (function () {
     ];
   }
 
+  /* ================================================================== */
+  /* v3 — answers, reverse engineering, drawing→CAD, automation          */
+  /* (docs/vertex-v3-spec.md §2). Deterministic, dependency-free.        */
+  /* ================================================================== */
+
+  var SCHEMA_ANSWER = "vertex/answer/v1";
+  var SCHEMA_SCAN = "vertex/scan/v1";
+  var SCHEMA_DRAWING = "vertex/drawing/v1";
+  var SCHEMA_BATCH = "vertex/batch/v1";
+  var SCHEMA_BATCH_PLAN = "vertex/batch-plan/v1";
+
+  /* short local how-to per CAD op; key order is fixed by TIP_KEYS below */
+  var TIPS = {
+    fillet: "Select the fillet, lower the radius so it fits the adjacent faces, then rebuild.",
+    extrude: "Check the sketch is closed and set a positive depth, then rebuild the extrude.",
+    pattern: "Give the pattern a valid direction and count, and fix the source feature first.",
+    repair: "Run diagnose to list failures, fix the first upstream one, then rebuild downstream.",
+    mate: "Reselect both faces of the mate (or replace a missing component) and re-create it.",
+    assembly: "Insert the base part first, then add parts and mates so none is over-constrained.",
+    export: "Build the mesh first, then export STL/OBJ/glTF/3MF/DXF behind the review gate."
+  };
+  var TIP_KEYS = ["fillet", "extrude", "pattern", "repair", "mate", "assembly", "export"];
+
+  /* ---- §2.1 answer (deterministic keyword rules, first match wins) ---- */
+
+  function featureLabel(f) {
+    return labelOf(f, (f && f.id !== undefined && f.id !== null) ? f.id : "feature");
+  }
+
+  function answer(report, question) {
+    var rep = isObj(report) ? report : {};
+    var q = (typeof question === "string") ? question : "";
+    var lq = q.toLowerCase();
+    var features = asArray(rep.features);
+    var mates = asArray(rep.mates);
+    var i;
+
+    function out(kind, text, evidence) {
+      return {
+        schema: SCHEMA_ANSWER,
+        question: q,
+        kind: kind,
+        answer: text,
+        evidence: evidence || []
+      };
+    }
+
+    /* count: /how many|count/ */
+    if (/how many|count/.test(lq)) {
+      if (features.length === 0) {
+        return out("count", "This model has no features.", []);
+      }
+      var order = [];
+      var counts = Object.create(null);
+      for (i = 0; i < features.length; i++) {
+        var cf = features[i] || {};
+        var st = (typeof cf.status === "string" && cf.status) ? cf.status : "unknown";
+        if (!has(counts, st)) { counts[st] = 0; order.push(st); }
+        counts[st] += 1;
+      }
+      var parts = [];
+      var cev = [];
+      for (i = 0; i < order.length; i++) {
+        parts.push(counts[order[i]] + " " + order[i]);
+        cev.push(order[i] + ": " + counts[order[i]]);
+      }
+      return out("count",
+        features.length + " features: " + parts.join(", ") + ".", cev);
+    }
+
+    /* status: /what failed|which failed|broken/ */
+    if (/what failed|which failed|broken/.test(lq)) {
+      var bad = [];
+      var bev = [];
+      for (i = 0; i < features.length; i++) {
+        var bf = features[i] || {};
+        if (bf.status === "failed" || bf.status === "warning") {
+          bad.push(featureLabel(bf) + " (" + bf.status + ")");
+          bev.push(bf.id + " " + featureLabel(bf) + " " + bf.status);
+        }
+      }
+      if (bad.length === 0) {
+        return out("status", "No failed or warning features.", []);
+      }
+      return out("status",
+        bad.length + " feature(s) need attention: " + bad.join(", ") + ".", bev);
+    }
+
+    /* dependency: /depends on (\w+)/ */
+    var dm = lq.match(/depends on (\w+)/);
+    if (dm) {
+      var depId = dm[1];
+      var hits = [];
+      var hev = [];
+      for (i = 0; i < features.length; i++) {
+        var df = features[i] || {};
+        if (asArray(df.dependsOn).indexOf(depId) !== -1) {
+          hits.push(featureLabel(df) + " (" + df.id + ")");
+          hev.push(df.id + " " + featureLabel(df) + " dependsOn " + depId);
+        }
+      }
+      if (hits.length === 0) {
+        return out("dependency", "No feature depends on " + depId + ".", []);
+      }
+      return out("dependency",
+        hits.length + " feature(s) depend on " + depId + ": " + hits.join(", ") + ".",
+        hev);
+    }
+
+    /* howto: how (do|to) i? (fix|make|create|repair|pattern|fillet|extrude|mate|assembly) */
+    var hm = lq.match(
+      /how (do|to) i? ?(fix|make|create|repair|pattern|fillet|extrude|mate|assembly)/);
+    if (hm) {
+      var verb = hm[2];
+      var key = has(TIPS, verb) ? verb : null;
+      if (key === null) {
+        for (i = 0; i < TIP_KEYS.length; i++) {
+          if (lq.indexOf(TIP_KEYS[i]) !== -1) { key = TIP_KEYS[i]; break; }
+        }
+      }
+      if (key === null) {
+        return out("howto",
+          "Ask about a CAD operation (fillet, extrude, pattern, repair, mate, " +
+          "assembly, export) and I will give a short how-to.", []);
+      }
+      return out("howto", TIPS[key], ["tip: " + key]);
+    }
+
+    /* mate: /mates?/ */
+    if (/mates?/.test(lq)) {
+      if (mates.length === 0) {
+        return out("mate", "This model has no mates.", []);
+      }
+      var ml = [];
+      var mev = [];
+      for (i = 0; i < mates.length; i++) {
+        var m = mates[i] || {};
+        var type = (typeof m.type === "string" && m.type) ? m.type : "mate";
+        ml.push(type + " " + m.a + "-" + m.b + " (" + m.id + ")");
+        mev.push(m.id + " " + type + " " + m.a + "-" + m.b);
+      }
+      return out("mate", mates.length + " mate(s): " + ml.join(", ") + ".", mev);
+    }
+
+    /* summary: /summary|what is this|overview/ */
+    if (/summary|what is this|overview/.test(lq)) {
+      var name = (isObj(rep.model) && typeof rep.model.name === "string" &&
+        rep.model.name) ? rep.model.name : "This model";
+      return out("summary",
+        name + " has " + features.length + " features and " + mates.length + " mates.",
+        ["features: " + features.length, "mates: " + mates.length]);
+    }
+
+    /* unknown: helpful fallback */
+    return out("unknown",
+      "I can answer counts, failures, dependencies, mates, summaries, and " +
+      "how-to questions (for example, \"how do I fix a fillet?\").", []);
+  }
+
+  /* ---- §2.2 reverse (scan → parametric CAD) ---- */
+
+  function reverse(scan) {
+    var sc = isObj(scan) ? scan : {};
+    var pts = asArray(sc.points);
+    if (pts.length < 2) {
+      throw new Error("reverse: a scan needs at least 2 points");
+    }
+
+    var min = [Infinity, Infinity, Infinity];
+    var max = [-Infinity, -Infinity, -Infinity];
+    var sx = 0, sy = 0, sz = 0, n = 0, i;
+    for (i = 0; i < pts.length; i++) {
+      var p = Array.isArray(pts[i]) ? pts[i] : [];
+      var x = num(p[0], 0), y = num(p[1], 0), z = num(p[2], 0);
+      sx += x; sy += y; sz += z; n += 1;
+      if (x < min[0]) { min[0] = x; }
+      if (y < min[1]) { min[1] = y; }
+      if (z < min[2]) { min[2] = z; }
+      if (x > max[0]) { max[0] = x; }
+      if (y > max[1]) { max[1] = y; }
+      if (z > max[2]) { max[2] = z; }
+    }
+    var cx = sx / n, cy = sy / n;
+
+    /* XY radial spread about the mean — a near-constant radius means a cylinder */
+    var rMin = Infinity, rMax = -Infinity, rSum = 0;
+    for (i = 0; i < pts.length; i++) {
+      var pp = Array.isArray(pts[i]) ? pts[i] : [];
+      var dx = num(pp[0], 0) - cx, dy = num(pp[1], 0) - cy;
+      var rr = Math.sqrt(dx * dx + dy * dy);
+      rSum += rr;
+      if (rr < rMin) { rMin = rr; }
+      if (rr > rMax) { rMax = rr; }
+    }
+    var meanR = rSum / pts.length;
+    var fit = (typeof sc.maxFitError === "number" && isFinite(sc.maxFitError))
+      ? sc.maxFitError : 0.08;
+
+    var dxe = max[0] - min[0], dye = max[1] - min[1], dze = max[2] - min[2];
+    var ax = (min[0] + max[0]) / 2;
+    var ay = (min[1] + max[1]) / 2;
+    var az = (min[2] + max[2]) / 2;
+
+    var solid;
+    if (rMax > 0 && ((rMax - rMin) / rMax) < fit) {
+      solid = {
+        id: "s1", type: "cylinder", x: ax, y: ay, z: az,
+        params: { r: meanR, h: dze }
+      };
+    } else {
+      solid = {
+        id: "s1", type: "box", x: ax, y: ay, z: az,
+        params: { dx: dxe, dy: dye, dz: dze }
+      };
+    }
+
+    return {
+      schema: SCHEMA_BUILD,
+      name: "Reversed part",
+      units: "mm",
+      material: { name: "Aluminium 6061", density: 2.70 },
+      params: {},
+      solids: [solid],
+      holes: []
+    };
+  }
+
+  /* ---- §2.3 fromDrawing (drawing → CAD) ---- */
+
+  function fromDrawing(drawing) {
+    var d = isObj(drawing) ? drawing : {};
+    var ext = isObj(d.extents) ? d.extents : {};
+    var L = num(ext.L, 0), W = num(ext.W, 0), T = num(ext.T, 0);
+
+    var holesIn = asArray(d.holes);
+    var holes = [];
+    for (var i = 0; i < holesIn.length; i++) {
+      var h = isObj(holesIn[i]) ? holesIn[i] : {};
+      holes.push({
+        id: "h" + (i + 1),
+        type: "cylinder",
+        x: num(h.x, 0),
+        y: num(h.y, 0),
+        z: 0,
+        params: { r: num(h.r, 0), h: "T" }
+      });
+    }
+
+    return {
+      schema: SCHEMA_BUILD,
+      name: (typeof d.title === "string" && d.title) ? d.title : "Drawing part",
+      units: (typeof d.units === "string" && d.units) ? d.units : "mm",
+      material: { name: "Aluminium 6061", density: 2.70 },
+      params: { L: L, W: W, T: T },
+      solids: [
+        { id: "s1", type: "box", x: 0, y: 0, z: 0,
+          params: { dx: "L", dy: "W", dz: "T" } }
+      ],
+      holes: holes
+    };
+  }
+
+  /* ---- §2.4 automate (automation / repetition) ---- */
+
+  function automate(batch) {
+    var b = isObj(batch) ? batch : {};
+    var ops = asArray(b.ops);
+    var steps = [];
+    var instances = 0;   /* pattern instances (Vector's "26 blocks → 1 pattern") */
+    var exports = 0;     /* total exported files                              */
+
+    for (var i = 0; i < ops.length; i++) {
+      var o = isObj(ops[i]) ? ops[i] : {};
+      var op = (typeof o.op === "string") ? o.op : "";
+      var step = {
+        n: i + 1,
+        op: op,
+        name: (typeof o.name === "string") ? o.name : ""
+      };
+      if (op === "export") {
+        var src = asArray(o.formats);
+        var fmts = [];
+        for (var f = 0; f < src.length; f++) { fmts.push(src[f]); }
+        step.formats = fmts;
+        step.count = fmts.length;
+        exports += fmts.length;
+      } else if (op === "pattern") {
+        var pc = Math.floor(num(o.count, 0));
+        step.count = pc;
+        step.delta = [num(o.dx, 0), num(o.dy, 0), num(o.dz, 0)];
+        instances += pc;
+      } else if (op === "sheets") {
+        step.count = Math.floor(num(o.count, 0));
+      } else if (typeof o.count === "number") {
+        step.count = o.count;
+      }
+      steps.push(step);
+    }
+
+    return {
+      schema: SCHEMA_BATCH_PLAN,
+      steps: steps,
+      summary: { ops: ops.length, instances: instances, exports: exports }
+    };
+  }
+
   return {
     SCHEMA_REPORT: SCHEMA_REPORT,
     SCHEMA_DIAGNOSIS: SCHEMA_DIAGNOSIS,
@@ -1908,7 +2214,16 @@ var Vertex = (function () {
     export3MF: export3MF,
     exportDXF: exportDXF,
     simulate: simulate,
-    adapters: adapters
+    adapters: adapters,
+    SCHEMA_ANSWER: SCHEMA_ANSWER,
+    SCHEMA_SCAN: SCHEMA_SCAN,
+    SCHEMA_DRAWING: SCHEMA_DRAWING,
+    SCHEMA_BATCH: SCHEMA_BATCH,
+    TIPS: TIPS,
+    answer: answer,
+    reverse: reverse,
+    fromDrawing: fromDrawing,
+    automate: automate
   };
 })();
 

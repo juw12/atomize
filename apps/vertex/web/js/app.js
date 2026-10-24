@@ -23,15 +23,23 @@
   var buildView = null;
   var simulateView = null;
 
-  /* === DOM Elements - Tabs === */
+  /* === DOM Elements - Tabs (8 tabs) === */
   var tabRepair = document.getElementById('tab-repair');
   var tabAssembly = document.getElementById('tab-assembly');
   var tabBuild = document.getElementById('tab-build');
   var tabSimulate = document.getElementById('tab-simulate');
+  var tabAnswers = document.getElementById('tab-answers');
+  var tabReverse = document.getElementById('tab-reverse');
+  var tabDrawing = document.getElementById('tab-drawing');
+  var tabAutomation = document.getElementById('tab-automation');
   var repairPanel = document.getElementById('repair-panel');
   var assemblyPanel = document.getElementById('assembly-panel');
   var buildPanel = document.getElementById('build-panel');
   var simulatePanel = document.getElementById('simulate-panel');
+  var answersPanel = document.getElementById('answers-panel');
+  var reversePanel = document.getElementById('reverse-panel');
+  var drawingPanel = document.getElementById('drawing-panel');
+  var automationPanel = document.getElementById('automation-panel');
 
   /* === DOM Elements - Repair === */
   var btnLoadSample = document.getElementById('btn-load-sample');
@@ -101,6 +109,43 @@
   var btnRunSimulation = document.getElementById('btn-run-simulation');
   var simulateResults = document.getElementById('simulate-results');
 
+  /* === DOM Elements - Answers === */
+  var answersQuestion = document.getElementById('answers-question');
+  var btnAnswersAsk = document.getElementById('btn-answers-ask');
+  var answersAnswerCard = document.getElementById('answers-answer-card');
+  var answerKindBadge = document.getElementById('answer-kind-badge');
+  var answerText = document.getElementById('answer-text');
+  var answerEvidence = document.getElementById('answer-evidence');
+  var answersPlaceholder = document.getElementById('answers-placeholder');
+
+  /* === DOM Elements - Reverse === */
+  var btnLoadScanSample = document.getElementById('btn-load-scan-sample');
+  var reversePointsJson = document.getElementById('reverse-points-json');
+  var btnReverseFit = document.getElementById('btn-reverse-fit');
+  var reverseResults = document.getElementById('reverse-results');
+  var btnReverseOpenBuild = document.getElementById('btn-reverse-open-build');
+  var reverseView = null;
+
+  /* === DOM Elements - Drawing === */
+  var drawingTitle = document.getElementById('drawing-title');
+  var drawingExtentsL = document.getElementById('drawing-extents-l');
+  var drawingExtentsW = document.getElementById('drawing-extents-w');
+  var drawingExtentsT = document.getElementById('drawing-extents-t');
+  var drawingHolesJson = document.getElementById('drawing-holes-json');
+  var btnDrawingGenerate = document.getElementById('btn-drawing-generate');
+  var drawingResults = document.getElementById('drawing-results');
+  var btnDrawingOpenBuild = document.getElementById('btn-drawing-open-build');
+  var drawingView = null;
+
+  /* === DOM Elements - Automation === */
+  var btnAddAutomationOp = document.getElementById('btn-add-automation-op');
+  var automationOpsEditor = document.getElementById('automation-ops-editor');
+  var automationPlanResults = document.getElementById('automation-plan-results');
+  var btnAutomationGenerate = document.getElementById('btn-automation-generate');
+  var automationSummary = document.getElementById('automation-summary');
+  var chkConfirmAutomation = document.getElementById('chk-confirm-automation');
+  var btnAutomationRun = document.getElementById('btn-automation-run');
+
   /* === DOM Elements - Connector/Adapter Strip === */
   var connectorStrip = document.getElementById('connector-strip');
   var adaptersStrip = document.getElementById('adapters-strip');
@@ -112,6 +157,9 @@
     var assemblyCanvas = document.getElementById('assembly-viewport-canvas');
     var buildCanvas = document.getElementById('build-viewport-canvas');
     var simulateCanvas = document.getElementById('simulate-viewport-canvas');
+    var reverseCanvas = document.getElementById('reverse-viewport-canvas');
+    var drawingCanvas = document.getElementById('drawing-viewport-canvas');
+    var heroCanvas = document.getElementById('hero-viewport-canvas');
 
     if (repairCanvas && window.VertexView) {
       repairView = new window.VertexView(repairCanvas);
@@ -129,6 +177,18 @@
       simulateView = new window.VertexView(simulateCanvas);
       setupViewportControls('simulate', simulateView);
     }
+    if (reverseCanvas && window.VertexView) {
+      reverseView = new window.VertexView(reverseCanvas);
+      setupViewportControls('reverse', reverseView);
+    }
+    if (drawingCanvas && window.VertexView) {
+      drawingView = new window.VertexView(drawingCanvas);
+      setupViewportControls('drawing', drawingView);
+    }
+    if (heroCanvas && window.VertexView) {
+      var heroView = new window.VertexView(heroCanvas);
+      setupViewportControls('hero', heroView);
+    }
   }
 
   function setupViewportControls(prefix, view) {
@@ -143,15 +203,18 @@
     }
   }
 
-  /* === Tab Switching === */
+  /* === Tab Switching (8 tabs) === */
   function switchTab(activeTab, activePanel) {
-    [tabRepair, tabAssembly, tabBuild, tabSimulate].forEach(function(tab) {
+    var allTabs = [tabRepair, tabAssembly, tabBuild, tabSimulate, tabAnswers, tabReverse, tabDrawing, tabAutomation];
+    var allPanels = [repairPanel, assemblyPanel, buildPanel, simulatePanel, answersPanel, reversePanel, drawingPanel, automationPanel];
+    
+    allTabs.forEach(function(tab) {
       if (tab) {
         tab.classList.remove('active');
         tab.setAttribute('aria-selected', 'false');
       }
     });
-    [repairPanel, assemblyPanel, buildPanel, simulatePanel].forEach(function(panel) {
+    allPanels.forEach(function(panel) {
       if (panel) {
         panel.classList.remove('active');
       }
@@ -171,6 +234,8 @@
       if (assemblyView) assemblyView._setupCanvas();
       if (buildView) buildView._setupCanvas();
       if (simulateView) simulateView._setupCanvas();
+      if (reverseView) reverseView._setupCanvas();
+      if (drawingView) drawingView._setupCanvas();
     }, 100);
   }
 
@@ -185,6 +250,18 @@
   }
   if (tabSimulate) {
     tabSimulate.addEventListener('click', function() { switchTab(tabSimulate, simulatePanel); });
+  }
+  if (tabAnswers) {
+    tabAnswers.addEventListener('click', function() { switchTab(tabAnswers, answersPanel); });
+  }
+  if (tabReverse) {
+    tabReverse.addEventListener('click', function() { switchTab(tabReverse, reversePanel); });
+  }
+  if (tabDrawing) {
+    tabDrawing.addEventListener('click', function() { switchTab(tabDrawing, drawingPanel); });
+  }
+  if (tabAutomation) {
+    tabAutomation.addEventListener('click', function() { switchTab(tabAutomation, automationPanel); });
   }
 
   /* === Connector/Adapter Status === */
@@ -956,6 +1033,307 @@
         }
       });
     }
+  }
+
+  /* === New Tab Handlers === */
+  
+  /* Answers Tab */
+  function askQuestion(question) {
+    if (!answersQuestion || !answersAnswerCard || !answerText) return;
+    if (!window.Vertex || !window.Vertex.answer) {
+      if (answerText) answerText.textContent = 'Answers engine not available offline';
+      return;
+    }
+    
+    var report = currentReport;
+    var result = window.Vertex.answer(report, question);
+    
+    if (result) {
+      if (answerKindBadge) answerKindBadge.textContent = result.kind || 'UNKNOWN';
+      if (answerText) answerText.textContent = result.answer || 'No answer available';
+      if (answerEvidence) {
+        if (result.evidence && result.evidence.length > 0) {
+          answerEvidence.innerHTML = '<strong>Evidence:</strong> ' + escapeHtml(result.evidence.join(', '));
+        } else {
+          answerEvidence.textContent = '';
+        }
+      }
+      if (answersAnswerCard) answersAnswerCard.style.display = 'block';
+      if (answersPlaceholder) answersPlaceholder.style.display = 'none';
+    }
+  }
+  
+  if (btnAnswersAsk) {
+    btnAnswersAsk.addEventListener('click', function() {
+      if (answersQuestion) askQuestion(answersQuestion.value);
+    });
+  }
+  
+  /* Answer chips */
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('answer-chip')) {
+      var question = e.target.getAttribute('data-question');
+      if (question && answersQuestion) {
+        answersQuestion.value = question;
+        askQuestion(question);
+      }
+    }
+  });
+  
+  /* Reverse Tab */
+  if (btnLoadScanSample) {
+    btnLoadScanSample.addEventListener('click', function() {
+      if (reversePointsJson) {
+        var sample = { schema: 'vertex/scan/v1', points: [[0,0,0],[20,0,0],[20,20,0],[0,20,0],[10,10,15]] };
+        reversePointsJson.value = JSON.stringify(sample, null, 2);
+      }
+    });
+  }
+  
+  if (btnReverseFit) {
+    btnReverseFit.addEventListener('click', function() {
+      if (!reversePointsJson || !window.Vertex || !window.Vertex.reverse) {
+        if (reverseResults) reverseResults.innerHTML = '<span style="color: var(--warn)">Reverse engine not available</span>';
+        return;
+      }
+      
+      try {
+        var scanData = JSON.parse(reversePointsJson.value);
+        var buildSpec = window.Vertex.reverse(scanData);
+        
+        if (reverseResults) {
+          reverseResults.innerHTML = '<span style="color: var(--ok)">✓ Fit successful: ' + escapeHtml(buildSpec.name) + '</span>';
+        }
+        if (btnReverseOpenBuild) btnReverseOpenBuild.disabled = false;
+        
+        /* Store for "Open in Build" */
+        window._reverseBuildSpec = buildSpec;
+        
+        /* Show in viewport */
+        if (reverseView && window.Vertex && window.Vertex.buildMesh) {
+          var mesh = window.Vertex.buildMesh(buildSpec);
+          reverseView.setMesh(mesh);
+          reverseView.fit();
+        }
+      } catch (e) {
+        if (reverseResults) reverseResults.innerHTML = '<span style="color: var(--err)">✗ Fit failed: ' + escapeHtml(e.message) + '</span>';
+      }
+    });
+  }
+  
+  if (btnReverseOpenBuild) {
+    btnReverseOpenBuild.addEventListener('click', function() {
+      if (window._reverseBuildSpec) {
+        /* Switch to Build tab */
+        if (tabBuild) tabBuild.click();
+        /* Populate build params from reverse result */
+        var spec = window._reverseBuildSpec;
+        if (spec && spec.params) {
+          if (buildLengthInput && spec.params.L) buildLengthInput.value = spec.params.L;
+          if (buildWidthInput && spec.params.W) buildWidthInput.value = spec.params.W;
+          if (buildThicknessInput && spec.params.T) buildThicknessInput.value = spec.params.T;
+        }
+      }
+    });
+  }
+  
+  /* Drawing Tab */
+  if (btnDrawingGenerate) {
+    btnDrawingGenerate.addEventListener('click', function() {
+      if (!window.Vertex || !window.Vertex.fromDrawing) {
+        if (drawingResults) drawingResults.innerHTML = '<span style="color: var(--warn)">Drawing engine not available</span>';
+        return;
+      }
+      
+      try {
+        var drawing = {
+          schema: 'vertex/drawing/v1',
+          title: drawingTitle ? drawingTitle.value : 'Drawing part',
+          units: 'mm',
+          extents: {
+            L: drawingExtentsL ? parseFloat(drawingExtentsL.value) : 80,
+            W: drawingExtentsW ? parseFloat(drawingExtentsW.value) : 40,
+            T: drawingExtentsT ? parseFloat(drawingExtentsT.value) : 6
+          },
+          holes: []
+        };
+        
+        if (drawingHolesJson && drawingHolesJson.value.trim()) {
+          drawing.holes = JSON.parse(drawingHolesJson.value);
+        }
+        
+        var buildSpec = window.Vertex.fromDrawing(drawing);
+        
+        if (drawingResults) {
+          drawingResults.innerHTML = '<span style="color: var(--ok)">✓ Generated: ' + escapeHtml(buildSpec.name) + ' (' + buildSpec.holes.length + ' holes)</span>';
+        }
+        if (btnDrawingOpenBuild) btnDrawingOpenBuild.disabled = false;
+        
+        window._drawingBuildSpec = buildSpec;
+        
+        /* Show in viewport */
+        if (drawingView && window.Vertex && window.Vertex.buildMesh) {
+          var mesh = window.Vertex.buildMesh(buildSpec);
+          drawingView.setMesh(mesh);
+          drawingView.fit();
+        }
+      } catch (e) {
+        if (drawingResults) drawingResults.innerHTML = '<span style="color: var(--err)">✗ Generate failed: ' + escapeHtml(e.message) + '</span>';
+      }
+    });
+  }
+  
+  if (btnDrawingOpenBuild) {
+    btnDrawingOpenBuild.addEventListener('click', function() {
+      if (window._drawingBuildSpec) {
+        if (tabBuild) tabBuild.click();
+        var spec = window._drawingBuildSpec;
+        if (spec && spec.params) {
+          if (buildNameInput && spec.name) buildNameInput.value = spec.name;
+          if (buildLengthInput && spec.params.L) buildLengthInput.value = spec.params.L;
+          if (buildWidthInput && spec.params.W) buildWidthInput.value = spec.params.W;
+          if (buildThicknessInput && spec.params.T) buildThicknessInput.value = spec.params.T;
+        }
+      }
+    });
+  }
+  
+  /* Automation Tab */
+  var automationOpCount = 1;
+  
+  if (btnAddAutomationOp) {
+    btnAddAutomationOp.addEventListener('click', function() {
+      if (!automationOpsEditor) return;
+      var idx = automationOpCount++;
+      var opRow = document.createElement('div');
+      opRow.className = 'automation-op-row';
+      opRow.innerHTML = 
+        '<select class="automation-op-type" data-op-index="' + idx + '">' +
+          '<option value="export">Export</option>' +
+          '<option value="pattern">Pattern</option>' +
+          '<option value="sheets">Sheets</option>' +
+        '</select>' +
+        '<input type="text" class="automation-op-name" placeholder="Name" value="op' + idx + '">' +
+        '<input type="number" class="automation-op-count" placeholder="Count" value="1" min="1">' +
+        '<button class="btn btn-secondary btn-small automation-op-remove">Remove</button>';
+      automationOpsEditor.appendChild(opRow);
+    });
+  }
+  
+  /* Remove op row */
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('automation-op-remove')) {
+      var row = e.target.closest('.automation-op-row');
+      if (row && automationOpsEditor) automationOpsEditor.removeChild(row);
+    }
+  });
+  
+  if (btnAutomationGenerate) {
+    btnAutomationGenerate.addEventListener('click', function() {
+      if (!window.Vertex || !window.Vertex.automate) {
+        if (automationSummary) automationSummary.innerHTML = '<span style="color: var(--warn)">Automation engine not available</span>';
+        return;
+      }
+      
+      /* Gather ops from editor */
+      var ops = [];
+      var opRows = automationOpsEditor.querySelectorAll('.automation-op-row');
+      opRows.forEach(function(row) {
+        var typeSelect = row.querySelector('.automation-op-type');
+        var nameInput = row.querySelector('.automation-op-name');
+        var countInput = row.querySelector('.automation-op-count');
+        if (typeSelect && nameInput && countInput) {
+          ops.push({
+            op: typeSelect.value,
+            name: nameInput.value,
+            count: parseInt(countInput.value) || 1
+          });
+        }
+      });
+      
+      var batch = { schema: 'vertex/batch/v1', ops: ops };
+      
+      try {
+        var plan = window.Vertex.automate(batch);
+        
+        /* Render plan steps */
+        var html = '';
+        if (plan.steps && plan.steps.length > 0) {
+          plan.steps.forEach(function(step) {
+            html += '<div class="automation-plan-step">' +
+              '<span class="automation-step-number">' + (step.n || step.order) + '</span>' +
+              '<span>' + escapeHtml(step.op.toUpperCase()) + ' ' + escapeHtml(step.name || '') + 
+                (step.count ? ' ×' + step.count : '') + 
+                (step.formats ? ' → ' + step.formats.join(', ') : '') +
+              '</span>' +
+            '</div>';
+          });
+        }
+        
+        /* Summary */
+        if (plan.summary) {
+          html += '<div class="automation-summary-card">' +
+            '<div class="automation-summary-item">' +
+              '<div class="automation-summary-value">' + (plan.summary.ops || 0) + '</div>' +
+              '<div class="automation-summary-label">Operations</div>' +
+            '</div>' +
+            '<div class="automation-summary-item">' +
+              '<div class="automation-summary-value">' + (plan.summary.instances || 0) + '</div>' +
+              '<div class="automation-summary-label">Instances</div>' +
+            '</div>' +
+            '<div class="automation-summary-item">' +
+              '<div class="automation-summary-value">' + (plan.summary.exports || 0) + '</div>' +
+              '<div class="automation-summary-label">Exports</div>' +
+            '</div>' +
+          '</div>';
+        }
+        
+        if (automationPlanResults) automationPlanResults.innerHTML = html || '<p class="placeholder">No operations</p>';
+        
+        if (automationSummary) {
+          automationSummary.innerHTML = '<span style="color: var(--ok)">✓ Plan ready: ' + (plan.steps ? plan.steps.length : 0) + ' steps</span>';
+        }
+        if (chkConfirmAutomation) chkConfirmAutomation.disabled = false;
+        if (btnAutomationRun) btnAutomationRun.disabled = true;
+        
+        window._automationPlan = plan;
+      } catch (e) {
+        if (automationSummary) automationSummary.innerHTML = '<span style="color: var(--err)">✗ Generate failed: ' + escapeHtml(e.message) + '</span>';
+      }
+    });
+  }
+  
+  if (chkConfirmAutomation) {
+    chkConfirmAutomation.addEventListener('change', function() {
+      if (btnAutomationRun) btnAutomationRun.disabled = !chkConfirmAutomation.checked;
+    });
+  }
+  
+  if (btnAutomationRun) {
+    btnAutomationRun.addEventListener('click', function() {
+      if (!window._automationPlan) return;
+      var plan = window._automationPlan;
+      var ops = (plan.steps || []).map(function(s) { return '  • ' + s.op + ' ' + (s.name || ''); }).join('\n');
+      alert('Simulation mode: No live CAD host connected.\n\nIn simulation, nothing is written to CAD.\n\nOperations that would run:\n' + ops);
+    });
+  }
+  
+  /* Hero CTA buttons */
+  var btnHeroGetStarted = document.getElementById('btn-hero-get-started');
+  var btnHeroLearnMore = document.getElementById('btn-hero-learn-more');
+  
+  if (btnHeroGetStarted) {
+    btnHeroGetStarted.addEventListener('click', function() {
+      /* Scroll to workspace */
+      var mainContent = document.querySelector('.main-content');
+      if (mainContent) mainContent.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  
+  if (btnHeroLearnMore) {
+    btnHeroLearnMore.addEventListener('click', function() {
+      window.open('https://vertex.co', '_blank', 'noopener');
+    });
   }
 
   /* === Utilities === */

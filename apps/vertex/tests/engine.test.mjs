@@ -521,6 +521,184 @@ check("adapter entry shape",
 check("adapters() is deterministic",
   JSON.stringify(Vertex.adapters()) === JSON.stringify(Vertex.adapters()));
 
+/* ---- 19. v3 constants + api --------------------------------------- */
+check("SCHEMA_ANSWER", Vertex.SCHEMA_ANSWER === "vertex/answer/v1");
+check("SCHEMA_SCAN", Vertex.SCHEMA_SCAN === "vertex/scan/v1");
+check("SCHEMA_DRAWING", Vertex.SCHEMA_DRAWING === "vertex/drawing/v1");
+check("SCHEMA_BATCH", Vertex.SCHEMA_BATCH === "vertex/batch/v1");
+check("api exposes the v3 functions",
+  typeof Vertex.answer === "function" &&
+  typeof Vertex.reverse === "function" &&
+  typeof Vertex.fromDrawing === "function" &&
+  typeof Vertex.automate === "function");
+check("TIPS has the CAD op keys",
+  Vertex.TIPS && ["fillet", "extrude", "pattern", "repair", "mate", "assembly", "export"]
+    .every((k) => typeof Vertex.TIPS[k] === "string" && Vertex.TIPS[k].length > 0));
+
+/* ---- 20. answer() -------------------------------------------------- */
+{
+  const aCount = Vertex.answer(brokenBracket, "how many features?");
+  check("answer count: schema + kind",
+    aCount.schema === Vertex.SCHEMA_ANSWER && aCount.kind === "count");
+  check("answer count: counts every feature",
+    aCount.answer.indexOf("4 features") !== -1);
+  check("answer count: evidence lists statuses",
+    aCount.evidence.indexOf("failed: 1") !== -1 &&
+    aCount.evidence.indexOf("warning: 1") !== -1);
+
+  const aStatus = Vertex.answer(brokenBracket, "what failed?");
+  check("answer status: kind + evidence",
+    aStatus.kind === "status" &&
+    aStatus.evidence.indexOf("f2 Fillet7 failed") !== -1 &&
+    aStatus.evidence.indexOf("f3 Pattern3 warning") !== -1);
+
+  const aDep = Vertex.answer(brokenBracket, "what depends on f1?");
+  check("answer dependency: kind + evidence",
+    aDep.kind === "dependency" &&
+    aDep.evidence.indexOf("f2 Fillet7 dependsOn f1") !== -1 &&
+    aDep.evidence.length === 1);
+
+  const aHow = Vertex.answer(brokenBracket, "how do I fix a fillet?");
+  check("answer howto: kind + tip",
+    aHow.kind === "howto" && aHow.answer === Vertex.TIPS.fillet &&
+    aHow.evidence.indexOf("tip: fillet") !== -1);
+
+  const aMate = Vertex.answer(brokenBracket, "list the mates");
+  check("answer mate: kind + evidence",
+    aMate.kind === "mate" && aMate.evidence.length === 1 &&
+    aMate.answer.indexOf("1 mate") !== -1);
+
+  const aSum = Vertex.answer(brokenBracket, "give me a summary");
+  check("answer summary: kind", aSum.kind === "summary");
+
+  const aUnknown = Vertex.answer(brokenBracket, "what colour is the sky?");
+  check("answer unknown: kind + empty evidence",
+    aUnknown.kind === "unknown" && aUnknown.evidence.length === 0);
+
+  check("answer keeps the original question",
+    aCount.question === "how many features?");
+
+  let ansThrew = false;
+  try { Vertex.answer(undefined, undefined); } catch (e) { ansThrew = true; }
+  check("answer tolerates empty/undefined report",
+    ansThrew === false && Vertex.answer(undefined, undefined).kind === "unknown");
+
+  check("answer is deterministic",
+    eq(Vertex.answer(brokenBracket, "what depends on f1?"),
+       Vertex.answer(brokenBracket, "what depends on f1?")));
+}
+
+/* ---- 21. reverse() ------------------------------------------------- */
+{
+  const boxScan = {
+    schema: Vertex.SCHEMA_SCAN,
+    points: [[0, 0, 0], [20, 0, 0], [0, 10, 0], [20, 10, 0], [10, 0, 0]],
+    maxFitError: 0.08
+  };
+  const boxSpec = Vertex.reverse(boxScan);
+  check("reverse box: schema + name + units",
+    boxSpec.schema === Vertex.SCHEMA_BUILD &&
+    boxSpec.name === "Reversed part" && boxSpec.units === "mm");
+  check("reverse box: material default",
+    boxSpec.material.name === "Aluminium 6061" &&
+    approx(boxSpec.material.density, 2.70));
+  check("reverse box: AABB-fit box",
+    boxSpec.solids.length === 1 && boxSpec.solids[0].type === "box" &&
+    approx(boxSpec.solids[0].params.dx, 20) &&
+    approx(boxSpec.solids[0].params.dy, 10) &&
+    approx(boxSpec.solids[0].params.dz, 0));
+  check("reverse box: centred on the AABB centre",
+    approx(boxSpec.solids[0].x, 10) && approx(boxSpec.solids[0].y, 5));
+  check("reverse box: builds a valid mesh",
+    Vertex.buildMesh(boxSpec).parts.length === 1);
+
+  const cylPoints = [];
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4;
+    cylPoints.push([5 * Math.cos(a), 5 * Math.sin(a), (i % 2) ? 10 : 0]);
+  }
+  const cylSpec = Vertex.reverse({ schema: Vertex.SCHEMA_SCAN, points: cylPoints });
+  check("reverse cylinder: radial fit emits a cylinder",
+    cylSpec.solids.length === 1 && cylSpec.solids[0].type === "cylinder" &&
+    approx(cylSpec.solids[0].params.r, 5) &&
+    approx(cylSpec.solids[0].params.h, 10));
+
+  let revThrew = false;
+  try { Vertex.reverse({ schema: Vertex.SCHEMA_SCAN, points: [[0, 0, 0]] }); }
+  catch (e) { revThrew = true; }
+  check("reverse throws on fewer than 2 points", revThrew === true);
+
+  check("reverse is deterministic",
+    eq(Vertex.reverse(boxScan), Vertex.reverse(boxScan)));
+}
+
+/* ---- 22. fromDrawing() --------------------------------------------- */
+{
+  const drawing = {
+    schema: Vertex.SCHEMA_DRAWING, units: "mm",
+    extents: { L: 80, W: 40, T: 6 }, title: "Plate",
+    holes: [{ x: 0, y: 0, r: 4 }, { x: -30, y: 15, r: 3 }]
+  };
+  const spec = Vertex.fromDrawing(drawing);
+  check("fromDrawing: schema + name + units",
+    spec.schema === Vertex.SCHEMA_BUILD && spec.name === "Plate" &&
+    spec.units === "mm");
+  check("fromDrawing: extents become a centred box",
+    spec.solids.length === 1 && spec.solids[0].type === "box" &&
+    spec.solids[0].x === 0 && spec.solids[0].y === 0 && spec.solids[0].z === 0);
+  check("fromDrawing: one cylinder hole per entry",
+    spec.holes.length === 2 &&
+    spec.holes.every((h) => h.type === "cylinder" && h.params.h === "T"));
+  const dm = Vertex.buildMesh(spec);
+  check("fromDrawing: box volume = L*W*T", approx(dm.parts[0].volume, 80 * 40 * 6));
+  check("fromDrawing: hole volume = pi*(4^2+3^2)*T",
+    approx(dm.holeVolume, Math.PI * (16 + 9) * 6));
+
+  const bare = Vertex.fromDrawing({ extents: { L: 10, W: 5, T: 2 } });
+  check("fromDrawing: holes default to []",
+    Array.isArray(bare.holes) && bare.holes.length === 0);
+  check("fromDrawing: name defaults to 'Drawing part'",
+    bare.name === "Drawing part");
+  check("fromDrawing is deterministic",
+    eq(Vertex.fromDrawing(drawing), Vertex.fromDrawing(drawing)));
+}
+
+/* ---- 23. automate() ------------------------------------------------ */
+{
+  const batch = {
+    schema: Vertex.SCHEMA_BATCH,
+    ops: [
+      { op: "export", name: "flange", formats: ["stl", "obj", "gltf", "3mf", "dxf"] },
+      { op: "pattern", name: "rib", count: 26, dx: 8, dy: 0, dz: 0 },
+      { op: "sheets", name: "drawing", count: 11 }
+    ]
+  };
+  const plan = Vertex.automate(batch);
+  check("automate: plan schema", plan.schema === "vertex/batch-plan/v1");
+  check("automate: keeps op order",
+    eq(plan.steps.map((s) => s.op), ["export", "pattern", "sheets"]));
+  check("automate: steps are numbered 1..n",
+    plan.steps.every((s, i) => s.n === i + 1));
+  check("automate: export keeps formats + count",
+    eq(plan.steps[0].formats, ["stl", "obj", "gltf", "3mf", "dxf"]) &&
+    plan.steps[0].count === 5);
+  check("automate: pattern expands count + delta",
+    plan.steps[1].count === 26 && eq(plan.steps[1].delta, [8, 0, 0]));
+  check("automate: sheets count",
+    plan.steps[2].op === "sheets" && plan.steps[2].count === 11);
+  check("automate: summary totals",
+    eq(plan.summary, { ops: 3, instances: 26, exports: 5 }));
+
+  const empty = Vertex.automate({ schema: Vertex.SCHEMA_BATCH, ops: [] });
+  check("automate: empty ops → empty plan",
+    empty.steps.length === 0 &&
+    eq(empty.summary, { ops: 0, instances: 0, exports: 0 }));
+  check("automate: tolerates undefined batch",
+    Vertex.automate(undefined).steps.length === 0);
+  check("automate is deterministic",
+    eq(Vertex.automate(batch), Vertex.automate(batch)));
+}
+
 /* ---- summary ------------------------------------------------------- */
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed === 0 ? 0 : 1);

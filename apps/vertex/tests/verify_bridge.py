@@ -11,6 +11,10 @@ Spawns the bridge on a free port (stdlib only) and checks the spec §5 API:
   - POST /api/plan           -> RepairPlan for a report; AssemblyPlan for a spec
   - POST /api/apply          -> confirm:false applies nothing (ok:false);
                                 confirm:true returns wroteToCad:false
+  - POST /api/answer         -> Answer (vertex/answer/v1) with kind + answer [v3]
+  - POST /api/reverse        -> BuildSpec (vertex/build-spec/v1), netVolume>0 [v3]
+  - POST /api/drawing        -> BuildSpec with one hole per drawing entry     [v3]
+  - POST /api/automate       -> BatchPlan (vertex/batch-plan/v1) steps+summary [v3]
   - empty / malformed body   -> 400
   - unknown API              -> 404
   - static traversal / data  -> 404
@@ -32,7 +36,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent          # .../apps/vertex
 SERVER_SCRIPT = BASE_DIR / "server" / "bridge.py"
 
-CAPABILITIES = ["diagnose", "plan", "apply", "build", "simulate", "adapters"]
+CAPABILITIES = ["diagnose", "plan", "apply", "build", "simulate", "adapters",
+                "answer", "reverse", "drawing", "automate"]
 
 
 def flange_build():
@@ -76,6 +81,39 @@ def simulate_input():
                   {"id": "p2", "name": "Slider", "qty": 1}],
         "mates": [{"id": "m1", "type": "concentric", "a": "p1", "b": "p2"}],
         "build": build,
+    }
+
+
+def sample_scan():
+    """A deterministic scan (8 box corners) for /api/reverse."""
+    return {
+        "schema": "vertex/scan/v1", "maxFitError": 0.08,
+        "points": [
+            [-5, -5, 0], [5, -5, 0], [5, 5, 0], [-5, 5, 0],
+            [-5, -5, 10], [5, -5, 10], [5, 5, 10], [-5, 5, 10],
+        ],
+    }
+
+
+def sample_drawing():
+    """A DrawingSpec (3 holes) for /api/drawing."""
+    return {
+        "schema": "vertex/drawing/v1", "units": "mm", "title": "Plate",
+        "extents": {"L": 80, "W": 40, "T": 6},
+        "holes": [{"x": 0, "y": 0, "r": 4}, {"x": -30, "y": 15, "r": 3},
+                  {"x": 30, "y": 15, "r": 3}],
+    }
+
+
+def sample_batch():
+    """A Batch (export/pattern/sheets) for /api/automate."""
+    return {
+        "schema": "vertex/batch/v1",
+        "ops": [
+            {"op": "export", "name": "flange", "formats": ["stl", "obj", "gltf", "3mf", "dxf"]},
+            {"op": "pattern", "name": "rib", "count": 26, "dx": 8, "dy": 0, "dz": 0},
+            {"op": "sheets", "name": "drawing", "count": 11},
+        ],
     }
 
 
@@ -166,7 +204,7 @@ def run_tests():
         check("mode == simulation", data.get("mode") == "simulation", data)
         check("app/version/status", data.get("app") == "vertex"
               and data.get("version") == "1.0" and data.get("status") == "ok", data)
-        check("capabilities advertises all six", data.get("capabilities") == CAPABILITIES,
+        check("capabilities advertises all ten", data.get("capabilities") == CAPABILITIES,
               data.get("capabilities"))
 
         # --- Test 2: connectors --------------------------------------------
@@ -354,6 +392,84 @@ def run_tests():
         check("empty simulate body -> 400", resp.status == 400, "got %s" % resp.status)
         resp, _ = post_raw("/api/simulate", b"not valid json{")
         check("malformed simulate -> 400", resp.status == 400, "got %s" % resp.status)
+
+        # --- Test 15: answer -----------------------------------------------
+        print("\nTest 15: POST /api/answer (brokenBracket 'what failed?')")
+        resp, body = post("/api/answer", {"report": report, "question": "what failed?"})
+        ans = json.loads(body) if resp.status == 200 else {}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check("schema vertex/answer/v1", ans.get("schema") == "vertex/answer/v1", ans.get("schema"))
+        check("kind status", ans.get("kind") == "status", ans.get("kind"))
+        check("answer is a non-empty string", isinstance(ans.get("answer"), str)
+              and len(ans["answer"]) > 0, ans.get("answer"))
+        check("evidence lists failed feature", any("f2" in e for e in (ans.get("evidence") or [])),
+              ans.get("evidence"))
+        check("answer deterministic", post("/api/answer",
+              {"report": report, "question": "what failed?"})[1] == body)
+
+        # --- Test 16: reverse ----------------------------------------------
+        print("\nTest 16: POST /api/reverse (scan -> BuildSpec)")
+        resp, body = post("/api/reverse", sample_scan())
+        rspec = json.loads(body) if resp.status == 200 else {}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check("schema vertex/build-spec/v1", rspec.get("schema") == "vertex/build-spec/v1",
+              rspec.get("schema"))
+        check("reverse names the part", rspec.get("name") == "Reversed part", rspec.get("name"))
+        check("reverse has >=1 solid", isinstance(rspec.get("solids"), list)
+              and len(rspec["solids"]) >= 1, rspec.get("solids"))
+        resp2, body2 = post("/api/build", rspec)
+        rmesh = (json.loads(body2) if resp2.status == 200 else {}).get("mesh") or {}
+        check("reversed mesh netVolume > 0", isinstance(rmesh.get("netVolume"), (int, float))
+              and rmesh["netVolume"] > 0, rmesh.get("netVolume"))
+        check("reverse deterministic", post("/api/reverse", sample_scan())[1] == body)
+
+        # --- Test 17: drawing ----------------------------------------------
+        print("\nTest 17: POST /api/drawing (DrawingSpec -> BuildSpec)")
+        drawing = sample_drawing()
+        resp, body = post("/api/drawing", drawing)
+        dspec = json.loads(body) if resp.status == 200 else {}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check("schema vertex/build-spec/v1", dspec.get("schema") == "vertex/build-spec/v1",
+              dspec.get("schema"))
+        check("hole count matches drawing", isinstance(dspec.get("holes"), list)
+              and len(dspec["holes"]) == len(drawing["holes"]), dspec.get("holes"))
+        resp2, body2 = post("/api/build", dspec)
+        dmesh = (json.loads(body2) if resp2.status == 200 else {}).get("mesh") or {}
+        check("drawing mesh netVolume > 0", isinstance(dmesh.get("netVolume"), (int, float))
+              and dmesh["netVolume"] > 0, dmesh.get("netVolume"))
+        check("drawing deterministic", post("/api/drawing", drawing)[1] == body)
+
+        # --- Test 18: automate ---------------------------------------------
+        print("\nTest 18: POST /api/automate (Batch -> BatchPlan)")
+        resp, body = post("/api/automate", sample_batch())
+        plan = json.loads(body) if resp.status == 200 else {}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check("schema vertex/batch-plan/v1", plan.get("schema") == "vertex/batch-plan/v1",
+              plan.get("schema"))
+        steps = plan.get("steps") or []
+        check("steps ordered n=1..N", all(s.get("n") == i + 1 for i, s in enumerate(steps))
+              and len(steps) == 3, steps)
+        pat = next((s for s in steps if s.get("op") == "pattern"), {})
+        check("pattern expanded with count + delta",
+              pat.get("count") == 26 and pat.get("delta") == [8, 0, 0], pat)
+        export = next((s for s in steps if s.get("op") == "export"), {})
+        check("export count == formats", export.get("count") == 5, export)
+        summ = plan.get("summary") or {}
+        check("summary ops/instances/exports",
+              summ.get("ops") == 3 and summ.get("instances") == 26 and summ.get("exports") == 5,
+              summ)
+        check("automate deterministic", post("/api/automate", sample_batch())[1] == body)
+
+        # --- Test 19: v3 400 empty / malformed -----------------------------
+        print("\nTest 19: 400 on empty / malformed v3 bodies")
+        for path in ("/api/answer", "/api/reverse", "/api/drawing", "/api/automate"):
+            resp, _ = post_raw(path, b"")
+            check("empty %s -> 400" % path, resp.status == 400, "got %s" % resp.status)
+            resp, _ = post_raw(path, b"not valid json{")
+            check("malformed %s -> 400" % path, resp.status == 400, "got %s" % resp.status)
+        resp, _ = post_raw("/api/reverse",
+                           json.dumps({"schema": "vertex/scan/v1", "points": []}).encode())
+        check("reverse with <2 points -> 400", resp.status == 400, "got %s" % resp.status)
 
         print("\n" + "=" * 50)
         if all_passed:

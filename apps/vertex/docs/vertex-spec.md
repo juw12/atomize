@@ -210,7 +210,7 @@ original copy, a clear "simulation, nothing is written to CAD" banner.
 ## 5. BRIDGE — `server/bridge.py` (Python stdlib only)
 
 Zero-dependency HTTP bridge between the cockpit and the CAD host. Mirrors the
-repo's peers/ziris servers. Per-request CORS `*`. `mode` is `"simulation"` unless
+repo's peers/airiz servers. Per-request CORS `*`. `mode` is `"simulation"` unless
 a real connector is available (never, in this environment).
 
 ```

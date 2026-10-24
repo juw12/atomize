@@ -16,34 +16,192 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- Top Bar -->
+    <!-- Top Bar: logo left, tagline right -->
     <header class="topbar">
       <div class="topbar-brand">
         <svg class="topbar-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M4 8h24M4 16h24M4 24h24M8 4v24M16 4v24M24 4v24"/>
         </svg>
         <h1>Vertex</h1>
-        <span class="topbar-tagline">local · deterministic · review-gated</span>
       </div>
-      <div class="topbar-status">
-        <div class="connector-strip" id="connector-strip" aria-label="Adapter status">
-          <span class="connector-label">Adapters:</span>
-          <span class="connector-item" data-adapter="fusion">
-            <span class="connector-indicator unavailable"></span>
-            <span class="connector-name">Fusion</span>
-          </span>
-          <span class="connector-item" data-adapter="solidworks">
-            <span class="connector-indicator unavailable"></span>
-            <span class="connector-name">SOLIDWORKS</span>
-          </span>
-          <span class="connector-item" data-adapter="simulated">
-            <span class="connector-indicator available"></span>
-            <span class="connector-name">Simulated</span>
-          </span>
-        </div>
-        <span class="mode-badge" id="mode-badge">Simulation — nothing is written to CAD</span>
+      <div class="topbar-tagline-right">
+        <span class="topbar-tagline">EVERY TOOL, ONE VERTEX.</span>
       </div>
     </header>
+
+    <!-- Hero Section: Vector-style -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="hero-eyebrow">
+            LOCAL · DETERMINISTIC · <span class="hero-accent">UNIVERSAL</span>
+          </div>
+          <h2 class="hero-headline">
+            One 3D copilot.<br>For every tool.
+          </h2>
+          <p class="hero-subhead">
+            Build parts, export 3D files, repair models and run simulations — offline, deterministic, and yours.
+          </p>
+          <div class="hero-ctas">
+            <button class="btn btn-primary btn-large" id="btn-hero-get-started">Open workspace</button>
+            <button class="btn btn-ghost btn-large" id="btn-hero-learn-more">See how it works</button>
+          </div>
+        </div>
+        
+        <!-- Product Panel: window frame wrapping live viewport -->
+        <div class="hero-product-panel">
+          <div class="product-panel-frame">
+            <div class="product-panel-header">
+              <div class="traffic-light-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <span class="product-panel-label">FROM REPORT TO GEOMETRY</span>
+            </div>
+            <div class="product-viewport-wrapper">
+              <div class="viewport-container" id="hero-viewport-container">
+                <canvas class="viewport-canvas" id="hero-viewport-canvas"></canvas>
+                <div class="viewport-crop-marks">
+                  <span class="crop-mark crop-top-left"></span>
+                  <span class="crop-mark crop-top-right"></span>
+                  <span class="crop-mark crop-bottom-left"></span>
+                  <span class="crop-mark crop-bottom-right"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Grid: Vector-style cards -->
+    <section class="feature-grid-section">
+      <div class="feature-grid">
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <h3 class="feature-title">Repair</h3>
+          <p class="feature-desc">Diagnose and fix CAD issues automatically</p>
+          <div class="feature-tags">
+            <span class="tag-chip">Diagnosis</span>
+            <span class="tag-chip">Auto-fix</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+          <h3 class="feature-title">Assembly</h3>
+          <p class="feature-desc">Plan and validate multi-part assemblies</p>
+          <div class="feature-tags">
+            <span class="tag-chip">Mates</span>
+            <span class="tag-chip">Validation</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          <h3 class="feature-title">Build</h3>
+          <p class="feature-desc">Generate parametric CAD from specs</p>
+          <div class="feature-tags">
+            <span class="tag-chip">Parametric</span>
+            <span class="tag-chip">Export</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <h3 class="feature-title">Simulate</h3>
+          <p class="feature-desc">Kinematic motion and clearance checks</p>
+          <div class="feature-tags">
+            <span class="tag-chip">Motion</span>
+            <span class="tag-chip">Clearance</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <h3 class="feature-title">Answers</h3>
+          <p class="feature-desc">Ask questions about your model</p>
+          <div class="feature-tags">
+            <span class="tag-chip">How-to</span>
+            <span class="tag-chip">Evidence</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="7.5 12 12 16.5 16.5 12"/>
+            <line x1="12" y1="4" x2="12" y2="16.5"/>
+          </svg>
+          <h3 class="feature-title">Reverse</h3>
+          <p class="feature-desc">Convert scan data to parametric CAD</p>
+          <div class="feature-tags">
+            <span class="tag-chip">Scan</span>
+            <span class="tag-chip">Fit</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+          </svg>
+          <h3 class="feature-title">Drawing</h3>
+          <p class="feature-desc">Create CAD from 2D drawings</p>
+          <div class="feature-tags">
+            <span class="tag-chip">2D→3D</span>
+            <span class="tag-chip">Extents</span>
+          </div>
+        </div>
+        
+        <div class="feature-card">
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+            <line x1="12" y1="4" x2="12" y2="20"/>
+          </svg>
+          <h3 class="feature-title">Automation</h3>
+          <p class="feature-desc">Batch operations and repetition</p>
+          <div class="feature-tags">
+            <span class="tag-chip">Batch</span>
+            <span class="tag-chip">Pattern</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Numbered Steps Row -->
+    <section class="steps-section">
+      <div class="steps-row">
+        <div class="step-item">
+          <span class="step-number">0 1</span>
+          <span class="step-text">Works on your file (local)</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-item">
+          <span class="step-number">0 2</span>
+          <span class="step-text">Speaks every tool's format</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-item">
+          <span class="step-number">0 3</span>
+          <span class="step-text">Shows every change (review-gated)</span>
+        </div>
+      </div>
+    </section>
 
     <!-- Adapters Strip -->
     <div class="adapters-strip" id="adapters-strip" aria-label="Universal adapters">
@@ -66,7 +224,7 @@
       </span>
     </div>
 
-    <!-- Tab Navigation -->
+    <!-- Workspace Tab Navigation (8 tabs) -->
     <nav class="tab-nav" role="tablist" aria-label="Workspace tabs">
       <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="repair-panel" id="tab-repair" data-tab="repair">
         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -94,10 +252,42 @@
         </svg>
         Simulate
       </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="answers-panel" id="tab-answers" data-tab="answers">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Answers
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="reverse-panel" id="tab-reverse" data-tab="reverse">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="7.5 12 12 16.5 16.5 12"/>
+          <line x1="12" y1="4" x2="12" y2="16.5"/>
+        </svg>
+        Reverse
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="drawing-panel" id="tab-drawing" data-tab="drawing">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+        Drawing
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="automation-panel" id="tab-automation" data-tab="automation">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"/>
+          <polyline points="8 6 2 12 8 18"/>
+          <line x1="12" y1="4" x2="12" y2="20"/>
+        </svg>
+        Automation
+      </button>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Main Content (Workspace Panels) -->
     <main class="main-content">
+      <!-- Existing 4 panels (Repair, Assembly, Build, Simulate) - kept as-is -->
       <!-- Repair Tab Panel -->
       <section class="tab-panel active" id="repair-panel" role="tabpanel" aria-labelledby="tab-repair">
         <div class="panel-header">
@@ -113,7 +303,6 @@
         </div>
 
         <div class="panel-grid">
-          <!-- Viewport Panel -->
           <section class="subpanel" aria-label="3D Viewport">
             <h3>Viewport</h3>
             <div class="viewport-container" id="repair-viewport-container">
@@ -125,7 +314,6 @@
             </div>
           </section>
 
-          <!-- Diagnosis Panel -->
           <section class="subpanel diagnosis-panel" aria-label="Diagnosis">
             <h3>Diagnosis</h3>
             <div class="diagnosis-content" id="diagnosis-content">
@@ -134,7 +322,6 @@
           </section>
         </div>
 
-        <!-- Repair Plan Panel -->
         <section class="subpanel plan-panel" aria-label="Repair Plan" style="margin-bottom: var(--space-4);">
           <h3>Repair Plan</h3>
           <div class="plan-content" id="repair-plan-content">
@@ -142,7 +329,6 @@
           </div>
         </section>
 
-        <!-- Action Bar -->
         <div class="action-bar">
           <button class="btn btn-primary" id="btn-dry-run" disabled>Dry-run</button>
           <div class="dry-run-results" id="dry-run-results" aria-live="polite"></div>
@@ -174,7 +360,6 @@
         </div>
 
         <div class="panel-grid">
-          <!-- Viewport Panel -->
           <section class="subpanel" aria-label="3D Viewport">
             <h3>Viewport</h3>
             <div class="viewport-container" id="assembly-viewport-container">
@@ -186,7 +371,6 @@
             </div>
           </section>
 
-          <!-- Assembly Plan Panel -->
           <section class="subpanel assembly-plan-panel" aria-label="Assembly Plan">
             <h3>Assembly Plan</h3>
             <div class="assembly-plan-content" id="assembly-plan-content">
@@ -195,7 +379,6 @@
           </section>
         </div>
 
-        <!-- Checks Panel -->
         <section class="subpanel checks-panel" aria-label="Assembly Checks" style="margin-bottom: var(--space-4);">
           <h3>Checks</h3>
           <div class="checks-content" id="assembly-checks-content">
@@ -203,7 +386,6 @@
           </div>
         </section>
 
-        <!-- Action Bar -->
         <div class="action-bar">
           <button class="btn btn-primary" id="btn-dry-run-assembly" disabled>Dry-run</button>
           <div class="dry-run-results" id="dry-run-results-assembly" aria-live="polite"></div>
@@ -230,7 +412,6 @@
         </div>
 
         <div class="panel-grid">
-          <!-- Viewport Panel -->
           <section class="subpanel" aria-label="3D Viewport">
             <h3>Viewport</h3>
             <div class="viewport-container" id="build-viewport-container">
@@ -242,7 +423,6 @@
             </div>
           </section>
 
-          <!-- Build Parameters Panel -->
           <section class="subpanel" aria-label="Build Parameters">
             <h3>Parameters</h3>
             <div class="build-content" id="build-params-content">
@@ -288,7 +468,6 @@
           </section>
         </div>
 
-        <!-- Action Bar -->
         <div class="action-bar">
           <button class="btn btn-primary" id="btn-build-preview" disabled>Generate Preview</button>
           <div class="dry-run-results" id="build-results" aria-live="polite"></div>
@@ -315,7 +494,6 @@
         </div>
 
         <div class="panel-grid">
-          <!-- Viewport Panel -->
           <section class="subpanel" aria-label="3D Viewport">
             <h3>Viewport</h3>
             <div class="viewport-container" id="simulate-viewport-container">
@@ -327,7 +505,6 @@
             </div>
           </section>
 
-          <!-- Simulation Results Panel -->
           <section class="subpanel" aria-label="Simulation Results">
             <h3>Results</h3>
             <div class="simulate-content" id="simulate-results-content">
@@ -336,7 +513,6 @@
           </section>
         </div>
 
-        <!-- Mass Properties Card -->
         <div class="mass-card" id="mass-card" style="display: none;">
           <div class="mass-card-title">Mass Properties</div>
           <div class="mass-grid">
@@ -359,7 +535,6 @@
           </div>
         </div>
 
-        <!-- Clearance Table -->
         <div id="clearance-table-container" style="display: none;">
           <h3 style="font-size: 0.75rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.08em; margin: var(--space-4) 0 var(--space-2);">Clearance Analysis</h3>
           <table class="clearance-table" id="clearance-table">
@@ -376,7 +551,6 @@
           </table>
         </div>
 
-        <!-- Motion Scrubber -->
         <div class="motion-scrubber" id="motion-scrubber" style="display: none;">
           <div class="scrubber-controls">
             <button class="scrubber-btn" id="sim-play-pause" title="Play/Pause">▶</button>
@@ -388,16 +562,196 @@
           </div>
         </div>
 
-        <!-- Action Bar -->
         <div class="action-bar">
           <button class="btn btn-primary" id="btn-run-simulation">Run Simulation</button>
           <div class="dry-run-results" id="simulate-results" aria-live="polite"></div>
           <span style="font-size: 0.75rem; color: var(--text-3); font-family: var(--font-mono);">Kinematic estimate — not a FEA/CFD solver</span>
         </div>
       </section>
+
+      <!-- NEW: Answers Tab Panel -->
+      <section class="tab-panel" id="answers-panel" role="tabpanel" aria-labelledby="tab-answers">
+        <div class="panel-header">
+          <h2>Answers Workspace</h2>
+        </div>
+
+        <div class="answers-content">
+          <div class="answers-input-section">
+            <label class="param-label" for="answers-question">Ask a question about your model</label>
+            <div class="answers-input-row">
+              <input type="text" class="answers-input" id="answers-question" placeholder="e.g., what failed?">
+              <button class="btn btn-primary" id="btn-answers-ask">Ask</button>
+            </div>
+            <div class="answers-chips">
+              <button class="answer-chip" data-question="what failed?">what failed?</button>
+              <button class="answer-chip" data-question="how do I fix a fillet?">how do I fix a fillet?</button>
+              <button class="answer-chip" data-question="summary">summary</button>
+              <button class="answer-chip" data-question="how many features?">how many features?</button>
+            </div>
+          </div>
+
+          <div class="answers-results-section">
+            <div class="answers-answer-card" id="answers-answer-card" style="display: none;">
+              <div class="answer-kind-badge" id="answer-kind-badge">UNKNOWN</div>
+              <p class="answer-text" id="answer-text"></p>
+              <div class="answer-evidence" id="answer-evidence"></div>
+            </div>
+            <div class="placeholder" id="answers-placeholder">Ask a question to get an answer with evidence</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NEW: Reverse Tab Panel -->
+      <section class="tab-panel" id="reverse-panel" role="tabpanel" aria-labelledby="tab-reverse">
+        <div class="panel-header">
+          <h2>Reverse Engineering Workspace</h2>
+          <div class="load-controls">
+            <button class="btn btn-secondary" id="btn-load-scan-sample">Load Sample Scan</button>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <section class="subpanel" aria-label="3D Viewport">
+            <h3>Viewport</h3>
+            <div class="viewport-container" id="reverse-viewport-container">
+              <canvas class="viewport-canvas" id="reverse-viewport-canvas"></canvas>
+              <div class="viewport-toolbar">
+                <button class="viewport-tool-btn" id="reverse-view-fit" title="Fit view">⊡</button>
+                <button class="viewport-tool-btn" id="reverse-view-reset" title="Reset">↺</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" aria-label="Scan Points">
+            <h3>Scan Points (JSON)</h3>
+            <div class="reverse-input-section">
+              <textarea class="reverse-points-input" id="reverse-points-json" rows="10" placeholder='{"schema":"vertex/scan/v1","points":[[0,0,0],[10,0,0],[10,10,0],[0,10,0]]}'></textarea>
+              <button class="btn btn-primary" id="btn-reverse-fit" style="margin-top: var(--space-3);">Fit to CAD</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="action-bar">
+          <div class="dry-run-results" id="reverse-results" aria-live="polite"></div>
+          <button class="btn btn-apply" id="btn-reverse-open-build" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Open in Build
+          </button>
+        </div>
+      </section>
+
+      <!-- NEW: Drawing Tab Panel -->
+      <section class="tab-panel" id="drawing-panel" role="tabpanel" aria-labelledby="tab-drawing">
+        <div class="panel-header">
+          <h2>Drawing to CAD Workspace</h2>
+        </div>
+
+        <div class="panel-grid">
+          <section class="subpanel" aria-label="3D Viewport">
+            <h3>Viewport</h3>
+            <div class="viewport-container" id="drawing-viewport-container">
+              <canvas class="viewport-canvas" id="drawing-viewport-canvas"></canvas>
+              <div class="viewport-toolbar">
+                <button class="viewport-tool-btn" id="drawing-view-fit" title="Fit view">⊡</button>
+                <button class="viewport-tool-btn" id="drawing-view-reset" title="Reset">↺</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" aria-label="Drawing Parameters">
+            <h3>Drawing Parameters</h3>
+            <div class="drawing-input-section">
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-title">Title</label>
+                <input type="text" class="param-input" id="drawing-title" value="Drawing part" placeholder="Part name">
+              </div>
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-extents-l">Length L (mm)</label>
+                <input type="number" class="param-input" id="drawing-extents-l" value="80" min="1" max="1000">
+              </div>
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-extents-w">Width W (mm)</label>
+                <input type="number" class="param-input" id="drawing-extents-w" value="40" min="1" max="500">
+              </div>
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-extents-t">Thickness T (mm)</label>
+                <input type="number" class="param-input" id="drawing-extents-t" value="6" min="0.5" max="100">
+              </div>
+              <div class="param-input-group" style="grid-column: 1 / -1;">
+                <label class="param-label" for="drawing-holes">Holes (JSON: [{"x":0,"y":0,"r":4}])</label>
+                <textarea class="param-input" id="drawing-holes-json" rows="4" placeholder='[{"x":0,"y":0,"r":4},{"x":-30,"y":15,"r":3}]'></textarea>
+              </div>
+              <button class="btn btn-primary" id="btn-drawing-generate" style="margin-top: var(--space-2);">Generate CAD</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="action-bar">
+          <div class="dry-run-results" id="drawing-results" aria-live="polite"></div>
+          <button class="btn btn-apply" id="btn-drawing-open-build" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Open in Build
+          </button>
+        </div>
+      </section>
+
+      <!-- NEW: Automation Tab Panel -->
+      <section class="tab-panel" id="automation-panel" role="tabpanel" aria-labelledby="tab-automation">
+        <div class="panel-header">
+          <h2>Automation Workspace</h2>
+          <div class="load-controls">
+            <button class="btn btn-secondary" id="btn-add-automation-op">Add Operation</button>
+          </div>
+        </div>
+
+        <div class="automation-content">
+          <div class="automation-ops-editor" id="automation-ops-editor">
+            <div class="automation-op-row">
+              <select class="automation-op-type" data-op-index="0">
+                <option value="export">Export</option>
+                <option value="pattern">Pattern</option>
+                <option value="sheets">Sheets</option>
+              </select>
+              <input type="text" class="automation-op-name" placeholder="Name" value="flange">
+              <input type="number" class="automation-op-count" placeholder="Count" value="1" min="1">
+              <button class="btn btn-secondary btn-small automation-op-remove">Remove</button>
+            </div>
+          </div>
+
+          <div class="automation-plan-section">
+            <h3 style="font-size: 0.75rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.08em;">Batch Plan</h3>
+            <div class="automation-plan-results" id="automation-plan-results">
+              <p class="placeholder">Add operations and generate plan</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-primary" id="btn-automation-generate">Generate Plan</button>
+          <div class="dry-run-results" id="automation-summary" aria-live="polite"></div>
+          <label class="review-gate">
+            <input type="checkbox" id="chk-confirm-automation" disabled>
+            <span>I have reviewed the batch plan and confirm it is correct</span>
+          </label>
+          <button class="btn btn-apply" id="btn-automation-run" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Run Batch
+          </button>
+        </div>
+      </section>
     </main>
 
-    <!-- Paste Modal -->
+    <!-- Paste Modals -->
     <dialog class="modal" id="modal-paste-report" aria-labelledby="modal-paste-report-title">
       <form method="dialog" class="modal-content">
         <h3 id="modal-paste-report-title">Paste ModelReport JSON</h3>
@@ -419,6 +773,18 @@
         </div>
       </form>
     </dialog>
+
+    <!-- Footer Bar -->
+    <footer class="footer-bar">
+      <div class="footer-left">
+        <span class="footer-integrations">Autodesk Fusion + SOLIDWORKS + 18 tools</span>
+      </div>
+      <div class="footer-right">
+        <a class="footer-link" href="https://vertex.co" target="_blank" rel="noopener">
+          vertex.co <span class="link-arrow">↗</span>
+        </a>
+      </div>
+    </footer>
 
     <!-- Variant Nav -->
     <nav class="variant-nav">

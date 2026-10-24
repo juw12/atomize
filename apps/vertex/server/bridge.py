@@ -17,6 +17,10 @@ and exposes a small JSON API that mirrors the deterministic, rules-based engine
   POST /api/apply             -> body {"plan":..., "confirm":bool} -> ApplyResult (spec §5)
   POST /api/build             -> body BuildSpec -> {"ok":true,"mesh":Mesh,"exports":[...]} [v2]
   POST /api/simulate          -> body AssemblySpec (+optional "build") -> SimResult [v2]
+  POST /api/answer            -> body {"report":ModelReport,"question":str} -> Answer   [v3]
+  POST /api/reverse           -> body Scan -> BuildSpec                                 [v3]
+  POST /api/drawing           -> body DrawingSpec -> BuildSpec                          [v3]
+  POST /api/automate          -> body Batch -> BatchPlan                                [v3]
 
 The diagnosis / repair-plan / assembly-plan **and** the geometry builder
 (`buildMesh`) / simulation (`simulate`) logic are re-implemented here
@@ -72,9 +76,16 @@ SCHEMA_BUILD = "vertex/build-spec/v1"
 SCHEMA_MESH = "vertex/mesh/v1"
 SCHEMA_SIM = "vertex/sim/v1"
 SCHEMA_ADAPTER = "vertex/adapter/v1"
+# v3 (spec `docs/vertex-v3-spec.md` §2)
+SCHEMA_ANSWER = "vertex/answer/v1"
+SCHEMA_SCAN = "vertex/scan/v1"
+SCHEMA_DRAWING = "vertex/drawing/v1"
+SCHEMA_BATCH = "vertex/batch/v1"
+SCHEMA_BATCH_PLAN = "vertex/batch-plan/v1"
 
-# v2 capabilities advertised on /api/health (spec §6).
-CAPABILITIES = ["diagnose", "plan", "apply", "build", "simulate", "adapters"]
+# capabilities advertised on /api/health (v2 §6 + v3 §3).
+CAPABILITIES = ["diagnose", "plan", "apply", "build", "simulate", "adapters",
+                "answer", "reverse", "drawing", "automate"]
 
 # The export formats the engine can emit for a built mesh (spec §2 / §6).
 EXPORTS = ["stl", "obj", "gltf", "3mf", "dxf"]
@@ -1255,6 +1266,254 @@ def apply_plan(plan, confirm) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Engine: answers / reverse / drawing / automation (v3, spec §2.1–§2.4)
+# ---------------------------------------------------------------------------
+# Python port of `Vertex.answer` / `Vertex.reverse` / `Vertex.fromDrawing` /
+# `Vertex.automate` (web/js/vertex.js v3). Deterministic, no Node, no
+# third-party code. Mirrors the engine's answer kinds, box-vs-cylinder fit
+# rule, drawing expansion and batch step ordering/totals.
+
+TIPS = {
+    "fix": "reselect the failed feature's references, then rebuild it",
+    "make": "sketch a closed profile, then extrude or revolve it into a solid",
+    "create": "sketch a closed profile, then extrude or revolve it into a solid",
+    "repair": "diagnose the failed feature, correct its references, then rebuild it",
+    "pattern": "select the seed feature, choose linear or circular, then set the count and spacing",
+    "fillet": "select the edges to round, then set a radius smaller than the adjacent faces",
+    "extrude": "sketch a closed profile on a plane, then extrude it to a height",
+    "mate": "select two faces or axes, then apply a concentric or coincident mate",
+    "assembly": "insert the components, then add mates to constrain them",
+}
+
+RE_ANSWER_COUNT = re.compile(r"how many|count")
+RE_ANSWER_FAILED = re.compile(r"what failed|which failed|broken")
+RE_ANSWER_DEPENDS = re.compile(r"depends on (\w+)")
+RE_ANSWER_HOWTO = re.compile(
+    r"how (?:do|to) i? ?(fix|make|create|repair|pattern|fillet|extrude|mate|assembly)")
+RE_ANSWER_MATE = re.compile(r"mates?")
+RE_ANSWER_SUMMARY = re.compile(r"summary|what is this|overview")
+
+
+def _feature_brief(feat):
+    """`f2 Fillet7 failed` — id + name + status (matches the spec example)."""
+    feat = _as_dict(feat)
+    fid = feat.get("id")
+    name = feat.get("name")
+    if not (isinstance(name, str) and name):
+        name = fid
+    status = feat.get("status")
+    parts = []
+    if fid is not None:
+        parts.append(str(fid))
+    if isinstance(name, str) and name and name != str(fid):
+        parts.append(name)
+    if isinstance(status, str) and status:
+        parts.append(status)
+    return " ".join(parts)
+
+
+def _feature_name(feat):
+    feat = _as_dict(feat)
+    name = feat.get("name")
+    if isinstance(name, str) and name:
+        return name
+    return str(feat.get("id"))
+
+
+def answer(report, question) -> dict:
+    """Answer a natural-language question about a report (spec §2.1). Never throws."""
+    rep = _as_dict(report)
+    feats = rep.get("features") if isinstance(rep.get("features"), list) else []
+    mates = rep.get("mates") if isinstance(rep.get("mates"), list) else []
+    q = question if isinstance(question, str) else ""
+    low = q.lower()
+
+    def out(kind, text, evidence=None):
+        return {"schema": SCHEMA_ANSWER, "question": q, "kind": kind,
+                "answer": text, "evidence": evidence or []}
+
+    depends = RE_ANSWER_DEPENDS.search(low)
+
+    if RE_ANSWER_COUNT.search(low):
+        counts = {}
+        order = []
+        for feat in feats:
+            status = _as_dict(feat).get("status")
+            if not (isinstance(status, str) and status):
+                status = "unknown"
+            if status not in counts:
+                counts[status] = 0
+                order.append(status)
+            counts[status] += 1
+        if not feats:
+            return out("count", "The model has no features.", [])
+        detail = ", ".join("%s %d" % (st, counts[st]) for st in order)
+        return out("count", "The model has %d features: %s." % (len(feats), detail),
+                   [_feature_brief(f) for f in feats])
+
+    if RE_ANSWER_FAILED.search(low):
+        bad = [_as_dict(f) for f in feats
+               if _as_dict(f).get("status") in ("failed", "warning")]
+        if not bad:
+            return out("status", "No features are failed or warning.", [])
+        names = ", ".join("%s (%s)" % (_feature_name(f), f.get("status")) for f in bad)
+        return out("status", "%d feature(s) need attention: %s." % (len(bad), names),
+                   [_feature_brief(f) for f in bad])
+
+    if depends:
+        target = depends.group(1)
+        deps = []
+        for feat in feats:
+            feat = _as_dict(feat)
+            ids = [str(d) for d in (feat.get("dependsOn") or [])]
+            if any(d == target or d.lower() == target for d in ids):
+                deps.append(feat)
+        if not deps:
+            return out("dependency", "No feature depends on %s." % target, [])
+        names = ", ".join(_feature_name(f) for f in deps)
+        evidence = ["%s dependsOn: %s" % (_as_dict(f).get("id"), target) for f in deps]
+        return out("dependency", "%d feature(s) depend on %s: %s." % (len(deps), target, names),
+                   evidence)
+
+    howto = RE_ANSWER_HOWTO.search(low)
+    if howto:
+        return out("howto", TIPS.get(howto.group(1), ""), [])
+
+    if RE_ANSWER_MATE.search(low):
+        if not mates:
+            return out("mate", "The model has no mates.", [])
+        evidence = ["%s %s %s-%s" % (_as_dict(m).get("id"), _as_dict(m).get("type"),
+                                     _as_dict(m).get("a"), _as_dict(m).get("b")) for m in mates]
+        return out("mate", "The model has %d mate(s)." % len(mates), evidence)
+
+    if RE_ANSWER_SUMMARY.search(low):
+        model = _as_dict(rep.get("model"))
+        name = model.get("name") if isinstance(model.get("name"), str) and model.get("name") \
+            else "This model"
+        comps = rep.get("components") if isinstance(rep.get("components"), list) else []
+        return out("summary", "%s has %d features, %d mate(s) and %d component(s)."
+                   % (name, len(feats), len(mates), len(comps)), [])
+
+    return out("unknown", "I can count features, list what failed, show dependencies, "
+               "summarise the model or explain how to fix a feature. Ask e.g. \"what failed?\".")
+
+
+def _json_num(value):
+    """Number as `JSON.stringify` would emit it: integral floats become ints."""
+    v = _num(value, 0)
+    return int(v) if float(v).is_integer() else v
+
+
+def reverse(scan) -> dict:
+    """Fit a scan to a parametric BuildSpec (spec §2.2). Raises on <2 points."""
+    sc = _as_dict(scan)
+    raw_points = sc.get("points") if isinstance(sc.get("points"), list) else []
+    pts = []
+    for p in raw_points:
+        if isinstance(p, list):
+            pts.append([_num(p[0]), _num(p[1]), _num(p[2])])
+        else:
+            pts.append([0.0, 0.0, 0.0])
+    n = len(pts)
+    if n < 2:
+        raise ValueError("scan needs at least 2 points")
+
+    max_fit = _num(sc.get("maxFitError"), 0.08)
+    sx = sum(p[0] for p in pts) / n
+    sy = sum(p[1] for p in pts) / n
+    sz = sum(p[2] for p in pts) / n
+
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    zs = [p[2] for p in pts]
+    dx = max(xs) - min(xs)
+    dy = max(ys) - min(ys)
+    dz = max(zs) - min(zs)
+    acx = (max(xs) + min(xs)) / 2.0
+    acy = (max(ys) + min(ys)) / 2.0
+    acz = (max(zs) + min(zs)) / 2.0
+
+    radii = [math.hypot(p[0] - sx, p[1] - sy) for p in pts]
+    max_r = max(radii)
+    min_r = min(radii)
+    mean_r = sum(radii) / n
+    is_cylinder = max_r > 0 and (max_r - min_r) / max_r < max_fit
+
+    if is_cylinder:
+        solid = {"id": "s1", "type": "cylinder", "x": _json_num(acx),
+                 "y": _json_num(acy), "z": _json_num(acz),
+                 "params": {"r": _json_num(mean_r), "h": _json_num(dz)}}
+    else:
+        solid = {"id": "s1", "type": "box", "x": _json_num(acx),
+                 "y": _json_num(acy), "z": _json_num(acz),
+                 "params": {"dx": _json_num(dx), "dy": _json_num(dy), "dz": _json_num(dz)}}
+
+    return {"schema": SCHEMA_BUILD, "name": "Reversed part", "units": "mm",
+            "material": {"name": "Aluminium 6061", "density": 2.70},
+            "params": {}, "solids": [solid], "holes": []}
+
+
+def from_drawing(drawing) -> dict:
+    """Turn a DrawingSpec into a BuildSpec (spec §2.3). Defensive, never throws."""
+    d = _as_dict(drawing)
+    ext = _as_dict(d.get("extents"))
+    title = d.get("title") if isinstance(d.get("title"), str) and d.get("title") \
+        else "Drawing part"
+    units = d.get("units") if isinstance(d.get("units"), str) and d.get("units") else "mm"
+
+    raw_holes = d.get("holes") if isinstance(d.get("holes"), list) else []
+    holes = []
+    for i, h in enumerate(raw_holes):
+        h = _as_dict(h)
+        holes.append({"id": "h%d" % (i + 1), "type": "cylinder",
+                      "x": _json_num(h.get("x")), "y": _json_num(h.get("y")), "z": 0,
+                      "params": {"r": _json_num(h.get("r")), "h": "T"}})
+
+    solid = {"id": "s1", "type": "box", "x": 0, "y": 0, "z": 0,
+             "params": {"dx": "L", "dy": "W", "dz": "T"}}
+    return {"schema": SCHEMA_BUILD, "name": title, "units": units,
+            "material": {"name": "Aluminium 6061", "density": 2.70},
+            "params": {"L": _json_num(ext.get("L")), "W": _json_num(ext.get("W")),
+                       "T": _json_num(ext.get("T"))},
+            "solids": [solid], "holes": holes}
+
+
+def automate(batch) -> dict:
+    """Expand a batch of ops into an ordered, totalled BatchPlan (spec §2.4)."""
+    b = _as_dict(batch)
+    raw_ops = b.get("ops") if isinstance(b.get("ops"), list) else []
+    steps = []
+    instances = 0
+    exports = 0
+
+    for i, raw in enumerate(raw_ops):
+        op = _as_dict(raw)
+        kind = op.get("op")
+        name = op.get("name")
+        n = i + 1
+
+        if kind == "export":
+            formats = op.get("formats") if isinstance(op.get("formats"), list) else []
+            steps.append({"n": n, "op": "export", "name": name,
+                          "formats": formats, "count": len(formats)})
+            exports += len(formats)
+        elif kind == "pattern":
+            count = int(_num(op.get("count"), 0))
+            delta = [_json_num(op.get("dx")), _json_num(op.get("dy")), _json_num(op.get("dz"))]
+            steps.append({"n": n, "op": "pattern", "name": name,
+                          "count": count, "delta": delta})
+            instances += count
+        elif kind == "sheets":
+            count = int(_num(op.get("count"), 0))
+            steps.append({"n": n, "op": "sheets", "name": name, "count": count})
+        else:
+            steps.append({"n": n, "op": kind, "name": name})
+
+    return {"schema": SCHEMA_BATCH_PLAN, "steps": steps,
+            "summary": {"ops": len(steps), "instances": instances, "exports": exports}}
+
+
+# ---------------------------------------------------------------------------
 # HTTP handler
 # ---------------------------------------------------------------------------
 
@@ -1453,6 +1712,55 @@ class VertexHandler(BaseHTTPRequestHandler):
                 self.send_error_json(400, "invalid assembly spec: %s" % exc)
                 return
             self.send_json(200, result)
+            return
+
+        if name == "answer":
+            ok, body = self._parse_body_json()
+            if not ok:
+                self.send_error_json(400, body)
+                return
+            if not isinstance(body, dict):
+                self.send_error_json(400, "body must be a JSON object")
+                return
+            self.send_json(200, answer(body.get("report"), body.get("question")))
+            return
+
+        if name == "reverse":
+            ok, body = self._parse_body_json()
+            if not ok:
+                self.send_error_json(400, body)
+                return
+            if not isinstance(body, dict):
+                self.send_error_json(400, "body must be a JSON object")
+                return
+            try:
+                result = reverse(body)
+            except (ValueError, KeyError, TypeError) as exc:
+                self.send_error_json(400, "invalid scan: %s" % exc)
+                return
+            self.send_json(200, result)
+            return
+
+        if name == "drawing":
+            ok, body = self._parse_body_json()
+            if not ok:
+                self.send_error_json(400, body)
+                return
+            if not isinstance(body, dict):
+                self.send_error_json(400, "body must be a JSON object")
+                return
+            self.send_json(200, from_drawing(body))
+            return
+
+        if name == "automate":
+            ok, body = self._parse_body_json()
+            if not ok:
+                self.send_error_json(400, body)
+                return
+            if not isinstance(body, dict):
+                self.send_error_json(400, "body must be a JSON object")
+                return
+            self.send_json(200, automate(body))
             return
 
         self.send_error_json(404, "unknown endpoint")

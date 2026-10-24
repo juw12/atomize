@@ -74,7 +74,7 @@
       </span>
     </div>
 
-    <!-- Tab Navigation -->
+    <!-- Tab Navigation (8 tabs) -->
     <nav class="tab-nav" role="tablist" aria-label="Workspace tabs">
       <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="repair-panel" id="tab-repair" data-tab="repair">
         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -101,6 +101,37 @@
           <polygon points="5 3 19 12 5 21 5 3"/>
         </svg>
         Simulate
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="answers-panel" id="tab-answers" data-tab="answers">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Answers
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="reverse-panel" id="tab-reverse" data-tab="reverse">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="7.5 12 12 16.5 16.5 12"/>
+          <line x1="12" y1="4" x2="12" y2="16.5"/>
+        </svg>
+        Reverse
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="drawing-panel" id="tab-drawing" data-tab="drawing">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+        Drawing
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="automation-panel" id="tab-automation" data-tab="automation">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"/>
+          <polyline points="8 6 2 12 8 18"/>
+          <line x1="12" y1="4" x2="12" y2="20"/>
+        </svg>
+        Automation
       </button>
     </nav>
 
@@ -401,6 +432,187 @@
           <button class="btn btn-primary" id="btn-run-simulation">Run Simulation</button>
           <div class="dry-run-results" id="simulate-results" aria-live="polite"></div>
           <span style="font-size: 0.75rem; color: var(--text-3); font-family: var(--font-mono);">Kinematic estimate — not a FEA/CFD solver</span>
+        </div>
+      </section>
+
+      <!-- Answers Tab Panel -->
+      <section class="tab-panel" id="answers-panel" role="tabpanel" aria-labelledby="tab-answers">
+        <div class="panel-header">
+          <h2>Answers Workspace</h2>
+        </div>
+
+        <div class="answers-content">
+          <div class="answers-input-section">
+            <label class="param-label" for="answers-question">Ask a question about your model</label>
+            <div class="answers-input-row">
+              <input type="text" class="answers-input" id="answers-question" placeholder="e.g., what failed?">
+              <button class="btn btn-primary" id="btn-answers-ask">Ask</button>
+            </div>
+            <div class="answers-chips">
+              <button class="answer-chip" data-question="what failed?">what failed?</button>
+              <button class="answer-chip" data-question="how do I fix a fillet?">how do I fix a fillet?</button>
+              <button class="answer-chip" data-question="summary">summary</button>
+              <button class="answer-chip" data-question="how many features?">how many features?</button>
+            </div>
+          </div>
+
+          <div class="answers-results-section">
+            <div class="answers-answer-card" id="answers-answer-card" style="display: none;">
+              <div class="answer-kind-badge" id="answer-kind-badge">UNKNOWN</div>
+              <p class="answer-text" id="answer-text"></p>
+              <div class="answer-evidence" id="answer-evidence"></div>
+            </div>
+            <div class="placeholder" id="answers-placeholder">Ask a question to get an answer with evidence</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reverse Tab Panel -->
+      <section class="tab-panel" id="reverse-panel" role="tabpanel" aria-labelledby="tab-reverse">
+        <div class="panel-header">
+          <h2>Reverse Engineering Workspace</h2>
+          <div class="load-controls">
+            <button class="btn btn-secondary" id="btn-load-scan-sample">Load Sample Scan</button>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <section class="subpanel" aria-label="3D Viewport">
+            <h3>Viewport</h3>
+            <div class="viewport-container" id="reverse-viewport-container">
+              <canvas class="viewport-canvas" id="reverse-viewport-canvas"></canvas>
+              <div class="viewport-toolbar">
+                <button class="viewport-tool-btn" id="reverse-view-fit" title="Fit view">⊡</button>
+                <button class="viewport-tool-btn" id="reverse-view-reset" title="Reset">↺</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" aria-label="Scan Points">
+            <h3>Scan Points (JSON)</h3>
+            <div class="reverse-input-section">
+              <textarea class="reverse-points-input" id="reverse-points-json" rows="10" placeholder='{"schema":"vertex/scan/v1","points":[[0,0,0],[10,0,0],[10,10,0],[0,10,0]]}'></textarea>
+              <button class="btn btn-primary" id="btn-reverse-fit" style="margin-top: var(--space-3);">Fit to CAD</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="action-bar">
+          <div class="dry-run-results" id="reverse-results" aria-live="polite"></div>
+          <button class="btn btn-apply" id="btn-reverse-open-build" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Open in Build
+          </button>
+        </div>
+      </section>
+
+      <!-- Drawing Tab Panel -->
+      <section class="tab-panel" id="drawing-panel" role="tabpanel" aria-labelledby="tab-drawing">
+        <div class="panel-header">
+          <h2>Drawing to CAD Workspace</h2>
+        </div>
+
+        <div class="panel-grid">
+          <section class="subpanel" aria-label="3D Viewport">
+            <h3>Viewport</h3>
+            <div class="viewport-container" id="drawing-viewport-container">
+              <canvas class="viewport-canvas" id="drawing-viewport-canvas"></canvas>
+              <div class="viewport-toolbar">
+                <button class="viewport-tool-btn" id="drawing-view-fit" title="Fit view">⊡</button>
+                <button class="viewport-tool-btn" id="drawing-view-reset" title="Reset">↺</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" aria-label="Drawing Parameters">
+            <h3>Drawing Parameters</h3>
+            <div class="drawing-input-section">
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-title">Title</label>
+                <input type="text" class="param-input" id="drawing-title" value="Drawing part" placeholder="Part name">
+              </div>
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-extents-l">Length L (mm)</label>
+                <input type="number" class="param-input" id="drawing-extents-l" value="80" min="1" max="1000">
+              </div>
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-extents-w">Width W (mm)</label>
+                <input type="number" class="param-input" id="drawing-extents-w" value="40" min="1" max="500">
+              </div>
+              <div class="param-input-group">
+                <label class="param-label" for="drawing-extents-t">Thickness T (mm)</label>
+                <input type="number" class="param-input" id="drawing-extents-t" value="6" min="0.5" max="100">
+              </div>
+              <div class="param-input-group" style="grid-column: 1 / -1;">
+                <label class="param-label" for="drawing-holes">Holes (JSON: [{"x":0,"y":0,"r":4}])</label>
+                <textarea class="param-input" id="drawing-holes-json" rows="4" placeholder='[{"x":0,"y":0,"r":4},{"x":-30,"y":15,"r":3}]'></textarea>
+              </div>
+              <button class="btn btn-primary" id="btn-drawing-generate" style="margin-top: var(--space-2);">Generate CAD</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="action-bar">
+          <div class="dry-run-results" id="drawing-results" aria-live="polite"></div>
+          <button class="btn btn-apply" id="btn-drawing-open-build" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Open in Build
+          </button>
+        </div>
+      </section>
+
+      <!-- Automation Tab Panel -->
+      <section class="tab-panel" id="automation-panel" role="tabpanel" aria-labelledby="tab-automation">
+        <div class="panel-header">
+          <h2>Automation Workspace</h2>
+          <div class="load-controls">
+            <button class="btn btn-secondary" id="btn-add-automation-op">Add Operation</button>
+          </div>
+        </div>
+
+        <div class="automation-content">
+          <div class="automation-ops-editor" id="automation-ops-editor">
+            <div class="automation-op-row">
+              <select class="automation-op-type" data-op-index="0">
+                <option value="export">Export</option>
+                <option value="pattern">Pattern</option>
+                <option value="sheets">Sheets</option>
+              </select>
+              <input type="text" class="automation-op-name" placeholder="Name" value="flange">
+              <input type="number" class="automation-op-count" placeholder="Count" value="1" min="1">
+              <button class="btn btn-secondary btn-small automation-op-remove">Remove</button>
+            </div>
+          </div>
+
+          <div class="automation-plan-section">
+            <h3 style="font-size: 0.75rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.08em;">Batch Plan</h3>
+            <div class="automation-plan-results" id="automation-plan-results">
+              <p class="placeholder">Add operations and generate plan</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-primary" id="btn-automation-generate">Generate Plan</button>
+          <div class="dry-run-results" id="automation-summary" aria-live="polite"></div>
+          <label class="review-gate">
+            <input type="checkbox" id="chk-confirm-automation" disabled>
+            <span>I have reviewed the batch plan and confirm it is correct</span>
+          </label>
+          <button class="btn btn-apply" id="btn-automation-run" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Run Batch
+          </button>
         </div>
       </section>
     </main>
