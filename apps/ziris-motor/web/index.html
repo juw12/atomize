@@ -186,6 +186,25 @@
             <label for="camera-device-select" class="label">Camera:</label>
             <select id="camera-device-select" class="select select-full"></select>
           </div>
+          <div class="camera-mode-select">
+            <label for="camera-mode-select" class="label">Mode:</label>
+            <select id="camera-mode-select" class="select select-full">
+              <option value="auto">Auto (device default)</option>
+              <option value="3840x2160x30">3840×2160 @ 30</option>
+              <option value="2560x1440x30">2560×1440 @ 30</option>
+              <option value="1920x1080x60">1920×1080 @ 60</option>
+              <option value="1920x1080x30">1920×1080 @ 30</option>
+              <option value="1280x720x60">1280×720 @ 60</option>
+              <option value="1280x720x30">1280×720 @ 30</option>
+              <option value="640x480x30">640×480 @ 30</option>
+            </select>
+          </div>
+          <div class="camera-exact-mode">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-camera-exact">
+              Exact mode (test)
+            </label>
+          </div>
           <div class="camera-buttons">
             <button id="btn-camera-refresh" class="btn btn-sm">Refresh</button>
             <button id="btn-camera-start" class="btn btn-sm btn-primary">Start Preview</button>
@@ -200,6 +219,145 @@
         </div>
         <div id="camera-status" class="camera-status" aria-live="polite"></div>
         <div id="camera-diagnostic" class="camera-diagnostic hidden"></div>
+
+        <!-- Still Capture Section -->
+        <div class="camera-still-capture">
+          <h3 class="camera-still-title">Still Capture</h3>
+          <div class="camera-still-controls">
+            <button id="btn-camera-capture" class="btn btn-sm btn-primary">Capture still (full res)</button>
+            <button id="btn-camera-photo-caps" class="btn btn-sm btn-secondary">Photo capabilities</button>
+            <button id="btn-camera-download-still" class="btn btn-sm btn-secondary" disabled>Download still</button>
+            <button id="btn-camera-copy-diag" class="btn btn-sm btn-secondary">Copy diagnostics</button>
+          </div>
+          <div class="camera-still-preview-area">
+            <img id="camera-still-preview" class="camera-still-preview" alt="Captured still" hidden>
+            <div id="camera-still-info" class="camera-still-info"></div>
+          </div>
+        </div>
+
+        <!-- Day/Night & Lights Quick Control Block -->
+        <div class="day-night-control-block">
+          <h3 class="day-night-title">Day/Night &amp; Lights</h3>
+
+          <!-- IR-cut (ICR) -->
+          <div class="control-row">
+            <span class="control-label">IR-cut (ICR):</span>
+            <div class="control-buttons">
+              <button id="btn-ircut-day" class="btn btn-sm btn-secondary" aria-label="Switch IR-cut to Day mode">Day</button>
+              <button id="btn-ircut-night" class="btn btn-sm btn-secondary" aria-label="Switch IR-cut to Night mode">Night</button>
+            </div>
+          </div>
+
+          <!-- IR LED -->
+          <div class="control-row">
+            <span class="control-label">IR LED:</span>
+            <div class="control-buttons">
+              <button id="btn-irled-on" class="btn btn-sm btn-secondary" aria-label="Turn IR LED on">On</button>
+              <button id="btn-irled-off" class="btn btn-sm btn-secondary" aria-label="Turn IR LED off">Off</button>
+              <input type="range" id="irled-duty-range" class="duty-range" min="0" max="100" value="50" aria-label="IR LED duty cycle 0 to 100">
+              <span id="irled-duty-value" class="duty-value">50</span>
+              <button id="btn-irled-apply" class="btn btn-sm btn-primary" aria-label="Apply IR LED duty cycle">Apply</button>
+            </div>
+          </div>
+
+          <!-- Spot LED -->
+          <div class="control-row">
+            <span class="control-label">Spot LED:</span>
+            <div class="control-buttons">
+              <button id="btn-spotled-on" class="btn btn-sm btn-secondary" aria-label="Turn Spot LED on">On</button>
+              <button id="btn-spotled-off" class="btn btn-sm btn-secondary" aria-label="Turn Spot LED off">Off</button>
+              <input type="range" id="spotled-duty-range" class="duty-range" min="0" max="100" value="50" aria-label="Spot LED duty cycle 0 to 100">
+              <span id="spotled-duty-value" class="duty-value">50</span>
+              <button id="btn-spotled-apply" class="btn btn-sm btn-primary" aria-label="Apply Spot LED duty cycle">Apply</button>
+            </div>
+          </div>
+
+          <!-- ALS -->
+          <div class="control-row">
+            <span class="control-label">ALS:</span>
+            <div class="control-buttons">
+              <button id="btn-als-value" class="btn btn-sm btn-secondary" aria-label="Read ALS sensor value">Read value</button>
+              <button id="btn-als-id" class="btn btn-sm btn-secondary" aria-label="Read ALS sensor ID">Read ID</button>
+            </div>
+          </div>
+
+          <!-- Daylight Fix -->
+          <div class="control-row control-row-highlight">
+            <button id="btn-daylight-fix" class="btn btn-sm btn-warning" aria-label="Execute daylight fix: turn off IR LED, turn off Spot LED, switch IR-cut to Day">Daylight fix</button>
+          </div>
+
+          <!-- Hint -->
+          <p class="control-hint">Results appear in the Console.</p>
+        </div>
+
+        <!-- Session Folder Section -->
+        <div class="camera-session">
+          <h3 class="camera-session-title">Session Folder</h3>
+          <div class="camera-session-controls">
+            <button id="btn-camera-session-start" class="btn btn-sm btn-primary">Start session (pick folder)</button>
+            <button id="btn-camera-session-end" class="btn btn-sm btn-danger" disabled>End session</button>
+            <button id="btn-camera-session-log" class="btn btn-sm btn-secondary" disabled>Download session log</button>
+          </div>
+          <div id="camera-session-info" class="camera-session-info"></div>
+        </div>
+
+        <!-- Video Recording Section -->
+        <div class="camera-recording">
+          <h3 class="camera-recording-title">Video Recording</h3>
+          <div class="camera-recording-controls">
+            <button id="btn-camera-record" class="btn btn-sm btn-primary" aria-pressed="false" disabled>● Record</button>
+            <div id="camera-record-info" class="camera-record-info"></div>
+          </div>
+          <!-- ffmpeg Helper -->
+          <div class="camera-ffmpeg-helper">
+            <label for="camera-ffmpeg-cmd" class="label">ffmpeg command (DirectShow):</label>
+            <textarea id="camera-ffmpeg-cmd" class="camera-ffmpeg-cmd" readonly></textarea>
+            <div class="camera-ffmpeg-actions">
+              <button id="btn-camera-ffmpeg-copy" class="btn btn-sm btn-secondary">Copy ffmpeg command</button>
+            </div>
+            <div id="camera-ffmpeg-note" class="camera-ffmpeg-note"></div>
+          </div>
+        </div>
+
+        <!-- Snapshot Section -->
+        <div class="camera-snapshot">
+          <h3 class="camera-snapshot-title">Snapshot</h3>
+          <div class="camera-snapshot-controls">
+            <button id="btn-camera-snapshot" class="btn btn-sm btn-secondary">Take picture</button>
+          </div>
+          <div class="camera-snapshot-preview-area">
+            <img id="camera-snapshot-preview" class="camera-snapshot-preview" alt="Snapshot preview" hidden>
+            <div id="camera-snapshot-info" class="camera-snapshot-info"></div>
+          </div>
+        </div>
+
+        <!-- Camera Settings Section -->
+        <div class="camera-settings">
+          <h3 class="camera-settings-title">Camera Settings</h3>
+          <div class="camera-settings-controls">
+            <button id="btn-camera-settings-reset" class="btn btn-sm btn-secondary">Reset settings</button>
+            <div id="camera-settings-note" class="camera-settings-note"></div>
+          </div>
+          <div id="camera-settings-panel" class="camera-settings-panel"></div>
+          
+          <!-- Display Transforms -->
+          <div class="camera-display-transforms">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-camera-mirror">
+              Mirror (display only)
+            </label>
+            <label class="label-inline">
+              Rotate:
+              <select id="camera-rotate-select" class="select select-sm">
+                <option value="0">0°</option>
+                <option value="90">90°</option>
+                <option value="180">180°</option>
+                <option value="270">270°</option>
+              </select>
+            </label>
+            <p class="camera-transform-note">Display transforms do NOT affect recorded video or snapshots.</p>
+          </div>
+        </div>
       </div>
     </section>
   </div>

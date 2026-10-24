@@ -3,7 +3,7 @@
  * Cache-first strategy with network fallback
  */
 
-const CACHE_NAME = 'ziris-console-v3';
+const CACHE_NAME = 'ziris-console-v12';
 const ASSETS = [
   './',
   './index.html',

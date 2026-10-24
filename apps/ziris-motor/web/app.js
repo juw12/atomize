@@ -451,6 +451,10 @@
     if (state.autoscroll) {
       container.scrollTop = container.scrollHeight;
     }
+
+    if (cameraState.sessionActive && typeof appendToSessionLog === 'function') {
+      appendToSessionLog('console', text.replace(/\r/g, ''));
+    }
   }
 
   function logToConsole(text, type = 'response') {
@@ -1390,13 +1394,40 @@
   const cameraState = {
     stream: null,
     selectedDeviceId: null,
-    collapsed: true
+    collapsed: true,
+    stillBlob: null,
+    stillObjectUrl: null,
+    // Recording state
+    recorder: null,
+    recordingChunks: [],
+    recordingStartTime: null,
+    recordingTimer: null,
+    recordingFileHandle: null,
+    recordingWritable: null,
+    recordingBytes: 0,
+    recordingFilename: null,
+    // Snapshot state
+    snapshotBlob: null,
+    // Settings state
+    initialSettings: null,
+    settingsControls: {},
+    // Display transforms
+    mirrorEnabled: false,
+    rotateDegrees: 0,
+    // Session folder state
+    sessionActive: false,
+    sessionDirHandle: null,
+    sessionLogWritable: null,
+    sessionLogLines: [],
+    sessionFolderName: null,
+    sessionArtifactCount: 0
   };
   
   function initCameraPanel() {
     elements.cameraToggle = document.getElementById('btn-camera-toggle');
     elements.cameraPanelContent = document.getElementById('camera-panel-content');
     elements.cameraDeviceSelect = document.getElementById('camera-device-select');
+    elements.cameraModeSelect = document.getElementById('camera-mode-select');
     elements.cameraRefresh = document.getElementById('btn-camera-refresh');
     elements.cameraStart = document.getElementById('btn-camera-start');
     elements.cameraStop = document.getElementById('btn-camera-stop');
@@ -1404,6 +1435,59 @@
     elements.cameraPlaceholder = document.getElementById('camera-placeholder');
     elements.cameraStatus = document.getElementById('camera-status');
     elements.cameraDiagnostic = document.getElementById('camera-diagnostic');
+    
+    // Day/Night & Lights controls
+    elements.btnIrcutDay = document.getElementById('btn-ircut-day');
+    elements.btnIrcutNight = document.getElementById('btn-ircut-night');
+    elements.btnIrledOn = document.getElementById('btn-irled-on');
+    elements.btnIrledOff = document.getElementById('btn-irled-off');
+    elements.irledDutyRange = document.getElementById('irled-duty-range');
+    elements.irledDutyValue = document.getElementById('irled-duty-value');
+    elements.btnIrledApply = document.getElementById('btn-irled-apply');
+    elements.btnSpotledOn = document.getElementById('btn-spotled-on');
+    elements.btnSpotledOff = document.getElementById('btn-spotled-off');
+    elements.spotledDutyRange = document.getElementById('spotled-duty-range');
+    elements.spotledDutyValue = document.getElementById('spotled-duty-value');
+    elements.btnSpotledApply = document.getElementById('btn-spotled-apply');
+    elements.btnAlsValue = document.getElementById('btn-als-value');
+    elements.btnAlsId = document.getElementById('btn-als-id');
+    elements.btnDaylightFix = document.getElementById('btn-daylight-fix');
+    
+    // Still capture elements
+    elements.chkCameraExact = document.getElementById('chk-camera-exact');
+    elements.btnCameraCapture = document.getElementById('btn-camera-capture');
+    elements.btnCameraPhotoCaps = document.getElementById('btn-camera-photo-caps');
+    elements.btnCameraDownloadStill = document.getElementById('btn-camera-download-still');
+    elements.btnCameraCopyDiag = document.getElementById('btn-camera-copy-diag');
+    elements.cameraStillPreview = document.getElementById('camera-still-preview');
+    elements.cameraStillInfo = document.getElementById('camera-still-info');
+    
+    // Recording elements
+    elements.btnCameraRecord = document.getElementById('btn-camera-record');
+    elements.cameraRecordInfo = document.getElementById('camera-record-info');
+    
+    // Snapshot elements
+    elements.btnCameraSnapshot = document.getElementById('btn-camera-snapshot');
+    elements.cameraSnapshotPreview = document.getElementById('camera-snapshot-preview');
+    elements.cameraSnapshotInfo = document.getElementById('camera-snapshot-info');
+    
+    // Settings elements
+    elements.btnCameraSettingsReset = document.getElementById('btn-camera-settings-reset');
+    elements.cameraSettingsNote = document.getElementById('camera-settings-note');
+    elements.cameraSettingsPanel = document.getElementById('camera-settings-panel');
+    elements.chkCameraMirror = document.getElementById('chk-camera-mirror');
+    elements.cameraRotateSelect = document.getElementById('camera-rotate-select');
+    
+    // Session elements
+    elements.btnCameraSessionStart = document.getElementById('btn-camera-session-start');
+    elements.btnCameraSessionEnd = document.getElementById('btn-camera-session-end');
+    elements.btnCameraSessionLog = document.getElementById('btn-camera-session-log');
+    elements.cameraSessionInfo = document.getElementById('camera-session-info');
+    
+    // ffmpeg helper elements
+    elements.cameraFfmpegCmd = document.getElementById('camera-ffmpeg-cmd');
+    elements.btnCameraFfmpegCopy = document.getElementById('btn-camera-ffmpeg-copy');
+    elements.cameraFfmpegNote = document.getElementById('camera-ffmpeg-note');
     
     if (elements.cameraToggle) {
       elements.cameraToggle.addEventListener('click', toggleCameraPanel);
@@ -1414,8 +1498,119 @@
     if (elements.cameraStart) {
       elements.cameraStart.addEventListener('click', startCameraPreview);
     }
+    if (elements.cameraDeviceSelect) {
+      elements.cameraDeviceSelect.addEventListener('change', updateFfmpegHelper);
+    }
     if (elements.cameraStop) {
       elements.cameraStop.addEventListener('click', stopCameraPreview);
+    }
+    
+    // Day/Night & Lights event listeners
+    if (elements.btnIrcutDay) {
+      elements.btnIrcutDay.addEventListener('click', () => sendLine('diag ircut day'));
+    }
+    if (elements.btnIrcutNight) {
+      elements.btnIrcutNight.addEventListener('click', () => sendLine('diag ircut night'));
+    }
+    if (elements.btnIrledOn) {
+      elements.btnIrledOn.addEventListener('click', () => sendLine('diag irled on'));
+    }
+    if (elements.btnIrledOff) {
+      elements.btnIrledOff.addEventListener('click', () => sendLine('diag irled off'));
+    }
+    if (elements.irledDutyRange) {
+      elements.irledDutyRange.addEventListener('input', (e) => {
+        elements.irledDutyValue.textContent = e.target.value;
+      });
+      elements.irledDutyRange.addEventListener('change', (e) => {
+        elements.irledDutyValue.textContent = e.target.value;
+      });
+    }
+    if (elements.btnIrledApply) {
+      elements.btnIrledApply.addEventListener('click', () => {
+        const duty = elements.irledDutyRange ? elements.irledDutyRange.value : '50';
+        sendLine('diag irled duty ' + duty);
+      });
+    }
+    if (elements.btnSpotledOn) {
+      elements.btnSpotledOn.addEventListener('click', () => sendLine('diag spotled on'));
+    }
+    if (elements.btnSpotledOff) {
+      elements.btnSpotledOff.addEventListener('click', () => sendLine('diag spotled off'));
+    }
+    if (elements.spotledDutyRange) {
+      elements.spotledDutyRange.addEventListener('input', (e) => {
+        elements.spotledDutyValue.textContent = e.target.value;
+      });
+      elements.spotledDutyRange.addEventListener('change', (e) => {
+        elements.spotledDutyValue.textContent = e.target.value;
+      });
+    }
+    if (elements.btnSpotledApply) {
+      elements.btnSpotledApply.addEventListener('click', () => {
+        const duty = elements.spotledDutyRange ? elements.spotledDutyRange.value : '50';
+        sendLine('diag spotled duty ' + duty);
+      });
+    }
+    if (elements.btnAlsValue) {
+      elements.btnAlsValue.addEventListener('click', () => sendLine('diag als value'));
+    }
+    if (elements.btnAlsId) {
+      elements.btnAlsId.addEventListener('click', () => sendLine('diag als id'));
+    }
+    if (elements.btnDaylightFix) {
+      elements.btnDaylightFix.addEventListener('click', handleDaylightFix);
+    }
+    
+    // Still capture event listeners
+    if (elements.btnCameraCapture) {
+      elements.btnCameraCapture.addEventListener('click', handleCameraCapture);
+    }
+    if (elements.btnCameraPhotoCaps) {
+      elements.btnCameraPhotoCaps.addEventListener('click', handleCameraPhotoCaps);
+    }
+    if (elements.btnCameraDownloadStill) {
+      elements.btnCameraDownloadStill.addEventListener('click', handleCameraDownloadStill);
+    }
+    if (elements.btnCameraCopyDiag) {
+      elements.btnCameraCopyDiag.addEventListener('click', handleCameraCopyDiag);
+    }
+    
+    // Recording event listeners
+    if (elements.btnCameraRecord) {
+      elements.btnCameraRecord.addEventListener('click', handleCameraRecordToggle);
+    }
+    
+    // Snapshot event listeners
+    if (elements.btnCameraSnapshot) {
+      elements.btnCameraSnapshot.addEventListener('click', handleCameraSnapshot);
+    }
+    
+    // Settings event listeners
+    if (elements.btnCameraSettingsReset) {
+      elements.btnCameraSettingsReset.addEventListener('click', handleCameraSettingsReset);
+    }
+    if (elements.chkCameraMirror) {
+      elements.chkCameraMirror.addEventListener('change', handleCameraMirrorChange);
+    }
+    if (elements.cameraRotateSelect) {
+      elements.cameraRotateSelect.addEventListener('change', handleCameraRotateChange);
+    }
+    
+    // Session event listeners
+    if (elements.btnCameraSessionStart) {
+      elements.btnCameraSessionStart.addEventListener('click', handleCameraSessionStart);
+    }
+    if (elements.btnCameraSessionEnd) {
+      elements.btnCameraSessionEnd.addEventListener('click', handleCameraSessionEnd);
+    }
+    if (elements.btnCameraSessionLog) {
+      elements.btnCameraSessionLog.addEventListener('click', handleCameraSessionLogDownload);
+    }
+    
+    // ffmpeg helper event listeners
+    if (elements.btnCameraFfmpegCopy) {
+      elements.btnCameraFfmpegCopy.addEventListener('click', handleCameraFfmpegCopy);
     }
     
     // Initial enumeration
@@ -1466,20 +1661,23 @@
       // Check if labels are blank (permission not granted)
       const hasBlankLabels = videoDevices.some(d => !d.label || d.label.trim() === '');
       
-      // Add options
-      for (const device of videoDevices) {
-        const option = document.createElement('option');
-        option.value = device.deviceId;
-        option.textContent = device.label || `Camera ${videoDevices.indexOf(device) + 1}`;
-        elements.cameraDeviceSelect.appendChild(option);
-      }
-      
-      let statusMsg = `Found ${videoDevices.length} video device${videoDevices.length !== 1 ? 's' : ''}`;
-      if (hasBlankLabels) {
-        statusMsg += ' — grant camera permission to see device names';
-      }
-      updateCameraStatus(statusMsg);
-      showCameraDiagnostic(false);
+       // Add options
+       for (const device of videoDevices) {
+         const option = document.createElement('option');
+         option.value = device.deviceId;
+         option.textContent = device.label || `Camera ${videoDevices.indexOf(device) + 1}`;
+         elements.cameraDeviceSelect.appendChild(option);
+       }
+       
+       let statusMsg = `Found ${videoDevices.length} video device${videoDevices.length !== 1 ? 's' : ''}`;
+       if (hasBlankLabels) {
+         statusMsg += ' — grant camera permission to see device names';
+       }
+       updateCameraStatus(statusMsg);
+       showCameraDiagnostic(false);
+       
+       // Update ffmpeg helper
+       updateFfmpegHelper();
       
     } catch (error) {
       updateCameraStatus(`Error enumerating devices: ${error.message}`);
@@ -1504,49 +1702,108 @@
     await stopCameraPreview();
     
     const deviceId = elements.cameraDeviceSelect.value;
+    const modeValue = elements.cameraModeSelect.value;
     
     try {
-      const constraints = {
-        video: deviceId ? { deviceId: { exact: deviceId } } : true,
-        audio: false
-      };
+      let constraints;
+      if (modeValue === 'auto') {
+        constraints = {
+          video: deviceId ? { deviceId: { exact: deviceId } } : true,
+          audio: false
+        };
+      } else {
+        const [width, height, frameRate] = modeValue.split('x').map(Number);
+        const exactMode = elements.chkCameraExact && elements.chkCameraExact.checked;
+        const resolver = exactMode ? 'exact' : 'ideal';
+        const videoConstraints = {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { [resolver]: width },
+          height: { [resolver]: height },
+          frameRate: { [resolver]: frameRate }
+        };
+        if (!deviceId) {
+          delete videoConstraints.deviceId;
+        }
+        constraints = {
+          video: videoConstraints,
+          audio: false
+        };
+      }
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       cameraState.stream = stream;
       cameraState.selectedDeviceId = deviceId;
       
-      // Attach to video element
       elements.cameraPreview.srcObject = stream;
       elements.cameraPreview.style.display = 'block';
       elements.cameraPlaceholder.style.display = 'none';
       
-      // Update buttons
       elements.cameraStart.disabled = true;
       elements.cameraStop.disabled = false;
       elements.cameraDeviceSelect.disabled = true;
+      elements.cameraModeSelect.disabled = true;
       
-      // Get negotiated resolution
+      await new Promise((resolve) => {
+        elements.cameraPreview.addEventListener('loadedmetadata', resolve, { once: true });
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const requestedMode = modeValue === 'auto' ? 'Auto' : modeValue.replace(/x(\d+)$/, '@$1');
+      
       const track = stream.getVideoTracks()[0];
       const settings = track.getSettings();
-      const resolution = `${settings.width || '?'}×${settings.height || '?'} @ ${settings.frameRate || '?'}fps`;
+      const actualWidth = settings.width || '?';
+      const actualHeight = settings.height || '?';
+      const actualFps = settings.frameRate !== undefined ? settings.frameRate : '?';
       
-      const selectedOption = elements.cameraDeviceSelect.selectedOptions[0];
-      const deviceLabel = selectedOption ? selectedOption.textContent : 'Unknown';
+      let statusMsg = `Mode: requested ${requestedMode} · actual ${actualWidth}x${actualHeight}@${actualFps}`;
       
-      updateCameraStatus(`Playing: ${deviceLabel} — ${resolution}`);
+      if (track.getCapabilities) {
+        try {
+          const capabilities = track.getCapabilities();
+          const maxWidth = capabilities.width?.max;
+          const maxHeight = capabilities.height?.max;
+          const maxFrameRate = capabilities.frameRate?.max;
+          if (maxWidth !== undefined && maxHeight !== undefined && maxFrameRate !== undefined) {
+            statusMsg += ` · camera max ${maxWidth}x${maxHeight}@${maxFrameRate}`;
+          }
+        } catch (e) {
+          // getCapabilities not supported
+        }
+      }
+      
+      updateCameraStatus(statusMsg);
+      
+      // Enable record and snapshot buttons
+      if (elements.btnCameraRecord) {
+        elements.btnCameraRecord.disabled = false;
+      }
+      if (elements.btnCameraSnapshot) {
+        elements.btnCameraSnapshot.disabled = false;
+      }
+      
+      // Apply camera settings
+      await applyCameraSettings(track);
       
     } catch (error) {
       let errorMsg = 'Failed to start camera';
+      const modeLabel = modeValue === 'auto' ? 'Auto' : modeValue.replace(/x(\d+)$/, '@$1');
       
       if (error.name === 'NotAllowedError') {
         errorMsg = 'Permission denied — please allow camera access';
-      } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
-        errorMsg = 'Camera not found — device may not be enumerating correctly';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = `Camera not found — device may not be enumerating correctly (mode: ${modeLabel})`;
         showCameraDiagnostic(true);
+      } else if (error.name === 'OverconstrainedError') {
+        const exactHint = elements.chkCameraExact && elements.chkCameraExact.checked ?
+          ' (Exact mode is enabled — the requested resolution/fps is not supported by this device. Uncheck Exact mode or try a different resolution)' :
+          ' — try Auto or lower resolution';
+        errorMsg = `Mode ${modeLabel} not supported${exactHint}`;
       } else if (error.name === 'NotReadableError') {
         errorMsg = 'Camera busy — close other apps using the camera and try again';
       } else {
-        errorMsg = `Error: ${error.message}`;
+        errorMsg = `${error.message} (mode: ${modeLabel})`;
       }
       
       updateCameraStatus(errorMsg);
@@ -1554,6 +1811,11 @@
   }
   
   async function stopCameraPreview() {
+    // Stop recording if active
+    if (cameraState.recorder && cameraState.recorder.state !== 'inactive') {
+      await stopRecording();
+    }
+    
     if (cameraState.stream) {
       // Stop all tracks
       for (const track of cameraState.stream.getTracks()) {
@@ -1567,10 +1829,18 @@
     elements.cameraPreview.style.display = 'none';
     elements.cameraPlaceholder.style.display = 'flex';
     
-    // Update buttons
     elements.cameraStart.disabled = false;
     elements.cameraStop.disabled = true;
     elements.cameraDeviceSelect.disabled = false;
+    elements.cameraModeSelect.disabled = false;
+    
+    // Disable record and snapshot buttons
+    if (elements.btnCameraRecord) {
+      elements.btnCameraRecord.disabled = true;
+    }
+    if (elements.btnCameraSnapshot) {
+      elements.btnCameraSnapshot.disabled = true;
+    }
     
     updateCameraStatus('Preview stopped');
   }
@@ -1600,6 +1870,1064 @@
     } else {
       elements.cameraDiagnostic.classList.add('hidden');
     }
+  }
+  
+  // ========================================================================
+  // STILL CAPTURE & CAMERA DIAGNOSTICS
+  // ========================================================================
+  
+  function getCameraVideoTrack() {
+    if (!cameraState.stream) return null;
+    const track = cameraState.stream.getVideoTracks()[0];
+    return track && track.readyState === 'live' ? track : null;
+  }
+  
+  function formatBytes(bytes) {
+    if (!Number.isFinite(bytes)) return '?';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+  }
+  
+  function formatTimestamp(d) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  }
+  
+  function extensionForBlob(blob) {
+    const type = (blob && blob.type || '').toLowerCase();
+    if (type.includes('png')) return 'png';
+    if (type.includes('webp')) return 'webp';
+    if (type.includes('gif')) return 'gif';
+    return 'jpg';
+  }
+  
+  async function handleCameraCapture() {
+    const track = getCameraVideoTrack();
+    if (!track) {
+      updateCameraStatus('Start Preview first');
+      return;
+    }
+    if (!window.ImageCapture) {
+      updateCameraStatus('Still capture not supported in this browser');
+      setStillInfo('Still capture not supported in this browser.');
+      return;
+    }
+    
+    updateCameraStatus('Capturing still...');
+    
+    try {
+      const capture = new ImageCapture(track);
+      const blob = await capture.takePhoto();
+      
+      // Revoke previous object URL before creating a new one
+      if (cameraState.stillObjectUrl) {
+        URL.revokeObjectURL(cameraState.stillObjectUrl);
+        cameraState.stillObjectUrl = null;
+      }
+      
+      cameraState.stillBlob = blob;
+      const objectUrl = URL.createObjectURL(blob);
+      cameraState.stillObjectUrl = objectUrl;
+      
+      // Show the thumbnail once the image has decoded (so we can read natural size)
+      elements.cameraStillPreview.hidden = false;
+      elements.cameraStillPreview.src = objectUrl;
+      setStillInfo('Decoding image...');
+      
+      const cleanup = () => elements.cameraStillPreview.removeEventListener('load', onLoad);
+      const onLoad = () => {
+        cleanup();
+        const w = elements.cameraStillPreview.naturalWidth;
+        const h = elements.cameraStillPreview.naturalHeight;
+        const filename = 'still-' + formatTimestamp(new Date()) + '.png';
+        appendToSessionLog('still capture', 'Full-res still captured: ' + filename + ', ' + w + '×' + h);
+        
+        let infoText = 'Captured ' + w + '×' + h + ' · ' + formatBytes(blob.size) + ' · type ' + (blob.type || 'unknown');
+        
+        // Try to write to session folder if active
+        if (cameraState.sessionActive && cameraState.sessionDirHandle) {
+          writeArtifactToSessionFolder(blob, 'still', '.png').then(function(writtenFilename) {
+            if (writtenFilename) {
+              setStillInfo(infoText + '\nSaved to session folder: ' + writtenFilename);
+              updateCameraStatus('Still captured and saved to session folder.');
+            }
+          }).catch(function(e) {
+            console.error('Failed to write still to session folder:', e);
+            setStillInfo(infoText + '\nFilename: ' + filename + ' (will download on save)');
+          });
+        } else {
+          setStillInfo(infoText + '\nFilename: ' + filename + ' (will download on save)');
+        }
+      };
+      elements.cameraStillPreview.addEventListener('load', onLoad);
+      
+      // Enable download button
+      if (elements.btnCameraDownloadStill) {
+        elements.btnCameraDownloadStill.disabled = false;
+      }
+      
+      updateCameraStatus('Still captured. Use Download still to save it.');
+      
+    } catch (error) {
+      updateCameraStatus('Capture failed: ' + error.message);
+    }
+  }
+  
+  async function handleCameraPhotoCaps() {
+    const track = getCameraVideoTrack();
+    if (!track) {
+      updateCameraStatus('Start Preview first');
+      return;
+    }
+    if (!window.ImageCapture) {
+      updateCameraStatus('Photo capabilities not supported in this browser');
+      setStillInfo('Photo capabilities not supported in this browser.');
+      return;
+    }
+    
+    updateCameraStatus('Reading photo capabilities…');
+    
+    try {
+      const capture = new ImageCapture(track);
+      const caps = await capture.getPhotoCapabilities();
+      cameraState.lastPhotoCaps = caps;
+      
+      const lines = ['Photo capabilities:'];
+      if (caps.imageWidth) {
+        lines.push(`  imageWidth:  min ${caps.imageWidth.min}, max ${caps.imageWidth.max}, step ${caps.imageWidth.step}`);
+      }
+      if (caps.imageHeight) {
+        lines.push(`  imageHeight: min ${caps.imageHeight.min}, max ${caps.imageHeight.max}, step ${caps.imageHeight.step}`);
+      }
+      if (caps.fillLightMode) {
+        lines.push(`  fillLightMode: ${caps.fillLightMode.join(', ')}`);
+      }
+      
+      setStillInfo(lines.join('\n'));
+      updateCameraStatus('Photo capabilities read. See details below.');
+      
+    } catch (error) {
+      updateCameraStatus(`Photo capabilities failed: ${error.message}`);
+    }
+  }
+  
+  function handleCameraDownloadStill() {
+    if (!cameraState.stillBlob) {
+      updateCameraStatus('Capture a still first');
+      return;
+    }
+    
+    const ext = extensionForBlob(cameraState.stillBlob);
+    const filename = 'ziris-still-' + formatTimestamp(new Date()) + '.' + ext;
+    
+    // If session is active, write to session folder
+    if (cameraState.sessionActive && cameraState.sessionDirHandle) {
+      writeArtifactToSessionFolder(cameraState.stillBlob, 'still', '.' + ext).then(function(writtenFilename) {
+        if (writtenFilename) {
+          appendToSessionLog('still download', 'Still downloaded to session folder: ' + writtenFilename);
+          updateCameraStatus('Saved to session folder: ' + writtenFilename);
+        }
+      }).catch(function(e) {
+        console.error('Failed to write still to session folder:', e);
+        // Fallback to direct download
+        const a = document.createElement('a');
+        a.href = cameraState.stillObjectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        updateCameraStatus('Saved ' + filename + ' (fallback)');
+      });
+    } else {
+      // Direct download
+      const a = document.createElement('a');
+      a.href = cameraState.stillObjectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      updateCameraStatus('Saved ' + filename);
+    }
+  }
+  
+  async function handleCameraCopyDiag() {
+    const lines = [];
+    lines.push('Airiz Motor Test Console — Camera diagnostics');
+    lines.push(`User agent: ${navigator.userAgent}`);
+    lines.push(`Secure context: ${window.isSecureContext}`);
+    lines.push('');
+    
+    // Device info
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      lines.push(`Video devices: ${videoDevices.length}`);
+      const selectedId = elements.cameraDeviceSelect ? elements.cameraDeviceSelect.value : '';
+      const selected = videoDevices.find(d => d.deviceId === selectedId);
+      lines.push(`Selected device: ${selected ? (selected.label || '(unlabeled)') : '(none)'}`);
+    } catch (e) {
+      lines.push(`Video devices: (enumerateDevices failed: ${e.message})`);
+    }
+    
+    lines.push('');
+    
+    // Requested mode
+    const modeValue = elements.cameraModeSelect ? elements.cameraModeSelect.value : 'auto';
+    const exactMode = elements.chkCameraExact && elements.chkCameraExact.checked;
+    lines.push(`Requested mode: ${modeValue}${exactMode ? ' (exact)' : ' (ideal)'}`);
+    
+    // Actual + capabilities
+    const track = getCameraVideoTrack();
+    if (track) {
+      const settings = track.getSettings();
+      const vw = settings.width || '?';
+      const vh = settings.height || '?';
+      const fps = settings.frameRate !== undefined ? Math.round(settings.frameRate) : '?';
+      lines.push(`Actual: ${vw}×${vh} @ ${fps}`);
+      if (track.getCapabilities) {
+        try {
+          lines.push(`track.getCapabilities(): ${JSON.stringify(track.getCapabilities())}`);
+        } catch (e) {
+          lines.push(`track.getCapabilities(): (failed: ${e.message})`);
+        }
+      } else {
+        lines.push('track.getCapabilities(): (not supported in this browser)');
+      }
+    } else {
+      lines.push('Actual: (no active preview stream)');
+    }
+    
+    // Photo capabilities if available
+    if (cameraState.lastPhotoCaps) {
+      lines.push('');
+      lines.push(`getPhotoCapabilities(): ${JSON.stringify(cameraState.lastPhotoCaps)}`);
+    }
+    
+    const text = lines.join('\n');
+    
+    // Clipboard with fallback
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        updateCameraStatus('Camera diagnostics copied to clipboard.');
+        return;
+      } catch (e) {
+        // fall through to textarea
+      }
+    }
+    
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch (e) {
+      ok = false;
+    }
+    document.body.removeChild(textarea);
+    updateCameraStatus(ok ? 'Camera diagnostics copied to clipboard.' : 'Clipboard copy failed — see console');
+  }
+  
+  function setStillInfo(text) {
+    if (elements.cameraStillInfo) {
+      elements.cameraStillInfo.textContent = text;
+    }
+  }
+  
+  // ========================================================================
+  // VIDEO RECORDING
+  // ========================================================================
+  
+  async function handleCameraRecordToggle() {
+    if (!cameraState.stream) {
+      updateCameraStatus('Start Preview first');
+      return;
+    }
+    
+    const isRecording = cameraState.recorder && cameraState.recorder.state === 'recording';
+    
+    if (isRecording) {
+      await stopRecording();
+    } else {
+      await startRecording();
+    }
+  }
+  
+  async function startRecording() {
+    if (!window.MediaRecorder) {
+      updateCameraStatus('MediaRecorder not supported in this browser');
+      return;
+    }
+    
+    const videoTrack = getCameraVideoTrack();
+    if (!videoTrack) {
+      updateCameraStatus('No active video stream');
+      return;
+    }
+    
+    // Choose MIME type
+    const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+    let selectedMime = '';
+    for (const mime of mimeTypes) {
+      if (window.MediaRecorder.isTypeSupported(mime)) {
+        selectedMime = mime;
+        break;
+      }
+    }
+    
+    if (!selectedMime) {
+      updateCameraStatus('No supported video MIME type found');
+      return;
+    }
+    
+    try {
+      // Reset state
+      cameraState.recordingChunks = [];
+      cameraState.recordingBytes = 0;
+      cameraState.recordingFileHandle = null;
+      cameraState.recordingWritable = null;
+      
+      const recorder = new MediaRecorder(cameraState.stream, { mimeType: selectedMime });
+      
+      recorder.ondataavailable = async (event) => {
+        if (event.data && event.data.size > 0) {
+          cameraState.recordingChunks.push(event.data);
+          cameraState.recordingBytes += event.data.size;
+          
+          // Write to session folder if active, otherwise to FSA picker
+          if (cameraState.sessionActive && cameraState.sessionDirHandle) {
+            // Session mode: write directly to session folder
+            try {
+              if (!cameraState.recordingWritable && cameraState.sessionDirHandle) {
+                // Create file on first chunk
+                const filename = 'record-' + formatTimestamp(new Date()) + '.webm';
+                const fileHandle = await cameraState.sessionDirHandle.getFileHandle(filename, { create: true });
+                cameraState.recordingWritable = await fileHandle.createWritable();
+                cameraState.recordingFilename = filename;
+              }
+              if (cameraState.recordingWritable) {
+                await cameraState.recordingWritable.write(event.data);
+              }
+            } catch (e) {
+              console.error('Failed to write to session folder:', e);
+              cameraState.recordingWritable = null;
+            }
+          } else if (cameraState.recordingWritable) {
+            // Non-session FSA mode
+            try {
+              await cameraState.recordingWritable.write(event.data);
+            } catch (e) {
+              console.error('Failed to write chunk:', e);
+              cameraState.recordingWritable = null;
+              cameraState.recordingFileHandle = null;
+            }
+          }
+          
+          // Update UI
+          updateRecordInfo();
+        }
+      };
+      
+      recorder.onstop = async () => {
+        // Finalize
+        if (cameraState.recordingWritable) {
+          try {
+            await cameraState.recordingWritable.close();
+          } catch (e) {}
+          cameraState.recordingWritable = null;
+          if (cameraState.sessionActive) {
+            incrementSessionArtifactCount();
+            appendToSessionLog('record stop', 'Recording saved: ' + cameraState.recordingFilename + ', ' + formatBytes(cameraState.recordingBytes) + ', duration: ' + Math.floor((Date.now() - cameraState.recordingStartTime) / 1000) + 's');
+            updateCameraStatus('Recording saved to session folder: ' + cameraState.recordingFilename);
+          } else {
+            updateCameraStatus('Recording saved to ' + cameraState.recordingFilename);
+          }
+        } else {
+          // Fallback: create blob and download
+          const blob = new Blob(cameraState.recordingChunks, { type: selectedMime });
+          const url = URL.createObjectURL(blob);
+          const filename = cameraState.recordingFilename || ('ziris-rec-' + formatTimestamp(new Date()) + '.webm');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          if (cameraState.sessionActive) {
+            appendToSessionLog('record stop (fallback)', 'Recording saved via fallback: ' + filename + ', ' + formatBytes(cameraState.recordingBytes));
+          }
+          updateCameraStatus('Recording saved (fallback mode)');
+        }
+        
+        cameraState.recorder = null;
+        cameraState.recordingChunks = [];
+        stopRecordingTimer();
+        updateRecordButton(false);
+      };
+      
+      recorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event.error);
+        updateCameraStatus('Recording error: ' + (event.error?.message || 'unknown'));
+      };
+      
+      recorder.start(1000); // 1 second timeslice
+      cameraState.recorder = recorder;
+      
+      // Session folder takes priority over FSA picker
+      if (cameraState.sessionActive && cameraState.sessionDirHandle) {
+        // File will be created on first data chunk
+        cameraState.recordingFilename = 'record-<timestamp>.webm';
+      } else if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: 'ziris-rec-' + formatTimestamp(new Date()) + '.webm',
+            types: [{
+              description: 'WebM Video',
+              accept: { 'video/webm': ['.webm'] }
+            }]
+          });
+          cameraState.recordingFileHandle = handle;
+          cameraState.recordingWritable = await handle.createWritable();
+          cameraState.recordingFilename = handle.name;
+        } catch (e) {
+          cameraState.recordingFilename = 'ziris-rec-' + formatTimestamp(new Date()) + '.webm';
+        }
+      } else {
+        cameraState.recordingFilename = 'ziris-rec-' + formatTimestamp(new Date()) + '.webm';
+      }
+      
+      // Start timer
+      cameraState.recordingStartTime = Date.now();
+      startRecordingTimer();
+      updateRecordButton(true);
+      updateCameraStatus('Recording started...');
+      appendToSessionLog('record start', 'Recording started - mode: ' + selectedMime);
+      
+    } catch (error) {
+      updateCameraStatus('Recording failed: ' + error.message);
+    }
+  }
+  
+  async function stopRecording() {
+    if (cameraState.recorder && cameraState.recorder.state !== 'inactive') {
+      cameraState.recorder.stop();
+    }
+  }
+  
+  function startRecordingTimer() {
+    stopRecordingTimer();
+    cameraState.recordingTimer = setInterval(() => {
+      updateRecordInfo();
+    }, 500);
+  }
+  
+  function stopRecordingTimer() {
+    if (cameraState.recordingTimer) {
+      clearInterval(cameraState.recordingTimer);
+      cameraState.recordingTimer = null;
+    }
+  }
+  
+  function updateRecordInfo() {
+    if (!elements.cameraRecordInfo) return;
+    
+    const elapsed = Math.floor((Date.now() - cameraState.recordingStartTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    
+    let info = `⏱ ${timeStr} · ${formatBytes(cameraState.recordingBytes)}`;
+    if (cameraState.recordingFilename) {
+      info += ` · ${cameraState.recordingFilename}`;
+    }
+    
+    elements.cameraRecordInfo.textContent = info;
+  }
+  
+  function updateRecordButton(isRecording) {
+    if (!elements.btnCameraRecord) return;
+    
+    if (isRecording) {
+      elements.btnCameraRecord.textContent = '■ Stop recording';
+      elements.btnCameraRecord.setAttribute('aria-pressed', 'true');
+      elements.btnCameraRecord.classList.add('btn-danger');
+      elements.btnCameraRecord.classList.remove('btn-primary');
+    } else {
+      elements.btnCameraRecord.textContent = '● Record';
+      elements.btnCameraRecord.setAttribute('aria-pressed', 'false');
+      elements.btnCameraRecord.classList.remove('btn-danger');
+      elements.btnCameraRecord.classList.add('btn-primary');
+    }
+  }
+  
+  // ========================================================================
+  // SNAPSHOT
+  // ========================================================================
+  
+  async function handleCameraSnapshot() {
+    if (!cameraState.stream) {
+      updateCameraStatus('Start Preview first');
+      return;
+    }
+    
+    const video = elements.cameraPreview;
+    if (!video || video.readyState < 2) {
+      updateCameraStatus('Preview not ready');
+      return;
+    }
+    
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          updateCameraStatus('Snapshot failed');
+          return;
+        }
+        
+        cameraState.snapshotBlob = blob;
+        const url = URL.createObjectURL(blob);
+        
+        // Show thumbnail
+        elements.cameraSnapshotPreview.hidden = false;
+        elements.cameraSnapshotPreview.src = url;
+        
+        const w = canvas.width;
+        const h = canvas.height;
+        const filename = 'picture-' + formatTimestamp(new Date()) + '.png';
+        appendToSessionLog('snapshot', 'Snapshot captured: ' + filename + ', ' + w + '×' + h);
+        
+        // Try to write to session folder first
+        if (cameraState.sessionActive && cameraState.sessionDirHandle) {
+          const writtenFilename = await writeArtifactToSessionFolder(blob, 'picture', '.png');
+          if (writtenFilename) {
+            elements.cameraSnapshotInfo.textContent = 'Captured ' + w + '×' + h + ' · ' + formatBytes(blob.size) + '\nFilename: ' + writtenFilename;
+            updateCameraStatus('Snapshot saved to session folder: ' + writtenFilename);
+            URL.revokeObjectURL(url);
+            return;
+          }
+        }
+        
+        // Fallback: download
+        elements.cameraSnapshotInfo.textContent = 'Captured ' + w + '×' + h + ' · ' + formatBytes(blob.size) + '\nFilename: ' + filename;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        updateCameraStatus('Snapshot captured and downloaded');
+      }, 'image/png');
+      
+    } catch (error) {
+      updateCameraStatus(`Snapshot failed: ${error.message}`);
+    }
+  }
+  
+  // ========================================================================
+  // CAMERA SETTINGS
+  // ========================================================================
+  
+  async function applyCameraSettings(track) {
+    if (!track || !track.getCapabilities) return;
+    
+    const capabilities = track.getCapabilities();
+    const settings = track.getSettings();
+    
+    // Store initial settings for reset
+    cameraState.initialSettings = {};
+    
+    const supportedSettings = ['brightness', 'contrast', 'saturation', 'sharpness', 'whiteBalance', 
+                               'colorTemperature', 'exposureCompensation', 'exposureTime', 'iso', 
+                               'focusDistance', 'zoom', 'pan', 'tilt'];
+    
+    let hasAnySettings = false;
+    const panel = elements.cameraSettingsPanel;
+    if (panel) panel.innerHTML = '';
+    
+    for (const key of supportedSettings) {
+      if (capabilities[key] !== undefined) {
+        hasAnySettings = true;
+        cameraState.initialSettings[key] = settings[key] !== undefined ? settings[key] : 
+          (capabilities[key].min !== undefined ? capabilities[key].min : 0);
+        
+        renderSettingControl(key, capabilities[key], cameraState.initialSettings[key], track);
+      }
+    }
+    
+    // Torch (checkbox)
+    if (capabilities.torch !== undefined) {
+      hasAnySettings = true;
+      cameraState.initialSettings.torch = settings.torch || false;
+      renderTorchControl(track);
+    }
+    
+    if (elements.cameraSettingsNote) {
+      elements.cameraSettingsNote.textContent = hasAnySettings ? 
+        'Adjust settings below. Changes apply after ~150ms debounce.' : 
+        'This camera does not expose adjustable settings.';
+    }
+    
+    if (elements.btnCameraSettingsReset) {
+      elements.btnCameraSettingsReset.disabled = !hasAnySettings;
+    }
+  }
+  
+  function renderSettingControl(key, capability, currentValue, track) {
+    const panel = elements.cameraSettingsPanel;
+    if (!panel) return;
+    
+    const labels = {
+      brightness: 'Brightness',
+      contrast: 'Contrast',
+      saturation: 'Saturation',
+      sharpness: 'Sharpness',
+      whiteBalance: 'White balance',
+      colorTemperature: 'Color temperature',
+      exposureCompensation: 'Exposure compensation',
+      exposureTime: 'Exposure time',
+      iso: 'ISO',
+      focusDistance: 'Focus distance',
+      zoom: 'Zoom',
+      pan: 'Pan',
+      tilt: 'Tilt'
+    };
+    
+    const div = document.createElement('div');
+    div.className = 'camera-setting-control';
+    
+    const label = document.createElement('span');
+    label.className = 'camera-setting-label';
+    label.textContent = labels[key] || key;
+    div.appendChild(label);
+    
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.className = 'camera-setting-slider';
+    slider.min = capability.min !== undefined ? capability.min : 0;
+    slider.max = capability.max !== undefined ? capability.max : 100;
+    slider.step = capability.step !== undefined ? capability.step : 1;
+    slider.value = currentValue;
+    slider.disabled = !track || track.readyState !== 'live';
+    
+    const valueDisplay = document.createElement('span');
+    valueDisplay.className = 'camera-setting-value';
+    valueDisplay.textContent = String(currentValue);
+    
+    // Debounced apply
+    let debounceTimer = null;
+    slider.addEventListener('input', () => {
+      valueDisplay.textContent = slider.value;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        try {
+          const value = slider.type === 'range' ? 
+            (capability.step && capability.step < 1 ? parseFloat(slider.value) : parseInt(slider.value, 10)) :
+            slider.value;
+          await track.applyConstraints({ advanced: [{ [key]: value }] });
+        } catch (e) {
+          console.error(`Failed to apply ${key}:`, e);
+        }
+      }, 150);
+    });
+    
+    div.appendChild(slider);
+    div.appendChild(valueDisplay);
+    
+    const message = document.createElement('div');
+    message.className = 'camera-setting-message';
+    message.textContent = `Range: ${slider.min} – ${slider.max}`;
+    div.appendChild(message);
+    
+    panel.appendChild(div);
+    cameraState.settingsControls[key] = { slider, valueDisplay };
+  }
+  
+  function renderTorchControl(track) {
+    const panel = elements.cameraSettingsPanel;
+    if (!panel) return;
+    
+    const div = document.createElement('div');
+    div.className = 'camera-setting-control';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'camera-torch-checkbox';
+    checkbox.checked = cameraState.initialSettings.torch || false;
+    checkbox.disabled = !track || track.readyState !== 'live';
+    
+    const label = document.createElement('label');
+    label.htmlFor = 'camera-torch-checkbox';
+    label.className = 'checkbox-label';
+    label.textContent = 'Torch';
+    label.style.marginLeft = 'var(--space-2)';
+    
+    checkbox.addEventListener('change', async () => {
+      try {
+        await track.applyConstraints({ advanced: [{ torch: checkbox.checked }] });
+      } catch (e) {
+        console.error('Failed to apply torch:', e);
+        checkbox.checked = !checkbox.checked;
+      }
+    });
+    
+    div.appendChild(checkbox);
+    div.appendChild(label);
+    panel.appendChild(div);
+    
+    cameraState.settingsControls.torch = { checkbox };
+  }
+  
+  async function handleCameraSettingsReset() {
+    const track = getCameraVideoTrack();
+    if (!track || !cameraState.initialSettings) return;
+    
+    try {
+      // Reset all settings to initial values
+      const advanced = {};
+      for (const [key, value] of Object.entries(cameraState.initialSettings)) {
+        if (key !== 'torch') {
+          advanced[key] = value;
+        }
+      }
+      
+      if (Object.keys(advanced).length > 0) {
+        await track.applyConstraints({ advanced: [advanced] });
+      }
+      
+      // Reset torch
+      if (cameraState.settingsControls.torch?.checkbox) {
+        cameraState.settingsControls.torch.checkbox.checked = cameraState.initialSettings.torch || false;
+      }
+      
+      // Reset sliders UI
+      for (const [key, controls] of Object.entries(cameraState.settingsControls)) {
+        if (key !== 'torch' && controls.slider) {
+          controls.slider.value = cameraState.initialSettings[key] || 0;
+          if (controls.valueDisplay) {
+            controls.valueDisplay.textContent = String(cameraState.initialSettings[key] || 0);
+          }
+        }
+      }
+      
+      updateCameraStatus('Settings reset to defaults');
+    } catch (e) {
+      updateCameraStatus(`Reset failed: ${e.message}`);
+    }
+  }
+  
+  // ========================================================================
+  // DISPLAY TRANSFORMS
+  // ========================================================================
+  
+  function handleCameraMirrorChange() {
+    cameraState.mirrorEnabled = elements.chkCameraMirror?.checked || false;
+    applyDisplayTransforms();
+  }
+  
+  function handleCameraRotateChange() {
+    cameraState.rotateDegrees = parseInt(elements.cameraRotateSelect?.value || '0', 10);
+    applyDisplayTransforms();
+  }
+  
+  function applyDisplayTransforms() {
+    if (!elements.cameraPreview) return;
+    
+    const transforms = [];
+    
+    if (cameraState.rotateDegrees !== 0) {
+      transforms.push(`rotate(${cameraState.rotateDegrees}deg)`);
+    }
+    
+    if (cameraState.mirrorEnabled) {
+      transforms.push('scaleX(-1)');
+    }
+    
+    elements.cameraPreview.style.transform = transforms.length > 0 ? transforms.join(' ') : '';
+  }
+  
+  // ========================================================================
+  // SESSION FOLDER
+  // ========================================================================
+  
+  async function handleCameraSessionStart() {
+    if (!window.showDirectoryPicker) {
+      // Fallback: in-memory only session
+      cameraState.sessionActive = true;
+      cameraState.sessionDirHandle = null;
+      cameraState.sessionLogWritable = null;
+      cameraState.sessionLogLines = [];
+      cameraState.sessionFolderName = 'in-memory-session-' + formatTimestamp(new Date());
+      cameraState.sessionArtifactCount = 0;
+      
+      if (elements.cameraSessionInfo) {
+        elements.cameraSessionInfo.textContent = 'Session active (in-memory only): ' + cameraState.sessionFolderName + '\nFile System Access API not available - artifacts will download individually.';
+      }
+      if (elements.btnCameraSessionEnd) {
+        elements.btnCameraSessionEnd.disabled = false;
+      }
+      if (elements.btnCameraSessionLog) {
+        elements.btnCameraSessionLog.disabled = false;
+      }
+      
+      logToConsole('[SESSION] Started (in-memory fallback)', 'note');
+      appendToSessionLog('session start', 'Session started (in-memory only) - Device: ' + (getSelectedCameraLabel() || 'unknown') + ', Mode: ' + (elements.cameraModeSelect?.value || 'auto') + ', User Agent: ' + navigator.userAgent);
+      updateFfmpegHelper();
+      return;
+    }
+    
+    try {
+      const rootDirHandle = await window.showDirectoryPicker();
+      const sessionFolderName = 'ziris-session-' + formatTimestamp(new Date());
+      const sessionDirHandle = await rootDirHandle.getDirectoryHandle(sessionFolderName, { create: true });
+      
+      // Create session.log
+      const logFileHandle = await sessionDirHandle.getFileHandle('session.log', { create: true });
+      const logWritable = await logFileHandle.createWritable();
+      
+      cameraState.sessionActive = true;
+      cameraState.sessionDirHandle = sessionDirHandle;
+      cameraState.sessionLogWritable = logWritable;
+      cameraState.sessionLogLines = [];
+      cameraState.sessionFolderName = sessionFolderName;
+      cameraState.sessionArtifactCount = 0;
+      
+      if (elements.cameraSessionInfo) {
+        elements.cameraSessionInfo.textContent = 'Session active: ' + sessionFolderName + '\n0 artefacts written';
+      }
+      if (elements.btnCameraSessionEnd) {
+        elements.btnCameraSessionEnd.disabled = false;
+      }
+      if (elements.btnCameraSessionLog) {
+        elements.btnCameraSessionLog.disabled = false;
+      }
+      
+      logToConsole('[SESSION] Started: ' + sessionFolderName, 'note');
+      appendToSessionLog('session start', 'Session started - Device: ' + (getSelectedCameraLabel() || 'unknown') + ', Mode: ' + (elements.cameraModeSelect?.value || 'auto') + ', User Agent: ' + navigator.userAgent);
+      updateFfmpegHelper();
+      
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        logToConsole('[SESSION] User cancelled folder picker', 'warning');
+      } else {
+        logToConsole('[SESSION] Failed to start: ' + error.message, 'error');
+      }
+    }
+  }
+  
+  async function handleCameraSessionEnd() {
+    if (!cameraState.sessionActive) {
+      return;
+    }
+    
+    // Close log writable if exists
+    if (cameraState.sessionLogWritable) {
+      try {
+        await cameraState.sessionLogWritable.close();
+      } catch (e) {}
+      cameraState.sessionLogWritable = null;
+    }
+    
+    const folderName = cameraState.sessionFolderName;
+    const artifactCount = cameraState.sessionArtifactCount;
+    
+    // Clear session state
+    cameraState.sessionActive = false;
+    cameraState.sessionDirHandle = null;
+    cameraState.sessionLogLines = [];
+    cameraState.sessionFolderName = null;
+    cameraState.sessionArtifactCount = 0;
+    
+    if (elements.cameraSessionInfo) {
+      elements.cameraSessionInfo.textContent = 'Session inactive. ' + (folderName ? ('Last session: ' + folderName + ', ' + artifactCount + ' artefacts.') : '');
+    }
+    if (elements.btnCameraSessionEnd) {
+      elements.btnCameraSessionEnd.disabled = true;
+    }
+    if (elements.btnCameraSessionLog) {
+      elements.btnCameraSessionLog.disabled = true;
+    }
+    
+    logToConsole('[SESSION] Ended: ' + (folderName || 'in-memory'), 'note');
+    appendToSessionLog('session end', 'Session ended - artefacts written: ' + artifactCount);
+    updateFfmpegHelper();
+  }
+  
+  function handleCameraSessionLogDownload() {
+    if (!cameraState.sessionActive && cameraState.sessionLogLines.length === 0) {
+      return;
+    }
+    
+    const content = cameraState.sessionLogLines.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'session-' + formatTimestamp(new Date()) + '.log';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    logToConsole('[SESSION] Log downloaded', 'note');
+  }
+  
+  function appendToSessionLog(event, detail) {
+    const timestamp = new Date();
+    const line = '[' + timestamp.toISOString().replace('T', ' ').substring(0, 19) + '] ' + event.toUpperCase() + ' | ' + detail;
+    
+    // Always keep in memory
+    cameraState.sessionLogLines.push(line);
+    
+    // Write to FSA if active
+    if (cameraState.sessionActive && cameraState.sessionLogWritable) {
+      cameraState.sessionLogWritable.write(line + '\n').catch(function(e) {
+        console.error('Failed to write session log:', e);
+        // Fall back to memory only
+        cameraState.sessionLogWritable = null;
+      });
+    }
+  }
+  
+  function getSelectedCameraLabel() {
+    const select = elements.cameraDeviceSelect;
+    if (!select || !select.selectedOptions || select.selectedOptions.length === 0) {
+      return null;
+    }
+    return select.selectedOptions[0].label || null;
+  }
+  
+  function incrementSessionArtifactCount() {
+    if (cameraState.sessionActive) {
+      cameraState.sessionArtifactCount++;
+      if (elements.cameraSessionInfo && cameraState.sessionFolderName) {
+        elements.cameraSessionInfo.textContent = 'Session active: ' + cameraState.sessionFolderName + '\n' + cameraState.sessionArtifactCount + ' artefact' + (cameraState.sessionArtifactCount !== 1 ? 's' : '') + ' written';
+      }
+    }
+  }
+  
+  async function writeArtifactToSessionFolder(blob, filenamePrefix, extension) {
+    if (!cameraState.sessionActive || !cameraState.sessionDirHandle) {
+      return null; // Signal to use fallback download
+    }
+    
+    try {
+      const filename = filenamePrefix + '-' + formatTimestamp(new Date()) + extension;
+      const fileHandle = await cameraState.sessionDirHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      incrementSessionArtifactCount();
+      return filename;
+    } catch (e) {
+      console.error('Failed to write artifact to session folder:', e);
+      return null;
+    }
+  }
+  
+  // ========================================================================
+  // FFMPEG HELPER
+  // ========================================================================
+  
+  function updateFfmpegHelper() {
+    if (!elements.cameraFfmpegCmd || !elements.cameraFfmpegNote) {
+      return;
+    }
+    
+    const deviceLabel = getSelectedCameraLabel() || '<camera name>';
+    const cmd = 'ffmpeg -f dshow -i video="' + deviceLabel + '" -c:v libx264 -preset ultrafast -t 86400 ziris_%Y%m%d_%H%M%S.mp4';
+    
+    if (elements.cameraFfmpegCmd) {
+      elements.cameraFfmpegCmd.value = cmd;
+    }
+    
+    let noteText = 'Note: The browser\'s device label may differ from the Windows DirectShow name. Verify with:\nffmpeg -list_devices true -f dshow -i dummy';
+    
+    if (cameraState.sessionActive && cameraState.sessionFolderName) {
+      noteText += '\n\nSession folder active: suggested output path: ' + cameraState.sessionFolderName + '/record-%Y%m%d_%H%M%S.mp4\n(Browser cannot reveal full absolute path.)';
+    }
+    
+    if (elements.cameraFfmpegNote) {
+      elements.cameraFfmpegNote.textContent = noteText;
+    }
+  }
+  
+  function handleCameraFfmpegCopy() {
+    if (!elements.cameraFfmpegCmd) {
+      return;
+    }
+    
+    const cmdText = elements.cameraFfmpegCmd.value;
+    
+    // Clipboard with fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cmdText).then(function() {
+        showFfmpegCopyFeedback('Copied!');
+      }).catch(function(e) {
+        fallbackCopy(cmdText);
+      });
+    } else {
+      fallbackCopy(cmdText);
+    }
+    
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', 'readonly');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      let ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (e) {
+        ok = false;
+      }
+      document.body.removeChild(textarea);
+      showFfmpegCopyFeedback(ok ? 'Copied!' : 'Copy failed');
+    }
+    
+    function showFfmpegCopyFeedback(text) {
+      const btn = elements.btnCameraFfmpegCopy;
+      const originalText = btn.textContent;
+      btn.textContent = text;
+      btn.disabled = true;
+      setTimeout(function() {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }, 1500);
+    }
+  }
+  
+  // ========================================================================
+  // DAY/NIGHT & LIGHTS CONTROL
+  // ========================================================================
+  
+  async function handleDaylightFix() {
+    logToConsole('Executing daylight fix...', 'note');
+    await sendLine('diag irled off');
+    await sleep(300);
+    await sendLine('diag spotled off');
+    await sleep(300);
+    await sendLine('diag ircut day');
   }
   
   // ========================================================================
