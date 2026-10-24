@@ -1,5 +1,5 @@
 /**
- * Gantry Cockpit UI
+ * Chase Cockpit UI
  * Wires engine + bridge + controls
  * No inline handlers - addEventListener only
  */
@@ -142,8 +142,8 @@
       }
     }
     // Offline fallback - use engine samples
-    if (window.Gantry && window.Gantry.samples) {
-      const samples = window.Gantry.samples();
+    if (window.Chase && window.Chase.samples) {
+      const samples = window.Chase.samples();
       currentReport = samples.brokenBracket;
       processReport(currentReport);
     }
@@ -187,8 +187,8 @@
 
   function processReport(report) {
     // Validate
-    if (window.Gantry && window.Gantry.validateReport) {
-      const validation = window.Gantry.validateReport(report);
+    if (window.Chase && window.Chase.validateReport) {
+      const validation = window.Chase.validateReport(report);
       if (!validation.ok) {
         alert('Invalid report: ' + validation.errors.join(', '));
         return;
@@ -196,13 +196,13 @@
     }
 
     // Diagnose
-    if (window.Gantry && window.Gantry.diagnose) {
-      currentDiagnosis = window.Gantry.diagnose(report);
+    if (window.Chase && window.Chase.diagnose) {
+      currentDiagnosis = window.Chase.diagnose(report);
       renderDiagnosis(currentDiagnosis);
       
       // Plan repair
-      if (window.Gantry && window.Gantry.planRepair) {
-        currentRepairPlan = window.Gantry.planRepair(report);
+      if (window.Chase && window.Chase.planRepair) {
+        currentRepairPlan = window.Chase.planRepair(report);
         renderRepairPlan(currentRepairPlan);
         
         // Enable dry-run
@@ -293,9 +293,9 @@
   }
 
   btnDryRun.addEventListener('click', function() {
-    if (!currentRepairPlan || !window.Gantry || !window.Gantry.dryRun) return;
+    if (!currentRepairPlan || !window.Chase || !window.Chase.dryRun) return;
     
-    const result = window.Gantry.dryRun(currentRepairPlan);
+    const result = window.Chase.dryRun(currentRepairPlan);
     renderDryRunResults(result, dryRunResults);
     
     // Enable confirm checkbox if ok
@@ -374,8 +374,8 @@
       }
     }
     // Offline fallback
-    if (window.Gantry && window.Gantry.samples) {
-      const samples = window.Gantry.samples();
+    if (window.Chase && window.Chase.samples) {
+      const samples = window.Chase.samples();
       currentAssemblySpec = samples.gearbox;
       processAssemblySpec(currentAssemblySpec);
     }
@@ -418,8 +418,8 @@
   });
 
   function processAssemblySpec(spec) {
-    if (window.Gantry && window.Gantry.planAssembly) {
-      currentAssemblyPlan = window.Gantry.planAssembly(spec);
+    if (window.Chase && window.Chase.planAssembly) {
+      currentAssemblyPlan = window.Chase.planAssembly(spec);
       renderAssemblyPlan(currentAssemblyPlan);
       renderAssemblyChecks(currentAssemblyPlan);
       
@@ -484,9 +484,9 @@
   }
 
   btnDryRunAssembly.addEventListener('click', function() {
-    if (!currentAssemblyPlan || !window.Gantry || !window.Gantry.dryRun) return;
+    if (!currentAssemblyPlan || !window.Chase || !window.Chase.dryRun) return;
     
-    const result = window.Gantry.dryRun(currentAssemblyPlan);
+    const result = window.Chase.dryRun(currentAssemblyPlan);
     renderDryRunResults(result, dryRunResultsAssembly);
     
     chkConfirmAssembly.disabled = !result.ok;

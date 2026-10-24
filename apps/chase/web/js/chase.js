@@ -1,15 +1,15 @@
 /*
- * Gantry — deterministic engineering-copilot engine
+ * Chase — deterministic engineering-copilot engine
  * Pure, offline, zero-dependency. No DOM / network / storage / Date / randomness.
  *
- * Frozen contract: docs/gantry-spec.md §3.
- *   Gantry.SCHEMA_REPORT / SCHEMA_DIAGNOSIS / SCHEMA_REPAIR_PLAN / SCHEMA_ASSEMBLY_PLAN
- *   Gantry.validateReport(report)        -> { ok, errors[] }
- *   Gantry.diagnose(report)              -> Diagnosis                        (§3.1)
- *   Gantry.planRepair(report)            -> RepairPlan                       (§3.2)
- *   Gantry.planAssembly(spec)            -> AssemblyPlan                     (§3.3)
- *   Gantry.dryRun(plan)                  -> { ok, wouldApply[], blocked[] }  (§3.4)
- *   Gantry.samples()                     -> { brokenBracket, gearbox }
+ * Frozen contract: docs/chase-spec.md §3.
+ *   Chase.SCHEMA_REPORT / SCHEMA_DIAGNOSIS / SCHEMA_REPAIR_PLAN / SCHEMA_ASSEMBLY_PLAN
+ *   Chase.validateReport(report)        -> { ok, errors[] }
+ *   Chase.diagnose(report)              -> Diagnosis                        (§3.1)
+ *   Chase.planRepair(report)            -> RepairPlan                       (§3.2)
+ *   Chase.planAssembly(spec)            -> AssemblyPlan                     (§3.3)
+ *   Chase.dryRun(plan)                  -> { ok, wouldApply[], blocked[] }  (§3.4)
+ *   Chase.samples()                     -> { brokenBracket, gearbox }
  *
  * Determinism: identical input => identical output. Ordering is fixed by the
  * rules below; all arrays are stable; nothing reads the clock or randomness.
@@ -17,14 +17,14 @@
  * Field tolerances: `components` and `mates` are optional (default []); a
  * well-formed report never throws.
  */
-var Gantry = (function () {
+var Chase = (function () {
   "use strict";
 
-  var SCHEMA_REPORT = "gantry/model-report/v1";
-  var SCHEMA_DIAGNOSIS = "gantry/diagnosis/v1";
-  var SCHEMA_REPAIR_PLAN = "gantry/repair-plan/v1";
-  var SCHEMA_ASSEMBLY_PLAN = "gantry/assembly-plan/v1";
-  var SCHEMA_ASSEMBLY_SPEC = "gantry/assembly-spec/v1";
+  var SCHEMA_REPORT = "chase/model-report/v1";
+  var SCHEMA_DIAGNOSIS = "chase/diagnosis/v1";
+  var SCHEMA_REPAIR_PLAN = "chase/repair-plan/v1";
+  var SCHEMA_ASSEMBLY_PLAN = "chase/assembly-plan/v1";
+  var SCHEMA_ASSEMBLY_SPEC = "chase/assembly-spec/v1";
 
   /* severity rank: high > med > low */
   var SEV_RANK = { high: 0, med: 1, low: 2 };
@@ -814,5 +814,5 @@ var Gantry = (function () {
   };
 })();
 
-if (typeof window !== "undefined") { window.Gantry = Gantry; }
-if (typeof module !== "undefined" && module.exports) { module.exports = Gantry; }
+if (typeof window !== "undefined") { window.Chase = Chase; }
+if (typeof module !== "undefined" && module.exports) { module.exports = Chase; }

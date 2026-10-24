@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Gantry CAD bridge (zero-dependency, Python standard library only).
+"""Chase CAD bridge (zero-dependency, Python standard library only).
 
-An optional local HTTP bridge that sits between the offline Gantry cockpit and
+An optional local HTTP bridge that sits between the offline Chase cockpit and
 a CAD host (Autodesk Fusion / SOLIDWORKS). It serves the static `web/` cockpit
 and exposes a small JSON API that mirrors the deterministic, rules-based engine
-(`web/js/gantry.js`, spec `docs/gantry-spec.md` §3):
+(`web/js/chase.js`, spec `docs/chase-spec.md` §3):
 
-  GET  /api/health            -> {"status":"ok","app":"gantry","version":"1.0","mode":"simulation"}
+  GET  /api/health            -> {"status":"ok","app":"chase","version":"1.0","mode":"simulation"}
   GET  /api/connectors        -> the three connectors (fusion / solidworks / simulated)
   GET  /api/report/sample     -> a sample ModelReport (brokenBracket)
   GET  /api/assembly/sample   -> a sample AssemblySpec (gearbox)
@@ -47,19 +47,19 @@ from urllib.parse import unquote, urlparse
 # Configuration
 # ---------------------------------------------------------------------------
 
-BASE_DIR = Path(__file__).resolve().parent          # .../apps/gantry/server
-APP_DIR = BASE_DIR.parent                            # .../apps/gantry
+BASE_DIR = Path(__file__).resolve().parent          # .../apps/chase/server
+APP_DIR = BASE_DIR.parent                            # .../apps/chase
 WEB_DIR = APP_DIR / "web"
 
-APP_NAME = "gantry"
+APP_NAME = "chase"
 APP_VERSION = "1.0"
 MODE = "simulation"
 
-SCHEMA_REPORT = "gantry/model-report/v1"
-SCHEMA_DIAGNOSIS = "gantry/diagnosis/v1"
-SCHEMA_REPAIR_PLAN = "gantry/repair-plan/v1"
-SCHEMA_ASSEMBLY_SPEC = "gantry/assembly-spec/v1"
-SCHEMA_ASSEMBLY_PLAN = "gantry/assembly-plan/v1"
+SCHEMA_REPORT = "chase/model-report/v1"
+SCHEMA_DIAGNOSIS = "chase/diagnosis/v1"
+SCHEMA_REPAIR_PLAN = "chase/repair-plan/v1"
+SCHEMA_ASSEMBLY_SPEC = "chase/assembly-spec/v1"
+SCHEMA_ASSEMBLY_PLAN = "chase/assembly-plan/v1"
 
 HIGH, MED, LOW = "high", "med", "low"
 SEVERITY_RANK = {HIGH: 0, MED: 1, LOW: 2}
@@ -151,7 +151,7 @@ def _text(value):
 
 
 # ---------------------------------------------------------------------------
-# Samples (identical to engine Gantry.samples())
+# Samples (identical to engine Chase.samples())
 # ---------------------------------------------------------------------------
 
 
@@ -720,8 +720,8 @@ def apply_plan(plan, confirm) -> dict:
 # ---------------------------------------------------------------------------
 
 
-class GantryHandler(BaseHTTPRequestHandler):
-    server_version = "Gantry/" + APP_VERSION
+class ChaseHandler(BaseHTTPRequestHandler):
+    server_version = "Chase/" + APP_VERSION
     protocol_version = "HTTP/1.1"
 
     def _send_bytes(self, status, body, content_type, extra=None):
@@ -908,7 +908,7 @@ class GantryHandler(BaseHTTPRequestHandler):
         self._send_bytes(200, target.read_bytes(), content_type, {"Cache-Control": "no-cache"})
 
     def log_message(self, fmt, *args):
-        print("[gantry] %s - %s" % (self.address_string(), fmt % args))
+        print("[chase] %s - %s" % (self.address_string(), fmt % args))
 
 
 # ---------------------------------------------------------------------------
@@ -917,7 +917,7 @@ class GantryHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Gantry CAD bridge (simulation backend)")
+    parser = argparse.ArgumentParser(description="Chase CAD bridge (simulation backend)")
     parser.add_argument("--port", type=int, default=8792,
                         help="port to listen on (default 8792)")
     parser.add_argument("--host", default="127.0.0.1",
@@ -926,11 +926,11 @@ def main():
                         help="do not open a browser window on start")
     args = parser.parse_args()
 
-    httpd = ThreadingHTTPServer((args.host, args.port), GantryHandler)
+    httpd = ThreadingHTTPServer((args.host, args.port), ChaseHandler)
     httpd.daemon_threads = True
     url = "http://%s:%d/" % (args.host, args.port)
 
-    print("Gantry CAD bridge")
+    print("Chase CAD bridge")
     print("  serving: %s" % WEB_DIR)
     print("  mode: %s" % MODE)
     print("  url: %s" % url)
@@ -945,7 +945,7 @@ def main():
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\n[gantry] shutting down")
+        print("\n[chase] shutting down")
     finally:
         httpd.server_close()
 

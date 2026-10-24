@@ -1,10 +1,10 @@
-# Gantry — product & interface spec (frozen contract)
+# Chase — product & interface spec (frozen contract)
 
 > **Interface contract** between the three build surfaces (`engine`, cockpit/UI,
 > `bridge`/connectors). Every public name, signature and data shape below is
 > **frozen**: implement exactly this. Change the spec first if something must change.
 
-Gantry is a **local, offline, zero-dependency desktop engineering copilot** for
+Chase is a **local, offline, zero-dependency desktop engineering copilot** for
 Autodesk Fusion and SOLIDWORKS. It **diagnoses broken models, plans repairs, and
 plans whole assemblies**, then applies plans to the live CAD model through **host
 connectors** — always behind a **dry-run + review gate**. Because a real CAD host
@@ -22,11 +22,11 @@ and review-gated (see `risk-matrix.md`).
 ## 1. Layout (ownership)
 
 ```
-apps/gantry/
+apps/chase/
   web/
     index.html            cockpit shell (loads css + js in order)
     styles.css            styling
-    js/gantry.js          [ENGINE]  deterministic diagnosis + assembly engine -> window.Gantry
+    js/chase.js          [ENGINE]  deterministic diagnosis + assembly engine -> window.Chase
     js/app.js             [UI]      wires engine + bridge + controls
     manifest.webmanifest  PWA manifest
     sw.js                 service worker (cache-first, offline)
@@ -40,7 +40,7 @@ apps/gantry/
   README.md
 ```
 
-`index.html` loads in order: `js/gantry.js` → `js/app.js`.
+`index.html` loads in order: `js/chase.js` → `js/app.js`.
 
 ---
 
@@ -50,7 +50,7 @@ apps/gantry/
 
 ```jsonc
 {
-  "schema": "gantry/model-report/v1",
+  "schema": "chase/model-report/v1",
   "host": "fusion" | "solidworks" | "simulated",
   "model": { "name": "Bracket v15", "units": "mm" },
   "features": [
@@ -83,7 +83,7 @@ apps/gantry/
 
 ```jsonc
 {
-  "schema": "gantry/assembly-spec/v1",
+  "schema": "chase/assembly-spec/v1",
   "name": "Four-speed gearbox",
   "parts": [ { "id": "c1", "name": "Housing", "qty": 1 },
              { "id": "c2", "name": "Shaft",   "qty": 4 } ],
@@ -93,24 +93,24 @@ apps/gantry/
 
 ---
 
-## 3. ENGINE — `web/js/gantry.js` → `window.Gantry`
+## 3. ENGINE — `web/js/chase.js` → `window.Chase`
 
 Pure, deterministic, no DOM/network. Guarded CommonJS export for Node tests:
-`if (typeof module !== 'undefined' && module.exports) module.exports = Gantry;`
-and `if (typeof window !== 'undefined') window.Gantry = Gantry;`.
+`if (typeof module !== 'undefined' && module.exports) module.exports = Chase;`
+and `if (typeof window !== 'undefined') window.Chase = Chase;`.
 
 ```
-Gantry.SCHEMA_REPORT        // "gantry/model-report/v1"
-Gantry.SCHEMA_DIAGNOSIS     // "gantry/diagnosis/v1"
-Gantry.SCHEMA_REPAIR_PLAN   // "gantry/repair-plan/v1"
-Gantry.SCHEMA_ASSEMBLY_PLAN // "gantry/assembly-plan/v1"
+Chase.SCHEMA_REPORT        // "chase/model-report/v1"
+Chase.SCHEMA_DIAGNOSIS     // "chase/diagnosis/v1"
+Chase.SCHEMA_REPAIR_PLAN   // "chase/repair-plan/v1"
+Chase.SCHEMA_ASSEMBLY_PLAN // "chase/assembly-plan/v1"
 
-Gantry.validateReport(report) -> { ok:boolean, errors:string[] }
-Gantry.diagnose(report) -> Diagnosis            // §3.1
-Gantry.planRepair(report) -> RepairPlan          // §3.2
-Gantry.planAssembly(spec) -> AssemblyPlan        // §3.3
-Gantry.dryRun(plan) -> { ok:boolean, wouldApply:string[], blocked:string[] }  // §3.4
-Gantry.samples() -> { brokenBracket:ModelReport, gearbox:AssemblySpec }
+Chase.validateReport(report) -> { ok:boolean, errors:string[] }
+Chase.diagnose(report) -> Diagnosis            // §3.1
+Chase.planRepair(report) -> RepairPlan          // §3.2
+Chase.planAssembly(spec) -> AssemblyPlan        // §3.3
+Chase.dryRun(plan) -> { ok:boolean, wouldApply:string[], blocked:string[] }  // §3.4
+Chase.samples() -> { brokenBracket:ModelReport, gearbox:AssemblySpec }
 ```
 
 Determinism: identical input ⇒ identical output (ordered arrays, no Date/random).
@@ -118,7 +118,7 @@ Determinism: identical input ⇒ identical output (ordered arrays, no Date/rando
 ### 3.1 `diagnose(report) -> Diagnosis`
 
 ```jsonc
-{ "schema": "gantry/diagnosis/v1",
+{ "schema": "chase/diagnosis/v1",
   "findings": [ Finding, ... ],                 // ordered (see below)
   "summary": { "high":1, "med":2, "low":0, "total":3 } }
 ```
@@ -143,7 +143,7 @@ else the feature itself. `fix` = a short deterministic suggestion per kind.
 ### 3.2 `planRepair(report) -> RepairPlan`
 
 ```jsonc
-{ "schema": "gantry/repair-plan/v1",
+{ "schema": "chase/repair-plan/v1",
   "steps": [ { "order":1, "target":"f2", "action":"fix_fillet",
                "reason":"Fillet7 failed: radius exceeds adjacent face" } ],
   "unrealized": ["f3"] }        // features still broken after their upstream fix
@@ -158,7 +158,7 @@ else the feature itself. `fix` = a short deterministic suggestion per kind.
 ### 3.3 `planAssembly(spec) -> AssemblyPlan`
 
 ```jsonc
-{ "schema": "gantry/assembly-plan/v1", "name": "...", "base": "c1",
+{ "schema": "chase/assembly-plan/v1", "name": "...", "base": "c1",
   "steps": [ { "n":1, "op":"insert", "part":"c1" },
              { "n":2, "op":"insert", "part":"c2" },
              { "n":3, "op":"mate", "type":"concentric", "a":"c1", "b":"c2" } ],
@@ -200,7 +200,7 @@ Offline-first cockpit. Two workspaces (tabs): **Repair** and **Assembly**.
 - **Connector status** strip: fetch `./api/connectors`; show Fusion / SOLIDWORKS /
   Simulated availability (offline ⇒ all unavailable, Simulated = on).
 - Optional server upgrade: if `GET ./api/health` responds, use the bridge for
-  diagnose/plan/apply; otherwise compute **fully offline** with `window.Gantry`.
+  diagnose/plan/apply; otherwise compute **fully offline** with `window.Chase`.
 
 UI rules: `addEventListener` only (no inline handlers), relative refs only,
 original copy, a clear "simulation, nothing is written to CAD" banner.
@@ -214,7 +214,7 @@ repo's peers/ziris servers. Per-request CORS `*`. `mode` is `"simulation"` unles
 a real connector is available (never, in this environment).
 
 ```
-GET  /api/health     -> {"status":"ok","app":"gantry","version":"1.0","mode":"simulation"}
+GET  /api/health     -> {"status":"ok","app":"chase","version":"1.0","mode":"simulation"}
 GET  /api/connectors -> {"connectors":[
                           {"id":"fusion","available":false,"host":"Autodesk Fusion","protocol":"python-api"},
                           {"id":"solidworks","available":false,"host":"SOLIDWORKS","protocol":"com"},
@@ -262,7 +262,7 @@ install them.
 ## 7. TESTS — `tests/` (hermetic, stdlib, exit 0 = pass / 1 = fail)
 
 - `tests/verify_engine.py` — runs `tests/engine.test.mjs` through Node (portable
-  Node dir, `PARTLAB_NODE`-style env `GANTRY_NODE`, or `node` on PATH); **SKIP +
+  Node dir, `PARTLAB_NODE`-style env `CHASE_NODE`, or `node` on PATH); **SKIP +
   exit 0** if no Node. The `.mjs` asserts: `diagnose` finds the sample's findings
   with correct kinds/severities/counts; ordering is deterministic; `planRepair`
   is topologically ordered; `planAssembly` picks the right base + emits
@@ -274,5 +274,5 @@ install them.
   right schema + a known finding, `POST /api/apply` with `confirm:false` applies
   nothing and with `confirm:true` returns `wroteToCad:false`, 400/404, OPTIONS CORS.
 - `tests/verify_static.py` — no absolute-root refs / CDNs / inline handlers;
-  required files; `index.html` loads `js/gantry.js` → `js/app.js`; `js/gantry.js`
-  exposes `Gantry`, `diagnose`, `planAssembly`; manifest + sw + icon present.
+  required files; `index.html` loads `js/chase.js` → `js/app.js`; `js/chase.js`
+  exposes `Chase`, `diagnose`, `planAssembly`; manifest + sw + icon present.

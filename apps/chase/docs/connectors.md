@@ -1,8 +1,8 @@
-# Gantry connectors — install & use guide
+# Chase connectors — install & use guide
 
-Gantry talks to a CAD host through **connectors**. A connector:
+Chase talks to a CAD host through **connectors**. A connector:
 
-1. dumps the live model into a host-agnostic **`ModelReport`** (`docs/gantry-spec.md` §2.1) — `dump_report()`, and
+1. dumps the live model into a host-agnostic **`ModelReport`** (`docs/chase-spec.md` §2.1) — `dump_report()`, and
 2. applies a reviewed **`RepairPlan` / `AssemblyPlan`** back to the host — `apply_plan(plan) -> ApplyResult` (§5),
 
 and reports whether a live host is reachable — `probe() -> {"available": bool, "reason": str}`.
@@ -32,7 +32,7 @@ There are two host connectors plus one built-in simulation "connector":
 > - `apply_plan()` returns `wroteToCad: false` unless a real host is confirmed,
 >   and the automatic write path is intentionally disabled.
 > - The tested, deterministic path is the **simulation core** (the engine in
->   `web/js/gantry.js` and the bridge in `server/bridge.py`), which is fully
+>   `web/js/chase.js` and the bridge in `server/bridge.py`), which is fully
 >   usable with no CAD licence.
 
 ---
@@ -77,7 +77,7 @@ embedded Python and uses `adsk.core` + `adsk.fusion`.
    - `apply_plan()` — map each repair step (`fix_fillet`, `fix_extrude`, …) or
      assembly step (`insert`, `mate`) onto the corresponding Fusion API call,
      then set `wroteToCad: true` **only** after a real, reviewed apply succeeds.
-5. Verify the exports match `docs/gantry-spec.md` §2 before enabling any write.
+5. Verify the exports match `docs/chase-spec.md` §2 before enabling any write.
 
 **Offline behaviour (here):** imports `adsk` in a guard; if absent,
 `probe()` → `{"available": false, ...}` and `apply_plan()` returns
@@ -95,13 +95,13 @@ COM automation via `win32com.client`.
 1. Install SOLIDWORKS on a Windows machine (with a valid licence).
 2. Install **pywin32** in the connector's Python environment
    (`pip install pywin32`) — note this is a *host machine* dependency; the
-   Gantry repo itself stays zero-dependency.
+   Chase repo itself stays zero-dependency.
 3. Implement the two marked sketch bodies:
    - `dump_report()` — read `SldWorks.Application.ActiveDoc` and walk features
      with `FirstFeature()` / `GetNextFeature()` into a `ModelReport`.
    - `apply_plan()` — map plan steps onto SOLIDWORKS API calls, then set
      `wroteToCad: true` only after a real, reviewed apply succeeds.
-4. Verify the exports match `docs/gantry-spec.md` §2 before enabling any write.
+4. Verify the exports match `docs/chase-spec.md` §2 before enabling any write.
 
 **Offline behaviour (here):** imports `win32com.client` in a guard; if absent,
 `probe()` → `{"available": false, ...}` and `apply_plan()` returns
@@ -111,18 +111,18 @@ COM automation via `win32com.client`.
 
 ## The `simulated` connector (works everywhere)
 
-When no host is attached, Gantry uses its deterministic simulation core:
+When no host is attached, Chase uses its deterministic simulation core:
 
-- the **engine** (`web/js/gantry.js`) computes everything fully offline in the
+- the **engine** (`web/js/chase.js`) computes everything fully offline in the
   cockpit, with no backend at all, or
-- the **bridge** (`python apps/gantry/server/bridge.py`) exposes the same logic
+- the **bridge** (`python apps/chase/server/bridge.py`) exposes the same logic
   over HTTP (`GET /api/connectors`, `POST /api/diagnose`, `/api/plan`,
   `/api/apply`).
 
 Check connector status at any time:
 
 ```bash
-python apps/gantry/server/bridge.py --no-browser
+python apps/chase/server/bridge.py --no-browser
 # then, in another shell:
 curl http://127.0.0.1:8792/api/connectors
 ```
@@ -135,7 +135,7 @@ Both connector modules are import-safe and can be smoke-tested with no host:
 
 ```bash
 python -c "import importlib.util,json,sys; \
-spec=importlib.util.spec_from_file_location('c','apps/gantry/connectors/fusion_addin.py'); \
+spec=importlib.util.spec_from_file_location('c','apps/chase/connectors/fusion_addin.py'); \
 m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); \
 print(json.dumps(m.probe()))"
 ```

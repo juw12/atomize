@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gantry engine test runner (stdlib only).
+"""Chase engine test runner (stdlib only).
 
 Locates a Node runtime and runs ``tests/engine.test.mjs`` (cwd = this dir).
 Exit codes:
@@ -7,7 +7,7 @@ Exit codes:
   1  -> one or more checks failed
 
 Node resolution order:
-  1. env var ``GANTRY_NODE`` (explicit path to a node executable)
+  1. env var ``CHASE_NODE`` (explicit path to a node executable)
   2. the bundled portable Node (PEGAAi skills directory)
   3. ``node`` on PATH
 
@@ -28,7 +28,7 @@ PORTABLE_NODE = (
 
 def find_node():
     """Return a path to a node executable, or None if none can be found."""
-    env_node = os.environ.get("GANTRY_NODE")
+    env_node = os.environ.get("CHASE_NODE")
     if env_node and os.path.isfile(env_node):
         return env_node
     if os.path.isfile(PORTABLE_NODE):

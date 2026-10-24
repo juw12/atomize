@@ -1,0 +1,38 @@
+{
+  "name": "Chase — Engineering Cockpit",
+  "short_name": "Chase",
+  "description": "Local, deterministic, review-gated engineering copilot for CAD repair and assembly",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "en-US",
+  "shortcuts": [
+    {
+      "name": "App",
+      "url": "./app.html",
+      "description": "Installable PWA build"
+    },
+    {
+      "name": "Web",
+      "url": "./index.html",
+      "description": "Desktop web build"
+    },
+    {
+      "name": "Mobile",
+      "url": "./mobile.html",
+      "description": "Mobile-first build"
+    }
+  ]
+}

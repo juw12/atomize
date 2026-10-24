@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gantry — Engineering Cockpit</title>
+  <title>Chase — Engineering Cockpit</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0b0f19" id="theme-color-meta">
   <meta name="description" content="Local, deterministic, review-gated engineering copilot for CAD repair and assembly">
@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Gantry">
+  <meta name="apple-mobile-web-app-title" content="Chase">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
         <svg class="topbar-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M4 8h24M4 16h24M4 24h24M8 4v24M16 4v24M24 4v24"/>
         </svg>
-        <h1>Gantry</h1>
+        <h1>Chase</h1>
         <span class="topbar-tagline">local · deterministic · review-gated</span>
       </div>
       <div class="topbar-status">
@@ -168,7 +168,7 @@
     <dialog class="modal" id="modal-paste-report" aria-labelledby="modal-paste-report-title">
       <form method="dialog" class="modal-content">
         <h3 id="modal-paste-report-title">Paste ModelReport JSON</h3>
-        <textarea class="modal-textarea" id="paste-report-json" rows="15" placeholder='{"schema": "gantry/model-report/v1", ...}'></textarea>
+        <textarea class="modal-textarea" id="paste-report-json" rows="15" placeholder='{"schema": "chase/model-report/v1", ...}'></textarea>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="btn-cancel-paste-report">Cancel</button>
           <button type="button" class="btn btn-primary" id="btn-submit-paste-report">Load</button>
@@ -179,17 +179,24 @@
     <dialog class="modal" id="modal-paste-assembly" aria-labelledby="modal-paste-assembly-title">
       <form method="dialog" class="modal-content">
         <h3 id="modal-paste-assembly-title">Paste AssemblySpec JSON</h3>
-        <textarea class="modal-textarea" id="paste-assembly-json" rows="15" placeholder='{"schema": "gantry/assembly-spec/v1", ...}'></textarea>
+        <textarea class="modal-textarea" id="paste-assembly-json" rows="15" placeholder='{"schema": "chase/assembly-spec/v1", ...}'></textarea>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="btn-cancel-paste-assembly">Cancel</button>
           <button type="button" class="btn btn-primary" id="btn-submit-paste-assembly">Load</button>
         </div>
       </form>
     </dialog>
+
+    <!-- Variant Nav -->
+    <nav class="variant-nav">
+      <a href="app.html">App</a>
+      <span class="variant-current">Web</span>
+      <a href="mobile.html">Mobile</a>
+    </nav>
   </div>
 
   <!-- Scripts: load in order per spec -->
-  <script src="js/gantry.js"></script>
+  <script src="js/chase.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

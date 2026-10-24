@@ -1,13 +1,16 @@
 /**
- * Gantry Cockpit — Service Worker
+ * Chase Cockpit — Service Worker
  * Cache-first strategy with network fallback
  */
 
-const CACHE_NAME = 'gantry-cockpit-v1';
+const CACHE_NAME = 'chase-cockpit-v2';
 const ASSETS = [
   './',
   './index.html',
+  './mobile.html',
+  './app.html',
   './styles.css',
+  './js/chase.js',
   './js/app.js',
   './manifest.webmanifest',
   './icons/icon.svg'

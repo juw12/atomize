@@ -1,15 +1,15 @@
 /*
- * Gantry engine tests — hermetic, zero-dependency.
+ * Chase engine tests — hermetic, zero-dependency.
  * Run through Node (ESM). Exit 0 = all checks pass, 1 = a check failed.
  *
  * Usage:  node tests/engine.test.mjs
  * Wrapper: tests/verify_engine.py (locates Node; SKIPs + exit 0 if absent).
  *
- * Covers docs/gantry-spec.md §3: constants, validateReport, diagnose (rules +
+ * Covers docs/chase-spec.md §3: constants, validateReport, diagnose (rules +
  * ordering), planRepair (topological), planAssembly (base + steps + checks),
  * dryRun (review gate), and determinism.
  */
-import Gantry from "../web/js/gantry.js";
+import Chase from "../web/js/chase.js";
 
 let passed = 0;
 let failed = 0;
@@ -28,27 +28,27 @@ function eq(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-const { brokenBracket, gearbox } = Gantry.samples();
+const { brokenBracket, gearbox } = Chase.samples();
 
 /* ---- 1. constants -------------------------------------------------- */
-check("SCHEMA_REPORT", Gantry.SCHEMA_REPORT === "gantry/model-report/v1");
-check("SCHEMA_DIAGNOSIS", Gantry.SCHEMA_DIAGNOSIS === "gantry/diagnosis/v1");
-check("SCHEMA_REPAIR_PLAN", Gantry.SCHEMA_REPAIR_PLAN === "gantry/repair-plan/v1");
-check("SCHEMA_ASSEMBLY_PLAN", Gantry.SCHEMA_ASSEMBLY_PLAN === "gantry/assembly-plan/v1");
+check("SCHEMA_REPORT", Chase.SCHEMA_REPORT === "chase/model-report/v1");
+check("SCHEMA_DIAGNOSIS", Chase.SCHEMA_DIAGNOSIS === "chase/diagnosis/v1");
+check("SCHEMA_REPAIR_PLAN", Chase.SCHEMA_REPAIR_PLAN === "chase/repair-plan/v1");
+check("SCHEMA_ASSEMBLY_PLAN", Chase.SCHEMA_ASSEMBLY_PLAN === "chase/assembly-plan/v1");
 
 /* ---- 2. validateReport --------------------------------------------- */
-check("validateReport accepts sample", Gantry.validateReport(brokenBracket).ok === true);
+check("validateReport accepts sample", Chase.validateReport(brokenBracket).ok === true);
 {
-  const bad = Gantry.validateReport({ schema: "nope", features: "x" });
+  const bad = Chase.validateReport({ schema: "nope", features: "x" });
   check("validateReport rejects a malformed report",
     bad.ok === false && Array.isArray(bad.errors) && bad.errors.length > 0);
-  const empty = Gantry.validateReport(null);
+  const empty = Chase.validateReport(null);
   check("validateReport rejects null", empty.ok === false && empty.errors.length > 0);
 }
 
 /* ---- 3. diagnose(brokenBracket) ------------------------------------ */
-const diag = Gantry.diagnose(brokenBracket);
-check("diagnose schema", diag.schema === Gantry.SCHEMA_DIAGNOSIS);
+const diag = Chase.diagnose(brokenBracket);
+check("diagnose schema", diag.schema === Chase.SCHEMA_DIAGNOSIS);
 
 const kinds = diag.findings.map((f) => f.kind).sort();
 check("diagnose finds the expected kinds",
@@ -96,8 +96,8 @@ check("every finding carries a fix suggestion",
   diag.findings.every((f) => typeof f.fix === "string" && f.fix.length > 0));
 
 /* ---- 4. planRepair(brokenBracket) ---------------------------------- */
-const repair = Gantry.planRepair(brokenBracket);
-check("repair schema", repair.schema === Gantry.SCHEMA_REPAIR_PLAN);
+const repair = Chase.planRepair(brokenBracket);
+check("repair schema", repair.schema === Chase.SCHEMA_REPAIR_PLAN);
 check("repair has a step for every affected feature", repair.steps.length === 3);
 {
   const targets = repair.steps.map((s) => s.target);
@@ -118,7 +118,7 @@ check("repair has a step for every affected feature", repair.steps.length === 3)
 /* a straight chain must come out strictly upstream-first */
 {
   const chain = {
-    schema: Gantry.SCHEMA_REPORT,
+    schema: Chase.SCHEMA_REPORT,
     host: "simulated",
     model: { name: "Chain" },
     features: [
@@ -127,14 +127,14 @@ check("repair has a step for every affected feature", repair.steps.length === 3)
       { id: "f3", type: "pattern", name: "F3", status: "failed", error: "bad", dependsOn: ["f2"] }
     ]
   };
-  const chainPlan = Gantry.planRepair(chain);
+  const chainPlan = Chase.planRepair(chain);
   check("repair orders a chain upstream-first",
     eq(chainPlan.steps.map((s) => s.target), ["f1", "f2", "f3"]));
 }
 
 /* ---- 5. planAssembly(gearbox) -------------------------------------- */
-const asm = Gantry.planAssembly(gearbox);
-check("assembly schema", asm.schema === Gantry.SCHEMA_ASSEMBLY_PLAN);
+const asm = Chase.planAssembly(gearbox);
+check("assembly schema", asm.schema === Chase.SCHEMA_ASSEMBLY_PLAN);
 check("assembly picks c1 as base (highest mate-degree)",
   asm.base === "c1");
 check("assembly partCount / mateCount",
@@ -164,7 +164,7 @@ check("assembly emits base-first insert",
 /* ---- 6. planAssembly crafted duplicate + dangling ------------------ */
 {
   const crafted = {
-    schema: "gantry/assembly-spec/v1",
+    schema: "chase/assembly-spec/v1",
     name: "Crafted",
     parts: [
       { id: "p1", name: "A", qty: 1 },
@@ -176,7 +176,7 @@ check("assembly emits base-first insert",
       { id: "m2", type: "concentric", a: "p2", b: "pX" }
     ]
   };
-  const cp = Gantry.planAssembly(crafted);
+  const cp = Chase.planAssembly(crafted);
   const checkKinds = cp.checks.map((c) => c.kind);
   check("crafted plan flags duplicate-part",
     checkKinds.indexOf("duplicate-part") !== -1);
@@ -190,26 +190,26 @@ check("assembly emits base-first insert",
 
 /* ---- 7. dryRun (review gate) --------------------------------------- */
 {
-  const drAsmOk = Gantry.dryRun(asm);
+  const drAsmOk = Chase.dryRun(asm);
   check("dryRun passes a clean assembly plan",
     drAsmOk.ok === true && drAsmOk.wouldApply.length > 0 && drAsmOk.blocked.length === 0);
 
-  const drRepair = Gantry.dryRun(repair);
+  const drRepair = Chase.dryRun(repair);
   check("dryRun passes a fix-only repair plan",
     drRepair.ok === true && drRepair.wouldApply.length === repair.steps.length &&
     drRepair.blocked.length === 0);
 
   const rebuildPlan = {
-    schema: Gantry.SCHEMA_REPAIR_PLAN,
+    schema: Chase.SCHEMA_REPAIR_PLAN,
     steps: [{ order: 1, target: "f9", action: "rebuild", reason: "x" }],
     unrealized: []
   };
-  const drRebuild = Gantry.dryRun(rebuildPlan);
+  const drRebuild = Chase.dryRun(rebuildPlan);
   check("dryRun blocks a rebuild action (manual CAD input)",
     drRebuild.ok === false && drRebuild.blocked.length === 1);
 
   const badPlan = {
-    schema: Gantry.SCHEMA_ASSEMBLY_PLAN,
+    schema: Chase.SCHEMA_ASSEMBLY_PLAN,
     name: "bad",
     base: "c1",
     steps: [
@@ -220,7 +220,7 @@ check("assembly emits base-first insert",
     partCount: 1,
     mateCount: 1
   };
-  const drBad = Gantry.dryRun(badPlan);
+  const drBad = Chase.dryRun(badPlan);
   check("dryRun blocks a plan whose step references a missing part",
     drBad.ok === false && drBad.blocked.length === 1 &&
     drBad.wouldApply.length === 1);
@@ -229,14 +229,14 @@ check("assembly emits base-first insert",
 /* ---- 8. determinism ------------------------------------------------ */
 {
   check("diagnose is deterministic",
-    JSON.stringify(Gantry.diagnose(brokenBracket)) ===
-    JSON.stringify(Gantry.diagnose(brokenBracket)));
+    JSON.stringify(Chase.diagnose(brokenBracket)) ===
+    JSON.stringify(Chase.diagnose(brokenBracket)));
   check("planRepair is deterministic",
-    JSON.stringify(Gantry.planRepair(brokenBracket)) ===
-    JSON.stringify(Gantry.planRepair(brokenBracket)));
+    JSON.stringify(Chase.planRepair(brokenBracket)) ===
+    JSON.stringify(Chase.planRepair(brokenBracket)));
   check("planAssembly is deterministic",
-    JSON.stringify(Gantry.planAssembly(gearbox)) ===
-    JSON.stringify(Gantry.planAssembly(gearbox)));
+    JSON.stringify(Chase.planAssembly(gearbox)) ===
+    JSON.stringify(Chase.planAssembly(gearbox)));
 }
 
 /* ---- 9. tolerance of missing components / mates -------------------- */
@@ -244,13 +244,13 @@ check("assembly emits base-first insert",
   let threw = false;
   try {
     const bare = {
-      schema: Gantry.SCHEMA_REPORT,
+      schema: Chase.SCHEMA_REPORT,
       host: "simulated",
       model: { name: "Bare" },
       features: [{ id: "f1", type: "extrude", name: "E1", status: "ok" }]
     };
-    const d = Gantry.diagnose(bare);
-    const p = Gantry.planRepair(bare);
+    const d = Chase.diagnose(bare);
+    const p = Chase.planRepair(bare);
     if (d.summary.total !== 0 || p.steps.length !== 0) { threw = true; }
   } catch (e) {
     threw = true;

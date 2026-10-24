@@ -2,8 +2,8 @@
 """SOLIDWORKS connector — TEMPLATE (not executed here).
 
 A skeleton connector that would talk to a running SOLIDWORKS instance over COM
-(`win32com.client`) and speak the same JSON protocol as the Gantry bridge and
-engine (`docs/gantry-spec.md` §2 / §6): it dumps a `ModelReport` from the active
+(`win32com.client`) and speak the same JSON protocol as the Chase bridge and
+engine (`docs/chase-spec.md` §2 / §6): it dumps a `ModelReport` from the active
 document and would apply a `RepairPlan` / `AssemblyPlan` to it.
 
     > NOT VERIFIED AGAINST A REAL HOST. <
@@ -32,7 +32,7 @@ from __future__ import annotations
 
 HOST = "solidworks"
 PROTOCOL = "com"
-SCHEMA_REPORT = "gantry/model-report/v1"
+SCHEMA_REPORT = "chase/model-report/v1"
 
 # All host imports are guarded: absence must never raise on import.
 try:  # pragma: no cover - only true on a Windows host with pywin32
