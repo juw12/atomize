@@ -1020,17 +1020,18 @@ function navigateTo(section) {
 }
 
 function renderOperatorSection() {
+  if (!state.currentProject) {
+    state.currentProject = (state.projects && state.projects.length)
+      ? state.projects[state.projects.length - 1]
+      : DEMO_PROJECT;
+    ensureOperator(state.currentProject);
+    updateNavForProject(state.currentProject);
+  }
   const emptyState = document.getElementById('operator-empty-state');
   const cockpit = document.getElementById('operator-cockpit');
-  
-  if (!state.currentProject) {
-    if (emptyState) emptyState.style.display = 'block';
-    if (cockpit) cockpit.style.display = 'none';
-  } else {
-    if (emptyState) emptyState.style.display = 'none';
-    if (cockpit) cockpit.style.display = 'block';
-    renderOperatorView(state.currentProject);
-  }
+  if (emptyState) emptyState.style.display = 'none';
+  if (cockpit) cockpit.style.display = 'block';
+  renderOperatorView(state.currentProject);
 }
 
 function renderCatalog() {
@@ -1985,8 +1986,23 @@ let operatorActiveTab = 'overview';
 let operatorLedgerSheet = 'sales';
 let globalSearchQuery = '';
 
+function renderOperatorContext(project) {
+  const cockpit = document.getElementById('operator-cockpit');
+  const header = cockpit && cockpit.querySelector('.operator-cockpit-header');
+  if (!header) return;
+  let ctx = document.getElementById('operator-context');
+  if (!ctx) {
+    ctx = document.createElement('div');
+    ctx.id = 'operator-context';
+    ctx.className = 'operator-context';
+    header.insertBefore(ctx, header.firstChild);
+  }
+  ctx.innerHTML = `Otto is operating on <strong>${escapeHtml(project.name)}</strong> <button class="btn btn-sm btn-text" onclick="navigateTo('catalog')">Switch project</button>`;
+}
+
 function renderOperatorView(project) {
   const op = ensureOperator(project);
+  renderOperatorContext(project);
   const credits = getAvailableCredits(project);
   const salesRows = op.ledger.sheets?.sales?.rows || [];
   const totalRevenue = salesRows.reduce((sum, row) => sum + (row.revenue || 0), 0);
