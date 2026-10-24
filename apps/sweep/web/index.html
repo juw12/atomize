@@ -32,6 +32,7 @@
 <nav class="nav" id="main-nav" style="display:none">
   <a href="#catalog" class="nav-item active" data-section="catalog">Catalog</a>
   <a href="#brief" class="nav-item" data-section="brief">New Brief</a>
+  <a href="#operator" class="nav-item" data-section="operator">Operator</a>
   <a href="#plan" class="nav-item" data-section="plan" id="nav-plan" style="display:none">Plan</a>
   <a href="#verify" class="nav-item" data-section="verify" id="nav-verify" style="display:none">Verify</a>
   <a href="#generate" class="nav-item" data-section="generate" id="nav-generate" style="display:none">Generate</a>
@@ -503,7 +504,7 @@
           <div class="guide-step-number">2</div>
           <div class="guide-step-content">
             <h3>Use guided intake or write a brief</h3>
-            <p>Type your idea in plain words in the "Describe your idea" panel. Sweep drafts the brief locally — no AI, no network. Or fill the brief fields manually: problem, target user, job-to-be-done, and 2–4 success checks.</p>
+            <p>Type your idea in plain words. Sweep drafts the brief locally — no AI, no network. Or fill the brief fields manually: problem, target user, job-to-be-done, and 2–4 success checks.</p>
           </div>
         </div>
 
@@ -548,6 +549,77 @@
           <li><strong>Memory + catalog:</strong> A longitudinal system, not one-off chat→code</li>
           <li><strong>Static-first:</strong> GitHub Pages deployable, zero dependencies</li>
         </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Operator Section -->
+  <section id="section-operator" class="section" style="display:none">
+    <div class="section-header">
+      <h2 class="section-title">Operator — Otto</h2>
+      <span class="section-subtitle">Your local AI operator (offline, deterministic)</span>
+    </div>
+
+    <!-- Empty state when no project -->
+    <div id="operator-empty-state" style="display:none;text-align:center;padding:60px 24px;">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <h3 style="font-family:var(--font-heading);font-size:20px;margin:16px 0 8px;">No project selected</h3>
+      <p style="color:var(--color-muted);margin-bottom:24px;">Open a project or create a new brief to start using Otto.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="openDemoProject()">Open demo project</button>
+        <button class="btn btn-secondary" onclick="navigateTo('brief')">New brief</button>
+      </div>
+    </div>
+
+    <!-- Operator cockpit (when project is open) -->
+    <div id="operator-cockpit" style="display:block">
+      <!-- Cockpit header -->
+      <div class="operator-cockpit-header">
+        <div class="operator-status-row">
+          <div class="operator-credits" id="operator-credits">45 credits</div>
+          <label class="operator-autopilot">
+            <input type="checkbox" id="operator-autopilot" onchange="toggleAutopilot()">
+            <span>Autopilot (approval-first)</span>
+          </label>
+        </div>
+        <div class="operator-command-bar">
+          <input type="text" id="operator-command-input" placeholder="Type a command: brand, site, post, email, deck, research, outreach..." onkeydown="if(event.key==='Enter')handleOperatorCommand()">
+          <button class="btn btn-primary" onclick="handleOperatorCommand()">Run</button>
+          <button class="btn btn-secondary" onclick="runAutopilotPass()">Run a pass</button>
+        </div>
+        <div class="operator-quick-actions">
+          <button class="operator-chip" onclick="quickCommand('brand')">Brand</button>
+          <button class="operator-chip" onclick="quickCommand('site')">Site</button>
+          <button class="operator-chip" onclick="quickCommand('twitter post')">Post</button>
+          <button class="operator-chip" onclick="quickCommand('email')">Email</button>
+          <button class="operator-chip" onclick="quickCommand('deck')">Deck</button>
+          <button class="operator-chip" onclick="quickCommand('research')">Research</button>
+          <button class="operator-chip" onclick="quickCommand('outreach')">Outreach</button>
+        </div>
+      </div>
+
+      <!-- Main grid -->
+      <div class="operator-grid">
+        <div class="operator-main">
+          <div id="operator-brand-kit"></div>
+          <div id="operator-ledger"></div>
+          <div id="operator-integrations"></div>
+          <div id="operator-payments"></div>
+        </div>
+        <div class="operator-sidebar">
+          <div class="operator-card">
+            <h3 class="operator-card-title">Run Log</h3>
+            <div id="operator-run-log" class="operator-run-log"></div>
+          </div>
+          <div class="operator-card">
+            <h3 class="operator-card-title">Outbox</h3>
+            <div id="operator-outbox" class="operator-outbox"></div>
+          </div>
+          <div class="operator-actions">
+            <button class="btn btn-secondary btn-sm" onclick="exportOperatorBundle()">Export JSON</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportOperatorMarkdown()">Export Markdown</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>

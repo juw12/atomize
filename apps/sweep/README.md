@@ -14,10 +14,18 @@ Product plan (PRD + architecture + MVP): [`docs/Sweep-App-Plan.md`](docs/Sweep-A
 
 ## The app (`web/`)
 
-A **static, offline-first** single-page app that walks the front half of the
-pipeline: **local workspace (login)** → **idea brief** → **generated plan**
-(capability matrix + Definition of Done + phases) → **scaffold preview** →
-**catalog**, plus an in-app **How-to-use** guide. Morning Paper theme, light/dark.
+A **static, offline-first** single-page app that walks the pipeline: **local
+workspace (login)** → **idea brief** → **generated plan** (capability matrix +
+Definition of Done + phases) → **verify** (runnable gates) → **scaffold
+generator** → **catalog**, plus an in-app **How-to-use** guide — and an
+**Operator** ("Otto"): a local, deterministic agent that drafts your brand kit
+(logo, palette, type), a one-page site, per-network social posts (with generated
+art), email drafts, customer outreach, a market-research brief, a pitch deck and
+a live ledger — all routed through an **approval queue** with a visible **run
+log**, a **credits** meter and an **autopilot** toggle. Morning Paper theme,
+light/dark. Every Operator artifact is produced **offline — no network, no LLM**
+(same "no AI, no network" rule as guided intake), and the workspace stays
+encrypted at rest.
 
 - Open it: `apps/sweep/web/index.html` (works from `file://` — no server).
 - Live: https://juwpegatron.github.io/projects/sweep/
