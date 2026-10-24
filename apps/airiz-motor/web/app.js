@@ -938,7 +938,6 @@
         if (sound) {
           playSfx(sound);
           if (elements.sfxStatus) elements.sfxStatus.textContent = 'Playing: ' + sound.name;
-          logToConsole(`Played sound effect: ${sound.name}`, 'note');
         }
         return;
       }
@@ -966,6 +965,18 @@
     });
     
     actionsDiv.appendChild(sendBtn);
+    
+    if (cmd.browserSound) {
+      const deviceBtn = document.createElement('button');
+      deviceBtn.className = 'btn btn-sm btn-secondary';
+      deviceBtn.textContent = 'Send WAV';
+      deviceBtn.title = 'Send over serial: ' + cmd.cmd;
+      deviceBtn.addEventListener('click', () => {
+        sendLine(cmd.cmd);
+      });
+      actionsDiv.appendChild(deviceBtn);
+    }
+    
     card.appendChild(actionsDiv);
     
     // Note
@@ -2192,6 +2203,7 @@
     } else {
       playSpec(sound.spec);
     }
+    logToConsole('> [sfx] ' + sound.name, 'command');
   }
   
   function renderSfxBoard() {

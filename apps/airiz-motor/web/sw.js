@@ -3,7 +3,7 @@
  * Cache-first strategy with network fallback
  */
 
-const CACHE_NAME = 'airiz-console-v23';
+const CACHE_NAME = 'airiz-console-v24';
 const ASSETS = [
   './',
   './index.html',
