@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 """
-Chase Static Integrity Test
+Chase Static Integrity Test — v2 with viewport
 Stdlib only, exit 0/1. Checks:
 - No absolute-root refs in any html/js/manifest
 - No CDN refs
 - No inline on*= handlers
 - ALL THREE variants (app.html, index.html, mobile.html) exist
-- Each variant references styles.css and loads js/chase.js before js/app.js
+- Each variant references styles.css and loads js/chase.js → js/viewport.js → js/app.js (in that order)
 - manifest.webmanifest (start_url app.html), sw.js, icons/icon.svg exist
 - web/js/chase.js exists and contains Chase, diagnose, planAssembly
+- web/js/viewport.js exists and exposes ChaseView
 Prints [ok]/[FAIL] per check + summary. Creates NO files.
 """
 
@@ -43,6 +44,7 @@ def main():
     css_file = web_dir / 'styles.css'
     app_js_file = web_dir / 'js' / 'app.js'
     chase_js_file = web_dir / 'js' / 'chase.js'
+    viewport_js_file = web_dir / 'js' / 'viewport.js'
     manifest_file = web_dir / 'manifest.webmanifest'
     sw_file = web_dir / 'sw.js'
     icon_file = web_dir / 'icons' / 'icon.svg'
@@ -54,6 +56,7 @@ def main():
     check('styles.css exists', css_file.exists())
     check('js/app.js exists', app_js_file.exists())
     check('js/chase.js exists', chase_js_file.exists())
+    check('js/viewport.js exists', viewport_js_file.exists())
     check('manifest.webmanifest exists', manifest_file.exists())
     check('sw.js exists', sw_file.exists())
     check('icons/icon.svg exists', icon_file.exists())
@@ -64,6 +67,7 @@ def main():
     mobile_html_content = ''
     app_js_content = ''
     chase_js_content = ''
+    viewport_js_content = ''
     manifest_content = ''
     
     if app_html_file.exists():
@@ -76,12 +80,14 @@ def main():
         app_js_content = app_js_file.read_text(encoding='utf-8')
     if chase_js_file.exists():
         chase_js_content = chase_js_file.read_text(encoding='utf-8')
+    if viewport_js_file.exists():
+        viewport_js_content = viewport_js_file.read_text(encoding='utf-8')
     if manifest_file.exists():
         manifest_content = manifest_file.read_text(encoding='utf-8')
     
     # All HTML files combined
     all_html_content = app_html_content + index_html_content + mobile_html_content
-    all_files_content = all_html_content + app_js_content + chase_js_content + manifest_content
+    all_files_content = all_html_content + app_js_content + chase_js_content + viewport_js_content + manifest_content
     
     # === Check: No absolute-root refs (href="/...", src="/...") ===
     # Pattern for absolute-root paths (but not //cdn or http)
@@ -114,7 +120,7 @@ def main():
     check('No inline on*= handlers', len(inline_matches) == 0,
           f'found {len(inline_matches)} inline handler(s)')
     
-    # === Check: Each variant loads styles.css and js/chase.js before js/app.js ===
+    # === Check: Each variant loads styles.css and js/chase.js → js/viewport.js → js/app.js ===
     html_variants = [
         ('app.html', app_html_content),
         ('index.html', index_html_content),
@@ -138,20 +144,27 @@ def main():
         has_styles = any('styles.css' in p for p in loaded_paths)
         check(f'{variant_name} loads styles.css', has_styles)
         
-        # Check chase.js and app.js are loaded in correct order
+        # Check chase.js, viewport.js, and app.js are loaded in correct order
         chase_idx = None
+        viewport_idx = None
         app_idx = None
         for i, path in enumerate(loaded_paths):
             if 'chase.js' in path:
                 chase_idx = i
+            if 'viewport.js' in path:
+                viewport_idx = i
             if 'app.js' in path:
                 app_idx = i
         
         check(f'{variant_name} loads js/chase.js', chase_idx is not None)
+        check(f'{variant_name} loads js/viewport.js', viewport_idx is not None)
         check(f'{variant_name} loads js/app.js', app_idx is not None)
-        check(f'{variant_name}: js/chase.js loads before js/app.js', 
-              chase_idx is not None and app_idx is not None and chase_idx < app_idx,
-              'order incorrect' if (chase_idx is not None and app_idx is not None and chase_idx >= app_idx) else '')
+        check(f'{variant_name}: js/chase.js loads before js/viewport.js', 
+              chase_idx is not None and viewport_idx is not None and chase_idx < viewport_idx,
+              'order incorrect' if (chase_idx is not None and viewport_idx is not None and chase_idx >= viewport_idx) else '')
+        check(f'{variant_name}: js/viewport.js loads before js/app.js', 
+              viewport_idx is not None and app_idx is not None and viewport_idx < app_idx,
+              'order incorrect' if (viewport_idx is not None and app_idx is not None and viewport_idx >= app_idx) else '')
     
     # === Check: manifest.webmanifest start_url is app.html ===
     if manifest_file.exists():
@@ -179,6 +192,20 @@ def main():
         check('js/chase.js contains "Chase"', False, 'file does not exist')
         check('js/chase.js contains "diagnose"', False, 'file does not exist')
         check('js/chase.js contains "planAssembly"', False, 'file does not exist')
+    
+    # === Check: js/viewport.js exposes ChaseView ===
+    if viewport_js_file.exists():
+        has_chaseview = 'ChaseView' in viewport_js_content
+        check('js/viewport.js exposes "ChaseView"', has_chaseview)
+    else:
+        check('js/viewport.js exposes "ChaseView"', False, 'file does not exist')
+    
+    # === Check: sw.js caches viewport.js ===
+    if sw_file.exists():
+        has_viewport_in_sw = 'viewport.js' in sw_content if 'sw_content' in locals() else 'viewport.js' in sw_file.read_text(encoding='utf-8')
+        check('sw.js caches js/viewport.js', has_viewport_in_sw)
+    else:
+        check('sw.js caches js/viewport.js', False, 'sw.js does not exist')
     
     # === Summary ===
     print()

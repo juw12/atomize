@@ -1,9 +1,10 @@
 /**
  * Chase Cockpit — Service Worker
  * Cache-first strategy with network fallback
+ * Updated to include viewport.js
  */
 
-const CACHE_NAME = 'chase-cockpit-v2';
+const CACHE_NAME = 'chase-cockpit-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +12,7 @@ const ASSETS = [
   './app.html',
   './styles.css',
   './js/chase.js',
+  './js/viewport.js',
   './js/app.js',
   './manifest.webmanifest',
   './icons/icon.svg'

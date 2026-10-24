@@ -22,6 +22,7 @@ success, 1 on any failure.
 
 import http.client
 import json
+import math
 import socket
 import subprocess
 import sys
@@ -30,6 +31,52 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent          # .../apps/chase
 SERVER_SCRIPT = BASE_DIR / "server" / "bridge.py"
+
+CAPABILITIES = ["diagnose", "plan", "apply", "build", "simulate", "adapters"]
+
+
+def flange_build():
+    """The flange sample BuildSpec (spec §1.1) — used by the /api/build test."""
+    params = {"R": 50, "T": 10, "boreR": 16, "boltCircleR": 34, "boltR": 4, "bolts": 6}
+    solids = [{"id": "s1", "type": "cylinder", "x": 0, "y": 0, "z": 0,
+               "params": {"r": "R", "h": "T", "segments": 48}}]
+    holes = [{"id": "h1", "type": "cylinder", "x": 0, "y": 0, "z": 0,
+              "params": {"r": "boreR", "h": "T", "segments": 32}}]
+    for i in range(params["bolts"]):
+        angle = (math.pi / 2.0) + (2.0 * math.pi * i / params["bolts"])
+        holes.append({
+            "id": "b%d" % i, "type": "cylinder",
+            "x": params["boltCircleR"] * math.cos(angle),
+            "y": params["boltCircleR"] * math.sin(angle), "z": 0,
+            "params": {"r": "boltR", "h": "T", "segments": 16},
+        })
+    return {
+        "schema": "chase/build-spec/v1", "name": "Pipe flange", "units": "mm",
+        "material": {"name": "Steel", "density": 7.85},
+        "params": params, "solids": solids, "holes": holes,
+    }
+
+
+def simulate_input():
+    """An AssemblySpec (2 parts, 1 mate) with an inline build for /api/simulate."""
+    build = {
+        "schema": "chase/build-spec/v1", "name": "two boxes", "units": "mm",
+        "material": {"name": "Aluminium 6061", "density": 2.70}, "params": {},
+        "solids": [
+            {"id": "s1", "type": "box", "x": -20, "y": 0, "z": 0,
+             "params": {"dx": 10, "dy": 10, "dz": 10}},
+            {"id": "s2", "type": "box", "x": 20, "y": 0, "z": 0,
+             "params": {"dx": 10, "dy": 10, "dz": 10}},
+        ],
+        "holes": [],
+    }
+    return {
+        "schema": "chase/assembly-spec/v1", "name": "two-part rig",
+        "parts": [{"id": "p1", "name": "Base", "qty": 1},
+                  {"id": "p2", "name": "Slider", "qty": 1}],
+        "mates": [{"id": "m1", "type": "concentric", "a": "p1", "b": "p2"}],
+        "build": build,
+    }
 
 
 def find_free_port():
@@ -119,6 +166,8 @@ def run_tests():
         check("mode == simulation", data.get("mode") == "simulation", data)
         check("app/version/status", data.get("app") == "chase"
               and data.get("version") == "1.0" and data.get("status") == "ok", data)
+        check("capabilities advertises all six", data.get("capabilities") == CAPABILITIES,
+              data.get("capabilities"))
 
         # --- Test 2: connectors --------------------------------------------
         print("\nTest 2: GET /api/connectors")
@@ -239,6 +288,72 @@ def run_tests():
         resp, _ = get("/api/health")
         check("GET CORS *", resp.getheader("Access-Control-Allow-Origin") == "*",
               resp.getheader("Access-Control-Allow-Origin"))
+
+        # --- Test 11: adapters ---------------------------------------------
+        print("\nTest 11: GET /api/adapters")
+        resp, body = get("/api/adapters")
+        data = json.loads(body) if resp.status == 200 else {}
+        adapters = data.get("adapters") or []
+        by_adapter = {a.get("id"): a for a in adapters}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check(">= 12 adapters", len(adapters) >= 12, len(adapters))
+        check("fusion available false",
+              by_adapter.get("fusion", {}).get("available") is False,
+              by_adapter.get("fusion"))
+        check("simulated available true",
+              by_adapter.get("simulated", {}).get("available") is True,
+              by_adapter.get("simulated"))
+        check("every adapter has the spec 1.4 shape",
+              all(isinstance(a, dict) and "id" in a and "name" in a and "kind" in a
+                  and "protocol" in a and "formats" in a and "available" in a
+                  for a in adapters), "shape")
+
+        # --- Test 12: build -------------------------------------------------
+        print("\nTest 12: POST /api/build (flange sample)")
+        resp, body = post("/api/build", flange_build())
+        build_res = json.loads(body) if resp.status == 200 else {}
+        mesh = build_res.get("mesh") or {}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check("ok true", build_res.get("ok") is True, build_res.get("ok"))
+        check("mesh schema chase/mesh/v1", mesh.get("schema") == "chase/mesh/v1",
+              mesh.get("schema"))
+        check("netVolume > 0", isinstance(mesh.get("netVolume"), (int, float))
+              and mesh["netVolume"] > 0, mesh.get("netVolume"))
+        check("exports list", build_res.get("exports") == ["stl", "obj", "gltf", "3mf", "dxf"],
+              build_res.get("exports"))
+        check("build deterministic", post("/api/build", flange_build())[1] == body)
+
+        # --- Test 13: simulate ---------------------------------------------
+        print("\nTest 13: POST /api/simulate")
+        resp, body = post("/api/simulate", simulate_input())
+        sim = json.loads(body) if resp.status == 200 else {}
+        check("status 200", resp.status == 200, "got %s" % resp.status)
+        check("schema chase/sim/v1", sim.get("schema") == "chase/sim/v1", sim.get("schema"))
+        check("mass.mass_g > 0", isinstance((sim.get("mass") or {}).get("mass_g"), (int, float))
+              and sim["mass"]["mass_g"] > 0, sim.get("mass"))
+        check("clearance is a list", isinstance(sim.get("clearance"), list),
+              sim.get("clearance"))
+        check("clearance has the part pair", len(sim.get("clearance") or []) == 1,
+              sim.get("clearance"))
+        check("motion has 25 samples", isinstance(sim.get("motion"), list)
+              and len(sim["motion"]) == 25, len(sim.get("motion") or []))
+        check("each transform is 16 numbers",
+              all(isinstance(m.get("transform"), list) and len(m["transform"]) == 16
+                  for m in (sim.get("motion") or [])), "transform size")
+        check("notes include kinematic estimate",
+              "kinematic estimate" in (sim.get("notes") or []), sim.get("notes"))
+        check("simulate deterministic", post("/api/simulate", simulate_input())[1] == body)
+
+        # --- Test 14: build/simulate 400 -----------------------------------
+        print("\nTest 14: 400 on empty / malformed build + simulate")
+        resp, _ = post_raw("/api/build", b"")
+        check("empty build body -> 400", resp.status == 400, "got %s" % resp.status)
+        resp, _ = post_raw("/api/build", b"not valid json{")
+        check("malformed build -> 400", resp.status == 400, "got %s" % resp.status)
+        resp, _ = post_raw("/api/simulate", b"")
+        check("empty simulate body -> 400", resp.status == 400, "got %s" % resp.status)
+        resp, _ = post_raw("/api/simulate", b"not valid json{")
+        check("malformed simulate -> 400", resp.status == 400, "got %s" % resp.status)
 
         print("\n" + "=" * 50)
         if all_passed:

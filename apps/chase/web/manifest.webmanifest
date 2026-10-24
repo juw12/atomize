@@ -1,12 +1,12 @@
 {
   "name": "Chase — Engineering Cockpit",
   "short_name": "Chase",
-  "description": "Local, deterministic, review-gated engineering copilot for CAD repair and assembly",
+  "description": "Local, deterministic, review-gated engineering copilot for CAD repair and assembly with 3D viewport",
   "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b0f19",
-  "theme_color": "#0b0f19",
+  "background_color": "#0E0E0E",
+  "theme_color": "#0E0E0E",
   "orientation": "any",
   "icons": [
     {

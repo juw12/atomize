@@ -1,21 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
   <!-- Chase/Truss glyph - structural framework -->
   <!-- Top horizontal beam -->
-  <line x1="8" y1="12" x2="56" y2="12" stroke="#3b82f6" stroke-width="3"/>
+  <line x1="8" y1="12" x2="56" y2="12" stroke="#7C9CFF" stroke-width="3"/>
   <!-- Bottom horizontal beam -->
-  <line x1="8" y1="52" x2="56" y2="52" stroke="#3b82f6" stroke-width="3"/>
+  <line x1="8" y1="52" x2="56" y2="52" stroke="#7C9CFF" stroke-width="3"/>
   <!-- Left vertical support -->
-  <line x1="16" y1="12" x2="16" y2="52" stroke="#60a5fa" stroke-width="2.5"/>
+  <line x1="16" y1="12" x2="16" y2="52" stroke="#9DB5FF" stroke-width="2.5"/>
   <!-- Right vertical support -->
-  <line x1="48" y1="12" x2="48" y2="52" stroke="#60a5fa" stroke-width="2.5"/>
+  <line x1="48" y1="12" x2="48" y2="52" stroke="#9DB5FF" stroke-width="2.5"/>
   <!-- Center vertical -->
-  <line x1="32" y1="12" x2="32" y2="52" stroke="#60a5fa" stroke-width="2"/>
+  <line x1="32" y1="12" x2="32" y2="52" stroke="#9DB5FF" stroke-width="2"/>
   <!-- Diagonal braces (left) -->
-  <line x1="16" y1="12" x2="32" y2="32" stroke="#93c5fd" stroke-width="1.5"/>
-  <line x1="16" y1="52" x2="32" y2="32" stroke="#93c5fd" stroke-width="1.5"/>
+  <line x1="16" y1="12" x2="32" y2="32" stroke="#B8C9FF" stroke-width="1.5"/>
+  <line x1="16" y1="52" x2="32" y2="32" stroke="#B8C9FF" stroke-width="1.5"/>
   <!-- Diagonal braces (right) -->
-  <line x1="48" y1="12" x2="32" y2="32" stroke="#93c5fd" stroke-width="1.5"/>
-  <line x1="48" y1="52" x2="32" y2="32" stroke="#93c5fd" stroke-width="1.5"/>
+  <line x1="48" y1="12" x2="32" y2="32" stroke="#B8C9FF" stroke-width="1.5"/>
+  <line x1="48" y1="52" x2="32" y2="32" stroke="#B8C9FF" stroke-width="1.5"/>
   <!-- Center hub -->
-  <circle cx="32" cy="32" r="4" fill="#3b82f6" stroke="none"/>
+  <circle cx="32" cy="32" r="4" fill="#7C9CFF" stroke="none"/>
 </svg>

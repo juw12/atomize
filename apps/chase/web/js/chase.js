@@ -9,7 +9,15 @@
  *   Chase.planRepair(report)            -> RepairPlan                       (§3.2)
  *   Chase.planAssembly(spec)            -> AssemblyPlan                     (§3.3)
  *   Chase.dryRun(plan)                  -> { ok, wouldApply[], blocked[] }  (§3.4)
- *   Chase.samples()                     -> { brokenBracket, gearbox }
+ *   Chase.samples()                     -> { brokenBracket, gearbox, flange }
+ *
+ * Chase v2 (docs/chase-v2-spec.md §1-§2): geometry builder + 3D exporters +
+ * deterministic simulation + universal adapter registry. Still pure/offline.
+ *   Chase.SCHEMA_BUILD / SCHEMA_MESH / SCHEMA_SIM / SCHEMA_ADAPTER
+ *   Chase.buildMesh(buildSpec) -> Mesh
+ *   Chase.exportSTL(mesh, {binary,name}) / exportOBJ / exportGLTF / export3MF / exportDXF
+ *   Chase.simulate(assemblySpec, buildSpec?) -> SimResult
+ *   Chase.adapters() -> Adapter[]
  *
  * Determinism: identical input => identical output. Ordering is fixed by the
  * rules below; all arrays are stable; nothing reads the clock or randomness.
@@ -796,8 +804,1045 @@ var Chase = (function () {
     };
   }
 
+  function flange() {
+    return {
+      schema: SCHEMA_BUILD,
+      name: "Mount flange",
+      units: "mm",
+      material: { name: "Aluminium 6061", density: 2.70 },
+      params: { L: 80, W: 40, T: 6, boreR: 4, boltR: 3 },
+      solids: [
+        { id: "s1", type: "box", x: 0, y: 0, z: 0,
+          params: { dx: "L", dy: "W", dz: "T" } }
+      ],
+      holes: [
+        { id: "h1", type: "cylinder", x: 0, y: 0, z: 0,
+          params: { r: "boreR", h: "T" } },
+        { id: "h2", type: "cylinder", x: -30, y: 15, z: 0,
+          params: { r: "boltR", h: "T" } },
+        { id: "h3", type: "cylinder", x: 30, y: 15, z: 0,
+          params: { r: "boltR", h: "T" } },
+        { id: "h4", type: "cylinder", x: -30, y: -15, z: 0,
+          params: { r: "boltR", h: "T" } },
+        { id: "h5", type: "cylinder", x: 30, y: -15, z: 0,
+          params: { r: "boltR", h: "T" } }
+      ]
+    };
+  }
+
   function samples() {
-    return { brokenBracket: brokenBracket(), gearbox: gearbox() };
+    return {
+      brokenBracket: brokenBracket(),
+      gearbox: gearbox(),
+      flange: flange()
+    };
+  }
+
+  /* ================================================================== */
+  /* v2 — geometry builder, exporters, simulation, adapter registry      */
+  /* (docs/chase-v2-spec.md §1-§2). Deterministic, dependency-free.      */
+  /* ================================================================== */
+
+  var SCHEMA_BUILD = "chase/build-spec/v1";
+  var SCHEMA_MESH = "chase/mesh/v1";
+  var SCHEMA_SIM = "chase/sim/v1";
+  var SCHEMA_ADAPTER = "chase/adapter/v1";
+
+  var CYL_SEG = 24;          /* cylinder / cone radial segments          */
+  var PRISM_MIN = 3;         /* minimum polygon sides                    */
+  var SPHERE_STACKS = 16;    /* sphere latitude divisions               */
+  var SPHERE_SLICES = 24;    /* sphere longitude divisions              */
+  var PI = Math.PI;
+
+  /* ---- numeric / formatting helpers ---- */
+
+  function num(v, d) {
+    return (typeof v === "number" && isFinite(v)) ? v :
+      (d === undefined ? 0 : d);
+  }
+
+  function fmt4(n) {
+    if (typeof n !== "number" || !isFinite(n)) { n = 0; }
+    var s = n.toFixed(4);
+    if (s === "-0.0000") { s = "0.0000"; }
+    return s;
+  }
+
+  function fmtNum(n) {
+    if (typeof n !== "number" || !isFinite(n)) { return "0"; }
+    var r = Math.round(n * 1e6) / 1e6;
+    if (r === 0) { r = 0; }               /* normalise -0 */
+    return String(r);
+  }
+
+  /* resolve a params value: a number, or the name of a key in `defs`. */
+  function resolveValue(defs, val, seen) {
+    if (typeof val === "number") {
+      return isFinite(val) ? val : 0;
+    }
+    if (typeof val === "string") {
+      if (!has(defs, val)) { return 0; }
+      var s = seen || Object.create(null);
+      if (has(s, val)) { return 0; }     /* cycle guard */
+      s[val] = true;
+      return resolveValue(defs, defs[val], s);
+    }
+    return 0;
+  }
+
+  /* resolve every key of a params map to a finite number. */
+  function resolveParams(defs) {
+    var src = isObj(defs) ? defs : {};
+    var out = {};
+    var keys = Object.keys(src);
+    for (var i = 0; i < keys.length; i++) {
+      out[keys[i]] = resolveValue(src, src[keys[i]], Object.create(null));
+    }
+    return out;
+  }
+
+  /* ---- primitives: local-origin geometry (plain arrays) ---- */
+
+  function ring(n, radius, z) {
+    var out = [];
+    for (var k = 0; k < n; k++) {
+      var a = 2 * PI * k / n;
+      out.push([radius * Math.cos(a), radius * Math.sin(a), z]);
+    }
+    return out;
+  }
+
+  function boxGeo(dx, dy, dz) {
+    var hx = dx / 2, hy = dy / 2, hz = dz / 2;
+    var v = [
+      [-hx, -hy, -hz], [hx, -hy, -hz], [hx, hy, -hz], [-hx, hy, -hz],
+      [-hx, -hy, hz], [hx, -hy, hz], [hx, hy, hz], [-hx, hy, hz]
+    ];
+    var t = [
+      [0, 3, 2], [0, 2, 1],      /* -Z */
+      [4, 5, 6], [4, 6, 7],      /* +Z */
+      [0, 1, 5], [0, 5, 4],      /* -Y */
+      [3, 7, 6], [3, 6, 2],      /* +Y */
+      [0, 4, 7], [0, 7, 3],      /* -X */
+      [1, 2, 6], [1, 6, 5]       /* +X */
+    ];
+    return { vertices: v, triangles: t };
+  }
+
+  /* cylinder / prism: n-gon extruded along Z, flat fan caps. */
+  function extrudedPolygon(n, radius, h) {
+    if (n < PRISM_MIN) { n = PRISM_MIN; }
+    var verts = [];
+    var tris = [];
+    var ringB = ring(n, radius, -h / 2);
+    var ringT = ring(n, radius, h / 2);
+    var cb = verts.length; verts.push([0, 0, -h / 2]);
+    var ct = verts.length; verts.push([0, 0, h / 2]);
+    var bot = [], top = [], i;
+    for (i = 0; i < n; i++) { bot.push(verts.length); verts.push(ringB[i]); }
+    for (i = 0; i < n; i++) { top.push(verts.length); verts.push(ringT[i]); }
+    for (i = 0; i < n; i++) {
+      var j = (i + 1) % n;
+      tris.push([cb, bot[j], bot[i]]);
+      tris.push([ct, top[i], top[j]]);
+      tris.push([bot[i], bot[j], top[j]]);
+      tris.push([bot[i], top[j], top[i]]);
+    }
+    return { vertices: verts, triangles: tris };
+  }
+
+  /* cone: two rings (or apex points when a radius is 0). */
+  function coneGeo(r1, r2, h) {
+    var n = CYL_SEG;
+    var verts = [];
+    var tris = [];
+    var cb = verts.length; verts.push([0, 0, -h / 2]);   /* bottom apex/centre */
+    var ct = verts.length; verts.push([0, 0, h / 2]);    /* top apex/centre    */
+    var hasBot = r1 > 0, hasTop = r2 > 0;
+    var bot = [], top = [], i;
+    if (hasBot) {
+      var rb = ring(n, r1, -h / 2);
+      for (i = 0; i < n; i++) { bot.push(verts.length); verts.push(rb[i]); }
+      for (i = 0; i < n; i++) {
+        var jb = (i + 1) % n;
+        tris.push([cb, bot[jb], bot[i]]);
+      }
+    }
+    if (hasTop) {
+      var rt = ring(n, r2, h / 2);
+      for (i = 0; i < n; i++) { top.push(verts.length); verts.push(rt[i]); }
+      for (i = 0; i < n; i++) {
+        var jt = (i + 1) % n;
+        tris.push([ct, top[i], top[jt]]);
+      }
+    }
+    for (i = 0; i < n; i++) {
+      var j = (i + 1) % n;
+      if (hasBot && hasTop) {
+        tris.push([bot[i], bot[j], top[j]]);
+        tris.push([bot[i], top[j], top[i]]);
+      } else if (hasBot) {
+        tris.push([bot[i], bot[j], ct]);
+      } else if (hasTop) {
+        tris.push([cb, top[j], top[i]]);
+      }
+    }
+    return { vertices: verts, triangles: tris };
+  }
+
+  /* sphere: UV tessellation with single pole vertices (no degenerates). */
+  function sphereGeo(r) {
+    var stacks = SPHERE_STACKS, slices = SPHERE_SLICES;
+    var verts = [];
+    var tris = [];
+    var i, j;
+    var top = verts.length; verts.push([0, 0, r]);
+    var bottom = verts.length; verts.push([0, 0, -r]);
+    var rings = [];
+    for (i = 1; i < stacks; i++) {
+      var phi = PI * i / stacks;
+      var z = r * Math.cos(phi);
+      var rr = r * Math.sin(phi);
+      var row = [];
+      for (j = 0; j < slices; j++) {
+        var a = 2 * PI * j / slices;
+        row.push(verts.length);
+        verts.push([rr * Math.cos(a), rr * Math.sin(a), z]);
+      }
+      rings.push(row);
+    }
+    for (j = 0; j < slices; j++) {
+      var jt = (j + 1) % slices;
+      tris.push([top, rings[0][jt], rings[0][j]]);
+    }
+    for (i = 0; i < rings.length - 1; i++) {
+      var a1 = rings[i], b1 = rings[i + 1];
+      for (j = 0; j < slices; j++) {
+        var k = (j + 1) % slices;
+        tris.push([a1[j], a1[k], b1[k]]);
+        tris.push([a1[j], b1[k], b1[j]]);
+      }
+    }
+    var last = rings[rings.length - 1];
+    for (j = 0; j < slices; j++) {
+      var jb = (j + 1) % slices;
+      tris.push([bottom, last[j], last[jb]]);
+    }
+    return { vertices: verts, triangles: tris };
+  }
+
+  function primNums(type, params, defs) {
+    var g = function (k) { return resolveValue(defs, params[k]); };
+    if (type === "box") { return { dx: g("dx"), dy: g("dy"), dz: g("dz") }; }
+    if (type === "cylinder") { return { r: g("r"), h: g("h") }; }
+    if (type === "cone") { return { r1: g("r1"), r2: g("r2"), h: g("h") }; }
+    if (type === "sphere") { return { r: g("r") }; }
+    if (type === "prism") { return { sides: g("sides"), r: g("r"), h: g("h") }; }
+    return {};
+  }
+
+  function primVertsTris(type, p) {
+    if (type === "box") { return boxGeo(p.dx, p.dy, p.dz); }
+    if (type === "cylinder") { return extrudedPolygon(CYL_SEG, p.r, p.h); }
+    if (type === "cone") { return coneGeo(p.r1, p.r2, p.h); }
+    if (type === "sphere") { return sphereGeo(p.r); }
+    if (type === "prism") { return extrudedPolygon(Math.floor(p.sides), p.r, p.h); }
+    return { vertices: [], triangles: [] };
+  }
+
+  function primVolume(type, p) {
+    if (type === "box") { return p.dx * p.dy * p.dz; }
+    if (type === "cylinder") { return PI * p.r * p.r * p.h; }
+    if (type === "cone") {
+      return PI * p.h / 3 * (p.r1 * p.r1 + p.r1 * p.r2 + p.r2 * p.r2);
+    }
+    if (type === "sphere") { return 4 / 3 * PI * p.r * p.r * p.r; }
+    if (type === "prism") {
+      var n = Math.floor(p.sides);
+      if (n < PRISM_MIN) { return 0; }
+      return 0.5 * n * p.r * p.r * Math.sin(2 * PI / n) * p.h;
+    }
+    return 0;
+  }
+
+  function geomPart(spec, defs) {
+    var sp = isObj(spec) ? spec : {};
+    var type = typeof sp.type === "string" ? sp.type : "";
+    var params = isObj(sp.params) ? sp.params : {};
+    var nums = primNums(type, params, defs);
+    var geo = primVertsTris(type, nums);
+    var tx = num(sp.x, 0), ty = num(sp.y, 0), tz = num(sp.z, 0);
+    var verts = [];
+    for (var i = 0; i < geo.vertices.length; i++) {
+      var v = geo.vertices[i];
+      verts.push([v[0] + tx, v[1] + ty, v[2] + tz]);
+    }
+    return {
+      id: sp.id,
+      type: type,
+      vertices: verts,
+      triangles: geo.triangles,
+      volume: primVolume(type, nums)
+    };
+  }
+
+  function buildMesh(buildSpec) {
+    var bs = isObj(buildSpec) ? buildSpec : {};
+    var defs = isObj(bs.params) ? bs.params : {};
+    var parts = [];
+    var holes = [];
+    var min = [Infinity, Infinity, Infinity];
+    var max = [-Infinity, -Infinity, -Infinity];
+    var volume = 0, holeVolume = 0, triangles = 0;
+
+    function add(list, spec, isHole) {
+      var part = geomPart(spec, defs);
+      list.push(part);
+      if (isHole) { holeVolume += part.volume; } else { volume += part.volume; }
+      triangles += part.triangles.length;
+      for (var i = 0; i < part.vertices.length; i++) {
+        var v = part.vertices[i];
+        if (v[0] < min[0]) { min[0] = v[0]; }
+        if (v[1] < min[1]) { min[1] = v[1]; }
+        if (v[2] < min[2]) { min[2] = v[2]; }
+        if (v[0] > max[0]) { max[0] = v[0]; }
+        if (v[1] > max[1]) { max[1] = v[1]; }
+        if (v[2] > max[2]) { max[2] = v[2]; }
+      }
+    }
+
+    var solids = asArray(bs.solids);
+    for (var s = 0; s < solids.length; s++) { add(parts, solids[s], false); }
+    var hs = asArray(bs.holes);
+    for (var h = 0; h < hs.length; h++) { add(holes, hs[h], true); }
+
+    if (min[0] === Infinity) { min = [0, 0, 0]; max = [0, 0, 0]; }
+
+    return {
+      schema: SCHEMA_MESH,
+      parts: parts,
+      holes: holes,
+      bounds: { min: min, max: max },
+      volume: volume,
+      holeVolume: holeVolume,
+      netVolume: volume - holeVolume,
+      triangles: triangles
+    };
+  }
+
+  /* ---- shared export helpers ---- */
+
+  function triNormal(a, b, c) {
+    var ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+    var vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    var nx = uy * vz - uz * vy;
+    var ny = uz * vx - ux * vz;
+    var nz = ux * vy - uy * vx;
+    var len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+    if (len > 0) { nx /= len; ny /= len; nz /= len; }
+    else { nx = 0; ny = 0; nz = 0; }
+    return [nx, ny, nz];
+  }
+
+  function collectTris(mesh) {
+    var out = [];
+    var parts = asArray(mesh && mesh.parts);
+    for (var p = 0; p < parts.length; p++) {
+      var part = parts[p] || {};
+      var verts = asArray(part.vertices);
+      var tris = asArray(part.triangles);
+      for (var t = 0; t < tris.length; t++) {
+        var tr = tris[t];
+        out.push([verts[tr[0]], verts[tr[1]], verts[tr[2]]]);
+      }
+    }
+    return out;
+  }
+
+  function utf8Bytes(str) {
+    str = String(str);
+    var out = [];
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      if (c < 0x80) {
+        out.push(c);
+      } else if (c < 0x800) {
+        out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      } else if (c >= 0xd800 && c < 0xdc00 && i + 1 < str.length) {
+        var c2 = str.charCodeAt(i + 1); i++;
+        var cp = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
+        out.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63),
+                 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+      } else {
+        out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      }
+    }
+    return new Uint8Array(out);
+  }
+
+  function concatBytes(arrays) {
+    var len = 0, i;
+    for (i = 0; i < arrays.length; i++) { len += arrays[i].length; }
+    var out = new Uint8Array(len);
+    var off = 0;
+    for (i = 0; i < arrays.length; i++) {
+      out.set(arrays[i], off);
+      off += arrays[i].length;
+    }
+    return out;
+  }
+
+  var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  function base64(bytes) {
+    var out = "";
+    for (var i = 0; i < bytes.length; i += 3) {
+      var b0 = bytes[i];
+      var b1 = i + 1 < bytes.length ? bytes[i + 1] : 0;
+      var b2 = i + 2 < bytes.length ? bytes[i + 2] : 0;
+      var n = (b0 << 16) | (b1 << 8) | b2;
+      out += B64[(n >> 18) & 63] + B64[(n >> 12) & 63] +
+        (i + 1 < bytes.length ? B64[(n >> 6) & 63] : "=") +
+        (i + 2 < bytes.length ? B64[n & 63] : "=");
+    }
+    return out;
+  }
+
+  /* ---- STL ---- */
+
+  function stlAscii(mesh, name) {
+    var tris = collectTris(mesh);
+    var out = ["solid " + name];
+    for (var t = 0; t < tris.length; t++) {
+      var a = tris[t][0], b = tris[t][1], c = tris[t][2];
+      var nr = triNormal(a, b, c);
+      out.push("  facet normal " + fmt4(nr[0]) + " " + fmt4(nr[1]) + " " + fmt4(nr[2]));
+      out.push("    outer loop");
+      out.push("      vertex " + fmt4(a[0]) + " " + fmt4(a[1]) + " " + fmt4(a[2]));
+      out.push("      vertex " + fmt4(b[0]) + " " + fmt4(b[1]) + " " + fmt4(b[2]));
+      out.push("      vertex " + fmt4(c[0]) + " " + fmt4(c[1]) + " " + fmt4(c[2]));
+      out.push("    endloop");
+      out.push("  endfacet");
+    }
+    out.push("endsolid " + name);
+    return out.join("\n") + "\n";
+  }
+
+  function stlBinary(mesh, name) {
+    var tris = collectTris(mesh);
+    var n = tris.length;
+    var buf = new Uint8Array(84 + n * 50);
+    var dv = new DataView(buf.buffer);
+    var header = "Chase binary STL - " + name;
+    for (var i = 0; i < 80; i++) {
+      buf[i] = i < header.length ? (header.charCodeAt(i) & 0x7f) : 0x20;
+    }
+    dv.setUint32(80, n, true);
+    var off = 84;
+    for (var t = 0; t < n; t++) {
+      var a = tris[t][0], b = tris[t][1], c = tris[t][2];
+      var nr = triNormal(a, b, c);
+      dv.setFloat32(off, nr[0], true); off += 4;
+      dv.setFloat32(off, nr[1], true); off += 4;
+      dv.setFloat32(off, nr[2], true); off += 4;
+      dv.setFloat32(off, a[0], true); off += 4;
+      dv.setFloat32(off, a[1], true); off += 4;
+      dv.setFloat32(off, a[2], true); off += 4;
+      dv.setFloat32(off, b[0], true); off += 4;
+      dv.setFloat32(off, b[1], true); off += 4;
+      dv.setFloat32(off, b[2], true); off += 4;
+      dv.setFloat32(off, c[0], true); off += 4;
+      dv.setFloat32(off, c[1], true); off += 4;
+      dv.setFloat32(off, c[2], true); off += 4;
+      dv.setUint16(off, 0, true); off += 2;
+    }
+    return buf;
+  }
+
+  function exportSTL(mesh, opts) {
+    var o = isObj(opts) ? opts : {};
+    var name = (typeof o.name === "string" && o.name) ? o.name : "chase";
+    if (o.binary) { return stlBinary(mesh, name); }
+    return stlAscii(mesh, name);
+  }
+
+  /* ---- OBJ ---- */
+
+  function exportOBJ(mesh) {
+    var lines = ["# Chase OBJ export"];
+    var parts = asArray(mesh && mesh.parts);
+    var offset = 0, p, v, t;
+    for (p = 0; p < parts.length; p++) {
+      var part = parts[p] || {};
+      lines.push("o " + (part.id !== undefined ? part.id : "part"));
+      var verts = asArray(part.vertices);
+      for (v = 0; v < verts.length; v++) {
+        lines.push("v " + fmtNum(verts[v][0]) + " " + fmtNum(verts[v][1]) +
+                   " " + fmtNum(verts[v][2]));
+      }
+      var tris = asArray(part.triangles);
+      for (t = 0; t < tris.length; t++) {
+        var tr = tris[t];
+        lines.push("f " + (tr[0] + 1 + offset) + " " + (tr[1] + 1 + offset) +
+                   " " + (tr[2] + 1 + offset));
+      }
+      offset += verts.length;
+    }
+    return lines.join("\n") + "\n";
+  }
+
+  /* ---- glTF 2.0 ---- */
+
+  function exportGLTF(mesh) {
+    var parts = asArray(mesh && mesh.parts);
+    var positions = [];
+    var indices = [];
+    var vcount = 0, p, v, t;
+    for (p = 0; p < parts.length; p++) {
+      var part = parts[p] || {};
+      var verts = asArray(part.vertices);
+      for (v = 0; v < verts.length; v++) {
+        positions.push(verts[v][0], verts[v][1], verts[v][2]);
+      }
+      var tris = asArray(part.triangles);
+      for (t = 0; t < tris.length; t++) {
+        var tr = tris[t];
+        indices.push(tr[0] + vcount, tr[1] + vcount, tr[2] + vcount);
+      }
+      vcount += verts.length;
+    }
+
+    var posBytes = positions.length * 4;
+    var idxBytes = indices.length * 4;
+    var buffer = new ArrayBuffer(posBytes + idxBytes);
+    var dv = new DataView(buffer);
+    var off = 0, i;
+    for (i = 0; i < positions.length; i++) { dv.setFloat32(off, positions[i], true); off += 4; }
+    for (i = 0; i < indices.length; i++) { dv.setUint32(off, indices[i], true); off += 4; }
+    var b64 = base64(new Uint8Array(buffer));
+
+    var pmin = [0, 0, 0], pmax = [0, 0, 0];
+    if (vcount > 0) {
+      pmin = [Infinity, Infinity, Infinity];
+      pmax = [-Infinity, -Infinity, -Infinity];
+      for (i = 0; i < positions.length; i += 3) {
+        for (var k = 0; k < 3; k++) {
+          if (positions[i + k] < pmin[k]) { pmin[k] = positions[i + k]; }
+          if (positions[i + k] > pmax[k]) { pmax[k] = positions[i + k]; }
+        }
+      }
+    }
+
+    var gltf = {
+      asset: { version: "2.0", generator: "Chase" },
+      scene: 0,
+      scenes: [{ nodes: [0] }],
+      nodes: [{ mesh: 0 }],
+      meshes: [{
+        primitives: [{ attributes: { POSITION: 0 }, indices: 1, mode: 4 }]
+      }],
+      accessors: [
+        { bufferView: 0, byteOffset: 0, componentType: 5126, count: vcount,
+          type: "VEC3", min: pmin, max: pmax },
+        { bufferView: 1, byteOffset: 0, componentType: 5125,
+          count: indices.length, type: "SCALAR" }
+      ],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: posBytes, target: 34962 },
+        { buffer: 0, byteOffset: posBytes, byteLength: idxBytes, target: 34963 }
+      ],
+      buffers: [{
+        byteLength: posBytes + idxBytes,
+        uri: "data:application/octet-stream;base64," + b64
+      }]
+    };
+    return JSON.stringify(gltf);
+  }
+
+  /* ---- 3MF (store-only ZIP) ---- */
+
+  var CRC_TABLE = null;
+
+  function crc32(bytes) {
+    if (CRC_TABLE === null) {
+      CRC_TABLE = [];
+      for (var n = 0; n < 256; n++) {
+        var c = n;
+        for (var k = 0; k < 8; k++) {
+          c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        CRC_TABLE[n] = c >>> 0;
+      }
+    }
+    var crc = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) {
+      crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function zipStore(entries) {
+    var DOS_TIME = 0x0000;
+    var DOS_DATE = 0x0021;   /* 1980-01-01, fixed for determinism */
+    var locals = [];
+    var central = [];
+    var offset = 0, e;
+    for (e = 0; e < entries.length; e++) {
+      var nameBytes = utf8Bytes(entries[e].name);
+      var data = entries[e].data;
+      var crc = crc32(data);
+
+      var lh = new Uint8Array(30 + nameBytes.length);
+      var ldv = new DataView(lh.buffer);
+      ldv.setUint32(0, 0x04034b50, true);
+      ldv.setUint16(4, 20, true);
+      ldv.setUint16(6, 0, true);
+      ldv.setUint16(8, 0, true);
+      ldv.setUint16(10, DOS_TIME, true);
+      ldv.setUint16(12, DOS_DATE, true);
+      ldv.setUint32(14, crc, true);
+      ldv.setUint32(18, data.length, true);
+      ldv.setUint32(22, data.length, true);
+      ldv.setUint16(26, nameBytes.length, true);
+      ldv.setUint16(28, 0, true);
+      lh.set(nameBytes, 30);
+      locals.push(lh, data);
+
+      var cd = new Uint8Array(46 + nameBytes.length);
+      var cdv = new DataView(cd.buffer);
+      cdv.setUint32(0, 0x02014b50, true);
+      cdv.setUint16(4, 20, true);
+      cdv.setUint16(6, 20, true);
+      cdv.setUint16(8, 0, true);
+      cdv.setUint16(10, 0, true);
+      cdv.setUint16(12, DOS_TIME, true);
+      cdv.setUint16(14, DOS_DATE, true);
+      cdv.setUint32(16, crc, true);
+      cdv.setUint32(20, data.length, true);
+      cdv.setUint32(24, data.length, true);
+      cdv.setUint16(28, nameBytes.length, true);
+      cdv.setUint16(30, 0, true);
+      cdv.setUint16(32, 0, true);
+      cdv.setUint16(34, 0, true);
+      cdv.setUint16(36, 0, true);
+      cdv.setUint32(38, 0, true);
+      cdv.setUint32(42, offset, true);
+      cd.set(nameBytes, 46);
+      central.push(cd);
+
+      offset += lh.length + data.length;
+    }
+
+    var cdOffset = offset;
+    var cdSize = 0;
+    for (e = 0; e < central.length; e++) { cdSize += central[e].length; }
+
+    var body = concatBytes(locals.concat(central));
+
+    var eocd = new Uint8Array(22);
+    var ev = new DataView(eocd.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(4, 0, true);
+    ev.setUint16(6, 0, true);
+    ev.setUint16(8, entries.length, true);
+    ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, cdSize, true);
+    ev.setUint32(16, cdOffset, true);
+    ev.setUint16(20, 0, true);
+
+    return concatBytes([body, eocd]);
+  }
+
+  function build3mfModel(mesh) {
+    var parts = asArray(mesh && mesh.parts);
+    var verts = [];
+    var tris = [];
+    var vcount = 0, p, v, t;
+    for (p = 0; p < parts.length; p++) {
+      var part = parts[p] || {};
+      var vs = asArray(part.vertices);
+      for (v = 0; v < vs.length; v++) { verts.push(vs[v]); }
+      var ts = asArray(part.triangles);
+      for (t = 0; t < ts.length; t++) {
+        var tr = ts[t];
+        tris.push([tr[0] + vcount, tr[1] + vcount, tr[2] + vcount]);
+      }
+      vcount += vs.length;
+    }
+    var out = [];
+    out.push('<?xml version="1.0" encoding="UTF-8"?>');
+    out.push('<model unit="millimeter" xml:lang="en-US" ' +
+      'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">');
+    out.push("<resources>");
+    out.push('<object id="1" type="model">');
+    out.push("<mesh>");
+    out.push("<vertices>");
+    for (v = 0; v < verts.length; v++) {
+      out.push('<vertex x="' + fmtNum(verts[v][0]) + '" y="' + fmtNum(verts[v][1]) +
+               '" z="' + fmtNum(verts[v][2]) + '"/>');
+    }
+    out.push("</vertices>");
+    out.push("<triangles>");
+    for (t = 0; t < tris.length; t++) {
+      out.push('<triangle v1="' + tris[t][0] + '" v2="' + tris[t][1] +
+               '" v3="' + tris[t][2] + '"/>');
+    }
+    out.push("</triangles>");
+    out.push("</mesh>");
+    out.push("</object>");
+    out.push("</resources>");
+    out.push('<build><item objectid="1"/></build>');
+    out.push("</model>");
+    return out.join("\n");
+  }
+
+  function export3MF(mesh) {
+    var contentTypes =
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>' +
+      "</Types>";
+    var rels =
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Target="/3D/3dmodel.model" Id="rel0" ' +
+      'Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>' +
+      "</Relationships>";
+    var model = build3mfModel(mesh);
+    return zipStore([
+      { name: "[Content_Types].xml", data: utf8Bytes(contentTypes) },
+      { name: "_rels/.rels", data: utf8Bytes(rels) },
+      { name: "3D/3dmodel.model", data: utf8Bytes(model) }
+    ]);
+  }
+
+  /* ---- DXF ---- */
+
+  function convexHull(points) {
+    var pts = points.slice().sort(function (a, b) {
+      return (a[0] - b[0]) || (a[1] - b[1]);
+    });
+    var uniq = [];
+    for (var i = 0; i < pts.length; i++) {
+      var last = uniq[uniq.length - 1];
+      if (!last || last[0] !== pts[i][0] || last[1] !== pts[i][1]) {
+        uniq.push(pts[i]);
+      }
+    }
+    if (uniq.length <= 2) { return uniq; }
+    function cross(o, a, b) {
+      return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    }
+    var lower = [];
+    for (var l = 0; l < uniq.length; l++) {
+      while (lower.length >= 2 &&
+             cross(lower[lower.length - 2], lower[lower.length - 1], uniq[l]) <= 0) {
+        lower.pop();
+      }
+      lower.push(uniq[l]);
+    }
+    var upper = [];
+    for (var u = uniq.length - 1; u >= 0; u--) {
+      while (upper.length >= 2 &&
+             cross(upper[upper.length - 2], upper[upper.length - 1], uniq[u]) <= 0) {
+        upper.pop();
+      }
+      upper.push(uniq[u]);
+    }
+    lower.pop();
+    upper.pop();
+    return lower.concat(upper);
+  }
+
+  function holeCircle(hole) {
+    var verts = asArray(hole && hole.vertices);
+    if (!verts.length) { return { cx: 0, cy: 0, r: 0 }; }
+    var minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    var i;
+    for (i = 0; i < verts.length; i++) {
+      if (verts[i][0] < minx) { minx = verts[i][0]; }
+      if (verts[i][1] < miny) { miny = verts[i][1]; }
+      if (verts[i][0] > maxx) { maxx = verts[i][0]; }
+      if (verts[i][1] > maxy) { maxy = verts[i][1]; }
+    }
+    var cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+    var r = 0;
+    for (i = 0; i < verts.length; i++) {
+      var dx = verts[i][0] - cx, dy = verts[i][1] - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > r) { r = dist; }
+    }
+    return { cx: cx, cy: cy, r: r };
+  }
+
+  function exportDXF(mesh) {
+    var parts = asArray(mesh && mesh.parts);
+    var pts = [];
+    var p, v;
+    for (p = 0; p < parts.length; p++) {
+      var verts = asArray(parts[p] && parts[p].vertices);
+      for (v = 0; v < verts.length; v++) { pts.push([verts[v][0], verts[v][1]]); }
+    }
+    var hull = convexHull(pts);
+    var lines = [];
+    lines.push("0", "SECTION", "2", "ENTITIES");
+    lines.push("0", "LWPOLYLINE", "8", "0");
+    lines.push("90", String(hull.length));
+    lines.push("70", hull.length > 2 ? "1" : "0");
+    for (v = 0; v < hull.length; v++) {
+      lines.push("10", fmtNum(hull[v][0]), "20", fmtNum(hull[v][1]));
+    }
+    var holes = asArray(mesh && mesh.holes);
+    for (v = 0; v < holes.length; v++) {
+      var c = holeCircle(holes[v]);
+      lines.push("0", "CIRCLE", "8", "0");
+      lines.push("10", fmtNum(c.cx), "20", fmtNum(c.cy), "40", fmtNum(c.r));
+    }
+    lines.push("0", "ENDSEC", "0", "EOF");
+    return lines.join("\n") + "\n";
+  }
+
+  /* ---- simulation ---- */
+
+  function centroidOfSolids(mesh) {
+    var parts = asArray(mesh && mesh.parts);
+    var sx = 0, sy = 0, sz = 0, n = 0;
+    for (var p = 0; p < parts.length; p++) {
+      var verts = asArray(parts[p] && parts[p].vertices);
+      var tris = asArray(parts[p] && parts[p].triangles);
+      for (var t = 0; t < tris.length; t++) {
+        var tr = tris[t];
+        var a = verts[tr[0]], b = verts[tr[1]], c = verts[tr[2]];
+        if (!a || !b || !c) { continue; }
+        sx += (a[0] + b[0] + c[0]) / 3;
+        sy += (a[1] + b[1] + c[1]) / 3;
+        sz += (a[2] + b[2] + c[2]) / 3;
+        n += 1;
+      }
+    }
+    if (n === 0) { return [0, 0, 0]; }
+    return [sx / n, sy / n, sz / n];
+  }
+
+  function partAABB(part) {
+    var p = isObj(part) ? part : {};
+    var pos = Array.isArray(p.pos)
+      ? [num(p.pos[0]), num(p.pos[1]), num(p.pos[2])]
+      : [num(p.x, 0), num(p.y, 0), num(p.z, 0)];
+    var size;
+    if (Array.isArray(p.size)) {
+      size = [num(p.size[0]), num(p.size[1]), num(p.size[2])];
+    } else {
+      size = [num(p.dx, 0), num(p.dy, 0), num(p.dz, 0)];
+    }
+    return {
+      min: [pos[0] - size[0] / 2, pos[1] - size[1] / 2, pos[2] - size[2] / 2],
+      max: [pos[0] + size[0] / 2, pos[1] + size[1] / 2, pos[2] + size[2] / 2]
+    };
+  }
+
+  function aabbGap(A, B) {
+    var seps = [];
+    for (var k = 0; k < 3; k++) {
+      var s = Math.max(A.min[k] - B.max[k], B.min[k] - A.max[k]);
+      seps.push(s);
+    }
+    var anyPositive = seps[0] > 0 || seps[1] > 0 || seps[2] > 0;
+    if (!anyPositive) { return { verdict: "interfere", gap: 0 }; }
+    var gap = Infinity;
+    for (k = 0; k < 3; k++) {
+      if (seps[k] > 0 && seps[k] < gap) { gap = seps[k]; }
+    }
+    return { verdict: "clear", gap: gap };
+  }
+
+  function norm3(v) {
+    if (!Array.isArray(v) || v.length < 3) { return [0, 0, 1]; }
+    var x = num(v[0]), y = num(v[1]), z = num(v[2]);
+    var len = Math.sqrt(x * x + y * y + z * z);
+    if (len === 0) { return [0, 0, 1]; }
+    return [x / len, y / len, z / len];
+  }
+
+  function identityTransform() {
+    return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  }
+
+  function axisOrigin(mate) {
+    var axis = norm3(mate && mate.axis);
+    var origin = Array.isArray(mate && mate.origin)
+      ? [num(mate.origin[0]), num(mate.origin[1]), num(mate.origin[2])]
+      : [0, 0, 0];
+    return { axis: axis, origin: origin };
+  }
+
+  function rotTransform(axis, origin, angle) {
+    var ux = axis[0], uy = axis[1], uz = axis[2];
+    var c = Math.cos(angle), s = Math.sin(angle), C = 1 - c;
+    var r00 = c + ux * ux * C, r01 = ux * uy * C - uz * s, r02 = ux * uz * C + uy * s;
+    var r10 = uy * ux * C + uz * s, r11 = c + uy * uy * C, r12 = uy * uz * C - ux * s;
+    var r20 = uz * ux * C - uy * s, r21 = uz * uy * C + ux * s, r22 = c + uz * uz * C;
+    var ox = origin[0], oy = origin[1], oz = origin[2];
+    var tx = ox - (r00 * ox + r01 * oy + r02 * oz);
+    var ty = oy - (r10 * ox + r11 * oy + r12 * oz);
+    var tz = oz - (r20 * ox + r21 * oy + r22 * oz);
+    return [r00, r10, r20, 0, r01, r11, r21, 0,
+            r02, r12, r22, 0, tx, ty, tz, 1];
+  }
+
+  function translateTransform(axis, d) {
+    return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+            axis[0] * d, axis[1] * d, axis[2] * d, 1];
+  }
+
+  function simulate(assemblySpec, buildSpec) {
+    var asm = isObj(assemblySpec) ? assemblySpec : {};
+    var parts = asArray(asm.parts);
+    var mates = asArray(asm.mates);
+    var bs = isObj(buildSpec) ? buildSpec : null;
+
+    var mesh = bs ? buildMesh(bs) : null;
+    var netVolume = mesh ? mesh.netVolume : 0;
+    var density = (bs && isObj(bs.material) &&
+      typeof bs.material.density === "number") ? bs.material.density : 0;
+    var material = (bs && isObj(bs.material) &&
+      typeof bs.material.name === "string") ? bs.material.name : "";
+    var centroid = mesh ? centroidOfSolids(mesh) : [0, 0, 0];
+
+    var aabbs = [];
+    for (var ai = 0; ai < parts.length; ai++) { aabbs.push(partAABB(parts[ai])); }
+
+    var clearance = [];
+    var interferences = 0;
+    for (var i = 0; i < parts.length; i++) {
+      for (var j = i + 1; j < parts.length; j++) {
+        var g = aabbGap(aabbs[i], aabbs[j]);
+        if (g.verdict === "interfere") { interferences += 1; }
+        clearance.push({
+          a: parts[i] && parts[i].id,
+          b: parts[j] && parts[j].id,
+          gap_mm: g.gap,
+          verdict: g.verdict
+        });
+      }
+    }
+
+    var motion = [];
+    var dof = 0;
+    for (var mi = 0; mi < mates.length; mi++) {
+      var m = mates[mi] || {};
+      var type = m.type;
+      if (type !== "fixed") { dof += 1; }
+      var ao = axisOrigin(m);
+      var child = (m.b !== undefined) ? m.b : m.a;
+      for (var s = 0; s <= 24; s++) {
+        var t = s / 24;
+        var T;
+        if (type === "concentric" || type === "gear") {
+          T = rotTransform(ao.axis, ao.origin, t * 2 * PI);
+        } else if (type === "slider") {
+          T = translateTransform(ao.axis, t * 50);
+        } else {
+          T = identityTransform();
+        }
+        motion.push({ t: t, joint: m.id, part: child, transform: T });
+      }
+    }
+
+    return {
+      schema: SCHEMA_SIM,
+      mass: {
+        volume_mm3: netVolume,
+        mass_g: netVolume / 1000 * density,
+        centroid: centroid,
+        material: material
+      },
+      clearance: clearance,
+      motion: motion,
+      dof: dof,
+      summary: {
+        parts: parts.length,
+        joints: mates.length,
+        interferences: interferences
+      },
+      notes: ["kinematic estimate"]
+    };
+  }
+
+  /* ---- universal adapter registry ---- */
+
+  function adapter(id, name, kind, protocol, formats, available, notes) {
+    return {
+      schema: SCHEMA_ADAPTER,
+      id: id,
+      name: name,
+      kind: kind,
+      protocol: protocol,
+      formats: formats,
+      available: available,
+      notes: notes
+    };
+  }
+
+  function adapters() {
+    return [
+      adapter("fusion", "Autodesk Fusion", "cad", "python-api",
+        ["F3D", "STEP", "STL", "OBJ"], false,
+        "Fusion Python API add-in (no host in this environment)"),
+      adapter("solidworks", "SOLIDWORKS", "cad", "com",
+        ["SLDPRT", "SLDASM", "STEP", "STL"], false,
+        "SOLIDWORKS COM connector (no host in this environment)"),
+      adapter("freecad", "FreeCAD", "cad", "python-api",
+        ["FCStd", "STEP", "STL"], false,
+        "FreeCAD Python API (no host in this environment)"),
+      adapter("blender", "Blender", "mesh", "python-api",
+        ["BLEND", "STL", "OBJ", "GLTF"], false,
+        "Blender bpy module (no host in this environment)"),
+      adapter("onshape", "Onshape", "cad", "rest",
+        ["STEP", "STL", "GLTF"], false,
+        "Onshape REST API (no credentials in this environment)"),
+      adapter("rhino", "Rhino 3D", "cad", "python-api",
+        ["3DM", "STEP", "STL"], false,
+        "Rhino.Python / rhino3dm (no host in this environment)"),
+      adapter("sketchup", "SketchUp", "cad", "cli",
+        ["SKP", "STL", "OBJ"], false,
+        "SketchUp Ruby API extension (no host in this environment)"),
+      adapter("inventor", "Autodesk Inventor", "cad", "com",
+        ["IPT", "IAM", "STEP", "STL"], false,
+        "Inventor COM API (no host in this environment)"),
+      adapter("autocad", "AutoCAD", "cad", "com",
+        ["DWG", "DXF"], false,
+        "AutoCAD COM/.NET API (no host in this environment)"),
+      adapter("catia", "CATIA", "cad", "com",
+        ["CATPart", "CATProduct", "STEP", "STL"], false,
+        "CATIA COM/automation (no host in this environment)"),
+      adapter("solid-edge", "Solid Edge", "cad", "com",
+        ["PAR", "ASM", "STEP", "STL"], false,
+        "Solid Edge COM API (no host in this environment)"),
+      adapter("creo", "PTC Creo", "cad", "cli",
+        ["PRT", "ASM", "STEP", "STL"], false,
+        "Creo Toolkit / batch (no host in this environment)"),
+      adapter("maya", "Autodesk Maya", "mesh", "python-api",
+        ["MA", "MB", "OBJ", "GLTF"], false,
+        "Maya Python API (no host in this environment)"),
+      adapter("step", "STEP / IGES (generic)", "format", "file",
+        ["STEP", "STP", "IGES", "IGS"], true,
+        "Neutral CAD interchange files"),
+      adapter("stl", "STL (generic)", "format", "file",
+        ["STL"], true, "Mesh format (ascii + binary)"),
+      adapter("obj", "OBJ (generic)", "format", "file",
+        ["OBJ"], true, "Wavefront mesh format"),
+      adapter("gltf", "glTF 2.0 (generic)", "format", "file",
+        ["GLTF", "GLB"], true, "glTF 2.0 scene with embedded buffer"),
+      adapter("threemf", "3MF (generic)", "format", "file",
+        ["3MF"], true, "3D Manufacturing Format (store-only ZIP)"),
+      adapter("dxf", "DXF (generic)", "format", "file",
+        ["DXF"], true, "2D outline + hole circles"),
+      adapter("simulated", "Chase Simulation", "mesh", "file",
+        ["STL", "OBJ", "GLTF", "3MF", "DXF"], true,
+        "In-engine deterministic build + kinematic simulation")
+    ];
   }
 
   return {
@@ -810,7 +1855,20 @@ var Chase = (function () {
     planRepair: planRepair,
     planAssembly: planAssembly,
     dryRun: dryRun,
-    samples: samples
+    samples: samples,
+    SCHEMA_BUILD: SCHEMA_BUILD,
+    SCHEMA_MESH: SCHEMA_MESH,
+    SCHEMA_SIM: SCHEMA_SIM,
+    SCHEMA_ADAPTER: SCHEMA_ADAPTER,
+    resolveParams: resolveParams,
+    buildMesh: buildMesh,
+    exportSTL: exportSTL,
+    exportOBJ: exportOBJ,
+    exportGLTF: exportGLTF,
+    export3MF: export3MF,
+    exportDXF: exportDXF,
+    simulate: simulate,
+    adapters: adapters
   };
 })();
 
