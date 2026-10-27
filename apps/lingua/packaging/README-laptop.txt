@@ -17,7 +17,8 @@ Install
 
 Updates
 -------
-Lingua checks for a new version when it starts. When one is ready you see a
+Lingua checks for a new version when it starts and every 4 hours while open.
+Click the "Updates" button (top right) to check any time. When one is ready you see a
 blue "Update" button: click it, then "Update now". Lingua downloads the new
 version, restarts itself, and keeps your settings, history and lingua.env.
 Check by hand any time: (i) button -> Check for updates.

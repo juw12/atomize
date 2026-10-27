@@ -9,6 +9,7 @@ Mixed into ``LinguaWindow``; relies on its ``root``, ``cfg``, ``_theme``,
 from __future__ import annotations
 
 import queue
+import os
 import threading
 import tkinter as tk
 import webbrowser
@@ -55,12 +56,38 @@ class UpdateMixin:
 
     # -- checking -------------------------------------------------------------
 
+    def _update_recheck_ms(self) -> int:
+        """How often a running Lingua looks for a new release (default every 4 hours)."""
+        try:
+            minutes = float(os.environ.get("LINGUA_UPDATE_EVERY_MIN", "240"))
+        except ValueError:
+            minutes = 240.0
+        return max(1, int(minutes * 60 * 1000))
+
+    def _periodic_update_check(self) -> None:
+        """Re-check in the background so an all-day session still sees new versions."""
+        if self.cfg.get("auto_update", True) and self._update_info is None:
+            self._check_updates(manual=False)
+        try:
+            self.root.after(self._update_recheck_ms(), self._periodic_update_check)
+        except tk.TclError:
+            pass
+
+    def _open_update_or_check(self) -> None:
+        if self._update_info is not None:
+            self._open_update_dialog()
+        else:
+            self._check_updates(manual=True)
+
     def _check_updates(self, manual: bool = False) -> None:
         if self._update_checking:
             return
         self._update_checking = True
         if manual:
             self._set_status("Checking for updates…", self._theme["muted"])
+            button = getattr(self, "btn_check_updates", None)
+            if button is not None:
+                button.configure(text="⟳ Checking…")
 
         def work() -> None:
             try:
@@ -74,6 +101,9 @@ class UpdateMixin:
 
     def _on_update_result(self, info, error: str | None, manual: bool) -> None:
         self._update_checking = False
+        button = getattr(self, "btn_check_updates", None)
+        if button is not None:
+            button.configure(text="⟳ Updates")
         if info is not None:
             self._update_info = info
             self._show_update_available(info)
@@ -101,6 +131,10 @@ class UpdateMixin:
         )
         if not self._banner.winfo_ismapped() and not getattr(self, "_banner_dismissed", False):
             self._banner.pack(fill="x", side="top", after=self._header)
+        self.btn_update_pill.configure(text="⬆ Update to " + info.version)
+        button = getattr(self, "btn_check_updates", None)
+        if button is not None and button.winfo_ismapped():
+            button.pack_forget()
         if not self.btn_update_pill.winfo_ismapped():
             self.btn_update_pill.pack(side="right", padx=(0, 6), pady=9)
         self.status_right.configure(text="v" + __version__ + " · update " + info.version + " ready")

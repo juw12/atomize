@@ -116,6 +116,7 @@ class LinguaWindow(UpdateMixin):
             self._set_status("Updated to Lingua " + __version__ + " - enjoy the new version", self._theme["ok"])
         if self.cfg.get("auto_update", True):
             self.root.after(2500, lambda: self._check_updates(manual=False))
+        self.root.after(self._update_recheck_ms(), self._periodic_update_check)
 
     # -- Widget helpers ------------------------------------------------------
 
@@ -200,6 +201,8 @@ class LinguaWindow(UpdateMixin):
         self._title_label = title
         self._version_label = self._label(header, "v" + __version__, font=("Segoe UI", 9))
         self._version_label.pack(side="left", padx=(6, 0), pady=(4, 0))
+        self._version_label.configure(cursor="hand2")
+        self._version_label.bind("<Button-1>", lambda _e: self._check_updates(manual=True))
 
         theme_label = "☀" if self._theme_name == "dark" else "☾"
         self.btn_theme = self._button(header, theme_label, self._toggle_theme, role="ghost",
@@ -211,6 +214,12 @@ class LinguaWindow(UpdateMixin):
                                       tip="About Lingua, updates and install", padx=10)
         self.btn_about.configure(font=("Segoe UI Symbol", 12))
         self.btn_about.pack(side="right")
+
+        # Always visible: check for a new version by hand (replaced by the Update pill when one is found).
+        self.btn_check_updates = self._button(header, "⟳ Updates", lambda: self._check_updates(manual=True),
+                                              role="ghost", tip="Check for a new version of Lingua", padx=8)
+        self.btn_check_updates.configure(font=("Segoe UI", 9))
+        self.btn_check_updates.pack(side="right", padx=(0, 2))
 
         self.btn_update_pill = self._button(header, "⬆ Update", self._open_update_dialog, role="pill",
                                             tip="A new version of Lingua is ready", padx=12, pady=3)
@@ -371,6 +380,8 @@ class LinguaWindow(UpdateMixin):
         self.status.pack(side="left", fill="x", expand=True)
         self.status_right = self._label(bar, "v" + __version__, font=("Segoe UI", 8))
         self.status_right.pack(side="right", padx=12)
+        self.status_right.configure(cursor="hand2")
+        self.status_right.bind("<Button-1>", lambda _e: self._open_update_or_check())
 
     def _sync_more(self) -> None:
         self.btn_more.configure(text=("⚙  Less ▴" if self._more_open else "⚙  More ▾"))

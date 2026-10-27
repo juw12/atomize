@@ -1,6 +1,6 @@
 """Lingua version and release-channel constants (single source of truth)."""
 
-__version__ = "2.2.1"
+__version__ = "2.2.2"
 
 # GitHub repository that hosts Lingua releases. Releases are tagged
 # ``lingua-vX.Y.Z`` and carry a ``Lingua-windows.zip`` asset.

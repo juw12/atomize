@@ -108,6 +108,10 @@ version without the laptop cannot use the offline engine.
 Offline quality is basic (fine for signs and short sentences, weaker for
 English -> Japanese). Set `LINGUA_LOCAL_FALLBACK=0` to disable it.
 
+### Updating from inside the app (v2.2.2)
+
+Lingua checks GitHub when it starts and again every 4 hours while it stays open (`LINGUA_UPDATE_EVERY_MIN` to change). The header always shows a **⟳ Updates** button (click the version number too) to check by hand. When a newer version exists it turns into **⬆ Update to X.Y.Z** with a banner; **Update now** downloads, verifies the sha256, swaps the files and restarts, keeping settings, history and `lingua.env`.
+
 ## Read a picture (image to words and letters)
 
 Lingua reads the text out of any picture: a phone photo of a sign or menu, a
