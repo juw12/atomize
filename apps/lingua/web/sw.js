@@ -4,7 +4,7 @@
  * or intercepted — every call hits the network so the key in localStorage
  * stays usable and any model change on the gateway is picked up immediately.
  */
-const CACHE = 'lingua-cache-v3';
+const CACHE = 'lingua-cache-v4';
 
 const PRECACHE = [
   './',
@@ -19,6 +19,7 @@ const PRECACHE = [
   './assets/lingua-mobile.js',
   './assets/lingua-picture.js',
   './assets/lingua-picture.css',
+  './assets/lingua-update.js',
   './assets/icon.svg',
   './assets/icon-192.png',
   './assets/icon-512.png',
@@ -29,8 +30,13 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
       .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
+      // First install activates at once; later versions wait for the user's "Update" tap.
+      .then(() => (self.registration.active ? undefined : self.skipWaiting()))
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

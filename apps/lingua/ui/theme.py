@@ -20,6 +20,10 @@ THEMES = {
         "ok": "#7dd3fc",          # status OK (cyan)
         "warn": "#fbbf24",        # status warning (amber)
         "err": "#f87171",         # status error (red)
+        "accent_fg": "#04202e",   # text on accent buttons
+        "accent_hover": "#a5e4fd",  # accent button hover
+        "banner": "#0f2a3d",      # update banner background
+        "panel": "#11161d",       # collapsible settings panel
     },
     "light": {
         "bg": "#f8fafc",          # main window background
@@ -34,6 +38,10 @@ THEMES = {
         "ok": "#0284c7",          # status OK
         "warn": "#d97706",        # status warning
         "err": "#dc2626",         # status error
+        "accent_fg": "#ffffff",   # text on accent buttons
+        "accent_hover": "#0369a1",  # accent button hover
+        "banner": "#e0f2fe",      # update banner background
+        "panel": "#f1f5f9",       # collapsible settings panel
     },
 }
 

@@ -5,12 +5,22 @@ Lingua translates live Teams captions and reads the words and letters in any pic
 
 Install
 -------
-1. Unzip this folder somewhere you will keep it (e.g. Documents\Lingua).
+1. Unzip this folder.
 2. Make sure lingua.env sits next to Lingua.exe with your gateway settings
    (copy lingua.env.example to lingua.env and fill it in if it is missing).
-3. Double-click Lingua.exe. Right-click its taskbar icon -> Pin to taskbar.
+3. Double-click "Install Lingua.cmd". Lingua is installed for you (no admin):
+   %LOCALAPPDATA%\Programs\Lingua, Start menu + Desktop shortcut, and an entry
+   in Settings -> Apps (uninstall from there). Then you can delete the zip.
    Windows SmartScreen may warn because the app is not code-signed:
    click "More info" -> "Run anyway".
+   (Prefer portable? Just double-click Lingua.exe instead.)
+
+Updates
+-------
+Lingua checks for a new version when it starts. When one is ready you see a
+blue "Update" button: click it, then "Update now". Lingua downloads the new
+version, restarts itself, and keeps your settings, history and lingua.env.
+Check by hand any time: (i) button -> Check for updates.
 
 Use
 ---

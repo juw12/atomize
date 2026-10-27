@@ -9,6 +9,10 @@ Usage::
                                   # print the words/letters in a picture
     python app.py --serve [--port 8765]
                                   # share Read picture with phones on this Wi-Fi
+    Lingua.exe --install [--quiet]  # install for this user (Start menu, Desktop, Apps)
+    Lingua.exe --uninstall [--quiet]
+    Lingua.exe --self-update      # download + apply the newest release, then restart
+    python app.py --version
 
 The app creates a small control panel (start/stop, language pickers,
 region selector, opacity/font controls, click-through toggle) and a
@@ -82,13 +86,119 @@ def main(argv: list[str] | None = None) -> int:
     if "--read-image" in args:
         return _run_read_image(args)
 
+    if "--version" in args:
+        from engine.version import __version__
+
+        print("Lingua " + __version__)
+        return 0
+
+    if "--install" in args:
+        return _run_install(quiet="--quiet" in args)
+
+    if "--uninstall" in args:
+        return _run_uninstall(quiet="--quiet" in args)
+
+    if "--self-update" in args:
+        return _run_self_update()
+
     # Normal GUI run.
     from engine import config
     from ui.window import LinguaWindow
 
+    if getattr(sys, "frozen", False):
+        try:
+            from engine import installer
+
+            installer.refresh_registration()
+        except Exception:
+            pass
+
     cfg = config.load()
-    window = LinguaWindow(cfg)
+    window = LinguaWindow(cfg, just_updated="--updated" in args)
     window.root.mainloop()
+    return 0
+
+
+def _message(title: str, text: str, error: bool = False, ask: bool = False) -> bool:
+    """Small native message box for the install/uninstall commands."""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    from tkinter import messagebox
+
+    try:
+        if ask:
+            return bool(messagebox.askyesno(title, text, parent=root))
+        if error:
+            messagebox.showerror(title, text, parent=root)
+        else:
+            messagebox.showinfo(title, text, parent=root)
+        return True
+    finally:
+        root.destroy()
+
+
+def _run_install(quiet: bool = False) -> int:
+    """Install this copy for the current user and start it."""
+    import subprocess
+
+    from engine import installer
+
+    if not getattr(sys, "frozen", False):
+        print("--install works with the packaged Lingua.exe (see scripts/build-windows.ps1)", file=sys.stderr)
+        return 2
+    try:
+        exe = installer.install()
+    except Exception as err:  # noqa: BLE001 - reported to the user
+        if not quiet:
+            _message("Install Lingua", "Install failed:\n\n" + str(err), error=True)
+        print("install failed: " + str(err), file=sys.stderr)
+        return 1
+    print("installed: " + exe)
+    if not quiet:
+        _message(
+            "Lingua installed",
+            "Lingua is installed.\n\nOpen it from the Start menu or the Desktop shortcut. "
+            "It updates itself from inside the app (\u24d8 \u2192 Check for updates).\n\n" + exe,
+        )
+        subprocess.Popen([exe], close_fds=True)
+    return 0
+
+
+def _run_self_update() -> int:
+    """Headless update: newest release -> download -> swap files -> restart Lingua."""
+    from engine import updater
+    from engine.version import __version__
+
+    if not getattr(sys, "frozen", False):
+        print("running from source: update with git pull", file=sys.stderr)
+        return 2
+    try:
+        info = updater.check_for_update()
+        if info is None:
+            print("Lingua " + __version__ + " is up to date")
+            return 0
+        print("updating " + __version__ + " -> " + info.version)
+        staged = updater.stage_update(updater.download_update(info))
+        updater.launch_apply(staged)
+    except updater.UpdateError as err:
+        print("update failed: " + str(err), file=sys.stderr)
+        return 1
+    return 0
+
+
+def _run_uninstall(quiet: bool = False) -> int:
+    from engine import installer
+
+    if not quiet and not _message(
+        "Uninstall Lingua",
+        "Remove Lingua from this PC?\n\nYour settings and picture history are kept.",
+        ask=True,
+    ):
+        return 1
+    installer.uninstall()
+    if not quiet:
+        _message("Uninstall Lingua", "Lingua was removed.")
     return 0
 
 

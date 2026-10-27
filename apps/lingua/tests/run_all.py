@@ -1,4 +1,4 @@
-"""Hermetic test runner for the Lingua engine.
+﻿"""Hermetic test runner for the Lingua engine.
 
 Runs each ``test_*.py`` in a fresh interpreter and exits 0 (all pass) or 1.
 
@@ -15,7 +15,7 @@ try:
 except Exception:
     pass
 
-TEST_FILES = ["test_pipeline.py", "test_maas.py", "test_capture.py", "test_image_text.py", "test_local_server.py", "test_history.py"]
+TEST_FILES = ["test_pipeline.py", "test_maas.py", "test_capture.py", "test_image_text.py", "test_local_server.py", "test_history.py", "test_updater.py"]
 
 
 def main() -> int:

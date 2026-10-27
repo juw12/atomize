@@ -116,14 +116,8 @@
   </main>
 
   <script type="module" src="assets/lingua-mobile.js"></script>
-  <script>
-    // Register the service worker for installable PWA + app-shell cache.
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(() => { /* offline-only */ });
-      });
-    }
-  </script>
+  <!-- Service worker (installable PWA, offline shell) + "new version ready - Update" prompt -->
+  <script src="assets/lingua-update.js"></script>
   <script>
     // PWA install affordance — shared logic across all pages.
     (function () {
