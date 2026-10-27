@@ -10,6 +10,7 @@ import tempfile
 import threading
 import unittest
 import zipfile
+from unittest import mock
 
 # Local test servers must never go through a (possibly dead) HTTP proxy.
 os.environ["NO_PROXY"] = "127.0.0.1,localhost," + os.environ.get("NO_PROXY", "")
@@ -24,7 +25,7 @@ try:
 except Exception:
     pass
 
-from engine import installer, updater  # noqa: E402
+from engine import installer, net, updater  # noqa: E402,F401
 
 
 def _release(tag, asset="Lingua-windows.zip", draft=False, prerelease=False, body="", url="http://x/z.zip"):
@@ -144,6 +145,17 @@ class DownloadTests(unittest.TestCase):
     def test_offline_is_update_error(self):
         with self.assertRaises(updater.UpdateError):
             updater.check_for_update("2.1.0", url="http://127.0.0.1:9/none")
+
+    def test_dead_env_proxy_falls_back(self):
+        # A dead HTTPS_PROXY (e.g. localhost:3128 helper not running) must not block updates.
+        dead_proxy = {"http": "http://127.0.0.1:9", "https": "http://127.0.0.1:9"}
+        with mock.patch.object(updater, "_is_local", return_value=False), \
+                mock.patch("engine.net.candidates", return_value=[dead_proxy, {}]), \
+                mock.patch.object(updater, "_working_proxy", None), \
+                mock.patch("urllib.request.proxy_bypass", return_value=False):
+            info = updater.check_for_update("2.1.0", url=self.base + "/releases")
+            self.assertEqual(info.version, "9.9.9")
+            self.assertEqual(updater._working_proxy, {})
 
     def test_zip_without_exe_rejected(self):
         path = os.path.join(self.tmp.name, "x.zip")

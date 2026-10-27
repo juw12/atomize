@@ -25,6 +25,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from dataclasses import dataclass
@@ -112,15 +114,64 @@ def pick_update(releases: list[dict], current: str = __version__) -> UpdateInfo 
     return best
 
 
-def _open(url: str, timeout: float):
-    request = urllib.request.Request(
+_LOCAL_HOSTS = ("127.0.0.1", "localhost", "::1")
+_working_proxy: dict | None = None
+
+
+def _proxy_options() -> list[dict]:
+    """Proxies to try for GitHub: the one that worked last, then env, Windows, direct.
+
+    A dead ``HTTPS_PROXY`` (e.g. a local helper on ``localhost:3128`` that is not
+    running) must not break updates when Windows itself has a working proxy.
+    """
+    options: list[dict] = []
+    if _working_proxy is not None:
+        options.append(_working_proxy)
+    try:
+        from engine import net
+
+        candidates = net.candidates()
+    except Exception:  # pragma: no cover - net needs requests; fall back to direct
+        candidates = [{}]
+    for option in candidates:
+        if option not in options:
+            options.append(option)
+    return options
+
+
+def _is_local(url: str) -> bool:
+    return (urllib.parse.urlparse(url).hostname or "") in _LOCAL_HOSTS
+
+
+def _request(url: str) -> urllib.request.Request:
+    return urllib.request.Request(
         url,
         headers={
             "User-Agent": "Lingua/" + __version__,
             "Accept": "application/vnd.github+json, application/octet-stream, */*",
         },
     )
-    return urllib.request.urlopen(request, timeout=timeout)  # noqa: S310 - fixed https/local URL
+
+
+def _open(url: str, timeout: float):
+    global _working_proxy
+    if _is_local(url):
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        return opener.open(_request(url), timeout=timeout)  # noqa: S310 - local test server
+    last_error: Exception | None = None
+    for option in _proxy_options():
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler(option))
+        try:
+            # A fresh Request each time: urllib rewrites the request when it applies a proxy.
+            response = opener.open(_request(url), timeout=timeout)  # noqa: S310 - fixed https URL
+        except urllib.error.HTTPError:
+            raise  # the server answered; another proxy will not change that
+        except (urllib.error.URLError, OSError) as err:
+            last_error = err
+            continue
+        _working_proxy = option
+        return response
+    raise last_error or UpdateError("no network route to the update server")
 
 
 def fetch_releases(url: str | None = None, timeout: float = 8.0) -> list[dict]:
