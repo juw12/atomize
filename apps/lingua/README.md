@@ -83,31 +83,42 @@ The translation model is pickable in the window (the **Model** dropdown, from
 
 ## Read a picture (image to words and letters)
 
-Besides live captions, Lingua can read the text out of any picture: a phone
-photo of a sign or menu, a screenshot, a scanned page.
+Lingua reads the text out of any picture: a phone photo of a sign or menu, a
+screenshot, a scanned page, a whiteboard.
 
-- Click **Read picture** in the main window, then **Open image...** (Ctrl+O),
-  **Paste** (Ctrl+V; works with Win+Shift+S snips and image files copied in
-  Explorer) or **Grab screen area**.
-- The text appears in an editable box with a **words · letters · lines** count;
-  **Copy** puts it on the clipboard.
-- Tick **Translate to <target>** to add a translation (uses the main window's
-  target language and model).
+**Web / iPhone / Android (`web/picture.html`)**
+- Take photo (rear camera on phones), Upload (several files = batch, *Read all*),
+  Paste (Ctrl+V) or drag & drop.
+- Crop (drag a box over the text you want) and rotate before reading.
+- Text / Translation tabs, 16 target languages, *Translate automatically*,
+  word · letter · line count and timing.
+- Listen (read aloud), Copy, Share (phones), Save .txt.
+- History drawer: on-device, searchable, with thumbnails; restore or delete scans.
+- Keyboard: Ctrl+V paste, Ctrl+Enter read, Ctrl+Shift+C copy, H history, Esc close.
 
-Pictures go through the same DeepSeek-OCR-2 call as captions, prepared for
-documents in `engine/image_text.py`: rotated upright from EXIF (phone photos),
-transparency flattened onto white, longest side capped at 1600 px (small print
-stays legible) and tiny images enlarged to 768 px.
+**Desktop (Read picture button)**
+- Open (multi-select = batch), Paste, Grab screen area; rotate; read again.
+- Text / Translation tabs, translate-to picker, Translate automatically.
+- Listen (Windows voices), Copy, Save .txt, History menu (`%APPDATA%\lingua\history.json`).
 
-From the command line:
+**Engine (`engine/image_text.py`, mirrored in `web/assets/lingua-core.js`)**
+- Photos are rotated upright (EXIF), transparency flattened onto white, longest
+  side capped at 1600 px, tiny images enlarged to 768 px.
+- OCR markup is stripped; when the model puts a blank line between every line,
+  the lines are tightened (real paragraphs are kept).
+- Translation tries every configured model in turn; if all fail (gateway down),
+  the picture text is kept and a clear "translation unavailable" note is shown.
+
+Command line:
 
 ```powershell
 python apps\lingua\app.py --read-image C:\path\to\photo.jpg            # text only
 python apps\lingua\app.py --read-image C:\path\to\photo.jpg --translate
 ```
 
-Measured 2026-10-27: a 1400 x 900 phone-style photo with English, Traditional
-Chinese and Indonesian lines read correctly in 1.0 to 2.0 s.
+Tested 2026-10-27: real OCR of a rotated phone photo (English, Traditional Chinese,
+Indonesian) in 1-3 s; automated browser runs on laptop, iPhone and Android emulation
+(upload, touch crop, rotate, read, translate-outage handling, history, settings): 55/55.
 
 ## Versions: laptop, web, iPhone, Android
 
@@ -167,6 +178,8 @@ apps/lingua/
     pipeline.py      pure caption dedup/delta/cache + Transcript accumulator
     image_text.py    picture reader: image prep, OCR cleanup, word/letter counts
     local_server.py  Share to phone: serves web/ + relays OCR/translate with the laptop key
+    history.py       on-device scan history (desktop)
+    speech.py        read aloud with Windows voices
   ui/                tkinter only
     window.py        single always-on-top window: controls + live transcript
     theme.py         light/dark palettes
@@ -180,6 +193,7 @@ apps/lingua/
     test_capture.py  crop/hash tests on synthetic images (no display)
     test_image_text.py picture-reader tests (synthetic images, fake client)
     test_local_server.py phone relay tests (fake gateway, token + key checks)
+    test_history.py  scan history + read-aloud helper tests
   scripts/run.ps1    launcher (sets the UTF-8 env, runs app.py)
   README.md
 ```

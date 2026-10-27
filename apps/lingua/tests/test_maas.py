@@ -144,6 +144,10 @@ class DiscoverKeyTests(unittest.TestCase):
         self.addCleanup(patcher.stop)
         os.environ.pop("MAAS_API_KEY", None)
         os.environ.pop("GATEWAY_API_KEY", None)
+        # Fixtures use the public default prefix; ignore any private local override.
+        prefix = mock.patch.object(maas, "GATEWAY_MODEL_PREFIX", "translate-")
+        prefix.start()
+        self.addCleanup(prefix.stop)
 
     def test_env_var_order_maas_wins(self):
         with mock.patch.dict(os.environ,

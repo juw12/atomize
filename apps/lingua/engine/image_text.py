@@ -69,6 +69,8 @@ class ImageReading:
     translation: str | None = None
     ocr_s: float = 0.0
     translate_s: float = 0.0
+    translation_error: str | None = None
+    model_used: str | None = None
 
     @property
     def stats(self) -> TextStats:
@@ -137,8 +139,13 @@ def clean_ocr_text(raw: str) -> str:
     text = _TOKEN_RE.sub("", text)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = _TRAILING_WS_RE.sub("", text)
-    text = _MANY_BLANKS_RE.sub("\n\n", text)
-    return text.strip()
+    text = _MANY_BLANKS_RE.sub("\n\n", text).strip()
+    # The OCR model often puts a blank line between *every* line. When no
+    # single line break exists at all, those blanks carry no paragraph
+    # meaning, so tighten them (real paragraphs mix single and double breaks).
+    if "\n\n" in text and not re.search(r"[^\n]\n[^\n]", text):
+        text = text.replace("\n\n", "\n")
+    return text
 
 
 def text_stats(text: str) -> TextStats:
@@ -157,8 +164,8 @@ def read_image(client, source, *, target_lang: str | None = None,
 
     ``client`` is anything with ``ocr(png_bytes, mime, prompt=...)`` and
     ``translate(text, target, source)``, i.e. :class:`engine.maas.MaasClient`.
-    Raises whatever the client raises (``MaasError``) and ``OSError`` /
-    ``PIL.UnidentifiedImageError`` for unreadable files.
+    OCR failures raise (``MaasError``, ``OSError`` / ``PIL.UnidentifiedImageError``);
+    a translation failure does not: the text is kept and ``translation_error`` is set.
     """
     png = to_png_bytes(prepare_image(source, max_side=max_side))
 
@@ -168,6 +175,13 @@ def read_image(client, source, *, target_lang: str | None = None,
 
     if target_lang and text:
         started = perf_counter()
-        reading.translation = client.translate(text, target_lang, source_lang, purpose="document")
+        try:
+            if hasattr(client, "translate_with_fallback"):
+                reading.translation, reading.model_used = client.translate_with_fallback(
+                    text, target_lang, source_lang, purpose="document")
+            else:
+                reading.translation = client.translate(text, target_lang, source_lang, purpose="document")
+        except Exception as err:  # keep the OCR text even when translation is down
+            reading.translation_error = str(err) or type(err).__name__
         reading.translate_s = round(perf_counter() - started, 2)
     return reading

@@ -14,8 +14,42 @@ export const LANGUAGES = {
   "Auto (detect)": null,
   "English": "English",
   "繁體中文": "Traditional Chinese (繁體中文)",
+  "简体中文": "Simplified Chinese (简体中文)",
   "Bahasa Indonesia": "Indonesian (Bahasa Indonesia)",
+  "日本語": "Japanese (日本語)",
+  "한국어": "Korean (한국어)",
+  "Tiếng Việt": "Vietnamese (Tiếng Việt)",
+  "ไทย": "Thai (ไทย)",
+  "Bahasa Melayu": "Malay (Bahasa Melayu)",
+  "Español": "Spanish (Español)",
+  "Français": "French (Français)",
+  "Deutsch": "German (Deutsch)",
+  "Português": "Portuguese (Português)",
+  "Русский": "Russian (Русский)",
+  "العربية": "Arabic (العربية)",
+  "हिन्दी": "Hindi (हिन्दी)",
 };
+
+// BCP-47 tags for read-aloud (speechSynthesis), keyed like LANGUAGES.
+export const SPEECH_LANGS = {
+  "English": "en-US", "繁體中文": "zh-TW", "简体中文": "zh-CN", "Bahasa Indonesia": "id-ID",
+  "日本語": "ja-JP", "한국어": "ko-KR", "Tiếng Việt": "vi-VN", "ไทย": "th-TH", "Bahasa Melayu": "ms-MY",
+  "Español": "es-ES", "Français": "fr-FR", "Deutsch": "de-DE", "Português": "pt-BR",
+  "Русский": "ru-RU", "العربية": "ar-SA", "हिन्दी": "hi-IN",
+};
+
+// Best-effort script detection for read-aloud of OCR text (no network).
+export function guessSpeechLang(text) {
+  const s = String(text || "");
+  if (/[\u3040-\u30ff]/.test(s)) return "ja-JP";
+  if (/[\uac00-\ud7af]/.test(s)) return "ko-KR";
+  if (/[\u0e00-\u0e7f]/.test(s)) return "th-TH";
+  if (/[\u0600-\u06ff]/.test(s)) return "ar-SA";
+  if (/[\u0900-\u097f]/.test(s)) return "hi-IN";
+  if (/[\u0400-\u04ff]/.test(s)) return "ru-RU";
+  if (/[\u4e00-\u9fff]/.test(s)) return "zh-TW";
+  return "en-US";
+}
 
 export const MODELS = [
   "translate-default",
@@ -562,6 +596,30 @@ export class MaasClient {
     return MaasClient._content(data);
   }
 
+  // Try the configured model first, then the others, until one answers.
+  async translateWithFallback(text, targetLang, sourceLang, purpose = "meeting", models = null) {
+    const order = [];
+    for (const m of [this.settings.llmModel].concat(models || MODELS)) {
+      if (m && !order.includes(m)) order.push(m);
+    }
+    const original = this.settings.llmModel;
+    let lastError = null;
+    try {
+      for (const model of order) {
+        this.settings = Object.assign({}, this.settings, { llmModel: model });
+        try {
+          return { translation: await this.translate(text, targetLang, sourceLang, purpose), model };
+        } catch (err) {
+          lastError = err;
+        }
+      }
+    } finally {
+      this.settings = Object.assign({}, this.settings, { llmModel: original });
+    }
+    const tried = `${order.length} model${order.length === 1 ? "" : "s"}`;
+    throw new MaasError(`Translation unavailable (tried ${tried}): ${lastError ? lastError.message : "no model"}`, lastError);
+  }
+
   async translate(text, targetLang, sourceLang, purpose = "meeting") {
     const system = purpose === "document"
       ? `Translator. The text was read from a picture by OCR. Translate it into ${targetLang}, keeping its line breaks. Output ONLY the translation.`
@@ -605,7 +663,7 @@ const LETTER_RE = /[\p{L}\p{N}]/gu;
 // Strip OCR markup tokens and tidy whitespace, keeping the line layout.
 export function cleanOcrText(raw) {
   if (typeof raw !== "string") return "";
-  return raw
+  const text = raw
     .replace(REF_RE, "$1")
     .replace(DET_RE, "")
     .replace(ANY_TOKEN_RE, "")
@@ -613,6 +671,9 @@ export function cleanOcrText(raw) {
     .replace(/[ \t]+$/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+  // Blank line between every line (OCR artefact) -> tight lines; real
+  // paragraphs (a mix of single and double breaks) are left alone.
+  return text.includes("\n\n") && !/[^\n]\n[^\n]/.test(text) ? text.replace(/\n\n/g, "\n") : text;
 }
 
 // Count words (CJK: one per character), letters (alphanumerics) and lines.
@@ -686,7 +747,15 @@ export async function readPicture(client, file, options = {}) {
   };
   if (targetLang && text) {
     started = performance.now();
-    result.translation = await client.translate(text, targetLang, sourceLang, "document");
+    try {
+      const { translation, model } = await client.translateWithFallback(
+        text, targetLang, sourceLang, "document", options.models || null);
+      result.translation = translation;
+      result.modelUsed = model;
+    } catch (err) {
+      // Keep the picture text even when the translation service is down.
+      result.translationError = (err && err.message) || String(err);
+    }
     result.translateSeconds = (performance.now() - started) / 1000;
   }
   return result;

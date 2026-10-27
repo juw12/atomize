@@ -62,7 +62,20 @@ LANGUAGES = {
     "Auto (detect)": None,
     "English": "English",
     "繁體中文": "Traditional Chinese (繁體中文)",
+    "简体中文": "Simplified Chinese (简体中文)",
     "Bahasa Indonesia": "Indonesian (Bahasa Indonesia)",
+    "日本語": "Japanese (日本語)",
+    "한국어": "Korean (한국어)",
+    "Tiếng Việt": "Vietnamese (Tiếng Việt)",
+    "ไทย": "Thai (ไทย)",
+    "Bahasa Melayu": "Malay (Bahasa Melayu)",
+    "Español": "Spanish (Español)",
+    "Français": "French (Français)",
+    "Deutsch": "German (Deutsch)",
+    "Português": "Portuguese (Português)",
+    "Русский": "Russian (Русский)",
+    "العربية": "Arabic (العربية)",
+    "हिन्दी": "Hindi (हिन्दी)",
 }
 
 #: Pairs recognised when stripping cosmetic wrapping quotes off model output.
@@ -224,6 +237,32 @@ class MaasClient:
         if on_chunk is None:
             return self._content(self._post(url, payload))
         return self._stream(url, payload, on_chunk)
+
+    def translate_with_fallback(self, text: str, target_lang: str, source_lang: str | None = None,
+                                *, purpose: str = "meeting", models=None) -> tuple[str, str]:
+        """Translate, trying each model in ``models`` (default: current model first,
+        then the rest of :data:`MODELS`) until one answers.
+
+        Returns ``(translation, model_used)``. Raises :class:`MaasError` with the
+        last error when every model fails (e.g. the gateway is down).
+        """
+        order = []
+        for name in [self.llm_model] + list(models if models is not None else MODELS):
+            if name and name not in order:
+                order.append(name)
+        original = self.llm_model
+        last_error: MaasError | None = None
+        try:
+            for name in order:
+                self.llm_model = name
+                try:
+                    return self.translate(text, target_lang, source_lang, purpose=purpose), name
+                except MaasError as err:
+                    last_error = err
+        finally:
+            self.llm_model = original
+        raise MaasError("translation unavailable (tried {} model{}): {}".format(
+            len(order), "" if len(order) == 1 else "s", last_error))
 
     def _stream(self, url: str, payload: dict, on_chunk) -> str:
         try:

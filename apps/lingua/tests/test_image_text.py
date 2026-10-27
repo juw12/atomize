@@ -113,7 +113,15 @@ class CleanTextTests(unittest.TestCase):
 
     def test_line_layout_kept_and_blank_runs_collapsed(self):
         raw = "Line one   \r\nLine two\n\n\n\nLine three\n"
-        self.assertEqual(clean_ocr_text(raw), "Line one\nLine two\n\nLine three")
+        self.assertEqual(clean_ocr_text(raw), "Line one\nLine two\n\nLine three")  # mixed: kept
+
+    def test_blank_line_between_every_line_is_tightened(self):
+        raw = "MEETING ROOM 3B\n\nPlease keep the door closed.\n\n請保持門關閉"
+        self.assertEqual(clean_ocr_text(raw), "MEETING ROOM 3B\nPlease keep the door closed.\n請保持門關閉")
+
+    def test_real_paragraphs_are_kept(self):
+        raw = "Title\nSubtitle\n\nFirst paragraph line one\nline two"
+        self.assertEqual(clean_ocr_text(raw), raw)
 
     def test_non_string_is_empty(self):
         self.assertEqual(clean_ocr_text(None), "")
@@ -184,6 +192,49 @@ class ReadImageTests(unittest.TestCase):
         system = post.call_args_list[1].kwargs["json"]["messages"][0]["content"]
         self.assertIn("read from a picture", system)
         self.assertIn("Indonesian", system)
+
+
+class TranslationResilienceTests(unittest.TestCase):
+    def test_translation_failure_keeps_text(self):
+        class Down(FakeClient):
+            def translate(self, *a, **k):
+                raise maas.MaasError("HTTP 503: upstream down")
+
+        reading = read_image(Down(ocr_text="Exit"), Image.new("RGB", (900, 900)), target_lang="Thai")
+        self.assertEqual(reading.text, "Exit")
+        self.assertIsNone(reading.translation)
+        self.assertIn("503", reading.translation_error)
+
+    def test_fallback_tries_next_model(self):
+        client = maas.MaasClient(api_key="k", llm_model="a")
+        calls = []
+
+        def fake_translate(text, target, source=None, on_chunk=None, *, purpose="meeting"):
+            calls.append(client.llm_model)
+            if client.llm_model != "c":
+                raise maas.MaasError("HTTP 503")
+            return "ok"
+
+        client.translate = fake_translate
+        out, used = client.translate_with_fallback("hi", "English", models=["a", "b", "c"])
+        self.assertEqual((out, used), ("ok", "c"))
+        self.assertEqual(calls, ["a", "b", "c"])
+        self.assertEqual(client.llm_model, "a")  # restored
+
+    def test_fallback_all_down_raises_clear_error(self):
+        client = maas.MaasClient(api_key="k", llm_model="a")
+
+        def down(*a, **k):
+            raise maas.MaasError("HTTP 503")
+
+        client.translate = down
+        with self.assertRaises(maas.MaasError) as ctx:
+            client.translate_with_fallback("hi", "English", models=["a", "b"])
+        self.assertIn("tried 2 models", str(ctx.exception))
+
+    def test_language_list_has_new_languages(self):
+        for label in ("简体中文", "日本語", "한국어", "Español", "Tiếng Việt"):
+            self.assertIn(label, maas.LANGUAGES)
 
 
 if __name__ == "__main__":

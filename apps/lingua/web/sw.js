@@ -4,7 +4,7 @@
  * or intercepted — every call hits the network so the key in localStorage
  * stays usable and any model change on the gateway is picked up immediately.
  */
-const CACHE = 'lingua-cache-v2';
+const CACHE = 'lingua-cache-v3';
 
 const PRECACHE = [
   './',
@@ -18,6 +18,7 @@ const PRECACHE = [
   './assets/lingua-web.js',
   './assets/lingua-mobile.js',
   './assets/lingua-picture.js',
+  './assets/lingua-picture.css',
   './assets/icon.svg',
   './assets/icon-192.png',
   './assets/icon-512.png',
