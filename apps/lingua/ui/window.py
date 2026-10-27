@@ -2,7 +2,7 @@
 
 A single always-on-top tkinter window containing:
 - Header: app title + theme toggle button
-- Toolbar: Start/Stop, Select region, Clear, Source/Target dropdowns,
+- Toolbar: Start/Stop, Select region, Clear, Read picture, Source/Target dropdowns,
   Opacity slider, Font slider, Click-through checkbox
 - Transcript area: scrolling text showing translated captions (speaker name
   on its own line when present, translation below; NO source text)
@@ -29,6 +29,7 @@ from engine import config
 from engine.capture import Region, RegionCapture, downscale
 from engine.maas import LANGUAGES, LLM_MODEL, MODELS, OCR_MODEL, MaasClient, MaasError, discover_api_key
 from engine.pipeline import CaptionPipeline, Line, Transcript, speaker_rows
+from ui.picture import PictureReader
 from ui.region import select_region
 from ui.theme import THEMES, get as get_theme
 
@@ -63,6 +64,7 @@ class LinguaWindow:
         self._click_through = bool(self.cfg.get("click_through", False))
         self._user_scrolled = False
         self._live_partial = ""
+        self._picture_reader: PictureReader | None = None
 
         # Build the root window
         self.root = tk.Tk()
@@ -182,6 +184,19 @@ class LinguaWindow:
             command=self._clear,
         )
         self.btn_clear.pack(side="left", padx=6)
+
+        self.btn_picture = tk.Button(
+            row0,
+            text="Read picture",
+            bg=self._theme["button"],
+            fg=self._theme["text"],
+            activebackground=self._theme["button_active"],
+            activeforeground=self._theme["text"],
+            relief="flat",
+            font=("Segoe UI", 10),
+            command=self._open_picture_reader,
+        )
+        self.btn_picture.pack(side="left", padx=6)
 
         # Row 1: Language pickers
         row1 = tk.Frame(toolbar, bg=self._theme["bg"])
@@ -723,6 +738,19 @@ class LinguaWindow:
         self.cfg["font_size"] = size
         self._refresh_tags()
         self._render(self._transcript.lines(), self._live_partial)
+
+    def _open_picture_reader(self) -> None:
+        """Open (or focus) the Read-picture window: image -> words and letters."""
+        if self._picture_reader is not None and self._picture_reader.exists():
+            self._picture_reader.focus()
+            return
+        self._picture_reader = PictureReader(
+            self.root,
+            self._theme,
+            get_client=lambda: self._client if self._try_init_client() else None,
+            get_target=lambda: (self.combo_target.get(), self._target_phrase()),
+            get_source=self._source_phrase,
+        )
 
     def _clear(self) -> None:
         self._transcript.reset()

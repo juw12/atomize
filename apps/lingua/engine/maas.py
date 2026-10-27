@@ -2,7 +2,7 @@
 
 Two-stage pipeline as mandated by ``CONTRACT.md``:
 
-1. ``ocr()``  - DeepSeek-OCR-2 turns a caption image into raw text.
+1. ``ocr()``  - DeepSeek-OCR-2 turns a caption image (or any picture) into raw text.
 2. ``translate()`` - the configured chat model turns that text into the target
    language.
 
@@ -26,6 +26,18 @@ OCR_BASE = os.environ.get("LINGUA_OCR_BASE_URL", "https://gateway.example.com/oc
 LLM_BASE = os.environ.get("LINGUA_LLM_BASE_URL", "https://gateway.example.com/llm/v1")
 LLM_MODEL = os.environ.get("LINGUA_LLM_MODEL", "translate-default")
 OCR_MODEL = "deepseek-ai/DeepSeek-OCR-2"
+
+#: Default OCR instruction (plain text, no layout markup).
+OCR_PROMPT = "<image>\nFree OCR."
+
+#: Translation system prompts by purpose (see ``MaasClient.translate``).
+_SYSTEM_PROMPTS = {
+    "meeting": "Real-time meeting interpreter. Translate into {}. Output ONLY the translation.",
+    "document": (
+        "Translator. The text was read from a picture by OCR. Translate it into {}, "
+        "keeping its line breaks. Output ONLY the translation."
+    ),
+}
 
 #: Translation-capable models offered in the UI model picker.
 MODELS = [
@@ -163,8 +175,9 @@ class MaasClient:
             raise MaasError("unexpected response shape") from exc
         return _clean(text)
 
-    def ocr(self, image_bytes: bytes, mime: str = "image/png") -> str:
-        """OCR a caption image. Returns clean text (may be empty)."""
+    def ocr(self, image_bytes: bytes, mime: str = "image/png",
+            prompt: str = OCR_PROMPT) -> str:
+        """OCR an image (caption strip, photo, screenshot). Returns clean text (may be empty)."""
         b64 = base64.b64encode(image_bytes).decode("ascii")
         payload = {
             "model": self.ocr_model,
@@ -172,7 +185,7 @@ class MaasClient:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "<image>\nFree OCR."},
+                        {"type": "text", "text": prompt},
                         {
                             "type": "image_url",
                             "image_url": {"url": "data:{};base64,{}".format(mime, b64)},
@@ -184,17 +197,18 @@ class MaasClient:
         return self._content(self._post(self.ocr_base + "/chat/completions", payload))
 
     def translate(self, text: str, target_lang: str, source_lang: str | None = None,
-                  on_chunk=None) -> str:
+                  on_chunk=None, *, purpose: str = "meeting") -> str:
         """Translate ``text`` into ``target_lang``; returns a clean single string.
 
         When ``on_chunk`` is given the response is streamed and ``on_chunk`` is
         called with the growing translation as it arrives, so the caller can
         show partial text before the sentence finishes.
+
+        ``purpose`` picks the system prompt: ``"meeting"`` (live captions) or
+        ``"document"`` (text read from a picture; keeps its line breaks).
         """
-        system = (
-            "Real-time meeting interpreter. Translate into {}. "
-            "Output ONLY the translation.".format(target_lang)
-        )
+        template = _SYSTEM_PROMPTS.get(purpose, _SYSTEM_PROMPTS["meeting"])
+        system = template.format(target_lang)
         user = text.strip()
         if source_lang:
             user = "(source language: {}) {}".format(source_lang, user)

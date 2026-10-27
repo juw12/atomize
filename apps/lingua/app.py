@@ -5,6 +5,8 @@ Usage::
 
     python app.py                 # launch the overlay + control panel
     python app.py --selftest      # headless checks, exit 0/1
+    python app.py --read-image PICTURE [--translate]
+                                  # print the words/letters in a picture
 
 The app creates a small control panel (start/stop, language pickers,
 region selector, opacity/font controls, click-through toggle) and a
@@ -39,6 +41,9 @@ def main(argv: list[str] | None = None) -> int:
     if "--selftest" in args:
         return _run_selftest()
 
+    if "--read-image" in args:
+        return _run_read_image(args)
+
     # Normal GUI run.
     from engine import config
     from ui.window import LinguaWindow
@@ -47,6 +52,61 @@ def main(argv: list[str] | None = None) -> int:
     window = LinguaWindow(cfg)
     window.root.mainloop()
     return 0
+
+
+def _run_read_image(args: list[str]) -> int:
+    """CLI: OCR one picture and print its text (plus a translation with --translate)."""
+    from engine import config
+    from engine.image_text import read_image
+    from engine.maas import LANGUAGES, LLM_MODEL, OCR_MODEL, MaasClient, MaasError, discover_api_key
+
+    index = args.index("--read-image")
+    if index + 1 >= len(args) or args[index + 1].startswith("--"):
+        print("usage: python app.py --read-image PICTURE [--translate]", file=sys.stderr)
+        return 2
+    path = args[index + 1]
+    if not os.path.isfile(path):
+        print("no such file: " + path, file=sys.stderr)
+        return 2
+
+    key = discover_api_key()
+    if key is None:
+        print("no API key (set MAAS_API_KEY or GATEWAY_API_KEY)", file=sys.stderr)
+        return 1
+
+    cfg = config.load()
+    client = MaasClient(
+        api_key=key,
+        llm_model=cfg.get("llm_model", LLM_MODEL),
+        ocr_model=cfg.get("ocr_model", OCR_MODEL),
+    )
+    target = None
+    if "--translate" in args:
+        target = LANGUAGES.get(cfg.get("target_lang")) or "English"
+    source = LANGUAGES.get(cfg.get("source_lang"))
+
+    try:
+        reading = read_image(client, path, target_lang=target, source_lang=source)
+    except MaasError as err:
+        print("OCR failed: " + str(err), file=sys.stderr)
+        return 1
+    except OSError as err:
+        print("cannot read picture: " + str(err), file=sys.stderr)
+        return 1
+
+    print(reading.text)
+    if reading.translation:
+        print()
+        print("--- translation ({}) ---".format(target))
+        print(reading.translation)
+    stats = reading.stats
+    print(
+        "\n[{} words, {} letters, {} lines; OCR {:.1f}s]".format(
+            stats.words, stats.letters, stats.lines, reading.ocr_s
+        ),
+        file=sys.stderr,
+    )
+    return 0 if reading.text else 1
 
 
 def _run_selftest() -> int:
@@ -78,8 +138,8 @@ def _run_selftest() -> int:
 
     # 1. Import every module.
     try:
-        from ui import region, theme, window
-        from engine import maas, pipeline, capture
+        from ui import picture, region, theme, window
+        from engine import maas, pipeline, capture, image_text
 
         report("import engine.*", True)
         report("import ui.*", True)
@@ -251,7 +311,35 @@ def _run_selftest() -> int:
     except Exception as err:
         report("Region type", False, str(err))
 
-    # 10. LANGUAGES map sanity.
+    # 10. Read a picture: synthetic "document" photo -> words and letters.
+    try:
+        from engine.image_text import prepare_image, read_image
+
+        doc = Image.new("RGBA", (300, 120), (0, 0, 0, 0))
+        doc_draw = ImageDraw.Draw(doc)
+        try:
+            doc_font = ImageFont.truetype(r"C:\Windows\Fonts\arial.ttf", 28)
+        except OSError:
+            doc_font = ImageFont.load_default()
+        doc_draw.text((12, 20), "READ ME 42", fill=(0, 0, 0, 255), font=doc_font)
+        doc_draw.text((12, 64), "Lingua picture", fill=(0, 0, 0, 255), font=doc_font)
+        prepared = prepare_image(doc)
+        ok = prepared.mode == "RGB" and max(prepared.size) >= 768
+        report("prepare_image", ok, "size {}x{}".format(*prepared.size))
+
+        if key:
+            reading = read_image(MaasClient(api_key=key), doc)
+            found = "READ" in reading.text.upper() and "42" in reading.text
+            report("read_image (picture -> text)", found,
+                   repr(reading.text[:60]) + " in {:.1f}s".format(reading.ocr_s))
+        else:
+            report("read_image (picture -> text)", False, "no API key")
+    except MaasError as err:
+        report("read_image (picture -> text)", False, str(err))
+    except Exception as err:
+        report("read_image (picture -> text)", False, str(err))
+
+    # 11. LANGUAGES map sanity.
     try:
         ok = ("Auto (detect)" in LANGUAGES and
               "English" in LANGUAGES and

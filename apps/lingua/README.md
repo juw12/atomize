@@ -81,6 +81,34 @@ The translation model is pickable in the window (the **Model** dropdown, from
 - **Languages**: source is Auto (detect), English, 繁體中文, and
   Bahasa Indonesia; target is the same list minus the auto option.
 
+## Read a picture (image to words and letters)
+
+Besides live captions, Lingua can read the text out of any picture: a phone
+photo of a sign or menu, a screenshot, a scanned page.
+
+- Click **Read picture** in the main window, then **Open image...** (Ctrl+O),
+  **Paste** (Ctrl+V; works with Win+Shift+S snips and image files copied in
+  Explorer) or **Grab screen area**.
+- The text appears in an editable box with a **words · letters · lines** count;
+  **Copy** puts it on the clipboard.
+- Tick **Translate to <target>** to add a translation (uses the main window's
+  target language and model).
+
+Pictures go through the same DeepSeek-OCR-2 call as captions, prepared for
+documents in `engine/image_text.py`: rotated upright from EXIF (phone photos),
+transparency flattened onto white, longest side capped at 1600 px (small print
+stays legible) and tiny images enlarged to 768 px.
+
+From the command line:
+
+```powershell
+python apps\lingua\app.py --read-image C:\path\to\photo.jpg            # text only
+python apps\lingua\app.py --read-image C:\path\to\photo.jpg --translate
+```
+
+Measured 2026-10-27: a 1400 x 900 phone-style photo with English, Traditional
+Chinese and Indonesian lines read correctly in 1.0 to 2.0 s.
+
 ## API key & config
 
 Lingua never stores its own key. It discovers the MaaS key in this order:
@@ -114,15 +142,18 @@ apps/lingua/
     maas.py          key discovery + MaasClient.ocr() / .translate()
     capture.py       screen-region grab + fast change-detection hash
     pipeline.py      pure caption dedup/delta/cache + Transcript accumulator
+    image_text.py    picture reader: image prep, OCR cleanup, word/letter counts
   ui/                tkinter only
     window.py        single always-on-top window: controls + live transcript
     theme.py         light/dark palettes
     region.py        full-screen drag-to-select region picker
+    picture.py       Read-picture window (open / paste / grab -> text)
   tests/
     run_all.py       hermetic runner, exit 0/1
     test_pipeline.py pure-logic tests (no network, no display)
     test_maas.py     mocked-HTTP tests (no network)
     test_capture.py  crop/hash tests on synthetic images (no display)
+    test_image_text.py picture-reader tests (synthetic images, fake client)
   scripts/run.ps1    launcher (sets the UTF-8 env, runs app.py)
   README.md
 ```
