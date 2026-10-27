@@ -2,14 +2,25 @@
 # Build with:  powershell -File apps\lingua\scripts\build-windows.ps1
 import os
 
+from PyInstaller.utils.hooks import collect_all
+
+# Offline translation engine (CTranslate2 + tokenizers + Traditional-Chinese converter).
+_datas, _binaries, _hidden = [], [], []
+for _pkg in ("ctranslate2", "sentencepiece", "sacremoses", "subword_nmt", "opencc"):
+    _d, _b, _h = collect_all(_pkg)
+    _datas += _d
+    _binaries += _b
+    _hidden += _h
+
 APP_DIR = os.path.abspath(os.path.join(SPECPATH, ".."))
 
 a = Analysis(
     [os.path.join(APP_DIR, "app.py")],
     pathex=[APP_DIR],
-    datas=[(os.path.join(APP_DIR, "web"), "web")],
-    hiddenimports=["qrcode", "qrcode.image.pil", "PIL.ImageTk"],
-    excludes=["numpy", "pandas", "matplotlib", "scipy", "pytest"],
+    datas=[(os.path.join(APP_DIR, "web"), "web")] + _datas,
+    binaries=_binaries,
+    hiddenimports=["qrcode", "qrcode.image.pil", "PIL.ImageTk"] + _hidden,
+    excludes=["pandas", "matplotlib", "scipy", "pytest", "torch"],
 )
 pyz = PYZ(a.pure)
 exe = EXE(

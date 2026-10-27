@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import json
 import os
+import time
+import re
 import secrets
 import socket
 import threading
@@ -137,21 +139,62 @@ class _Handler(SimpleHTTPRequestHandler):
             method="POST",
             headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"},
         )
+        is_llm = parts[2] == "llm"
         try:
-            with urllib.request.urlopen(upstream, timeout=90) as resp:
+            with urllib.request.urlopen(upstream, timeout=25 if is_llm else 90) as resp:
                 status, payload = resp.status, resp.read()
                 ctype = resp.headers.get("Content-Type", "application/json")
         except urllib.error.HTTPError as err:
             status, payload = err.code, err.read()
             ctype = err.headers.get("Content-Type", "text/plain")
         except (urllib.error.URLError, OSError) as err:
-            self._json(502, {"error": "laptop could not reach the gateway: {}".format(err)})
-            return
+            status, payload, ctype = 502, json.dumps(
+                {"error": "laptop could not reach the gateway: {}".format(err)}).encode(), "application/json"
+        if is_llm and status != 200:
+            fallback = self._translate_locally(body, key)
+            if fallback is not None:
+                status, payload, ctype = 200, fallback, "application/json"
         self.send_response(status)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
+
+    def _translate_locally(self, body: bytes, key: str) -> bytes | None:
+        """Gateway translation failed: answer the phone from the laptop instead
+        (other healthy gateway models, then offline packs, then online if allowed),
+        in the same chat-completions shape the phone already understands."""
+        try:
+            request = json.loads(body.decode("utf-8"))
+            messages = request.get("messages") or []
+            system = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
+            user = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
+            if not isinstance(user, str) or not user.strip():
+                return None
+            match = re.search(r"[Tt]ranslate (?:it )?into (.+?)(?:, keeping|\. Output|\.$)", system)
+            target = match.group(1).strip() if match else None
+            if not target:
+                return None
+            source = None
+            prefix = re.match(r"\(source language: ([^)]+)\)\s*", user)
+            if prefix:
+                source = prefix.group(1)
+                user = user[prefix.end():]
+            purpose = "document" if "OCR" in system else "meeting"
+            failed_model = request.get("model")
+            if failed_model:
+                maas._DEAD_MODELS[failed_model] = time.time() + maas.DEAD_MODEL_SECONDS
+            client = maas.MaasClient(api_key=key)
+            text, engine = client.translate_with_fallback(user, target, source, purpose=purpose)
+        except Exception:
+            return None
+        return json.dumps({
+            "id": "lingua-laptop",
+            "object": "chat.completion",
+            "model": engine,
+            "lingua_engine": engine,
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": text}, "finish_reason": "stop"}],
+        }, ensure_ascii=False).encode("utf-8")
 
 
 class LocalServer:

@@ -11,6 +11,7 @@ import unittest
 from unittest import mock
 
 _APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault("LINGUA_LOCAL_FALLBACK", "0")
 if _APP_DIR not in sys.path:
     sys.path.insert(0, _APP_DIR)
 
@@ -32,6 +33,12 @@ from engine.image_text import (  # noqa: E402
     text_stats,
 )
 
+
+
+# Tests exercise model fallback repeatedly: don't remember failed models between tests.
+from engine import maas as _maas  # noqa: E402
+
+_maas.DEAD_MODEL_SECONDS = 0
 
 class FakeClient:
     def __init__(self, ocr_text="Hello world", translation="Halo dunia"):

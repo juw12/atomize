@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import base64
 import json
+import time
 import os
 
 import requests
@@ -25,6 +26,32 @@ import requests
 OCR_BASE = os.environ.get("LINGUA_OCR_BASE_URL", "https://gateway.example.com/ocr/v1")
 LLM_BASE = os.environ.get("LINGUA_LLM_BASE_URL", "https://gateway.example.com/llm/v1")
 LLM_MODEL = os.environ.get("LINGUA_LLM_MODEL", "translate-default")
+
+#: Gateway models that failed recently -> time they may be tried again.
+_DEAD_MODELS: dict[str, float] = {}
+DEAD_MODEL_SECONDS = 120
+#: Seconds to wait for one gateway translation before trying the next engine
+#: (a hung model must not freeze the app; OCR keeps the longer client timeout).
+TRANSLATE_TIMEOUT = float(os.environ.get("LINGUA_TRANSLATE_TIMEOUT", "15"))
+#: Offline/online fallback after the gateway (tests switch this off).
+LOCAL_FALLBACK = os.environ.get("LINGUA_LOCAL_FALLBACK", "1") != "0"
+
+
+def _online_allowed() -> bool:
+    """The user's opt-in for public online translation (config ``allow_online_translation``)."""
+    if os.environ.get("LINGUA_ALLOW_ONLINE") is not None:
+        return os.environ.get("LINGUA_ALLOW_ONLINE") == "1"
+    try:
+        from engine import config
+
+        return bool(config.load().get("allow_online_translation", False))
+    except Exception:
+        return False
+
+
+def reset_model_health() -> None:
+    """Forget which gateway models failed (e.g. after settings change)."""
+    _DEAD_MODELS.clear()
 OCR_MODEL = "deepseek-ai/DeepSeek-OCR-2"
 
 #: Default OCR instruction (plain text, no layout markup).
@@ -164,10 +191,10 @@ class MaasClient:
             "Content-Type": "application/json",
         }
 
-    def _post(self, url: str, payload: dict) -> dict:
+    def _post(self, url: str, payload: dict, timeout: float | None = None) -> dict:
         headers = self._headers()
         try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=self.timeout)
+            resp = requests.post(url, headers=headers, json=payload, timeout=timeout or self.timeout)
         except requests.RequestException as exc:  # pragma: no cover - network path
             raise MaasError("request failed: " + str(exc)) from exc
 
@@ -235,34 +262,84 @@ class MaasClient:
         }
         url = self.llm_base + "/chat/completions"
         if on_chunk is None:
-            return self._content(self._post(url, payload))
+            return self._content(self._post(url, payload, timeout=TRANSLATE_TIMEOUT))
         return self._stream(url, payload, on_chunk)
 
     def translate_with_fallback(self, text: str, target_lang: str, source_lang: str | None = None,
-                                *, purpose: str = "meeting", models=None) -> tuple[str, str]:
-        """Translate, trying each model in ``models`` (default: current model first,
-        then the rest of :data:`MODELS`) until one answers.
+                                *, purpose: str = "meeting", models=None,
+                                local_fallback: bool | None = None,
+                                allow_online: bool | None = None) -> tuple[str, str]:
+        """Translate with every available engine, best first.
 
-        Returns ``(translation, model_used)``. Raises :class:`MaasError` with the
-        last error when every model fails (e.g. the gateway is down).
+        1. The gateway models in ``models`` (default: current model, then the
+           rest of :data:`MODELS`). Models that failed in the last
+           :data:`DEAD_MODEL_SECONDS` are skipped so a hung model does not stall
+           every request.
+        2. Offline translation on this PC (installed language packs).
+        3. Online public translation, only when ``allow_online`` (default: the
+           user's "Allow online translation" setting).
+
+        Returns ``(translation, engine)`` where ``engine`` is the model name,
+        ``"offline"`` or ``"online:<service>"``. Raises :class:`MaasError` when
+        every engine fails.
         """
         order = []
         for name in [self.llm_model] + list(models if models is not None else MODELS):
             if name and name not in order:
                 order.append(name)
+        now = time.time()
+        alive = [name for name in order if _DEAD_MODELS.get(name, 0) <= now]
         original = self.llm_model
-        last_error: MaasError | None = None
+        last_error: Exception | None = None
         try:
-            for name in order:
+            for name in alive:
                 self.llm_model = name
                 try:
                     return self.translate(text, target_lang, source_lang, purpose=purpose), name
                 except MaasError as err:
                     last_error = err
+                    _DEAD_MODELS[name] = time.time() + DEAD_MODEL_SECONDS
         finally:
             self.llm_model = original
+        if not alive:
+            last_error = MaasError("all gateway models failed recently; retrying them in a moment")
+
+        if local_fallback is None:
+            local_fallback = LOCAL_FALLBACK
+        errors = [str(last_error)] if last_error else []
+        if local_fallback:
+            try:
+                from engine import offline_translate
+
+                return offline_translate.translate(text, target_lang, source_lang), "offline"
+            except Exception as err:  # engine/pack missing or decode problem
+                errors.append(str(err))
+            if allow_online is None:
+                allow_online = _online_allowed()
+            if allow_online:
+                try:
+                    from engine import online_translate
+
+                    out, service = online_translate.translate(text, target_lang, source_lang)
+                    return out, "online:" + service
+                except Exception as err:
+                    errors.append(str(err))
         raise MaasError("translation unavailable (tried {} model{}): {}".format(
-            len(order), "" if len(order) == 1 else "s", last_error))
+            len(order), "" if len(order) == 1 else "s", " | ".join(e for e in errors if e)))
+
+    def translate_live(self, text: str, target_lang: str, source_lang: str | None = None,
+                       on_chunk=None, *, purpose: str = "meeting") -> str:
+        """Live-caption translation: stream from the current model when it is
+        healthy, otherwise fall back through :meth:`translate_with_fallback`."""
+        if _DEAD_MODELS.get(self.llm_model, 0) <= time.time():
+            try:
+                return self.translate(text, target_lang, source_lang, on_chunk=on_chunk, purpose=purpose)
+            except MaasError:
+                _DEAD_MODELS[self.llm_model] = time.time() + DEAD_MODEL_SECONDS
+        out, _engine = self.translate_with_fallback(text, target_lang, source_lang, purpose=purpose)
+        if on_chunk is not None:
+            on_chunk(out)
+        return out
 
     def _stream(self, url: str, payload: dict, on_chunk) -> str:
         try:
@@ -271,7 +348,7 @@ class MaasClient:
                 headers=self._headers(),
                 json=dict(payload, stream=True),
                 stream=True,
-                timeout=self.timeout,
+                timeout=(10, TRANSLATE_TIMEOUT),
             )
         except requests.RequestException as exc:
             raise MaasError("request failed: " + str(exc)) from exc

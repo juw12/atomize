@@ -270,11 +270,18 @@ def _run_read_image(args: list[str]) -> int:
         print("cannot read picture: " + str(err), file=sys.stderr)
         return 1
 
-    print(reading.text)
+    lines_out = [reading.text]
     if reading.translation:
-        print()
-        print("--- translation ({}) ---".format(target))
-        print(reading.translation)
+        lines_out += ["", "--- translation ({}, {}) ---".format(target, reading.model_used or "?"), reading.translation]
+    elif reading.translation_error:
+        lines_out += ["", "--- translation unavailable: {} ---".format(reading.translation_error)]
+    print("\n".join(lines_out))
+    if "--out" in args:  # the windowed Lingua.exe has no console: write the result to a file
+        try:
+            with open(args[args.index("--out") + 1], "w", encoding="utf-8") as fh:
+                fh.write("\n".join(lines_out) + "\n")
+        except (IndexError, OSError) as err:
+            print("cannot write --out file: " + str(err), file=sys.stderr)
     stats = reading.stats
     print(
         "\n[{} words, {} letters, {} lines; OCR {:.1f}s]".format(

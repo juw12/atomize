@@ -138,6 +138,8 @@ class PictureReader:
         self.banner = tk.Label(self.win, text="", bg=t["bg"], fg=t["err"], font=(_FONT, 9),
                                anchor="w", justify="left", wraplength=560)
         self.banner.pack(fill="x", **pad)
+        self.btn_pack = self._button(self.win, "⬇  Get offline translation (works without the company service)",
+                                     self._get_offline_packs)
 
         # Bottom-anchored rows first so they never get pushed off-screen.
         self.status = tk.Label(self.win, text="ready", anchor="w", bg=t["bg"], fg=t["muted"],
@@ -348,6 +350,44 @@ class PictureReader:
 
         threading.Thread(target=work, daemon=True).start()
 
+    # -- offline language packs ------------------------------------------------
+
+    def _offer_packs(self, message: str) -> None:
+        """Show the one-click download when only an offline pack is missing."""
+        text = str(message or "")
+        if "language pack needed" in text or "offline pack" in text:
+            self.btn_pack.configure(state="normal",
+                                    text="⬇  Get offline translation (works without the company service)")
+            self.btn_pack.pack(fill="x", padx=12, pady=(0, 4), after=self.banner)
+
+    def _get_offline_packs(self) -> None:
+        from engine import offline_translate as ot
+
+        text = self.text.get("1.0", "end-1c").strip() or "Hello"
+        target = ot.code_for(self._target_phrase())
+        source_phrase = self._get_source()
+        source = ot.code_for(source_phrase) if source_phrase else None
+        self.btn_pack.configure(state="disabled", text="Downloading offline language pack…")
+
+        def work() -> None:
+            try:
+                index = ot.load_index()
+                missing = ot.needed_for(text, source, target, index)
+                for a, b in missing:
+                    label = "{} → {}".format(ot.NAME_BY_CODE.get(a, a), ot.NAME_BY_CODE.get(b, b))
+
+                    def progress(done, total, label=label):
+                        if total:
+                            self._queue.put(("progress", "downloading offline pack {}  {:.0f}/{:.0f} MB".format(
+                                label, done / 1e6, total / 1e6)))
+
+                    ot.install_pack(a, b, progress=progress, index=index)
+                self._queue.put(("packs_ready", len(missing)))
+            except Exception as err:  # noqa: BLE001 - shown in the banner
+                self._queue.put(("packs_error", str(err)))
+
+        threading.Thread(target=work, daemon=True).start()
+
     def _poll(self) -> None:
         try:
             while True:
@@ -365,10 +405,20 @@ class PictureReader:
                     self._set_tab("trans")
                     if self._entry_id:
                         history.update_translation(self._entry_id, out, self.var_target.get())
-                    self._show_stats(extra="translate {:.1f}s".format(secs) + (" · {}".format(model) if model else ""))
+                    self._show_stats(extra="translate {:.1f}s".format(secs) + (" · {}".format(engine_label(model)) if model else ""))
+                    self.btn_pack.pack_forget()
                 elif kind == "translate_error":
                     self.banner.configure(text="Translation is unavailable right now - the text is still yours to copy. ({})".format(payload))
                     self._set_status("translation service unavailable", "err")
+                    self._offer_packs(payload)
+                elif kind == "packs_ready":
+                    self.btn_pack.pack_forget()
+                    self.banner.configure(text="")
+                    self._set_status("offline translation ready - translating…", "ok")
+                    self._translate_now()
+                elif kind == "packs_error":
+                    self.btn_pack.configure(state="normal", text="⬇  Try the download again")
+                    self.banner.configure(text="Could not download the offline language pack: " + payload)
                 else:
                     self._set_status("Error: " + payload, "err")
         except queue.Empty:
@@ -386,6 +436,9 @@ class PictureReader:
         self._fill(self.trans, reading.translation or "")
         if getattr(reading, "translation_error", None):
             self.banner.configure(text="Picture read, but translation is unavailable right now. ({})".format(reading.translation_error))
+            self._offer_packs(reading.translation_error)
+        else:
+            self.btn_pack.pack_forget()
         if not reading.text:
             self._set_status("no words or letters found - try rotating or a sharper picture", "warn")
             return
@@ -397,6 +450,8 @@ class PictureReader:
         extra = ["OCR {:.1f}s".format(reading.ocr_s)] if reading.ocr_s else []
         if reading.translation and reading.translate_s:
             extra.append("translate {:.1f}s".format(reading.translate_s))
+            if getattr(reading, "model_used", None):
+                extra.append(engine_label(reading.model_used))
         self._show_stats(extra=" · ".join(extra))
 
     def _show_stats(self, extra: str = "") -> None:
@@ -515,3 +570,14 @@ class PictureReader:
             return bool(self.win.winfo_exists())
         except tk.TclError:
             return False
+
+
+def engine_label(engine: str | None) -> str:
+    """Friendly name for the engine that produced a translation."""
+    if not engine:
+        return ""
+    if engine == "offline":
+        return "offline on this PC"
+    if engine.startswith("online:"):
+        return "online ({})".format(engine.split(":", 1)[1])
+    return engine

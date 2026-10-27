@@ -259,6 +259,80 @@ class UpdateMixin:
                        activebackground=t["card"], activeforeground=t["text"], bd=0,
                        highlightthickness=0, font=("Segoe UI", 9)).pack(anchor="w", padx=16)
 
+        # -- translation engines ------------------------------------------------
+        from engine import offline_translate as ot
+
+        tk.Frame(dlg, bg=t["edge"], height=1).pack(fill="x", padx=20, pady=(12, 8))
+        tk.Label(dlg, text="Translation when the company service is down", bg=t["card"], fg=t["text"],
+                 font=("Segoe UI Semibold", 10)).pack(anchor="w", padx=20)
+        packs_label = tk.Label(dlg, text="", bg=t["card"], fg=t["muted"], font=("Segoe UI", 9),
+                               wraplength=440, justify="left")
+        packs_label.pack(anchor="w", padx=20, pady=(2, 4))
+
+        def refresh_packs() -> None:
+            pairs = ot.installed_pairs()
+            if not ot.engine_available():
+                packs_label.configure(text="Offline engine not available in this copy.")
+            elif pairs:
+                names = ", ".join("{}→{}".format(ot.NAME_BY_CODE.get(a, a), ot.NAME_BY_CODE.get(b, b)) for a, b in pairs)
+                packs_label.configure(text="Offline on this PC (private, nothing leaves the laptop): " + names)
+            else:
+                packs_label.configure(text="No offline language packs yet. Download them once (~70 MB each).")
+
+        refresh_packs()
+        pack_row = tk.Frame(dlg, bg=t["card"])
+        pack_row.pack(fill="x", padx=20)
+        pack_status = tk.Label(pack_row, text="", bg=t["card"], fg=t["muted"], font=("Segoe UI", 8))
+
+        def download_mine() -> None:
+            names = {self.combo_target.get(), self.combo_source.get(), "English"}
+            codes = sorted({ot.code_for(n) for n in names if ot.code_for(n)})
+            wanted = []
+            for a in codes:
+                for b in codes:
+                    if a != b and (a == "en" or b == "en"):
+                        wanted.append((a, b))
+            dl_button.configure(state="disabled")
+
+            def work() -> None:
+                try:
+                    index = ot.load_index()
+                    todo = [p for p in wanted if not ot.is_installed(*p)]
+                    for n, (a, b) in enumerate(todo, 1):
+                        def progress(done, total, a=a, b=b, n=n):
+                            if total:
+                                text = "{}/{}  {}→{}  {:.0f}/{:.0f} MB".format(
+                                    n, len(todo), ot.NAME_BY_CODE.get(a, a), ot.NAME_BY_CODE.get(b, b), done / 1e6, total / 1e6)
+                                self._call_ui(lambda: pack_status.configure(text=text))
+                        ot.install_pack(a, b, progress=progress, index=index)
+                    self._call_ui(lambda: (pack_status.configure(text="Done ✓"), refresh_packs(),
+                                           dl_button.configure(state="normal")))
+                except Exception as err:  # noqa: BLE001
+                    message = str(err)
+                    self._call_ui(lambda: (pack_status.configure(text="Download failed: " + message[:80]),
+                                           dl_button.configure(state="normal")))
+
+            threading.Thread(target=work, daemon=True).start()
+
+        dl_button = self._button(pack_row, "Download packs for my languages", download_mine)
+        dl_button.pack(side="left")
+        pack_status.pack(side="left", padx=8)
+        self._color_widget(dl_button)
+
+        online = tk.BooleanVar(value=bool(self.cfg.get("allow_online_translation", False)))
+
+        def on_online() -> None:
+            self.cfg["allow_online_translation"] = bool(online.get())
+            try:
+                config.save(self.cfg)
+            except OSError:
+                pass
+
+        tk.Checkbutton(dlg, text="Also allow online translation (Google / MyMemory) – text leaves the company network",
+                       variable=online, command=on_online, bg=t["card"], fg=t["text"], selectcolor=t["bg"],
+                       activebackground=t["card"], activeforeground=t["text"], bd=0, highlightthickness=0,
+                       font=("Segoe UI", 9), wraplength=440, justify="left").pack(anchor="w", padx=16, pady=(6, 0))
+
         row = tk.Frame(dlg, bg=t["card"])
         row.pack(fill="x", padx=20, pady=(14, 18))
 

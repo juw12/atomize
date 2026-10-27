@@ -8,6 +8,7 @@ import unittest
 from unittest import mock
 
 _APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault("LINGUA_LOCAL_FALLBACK", "0")
 if _APP_DIR not in sys.path:
     sys.path.insert(0, _APP_DIR)
 
@@ -21,6 +22,12 @@ from engine import maas  # noqa: E402
 
 TEST_KEY = "test-key-123456"
 
+
+
+# Tests exercise model fallback repeatedly: don't remember failed models between tests.
+from engine import maas as _maas  # noqa: E402
+
+_maas.DEAD_MODEL_SECONDS = 0
 
 class FakeResponse:
     def __init__(self, status_code=200, payload=None, text=""):

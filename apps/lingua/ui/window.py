@@ -601,7 +601,7 @@ class LinguaWindow(UpdateMixin):
         self._color_widget(self.btn_start)
         self._capture = RegionCapture(region, min_change=0.0)
         self._pipeline = CaptionPipeline(
-            translate_fn=lambda s, on_chunk=None: self._client.translate(
+            translate_fn=lambda s, on_chunk=None: self._client.translate_live(
                 s, self._target_phrase(), self._source_phrase(), on_chunk=on_chunk
             ),
             cache={},
@@ -785,7 +785,7 @@ class LinguaWindow(UpdateMixin):
         config.save(self.cfg)
         if self._pipeline is not None and self._running:
             self._pipeline = CaptionPipeline(
-                translate_fn=lambda s, on_chunk=None: self._client.translate(
+                translate_fn=lambda s, on_chunk=None: self._client.translate_live(
                     s, self._target_phrase(), self._source_phrase(), on_chunk=on_chunk
                 ),
                 cache={},

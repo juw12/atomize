@@ -81,6 +81,33 @@ The translation model is pickable in the window (the **Model** dropdown, from
 - **Languages**: source is Auto (detect), English, 繁體中文, and
   Bahasa Indonesia; target is the same list minus the auto option.
 
+## When the company translation models are down (v2.2)
+
+Translation no longer depends only on the company gateway. Each request walks a
+chain and uses the first engine that answers:
+
+1. **Gateway models** (`LINGUA_LLM_MODELS`), each with a short timeout
+   (`LINGUA_TRANSLATE_TIMEOUT`, default 15 s). A model that fails is skipped for
+   2 minutes so the next request does not wait on it again.
+2. **Offline on this PC**: Argos Translate language packs run with CTranslate2
+   (`engine/offline_translate.py`). Packs (~70 MB each) are stored in
+   `%LOCALAPPDATA%\lingua\models`; get them from the picture window
+   ("Get offline translation") or (i) -> Translation -> "Download packs for my
+   languages". Pairs without a direct pack go through English. Signs with
+   several languages are translated line by line; lines already in the target
+   language are kept; codes such as "3B" or "B12" are kept as written.
+   The first call loads the model (~20 s); later calls take 2-3 s.
+3. **Online services** (Google, then MyMemory): **off by default**, because they
+   send the text outside the company. Turn on with (i) -> Translation ->
+   "Also allow online translation" or `LINGUA_ALLOW_ONLINE=1`.
+
+Phones using the laptop relay get the same fallback: when the gateway fails,
+the laptop answers the phone with its offline translation. The public web
+version without the laptop cannot use the offline engine.
+
+Offline quality is basic (fine for signs and short sentences, weaker for
+English -> Japanese). Set `LINGUA_LOCAL_FALLBACK=0` to disable it.
+
 ## Read a picture (image to words and letters)
 
 Lingua reads the text out of any picture: a phone photo of a sign or menu, a

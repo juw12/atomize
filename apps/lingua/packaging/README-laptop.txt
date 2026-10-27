@@ -32,4 +32,13 @@ Use
   Windows may ask to allow Lingua through the firewall: allow it on private networks.
 - Start / Select region: live Teams caption translation (as before).
 
+Translation when the company models are down
+---------------------------------------------
+If the gateway translation models fail, Lingua translates on this laptop
+instead (offline language packs, ~70 MB per language pair). In the picture
+window click "Get offline translation", or (i) -> Translation -> "Download
+packs for my languages". The first translation after starting takes ~20 s,
+then 2-3 s. Online services (Google/MyMemory) are OFF unless you tick
+"Also allow online translation" there, because they send text outside the company.
+
 The gateway must be reachable from this laptop (office network or VPN).

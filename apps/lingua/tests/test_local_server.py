@@ -9,7 +9,11 @@ import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+# Local test servers must never go through a (possibly dead) HTTP proxy.
+os.environ["NO_PROXY"] = "127.0.0.1,localhost," + os.environ.get("NO_PROXY", "")
+os.environ["no_proxy"] = os.environ["NO_PROXY"]
 _APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault("LINGUA_LOCAL_FALLBACK", "0")
 if _APP_DIR not in sys.path:
     sys.path.insert(0, _APP_DIR)
 

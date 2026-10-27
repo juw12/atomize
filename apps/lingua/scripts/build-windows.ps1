@@ -7,7 +7,7 @@ $app = Resolve-Path "$PSScriptRoot\.."
 $work = Join-Path $env:TEMP "lingua-build"
 $venv = Join-Path $work "venv"
 if (-not (Test-Path "$venv\Scripts\python.exe")) { python -m venv $venv }
-& "$venv\Scripts\python.exe" -m pip install --quiet --disable-pip-version-check pillow requests qrcode pyinstaller
+& "$venv\Scripts\python.exe" -m pip install --quiet --disable-pip-version-check pillow requests qrcode pyinstaller ctranslate2 sentencepiece sacremoses subword-nmt opencc-python-reimplemented
 & "$venv\Scripts\python.exe" -m PyInstaller --noconfirm --clean `
     --distpath $Out --workpath (Join-Path $work "pyi") "$app\packaging\lingua.spec"
 Copy-Item "$app\packaging\lingua.env.example" "$Out\Lingua\lingua.env.example" -Force

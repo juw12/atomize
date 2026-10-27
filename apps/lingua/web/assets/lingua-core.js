@@ -608,7 +608,9 @@ export class MaasClient {
       for (const model of order) {
         this.settings = Object.assign({}, this.settings, { llmModel: model });
         try {
-          return { translation: await this.translate(text, targetLang, sourceLang, purpose), model };
+          const translation = await this.translate(text, targetLang, sourceLang, purpose);
+          // The laptop relay may answer with another engine (e.g. offline on the laptop).
+          return { translation, model: this.lastEngine || model };
         } catch (err) {
           lastError = err;
         }
@@ -637,6 +639,7 @@ export class MaasClient {
     const base = String(this.settings.gatewayLlmBase || "").replace(/\/+$/, "");
     const url = `${base}/chat/completions`;
     const data = await this._postJSON(url, payload);
+    this.lastEngine = (data && data.lingua_engine) || null;
     return MaasClient._content(data);
   }
 }
