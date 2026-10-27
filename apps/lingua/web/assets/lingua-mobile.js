@@ -14,6 +14,7 @@ import {
   loadSettings,
   saveSettings,
   DEFAULT_SETTINGS,
+  detectLaptopRelay,
   explainError,
   speakerRows,
 } from "./lingua-core.js";
@@ -43,6 +44,8 @@ const els = {
 };
 
 let settings = loadSettings();
+let relay = null; // overrides when served by the paired laptop app
+const effectiveSettings = () => (relay ? Object.assign({}, settings, relay) : settings);
 const pipeline = new CaptionPipeline((text) => translateFn(text));
 const transcript = new Transcript();
 
@@ -51,7 +54,7 @@ function getSourceHint() {
 }
 
 async function translateFn(text) {
-  const client = new MaasClient(settings);
+  const client = new MaasClient(effectiveSettings());
   return client.translate(text, settings.targetLang, getSourceHint());
 }
 
@@ -170,7 +173,7 @@ async function translatePastedText() {
     setStatus("Paste some caption text first.", "warn");
     return;
   }
-  if (!settings.apiKey) {
+  if (!effectiveSettings().apiKey) {
     setStatus("No API key set. Open Settings and paste your MaaS API key.", "err");
     return;
   }
@@ -197,14 +200,14 @@ async function ocrAndTranslate() {
     setStatus("Pick an image first.", "warn");
     return;
   }
-  if (!settings.apiKey) {
+  if (!effectiveSettings().apiKey) {
     setStatus("No API key set. Open Settings and paste your MaaS API key.", "err");
     return;
   }
   setStatus("OCR + translate…", "warn");
   els.ocrBtn.disabled = true;
   try {
-    const client = new MaasClient(settings);
+    const client = new MaasClient(effectiveSettings());
     const text = await client.ocr(file);
     if (!text || !text.trim()) {
       setStatus("OCR returned no text.", "warn");
@@ -258,3 +261,20 @@ els.clearImageBtn.addEventListener("click", () => {
 applySettingsToUI();
 bindSettings();
 renderEmpty();
+
+detectLaptopRelay().then((found) => {
+  if (!found) return;
+  const models = found.models;
+  delete found.models;
+  delete found.llmModel;
+  relay = found;
+  if (models) {
+    populateModels(els.llmModel, models);
+    els.llmModel.value = models.includes(settings.llmModel) ? settings.llmModel : models[0];
+    settings.llmModel = els.llmModel.value;
+  }
+  for (const el of [els.gatewayOcrBase, els.gatewayLlmBase, els.apiKey]) {
+    el.closest("div").hidden = true;
+  }
+  setStatus("Connected to Lingua on your laptop.", "ok");
+});

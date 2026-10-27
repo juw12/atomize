@@ -8,6 +8,10 @@
   <meta name="theme-color" content="#0b0e14" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Lingua" />
   <link rel="stylesheet" href="assets/lingua.css" />
 </head>
 <body>
@@ -16,6 +20,7 @@
     <a href="index.html">Overview</a>
     <a href="web.html">Web</a>
     <a href="mobile.html" class="active">Mobile</a>
+    <a href="picture.html">Picture</a>
     <span class="spacer"></span>
     <button id="btn-install-app" class="ghost" hidden aria-label="Install app" title="Install via your browser menu (Chrome/Edge → Install app)">Install</button>
     <button id="themeToggle" class="ghost" aria-label="Toggle theme">Light</button>
@@ -52,7 +57,7 @@
       <label class="field" for="imageInput">Pick a screenshot</label>
       <input id="imageInput" type="file" accept="image/*" capture="environment" />
       <p class="hint" style="margin-top: 8px;">
-        On phones you can also share a screenshot into this page (open the share sheet, choose "Lingua"). The image goes through OCR first, then translation.
+        The image goes through OCR first, then translation. To just read the words and letters in a photo (with a count, copy and share), use <a href="picture.html">Read picture</a>.
       </p>
       <div class="mobile-actions">
         <button id="ocrBtn" class="primary">OCR + translate</button>

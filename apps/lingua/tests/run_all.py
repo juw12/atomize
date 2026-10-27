@@ -15,7 +15,7 @@ try:
 except Exception:
     pass
 
-TEST_FILES = ["test_pipeline.py", "test_maas.py", "test_capture.py", "test_image_text.py"]
+TEST_FILES = ["test_pipeline.py", "test_maas.py", "test_capture.py", "test_image_text.py", "test_local_server.py"]
 
 
 def main() -> int:

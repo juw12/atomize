@@ -7,6 +7,8 @@ Usage::
     python app.py --selftest      # headless checks, exit 0/1
     python app.py --read-image PICTURE [--translate]
                                   # print the words/letters in a picture
+    python app.py --serve [--port 8765]
+                                  # share Read picture with phones on this Wi-Fi
 
 The app creates a small control panel (start/stop, language pickers,
 region selector, opacity/font controls, click-through toggle) and a
@@ -34,12 +36,48 @@ if TYPE_CHECKING:
     from engine.pipeline import CaptionPipeline
 
 
+def _load_env_file() -> None:
+    """Apply KEY=VALUE lines from ``lingua.env`` (gateway URLs, optional key).
+
+    Looked up next to the program (the Windows download ships one) and in
+    ``%APPDATA%\\lingua``. Real environment variables always win.
+    """
+    if getattr(sys, "frozen", False):
+        here = os.path.dirname(sys.executable)
+    else:
+        here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(here, "lingua.env"),
+        os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "lingua", "lingua.env"),
+    ]
+    for path in candidates:
+        try:
+            with open(path, "r", encoding="utf-8-sig") as fh:
+                lines = fh.read().splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and value:
+                os.environ.setdefault(key, value)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point. Returns 0 on success, non-zero on failure."""
     args = argv if argv is not None else sys.argv[1:]
 
+    _load_env_file()
+
     if "--selftest" in args:
         return _run_selftest()
+
+    if "--serve" in args:
+        return _run_serve(args)
 
     if "--read-image" in args:
         return _run_read_image(args)
@@ -51,6 +89,34 @@ def main(argv: list[str] | None = None) -> int:
     cfg = config.load()
     window = LinguaWindow(cfg)
     window.root.mainloop()
+    return 0
+
+
+def _run_serve(args: list[str]) -> int:
+    """CLI: run the phone server until Ctrl+C."""
+    import time
+
+    from engine.local_server import DEFAULT_PORT, LocalServer
+    from engine.maas import discover_api_key
+
+    port = DEFAULT_PORT
+    if "--port" in args:
+        try:
+            port = int(args[args.index("--port") + 1])
+        except (IndexError, ValueError):
+            print("usage: python app.py --serve [--port 8765]", file=sys.stderr)
+            return 2
+    if discover_api_key() is None:
+        print("warning: no API key found; set MAAS_API_KEY or add it to lingua.env", file=sys.stderr)
+    server = LocalServer(port=port).start()
+    print("Lingua is shared on this network. Open on your phone (same Wi-Fi):")
+    print("  " + server.phone_url)
+    print("Press Ctrl+C to stop.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        server.stop()
     return 0
 
 
@@ -138,8 +204,8 @@ def _run_selftest() -> int:
 
     # 1. Import every module.
     try:
-        from ui import picture, region, theme, window
-        from engine import maas, pipeline, capture, image_text
+        from ui import picture, region, share, theme, window
+        from engine import maas, pipeline, capture, image_text, local_server
 
         report("import engine.*", True)
         report("import ui.*", True)

@@ -3,3 +3,5 @@
 #   pip install -r apps/lingua/requirements.txt
 Pillow>=10
 requests>=2.28
+# Optional: QR code in the Share-to-phone window
+qrcode>=7

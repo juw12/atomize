@@ -109,6 +109,29 @@ python apps\lingua\app.py --read-image C:\path\to\photo.jpg --translate
 Measured 2026-10-27: a 1400 x 900 phone-style photo with English, Traditional
 Chinese and Indonesian lines read correctly in 1.0 to 2.0 s.
 
+## Versions: laptop, web, iPhone, Android
+
+| where | how | reads pictures | live captions |
+| --- | --- | --- | --- |
+| Windows laptop/PC | `Lingua.exe` (download zip) or `python app.py` | yes (Read picture) | yes |
+| Any browser | `web/picture.html`, `web/mobile.html`, `web/web.html` (PWA, installable) | yes | yes (`web.html`) |
+| iPhone / Android | scan **Share to phone** QR on the laptop, then Add to Home Screen | yes, with the camera | paste/screenshot only |
+
+Phones cannot call the MaaS gateway directly (it is plain `http` with no CORS headers and only
+reachable from the office network), so **Share to phone** runs a small web server on the laptop
+(`engine/local_server.py`) that serves the PWA and relays the two `chat/completions` calls,
+adding the laptop's API key server-side. The phone only gets a random pairing token in the link;
+other devices get HTTP 403. Same thing headless: `python app.py --serve [--port 8765]`.
+
+There is no App Store / Play Store build: the phone version is the installable web app (PWA).
+
+### Windows download
+
+`powershell -ExecutionPolicy Bypass -File apps\lingua\scripts\build-windows.ps1` builds
+`dist\Lingua\Lingua.exe` (no Python needed on the laptop) and `dist\Lingua-windows.zip`.
+Put a `lingua.env` (see `packaging/lingua.env.example`) next to `Lingua.exe` with the gateway
+URLs; the key comes from `MAAS_API_KEY`, `lingua.env`, or the OpenCode config as before.
+
 ## API key & config
 
 Lingua never stores its own key. It discovers the MaaS key in this order:
@@ -143,17 +166,20 @@ apps/lingua/
     capture.py       screen-region grab + fast change-detection hash
     pipeline.py      pure caption dedup/delta/cache + Transcript accumulator
     image_text.py    picture reader: image prep, OCR cleanup, word/letter counts
+    local_server.py  Share to phone: serves web/ + relays OCR/translate with the laptop key
   ui/                tkinter only
     window.py        single always-on-top window: controls + live transcript
     theme.py         light/dark palettes
     region.py        full-screen drag-to-select region picker
     picture.py       Read-picture window (open / paste / grab -> text)
+    share.py         Share-to-phone window (QR code + pairing link)
   tests/
     run_all.py       hermetic runner, exit 0/1
     test_pipeline.py pure-logic tests (no network, no display)
     test_maas.py     mocked-HTTP tests (no network)
     test_capture.py  crop/hash tests on synthetic images (no display)
     test_image_text.py picture-reader tests (synthetic images, fake client)
+    test_local_server.py phone relay tests (fake gateway, token + key checks)
   scripts/run.ps1    launcher (sets the UTF-8 env, runs app.py)
   README.md
 ```

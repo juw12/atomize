@@ -5,3 +5,5 @@ __pycache__/
 config.json
 *.log
 scripts/local-env.ps1
+dist/
+lingua.env

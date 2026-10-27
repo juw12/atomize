@@ -2,7 +2,7 @@
 
 A single always-on-top tkinter window containing:
 - Header: app title + theme toggle button
-- Toolbar: Start/Stop, Select region, Clear, Read picture, Source/Target dropdowns,
+- Toolbar: Start/Stop, Select region, Clear, Read picture, Share to phone, Source/Target dropdowns,
   Opacity slider, Font slider, Click-through checkbox
 - Transcript area: scrolling text showing translated captions (speaker name
   on its own line when present, translation below; NO source text)
@@ -31,6 +31,7 @@ from engine.maas import LANGUAGES, LLM_MODEL, MODELS, OCR_MODEL, MaasClient, Maa
 from engine.pipeline import CaptionPipeline, Line, Transcript, speaker_rows
 from ui.picture import PictureReader
 from ui.region import select_region
+from ui.share import ShareWindow
 from ui.theme import THEMES, get as get_theme
 
 
@@ -65,6 +66,7 @@ class LinguaWindow:
         self._user_scrolled = False
         self._live_partial = ""
         self._picture_reader: PictureReader | None = None
+        self._share_window: ShareWindow | None = None
 
         # Build the root window
         self.root = tk.Tk()
@@ -197,6 +199,19 @@ class LinguaWindow:
             command=self._open_picture_reader,
         )
         self.btn_picture.pack(side="left", padx=6)
+
+        self.btn_phone = tk.Button(
+            row0,
+            text="Share to phone",
+            bg=self._theme["button"],
+            fg=self._theme["text"],
+            activebackground=self._theme["button_active"],
+            activeforeground=self._theme["text"],
+            relief="flat",
+            font=("Segoe UI", 10),
+            command=self._open_share_window,
+        )
+        self.btn_phone.pack(side="left", padx=6)
 
         # Row 1: Language pickers
         row1 = tk.Frame(toolbar, bg=self._theme["bg"])
@@ -752,6 +767,13 @@ class LinguaWindow:
             get_source=self._source_phrase,
         )
 
+    def _open_share_window(self) -> None:
+        """Share Read picture with a phone on the same Wi-Fi (QR code + link)."""
+        if self._share_window is not None and self._share_window.exists():
+            self._share_window.focus()
+            return
+        self._share_window = ShareWindow(self.root, self._theme)
+
     def _clear(self) -> None:
         self._transcript.reset()
         self._live_partial = ""
@@ -804,6 +826,8 @@ class LinguaWindow:
         """Handle window close."""
         if self._running:
             self._stop()
+        if self._share_window is not None and self._share_window.exists():
+            self._share_window.close()
         self.root.destroy()
 
 

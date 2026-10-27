@@ -396,6 +396,9 @@ export function saveSettings(settings) {
   }
 }
 
+// Default OCR instruction (plain text, no layout markup).
+export const OCR_PROMPT = "<image>\nFree OCR.";
+
 // ------------------------------------------------------------------ MaasClient
 
 export class MaasError extends Error {
@@ -532,7 +535,7 @@ export class MaasClient {
     }
   }
 
-  async ocr(blobOrDataUrl) {
+  async ocr(blobOrDataUrl, prompt = OCR_PROMPT) {
     const dataUrl = await blobToDataUrl(blobOrDataUrl);
     const commaIdx = dataUrl.indexOf(",");
     if (commaIdx < 0) throw new MaasError("OCR: image data URL is malformed.");
@@ -547,7 +550,7 @@ export class MaasClient {
         {
           role: "user",
           content: [
-            { type: "text", text: "<image>\nFree OCR." },
+            { type: "text", text: prompt },
             { type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } },
           ],
         },
@@ -559,8 +562,10 @@ export class MaasClient {
     return MaasClient._content(data);
   }
 
-  async translate(text, targetLang, sourceLang) {
-    const system = `Real-time meeting interpreter. Translate into ${targetLang}. Output ONLY the translation.`;
+  async translate(text, targetLang, sourceLang, purpose = "meeting") {
+    const system = purpose === "document"
+      ? `Translator. The text was read from a picture by OCR. Translate it into ${targetLang}, keeping its line breaks. Output ONLY the translation.`
+      : `Real-time meeting interpreter. Translate into ${targetLang}. Output ONLY the translation.`;
     let user = String(text || "").trim();
     if (sourceLang) user = `(source language: ${sourceLang}) ${user}`;
     const payload = {
@@ -575,6 +580,151 @@ export class MaasClient {
     const url = `${base}/chat/completions`;
     const data = await this._postJSON(url, payload);
     return MaasClient._content(data);
+  }
+}
+
+// ------------------------------------------------------------------ picture reader
+// Port of engine/image_text.py: turn any picture (photo, screenshot, scan)
+// into text. Same OCR model as captions, prepared for documents.
+
+// Longest side the picture is downscaled to before OCR (small print survives).
+export const DOC_MAX_SIDE = 1600;
+// Pictures whose longest side is smaller are enlarged to this.
+export const DOC_MIN_SIDE = 768;
+
+const REF_RE = /<\|ref\|>([\s\S]*?)<\|\/ref\|>/g;
+const DET_RE = /<\|det\|>[\s\S]*?<\|\/det\|>/g;
+const ANY_TOKEN_RE = /<\|[^|>]*\|>/g;
+const CJK_CHARS = "\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uf900-\ufaff";
+const WORD_RE = new RegExp(
+  `[${CJK_CHARS}]|(?:(?![${CJK_CHARS}])[\\p{L}\\p{N}])+(?:['\u2019\\-][\\p{L}\\p{N}]+)*`,
+  "gu",
+);
+const LETTER_RE = /[\p{L}\p{N}]/gu;
+
+// Strip OCR markup tokens and tidy whitespace, keeping the line layout.
+export function cleanOcrText(raw) {
+  if (typeof raw !== "string") return "";
+  return raw
+    .replace(REF_RE, "$1")
+    .replace(DET_RE, "")
+    .replace(ANY_TOKEN_RE, "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// Count words (CJK: one per character), letters (alphanumerics) and lines.
+export function textStats(text) {
+  if (!text) return { words: 0, letters: 0, lines: 0 };
+  const words = (text.match(WORD_RE) || []).length;
+  const letters = (text.match(LETTER_RE) || []).length;
+  const lines = text.split("\n").filter((line) => line.trim()).length;
+  return { words, letters, lines };
+}
+
+async function decodePicture(file) {
+  // Browsers apply EXIF orientation when decoding, so phone photos come out upright.
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch (_) {
+      // fall through to <img> decoding (older Safari, unusual formats)
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = url;
+    await img.decode();
+    return img;
+  } catch (err) {
+    throw new MaasError("This file is not a picture the browser can open.", err);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// Upright, white-backed, resized PNG canvas ready for document OCR.
+export async function preparePicture(file, maxSide = DOC_MAX_SIDE, minSide = DOC_MIN_SIDE) {
+  const source = await decodePicture(file);
+  const width = source.width || source.naturalWidth;
+  const height = source.height || source.naturalHeight;
+  if (!width || !height) throw new MaasError("The picture has no pixels.");
+  const longest = Math.max(width, height);
+  let scale = 1;
+  if (maxSide && longest > maxSide) scale = maxSide / longest;
+  else if (minSide && longest < minSide) scale = minSide / longest;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff"; // transparent PNGs: dark text stays readable
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+  if (typeof source.close === "function") source.close();
+  return canvas;
+}
+
+// OCR a picture and optionally translate it. Returns
+// { text, translation, ocrSeconds, translateSeconds, stats }.
+export async function readPicture(client, file, options = {}) {
+  const { targetLang = null, sourceLang = null } = options;
+  const canvas = await preparePicture(file);
+  let started = performance.now();
+  const text = cleanOcrText(await client.ocr(canvas, OCR_PROMPT));
+  const result = {
+    text,
+    translation: null,
+    ocrSeconds: (performance.now() - started) / 1000,
+    translateSeconds: 0,
+    stats: textStats(text),
+  };
+  if (targetLang && text) {
+    started = performance.now();
+    result.translation = await client.translate(text, targetLang, sourceLang, "document");
+    result.translateSeconds = (performance.now() - started) / 1000;
+  }
+  return result;
+}
+
+// ------------------------------------------------------------------ laptop relay
+// When the page is served by the Lingua desktop app ("Share to phone"), the
+// laptop relays OCR/translate calls to the gateway and keeps the API key.
+// The pairing token arrives once in the link (?pair=...) and is remembered.
+
+const PAIR_KEY = "lingua.pair.v1";
+
+// Returns relay overrides ({gatewayOcrBase, gatewayLlmBase, apiKey, models,
+// llmModel}) or null when the page is not served by a paired laptop.
+export async function detectLaptopRelay() {
+  let pair = null;
+  try {
+    pair = new URLSearchParams(location.search).get("pair");
+    if (pair) localStorage.setItem(PAIR_KEY, pair);
+    else pair = localStorage.getItem(PAIR_KEY);
+  } catch (_) {
+    // storage blocked: only the link token is usable
+  }
+  if (!pair) return null;
+  try {
+    const resp = await fetch(`local-config.json?pair=${encodeURIComponent(pair)}`, { cache: "no-store" });
+    if (!resp.ok) return null;
+    const cfg = await resp.json();
+    if (!cfg || !cfg.relay) return null;
+    return {
+      gatewayOcrBase: location.origin + cfg.gatewayOcrBase,
+      gatewayLlmBase: location.origin + cfg.gatewayLlmBase,
+      apiKey: cfg.apiKey,
+      models: Array.isArray(cfg.models) && cfg.models.length ? cfg.models : null,
+      llmModel: cfg.llmModel || null,
+    };
+  } catch (_) {
+    return null; // not served by the laptop app (e.g. GitHub Pages)
   }
 }
 

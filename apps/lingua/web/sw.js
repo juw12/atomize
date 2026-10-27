@@ -4,19 +4,24 @@
  * or intercepted — every call hits the network so the key in localStorage
  * stays usable and any model change on the gateway is picked up immediately.
  */
-const CACHE = 'lingua-cache-v1';
+const CACHE = 'lingua-cache-v2';
 
 const PRECACHE = [
   './',
   './index.html',
   './web.html',
   './mobile.html',
+  './picture.html',
   './manifest.webmanifest',
   './assets/lingua.css',
   './assets/lingua-core.js',
   './assets/lingua-web.js',
   './assets/lingua-mobile.js',
-  './assets/icon.svg'
+  './assets/lingua-picture.js',
+  './assets/icon.svg',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

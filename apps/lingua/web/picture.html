@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0" />
+  <title>Lingua — Read picture</title>
+  <meta name="description" content="Lingua Read picture: take a photo, paste a screenshot or drop an image and get the words and letters in it, optionally translated. Works on laptop, iPhone and Android." />
+  <meta name="theme-color" content="#0b0e14" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Lingua" />
+  <link rel="stylesheet" href="assets/lingua.css" />
+</head>
+<body>
+  <nav class="nav" aria-label="Primary">
+    <span class="brand">Lingua</span>
+    <a href="index.html">Overview</a>
+    <a href="web.html">Web</a>
+    <a href="mobile.html">Mobile</a>
+    <a href="picture.html" class="active">Picture</a>
+    <span class="spacer"></span>
+    <button id="btn-install-app" class="ghost" hidden aria-label="Install app" title="Install via your browser menu (Chrome/Edge → Install app)">Install</button>
+    <button id="themeToggle" class="ghost" aria-label="Toggle theme">Light</button>
+  </nav>
+
+  <div id="install-callout" class="install-callout" hidden>
+    <span class="callout-text">Install Lingua as an app</span>
+    <button id="callout-install-btn" class="ghost" aria-label="Install app">Install</button>
+    <button id="callout-dismiss-btn" class="ghost" aria-label="Dismiss" title="Dismiss">×</button>
+  </div>
+
+  <main class="mobile-wrap">
+    <header>
+      <p class="eyebrow">Read picture</p>
+      <h1 style="font-size: 1.7rem;">Picture in, words out.</h1>
+      <p class="tagline">Take a photo, pick a screenshot, paste (Ctrl+V) or drop an image. Lingua reads every word and letter in it, and can translate it too.</p>
+    </header>
+
+    <section class="mobile-card" id="dropZone" aria-label="Picture">
+      <div class="mobile-actions picture-inputs" style="margin-top: 0;">
+        <label class="btn-like primary" for="cameraInput" id="cameraLabel">Take photo</label>
+        <label class="btn-like" for="fileInput">Choose picture</label>
+        <button id="pasteBtn" type="button">Paste</button>
+      </div>
+      <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
+      <input id="fileInput" type="file" accept="image/*" hidden />
+      <div id="preview" class="picture-preview">
+        <span class="hint" id="previewHint">No picture yet. You can also drag one here.</span>
+        <img id="previewImg" alt="Picture to read" hidden />
+      </div>
+      <label class="picture-option">
+        <input id="translateToggle" type="checkbox" />
+        <span>Also translate to <strong id="targetLabel">繁體中文</strong></span>
+      </label>
+      <div class="mobile-actions">
+        <button id="readBtn" class="primary" disabled>Read picture</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+    </section>
+
+    <div class="status-line" id="status">Lingua: pick a picture to read.</div>
+
+    <section class="mobile-card" aria-label="Result">
+      <label class="field" for="resultText">Text in the picture</label>
+      <textarea id="resultText" class="picture-result" placeholder="The words and letters found in the picture appear here. You can edit them."></textarea>
+      <div class="picture-stats" id="stats">0 words · 0 letters · 0 lines</div>
+      <div id="translationBlock" hidden>
+        <label class="field" for="translationText" style="margin-top: 12px;">Translation</label>
+        <textarea id="translationText" class="picture-result" readonly></textarea>
+      </div>
+      <div class="mobile-actions">
+        <button id="copyBtn">Copy</button>
+        <button id="shareBtn" hidden>Share</button>
+        <button id="downloadBtn">Save .txt</button>
+      </div>
+    </section>
+
+    <section class="settings" aria-label="Settings">
+      <h2><span class="dot"></span>Settings</h2>
+      <div class="grid">
+        <div>
+          <label class="field" for="sourceLang">Source language</label>
+          <select id="sourceLang"></select>
+        </div>
+        <div>
+          <label class="field" for="targetLang">Target language</label>
+          <select id="targetLang"></select>
+        </div>
+        <div>
+          <label class="field" for="llmModel">Translation model</label>
+          <select id="llmModel"></select>
+        </div>
+        <div>
+          <label class="field" for="ocrModel">OCR model</label>
+          <select id="ocrModel"></select>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label class="field" for="gatewayOcrBase">OCR gateway</label>
+          <input id="gatewayOcrBase" type="text" autocomplete="off" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label class="field" for="gatewayLlmBase">Translation gateway</label>
+          <input id="gatewayLlmBase" type="text" autocomplete="off" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label class="field" for="apiKey">API key (stored in this browser only)</label>
+          <input id="apiKey" type="password" autocomplete="off" placeholder="Paste your MaaS API key" />
+        </div>
+      </div>
+      <p class="hint">
+        Settings are shared with the Web and Mobile pages. Install Lingua to your home screen:
+        iPhone: Safari → Share → <em>Add to Home Screen</em>. Android / laptop: Chrome or Edge →
+        menu → <em>Install app</em>.
+      </p>
+    </section>
+
+    <footer class="meta">
+      Lingua · Read picture · zero-dependency PWA · pictures go only to the OCR gateway you set.
+    </footer>
+  </main>
+
+  <script type="module" src="assets/lingua-picture.js"></script>
+  <script>
+    // Register the service worker for installable PWA + app-shell cache.
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => { /* offline-only */ });
+      });
+    }
+  </script>
+  <script>
+    // PWA install affordance — shared logic across all pages.
+    (function () {
+      const INSTALL_KEY = "lingua.installCalloutDismissed";
+      let deferredPrompt = null;
+
+      const btnInstall = document.getElementById("btn-install-app");
+      const callout = document.getElementById("install-callout");
+      const calloutInstallBtn = document.getElementById("callout-install-btn");
+      const calloutDismissBtn = document.getElementById("callout-dismiss-btn");
+
+      // Check if already running as standalone app.
+      function isStandalone() {
+        return window.matchMedia("(display-mode: standalone)").matches;
+      }
+
+      // Hide install UI if already standalone.
+      function hideIfStandalone() {
+        if (isStandalone()) {
+          if (btnInstall) btnInstall.hidden = true;
+          if (callout) callout.hidden = true;
+          return true;
+        }
+        return false;
+      }
+
+      // Show install UI.
+      function showInstallUI() {
+        if (btnInstall) btnInstall.hidden = false;
+        // Only show callout if not dismissed.
+        if (callout) {
+          try {
+            const dismissed = localStorage.getItem(INSTALL_KEY) === "1";
+            if (!dismissed) callout.hidden = false;
+          } catch (_) { /* ignore */ }
+        }
+      }
+
+      // Handle install button click.
+      async function handleInstallClick() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          if (btnInstall) btnInstall.hidden = true;
+          if (callout) callout.hidden = true;
+        }
+        deferredPrompt = null;
+      }
+
+      // beforeinstallprompt — browser supports install.
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!hideIfStandalone()) {
+          showInstallUI();
+        }
+      });
+
+      // appinstalled — app was installed.
+      window.addEventListener("appinstalled", function () {
+        if (btnInstall) btnInstall.hidden = true;
+        if (callout) callout.hidden = true;
+        deferredPrompt = null;
+      });
+
+      // Standalone mode check on load.
+      if (hideIfStandalone()) {
+        // Already standalone, nothing more to do.
+      } else if (!btnInstall || btnInstall.hidden) {
+        // Not installable (no beforeinstallprompt yet) — keep hidden with tooltip.
+        // The title already explains browser menu install.
+      }
+
+      // Event listeners.
+      if (btnInstall) {
+        btnInstall.addEventListener("click", handleInstallClick);
+      }
+      if (calloutInstallBtn) {
+        calloutInstallBtn.addEventListener("click", handleInstallClick);
+      }
+      if (calloutDismissBtn) {
+        calloutDismissBtn.addEventListener("click", function () {
+          if (callout) callout.hidden = true;
+          try {
+            localStorage.setItem(INSTALL_KEY, "1");
+          } catch (_) { /* ignore */ }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

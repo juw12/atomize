@@ -8,6 +8,10 @@
   <meta name="theme-color" content="#0b0e14" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Lingua" />
   <link rel="stylesheet" href="assets/lingua.css" />
 </head>
 <body>
@@ -16,6 +20,7 @@
     <a href="index.html" class="active">Overview</a>
     <a href="web.html">Web</a>
     <a href="mobile.html">Mobile</a>
+    <a href="picture.html">Picture</a>
     <span class="spacer"></span>
     <button id="btn-install-app" class="ghost" hidden aria-label="Install app" title="Install via your browser menu (Chrome/Edge → Install app)">Install</button>
     <button id="themeToggle" class="ghost" aria-label="Toggle theme">Light</button>
@@ -84,6 +89,13 @@
           </span>
           <h3>Mobile translate</h3>
           <p>Paste a caption or upload a screenshot — Lingua OCRs it (if needed) and translates it. Mobile browsers can't capture the screen, so this path uses paste or share.</p>
+        </a>
+        <a class="card" href="picture.html" style="text-decoration: none; color: inherit;">
+          <span class="icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>
+          </span>
+          <h3>Read picture</h3>
+          <p>Take a photo or drop a screenshot and get every word and letter in it, with a word/letter count and optional translation. Laptop, iPhone and Android.</p>
         </a>
         <a class="card" href="../" style="text-decoration: none; color: inherit;">
           <span class="icon" aria-hidden="true">
