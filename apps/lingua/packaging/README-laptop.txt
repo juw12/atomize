@@ -25,6 +25,8 @@ Check by hand any time: (i) button -> Check for updates.
 
 Use
 ---
+- Text: paste or type text and translate it, with tone, context, glossary,
+  alternatives and word-choice notes.
 - Read picture: open a photo/screenshot, paste (Ctrl+V) or grab a screen area.
   You get the text, a word/letter/line count, Copy, and optional translation.
 - Share to phone: shows a QR code. Scan it with your iPhone or Android phone
@@ -36,7 +38,8 @@ Use
 Translation when the company models are down
 ---------------------------------------------
 If the gateway translation models fail, Lingua translates on this laptop
-instead (offline language packs, ~70 MB per language pair). In the picture
+instead: first with local AI if Ollama is installed (ollama pull qwen3:8b,
+best quality), otherwise (offline language packs, ~70 MB per language pair). In the picture
 window click "Get offline translation", or (i) -> Translation -> "Download
 packs for my languages". The first translation after starting takes ~20 s,
 then 2-3 s. Online services (Google/MyMemory) are OFF unless you tick

@@ -15,12 +15,13 @@ try:
 except Exception:
     pass
 
-TEST_FILES = ["test_pipeline.py", "test_maas.py", "test_capture.py", "test_image_text.py", "test_local_server.py", "test_history.py", "test_updater.py", "test_offline.py"]
+TEST_FILES = ["test_pipeline.py", "test_maas.py", "test_capture.py", "test_image_text.py", "test_local_server.py", "test_history.py", "test_updater.py", "test_offline.py", "test_text_desk.py"]
 
 
 def main() -> int:
     # Hermetic: no offline/online translation fallback unless a test asks for it.
     os.environ.setdefault("LINGUA_LOCAL_FALLBACK", "0")
+    os.environ.setdefault("LINGUA_LOCAL_AI", "0")  # tests never call the real Ollama
     here = os.path.dirname(os.path.abspath(__file__))
     failed = 0
     for name in TEST_FILES:

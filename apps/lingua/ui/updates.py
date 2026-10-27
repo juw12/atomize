@@ -353,6 +353,26 @@ class UpdateMixin:
         pack_status.pack(side="left", padx=8)
         self._color_widget(dl_button)
 
+        from engine import local_ai
+
+        local_ai_var = tk.BooleanVar(value=bool(self.cfg.get("use_local_ai", True)))
+        local_models = local_ai.list_models()
+        local_note = ("running: " + (local_ai.pick_model() or "")) if local_models else \
+            "not running - install Ollama and run: ollama pull qwen3:8b"
+
+        def on_local_ai() -> None:
+            self.cfg["use_local_ai"] = bool(local_ai_var.get())
+            try:
+                config.save(self.cfg)
+            except OSError:
+                pass
+
+        tk.Checkbutton(dlg, text="Use local AI on this PC first (Ollama, " + local_note + ")",
+                       variable=local_ai_var, command=on_local_ai, bg=t["card"], fg=t["text"],
+                       selectcolor=t["bg"], activebackground=t["card"], activeforeground=t["text"],
+                       highlightthickness=0, font=("Segoe UI", 9), wraplength=440,
+                       justify="left").pack(anchor="w", padx=16, pady=(4, 0))
+
         online = tk.BooleanVar(value=bool(self.cfg.get("allow_online_translation", False)))
 
         def on_online() -> None:

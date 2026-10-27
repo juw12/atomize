@@ -49,6 +49,22 @@ def _online_allowed() -> bool:
         return False
 
 
+#: Local AI (Ollama on this PC) as the first fallback; env LINGUA_LOCAL_AI=0 or
+#: config ``use_local_ai: false`` turns it off.
+LOCAL_AI_TIMEOUT = float(os.environ.get("LINGUA_LOCAL_AI_TIMEOUT", "60"))
+
+
+def _local_ai_allowed() -> bool:
+    if os.environ.get("LINGUA_LOCAL_AI", "1") == "0":
+        return False
+    try:
+        from engine import config
+
+        return bool(config.load().get("use_local_ai", True))
+    except Exception:
+        return True
+
+
 def reset_model_health() -> None:
     """Forget which gateway models failed (e.g. after settings change)."""
     _DEAD_MODELS.clear()
@@ -275,12 +291,13 @@ class MaasClient:
            rest of :data:`MODELS`). Models that failed in the last
            :data:`DEAD_MODEL_SECONDS` are skipped so a hung model does not stall
            every request.
-        2. Offline translation on this PC (installed language packs).
-        3. Online public translation, only when ``allow_online`` (default: the
+        2. Local AI on this PC (Ollama, e.g. qwen3:8b) when it is running.
+        3. Offline translation on this PC (installed language packs).
+        4. Online public translation, only when ``allow_online`` (default: the
            user's "Allow online translation" setting).
 
         Returns ``(translation, engine)`` where ``engine`` is the model name,
-        ``"offline"`` or ``"online:<service>"``. Raises :class:`MaasError` when
+        ``"local-ai:<model>"``, ``"offline"`` or ``"online:<service>"``. Raises :class:`MaasError` when
         every engine fails.
         """
         order = []
@@ -308,6 +325,15 @@ class MaasClient:
             local_fallback = LOCAL_FALLBACK
         errors = [str(last_error)] if last_error else []
         if local_fallback:
+            if _local_ai_allowed():
+                try:
+                    from engine import local_ai
+
+                    out, model = local_ai.quick_translate(
+                        text, target_lang, source_lang, purpose=purpose, timeout=LOCAL_AI_TIMEOUT)
+                    return out, "local-ai:" + model
+                except Exception as err:  # Ollama not running / model missing / timeout
+                    errors.append(str(err))
             try:
                 from engine import offline_translate
 

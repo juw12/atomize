@@ -381,7 +381,11 @@ def _translate_line(line: str, src: str | None, tgt: str) -> str:
         body = _translate_pair(body, a, b)
     cjk_target = tgt in ("zh", "zt", "ja", "th")
     joiner = "" if cjk_target else " "
-    return joiner.join(part for part in (head, body, tail) if part)
+    out = joiner.join(part for part in (head, body, tail) if part)
+    return _TIME_GAP_RE.sub(r"\1:\2", out)  # "14: 00" -> "14:00"
+
+
+_TIME_GAP_RE = re.compile(r"(\d) ?: (\d)")
 
 
 _CODE_TOKEN = re.compile(r"^[#(\[]?[A-Za-z]{0,3}[-/]?\d[\w\-/.]*[)\]:]?$")

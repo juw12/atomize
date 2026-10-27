@@ -34,6 +34,7 @@ from engine.pipeline import CaptionPipeline, Line, Transcript, speaker_rows
 from ui.picture import PictureReader
 from ui.region import select_region
 from ui.share import ShareWindow
+from ui.text_translate import TextTranslator
 from ui.theme import THEMES, get as get_theme
 from ui.updates import UpdateMixin
 
@@ -70,6 +71,7 @@ class LinguaWindow(UpdateMixin):
         self._live_partial = ""
         self._picture_reader: PictureReader | None = None
         self._share_window: ShareWindow | None = None
+        self._text_window: TextTranslator | None = None
         self._ui_calls: queue.Queue = queue.Queue()
         self._update_info: updater.UpdateInfo | None = None
         self._update_checking = False
@@ -257,6 +259,9 @@ class LinguaWindow(UpdateMixin):
         self.btn_picture = self._button(row0, "🖼  Read picture", self._open_picture_reader,
                                         tip="Turn a picture into words and letters (and translate)")
         self.btn_picture.pack(side="left", padx=(0, 6))
+        self.btn_text = self._button(row0, "🔤  Text", self._open_text_translator,
+                                     tip="Paste text and translate it (tone, context, glossary, alternatives)")
+        self.btn_text.pack(side="left", padx=(0, 6))
         self.btn_phone = self._button(row0, "📱  Phone", self._open_share_window,
                                       tip="Use Read picture on your phone (same Wi-Fi, scan QR)")
         self.btn_phone.pack(side="left", padx=(0, 6))
@@ -833,6 +838,19 @@ class LinguaWindow(UpdateMixin):
             get_client=lambda: self._client if self._try_init_client() else None,
             get_target=lambda: (self.combo_target.get(), self._target_phrase()),
             get_source=self._source_phrase,
+        )
+
+    def _open_text_translator(self) -> None:
+        """Open (or focus) the Translate-text desk."""
+        if self._text_window is not None and self._text_window.exists():
+            self._text_window.focus()
+            return
+        self._text_window = TextTranslator(
+            self.root,
+            self._theme,
+            get_client=lambda: self._client if self._try_init_client() else None,
+            get_target=lambda: (self.combo_target.get(), self._target_phrase()),
+            get_source_label=lambda: self.combo_source.get(),
         )
 
     def _open_share_window(self) -> None:

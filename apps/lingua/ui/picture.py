@@ -578,6 +578,8 @@ def engine_label(engine: str | None) -> str:
         return ""
     if engine == "offline":
         return "offline on this PC"
+    if engine.startswith("local-ai:"):
+        return "local AI on this PC ({})".format(engine.split(":", 1)[1])
     if engine.startswith("online:"):
         return "online ({})".format(engine.split(":", 1)[1])
     return engine

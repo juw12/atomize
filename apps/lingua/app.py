@@ -6,6 +6,7 @@ Usage::
     python app.py                 # launch the overlay + control panel
     python app.py --selftest      # headless checks, exit 0/1
     python app.py --read-image PICTURE [--translate]
+    python app.py --translate-text "TEXT" [--to LANGUAGE] [--tone Formal] [--engine local] [--out FILE]
                                   # print the words/letters in a picture
     python app.py --serve [--port 8765]
                                   # share Read picture with phones on this Wi-Fi
@@ -85,6 +86,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if "--read-image" in args:
         return _run_read_image(args)
+
+    if "--translate-text" in args:
+        return _run_translate_text(args)
 
     if "--version" in args:
         from engine.version import __version__
@@ -538,6 +542,39 @@ def _run_selftest() -> int:
     else:
         print(f"{failures} check(s) failed.")
         return 1
+
+
+def _run_translate_text(args: list[str]) -> int:
+    """Headless Translate-text desk (same engines as the Text window)."""
+    from engine import maas, text_desk
+
+    def option(name: str, default: str | None = None) -> str | None:
+        if name in args and args.index(name) + 1 < len(args):
+            return args[args.index(name) + 1]
+        return default
+
+    text = option("--translate-text", "") or ""
+    target_label = option("--to", "English")
+    target = maas.LANGUAGES.get(target_label) or target_label
+    engine = option("--engine", "auto")
+    out_path = option("--out")
+    key = maas.discover_api_key()
+    client = maas.MaasClient(api_key=key) if key else None
+    try:
+        job = text_desk.TextJob(text=text, target=target, tone=option("--tone", "Natural"),
+                                glossary=(option("--glossary", "") or "").replace("|", "\n"))
+        result, used, warnings = text_desk.translate_text(job, client, engine=engine)
+        report = result + "\n\n--- " + text_desk.engine_label(used) + " ---\n" + "\n".join(warnings)
+        code = 0
+    except Exception as err:
+        report = "translation failed: " + str(err)
+        code = 1
+    if out_path:
+        with open(out_path, "w", encoding="utf-8") as fh:
+            fh.write(report + "\n")
+    elif sys.stdout is not None:
+        print(report)
+    return code
 
 
 if __name__ == "__main__":

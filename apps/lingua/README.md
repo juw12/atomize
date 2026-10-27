@@ -81,6 +81,28 @@ The translation model is pickable in the window (the **Model** dropdown, from
 - **Languages**: source is Auto (detect), English, 繁體中文, and
   Bahasa Indonesia; target is the same list minus the auto option.
 
+## Translate text (v2.3)
+
+Lingua includes a full text translation desk.
+Click **Text** in the main window (Ctrl+Enter to translate, Esc to stop):
+
+- From / To (all Lingua languages, Auto detect), a **tone** (Natural, Professional,
+  Friendly, Formal, Literal), optional **context** and a per-session **glossary**
+  (`source term = preferred translation`, one per line).
+- **Engine**: Best available (company AI, then **local AI on this PC** via Ollama,
+  then offline packs, then online only if allowed), or pick one.
+- Streaming output, **Alternatives & notes** (two other phrasings plus English
+  word-choice notes), review warnings for changed numbers, links and unused
+  glossary terms, OpenCC clean-up for Simplified / Traditional (Taiwan) Chinese,
+  Copy, Paste, Save .txt. Nothing typed here is saved.
+
+**Local AI** (`engine/local_ai.py`) only talks to `http://127.0.0.1:11434`, ignores
+proxies and refuses cloud models. Install [Ollama](https://ollama.com) and run
+`ollama pull qwen3:8b`. It is also the first fallback for pictures, live captions
+and phones when the company models fail (switch: (i) -> Translation, or
+`LINGUA_LOCAL_AI=0`). On the phone / web page, type or paste text into the text
+box and press Translate.
+
 ## When the company translation models are down (v2.2)
 
 Translation no longer depends only on the company gateway. Each request walks a
@@ -89,7 +111,8 @@ chain and uses the first engine that answers:
 1. **Gateway models** (`LINGUA_LLM_MODELS`), each with a short timeout
    (`LINGUA_TRANSLATE_TIMEOUT`, default 15 s). A model that fails is skipped for
    2 minutes so the next request does not wait on it again.
-2. **Offline on this PC**: Argos Translate language packs run with CTranslate2
+2. **Local AI on this PC** (Ollama, e.g. qwen3:8b) when it is running - best quality offline.
+3. **Offline packs on this PC**: Argos Translate language packs run with CTranslate2
    (`engine/offline_translate.py`). Packs (~70 MB each) are stored in
    `%LOCALAPPDATA%\lingua\models`; get them from the picture window
    ("Get offline translation") or (i) -> Translation -> "Download packs for my
@@ -97,7 +120,7 @@ chain and uses the first engine that answers:
    several languages are translated line by line; lines already in the target
    language are kept; codes such as "3B" or "B12" are kept as written.
    The first call loads the model (~20 s); later calls take 2-3 s.
-3. **Online services** (Google, then MyMemory): **off by default**, because they
+4. **Online services** (Google, then MyMemory): **off by default**, because they
    send the text outside the company. Turn on with (i) -> Translation ->
    "Also allow online translation" or `LINGUA_ALLOW_ONLINE=1`.
 

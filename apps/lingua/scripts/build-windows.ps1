@@ -13,6 +13,7 @@ if (-not (Test-Path "$venv\Scripts\python.exe")) { python -m venv $venv }
 Copy-Item "$app\packaging\lingua.env.example" "$Out\Lingua\lingua.env.example" -Force
 Copy-Item "$app\packaging\README-laptop.txt" "$Out\Lingua\README.txt" -Force
 Copy-Item "$app\packaging\Install Lingua.cmd" "$Out\Lingua\Install Lingua.cmd" -Force
+Copy-Item "$app\packaging\THIRD_PARTY_NOTICES.txt" "$Out\Lingua\THIRD_PARTY_NOTICES.txt" -Force
 # The release zip never contains lingua.env (private gateway settings); users keep their own.
 Remove-Item "$Out\Lingua\lingua.env" -ErrorAction SilentlyContinue
 $zip = Join-Path $Out "Lingua-windows.zip"
