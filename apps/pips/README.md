@@ -162,7 +162,7 @@ Add your MAAS credentials to `config.json`:
 ```jsonc
 "maas": {
   "enabled": true,
-  "base_url": "https://aicc-gateway.pegatroncorp.com/maas/api/v1",
+  "base_url": "https://your-maas-gateway.example.com/v1",
   "username": "your.aicc.username",
   "password": "your-password",
   "verify_ssl": true,

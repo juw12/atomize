@@ -117,7 +117,7 @@
   },
   "maas": {
     "enabled": true,
-    "base_url": "https://aicc-gateway.pegatroncorp.com/maas/api/v1",
+    "base_url": "",
     "username": "",
     "password": "",
     "verify_ssl": true,

@@ -20,6 +20,11 @@ from pathlib import Path
 TRACE_FILE = Path(__file__).resolve().parent / "traces.jsonl"
 
 
+def _redact_pii(fields: dict) -> dict:
+    from guardrails import sanitize_output
+    return {k: (sanitize_output(v) if isinstance(v, str) else v) for k, v in fields.items()}
+
+
 class Tracer:
     def __init__(self, name: str = "d-agent") -> None:
         self.name = name
@@ -33,7 +38,8 @@ class Tracer:
             self._langfuse = None
 
     def event(self, event: str, **fields) -> None:
-        record = {"ts": round(time.time(), 3), "agent": self.name, "event": event, **fields}
+        safe = _redact_pii(fields)
+        record = {"ts": round(time.time(), 3), "agent": self.name, "event": event, **safe}
         try:
             with TRACE_FILE.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(record, default=str) + "\n")
@@ -41,6 +47,6 @@ class Tracer:
             pass
         if self._langfuse is not None:
             try:
-                self._langfuse.create_event(name=event, metadata=fields)
+                self._langfuse.create_event(name=event, metadata=safe)
             except Exception:  # noqa: BLE001
                 pass

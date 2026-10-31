@@ -33,10 +33,12 @@ from langgraph.graph import StateGraph, START  # noqa: E402
 from langgraph.graph.message import add_messages  # noqa: E402
 from langgraph.prebuilt import ToolNode, tools_condition  # noqa: E402
 
-OBSIDIAN_EXE = os.environ.get(
-    "OBSIDIAN_MCP_EXE",
-    r"~\mcps\obsidian\Scripts\mcp-obsidian.exe",
-)
+def _default_obsidian_exe() -> str:
+    base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+    return os.path.join(base, "mcps", "obsidian", "Scripts", "mcp-obsidian.exe")
+
+
+OBSIDIAN_EXE = os.environ.get("OBSIDIAN_MCP_EXE") or _default_obsidian_exe()
 MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
 
 SCOUT_PROMPT = (
@@ -172,7 +174,7 @@ async def main() -> None:
     TRACER.event("output", target=target[:200], brief=brief[:300])
     print("\n" + brief)
     sys.stdout.flush()
-    os._exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

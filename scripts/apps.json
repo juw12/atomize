@@ -1,6 +1,18 @@
 {
-  "_comment": "Single source of truth for the software apps shipped by this monorepo. Consumed by scripts/build_site.py (GitHub Pages landing page + deploy copy list) and scripts/publish_portfolio.py (portfolio cards + Obsidian notes). `description` is the full portfolio-card copy (HTML-ready); `desc` is the short landing-page blurb. `links` are relative to the deployed site root (https://juwpegatron.github.io/projects/<rel>). Extra fields `image_alt`, `project_id`, `label` (thumbnail aria-label) and `desc` reproduce the live markup verbatim.",
+  "_comment": "Single source of truth for the software apps shipped by this monorepo. Consumed by scripts/build_site.py (GitHub Pages: copies apps/<id>/web/* to _site/, ignores `image`/`thumbnails`) and scripts/publish_portfolio.py (portfolio cards: requires `image`, uses `thumbnails` for carousel). `description` is the full portfolio-card copy (HTML-ready); `desc` is the short landing-page blurb. `links` are relative to the deployed site root (https://juwpegatron.github.io/projects/<rel>). Extra fields `image_alt`, `project_id`, `label` (thumbnail aria-label) reproduce the live markup verbatim. Note: `image` is required only by publish_portfolio; build_site.py ignores it.",
   "apps": [
+    {
+      "id": "outlook-archiver",
+      "name": "Outlook Archiver",
+      "category": "Software",
+      "desc": "Windows Outlook COM automation: archive mailbox folders to Markdown, run via scheduled task",
+      "description": "Windows-only utility that automates Outlook (via COM) to archive mailbox folders into Markdown, scheduled-task friendly, with launcher scripts and a watchdog. Stdlib only.",
+      "tags": ["Outlook", "COM", "Windows", "automation", "archive"],
+      "image": "",
+      "image_alt": "Outlook Archiver icon",
+      "links": {"app": "outlook-archiver/", "web": "outlook-archiver/README.md", "mobile": "outlook-archiver/"},
+      "order": 0
+    },
     {
       "id": "orbis",
       "name": "Orbis",

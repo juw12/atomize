@@ -26,7 +26,7 @@ _INJECTION_RE = re.compile("|".join(_INJECTION_PATTERNS), re.IGNORECASE)
 # PII patterns for output redaction.
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _CC_RE = re.compile(r"(?<!\d)(?:\d[ -]?){13,16}(?!\d)")
-_PHONE_RE = re.compile(r"(?<!\d)\+?\d[\d\s().-]{7,}\d(?!\d)")
+_PHONE_RE = re.compile(r"(?<!\d)(?:\+\d{1,3}[\s-]?)?\(?\d{3}\)?[\s.-]?\d{3,4}[\s.-]?\d{4}(?!\d)")
 
 
 def check_input(text: str) -> tuple[bool, str]:

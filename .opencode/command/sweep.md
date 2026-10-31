@@ -45,7 +45,7 @@ Decide what THIS idea actually needs; every tick maps to a concrete acceptance c
 - Match the existing app patterns; zero-dependency / offline-first where possible.
 
 ### 5. Register on the projects site
-Add the app to `scripts/build_site.py` (`APPS` entry + `apps_config`) and ensure `web/index.html` exists so the card resolves. If the app needs a server, the site card is a **catalog entry** (link + description) only.
+Add the app entry to `scripts/apps.json` (the catalog consumed by both `build_site.py` and `publish_portfolio.py`) and ensure `web/index.html` exists so the card resolves. If the app needs a server, the site card is a **catalog entry** (link + description) only.
 
 ### 6. Verify — THIS is the gate (NOT exit-0)
 - **Smoke:** boot the server (if any) → `GET /` and `GET /health` → 200.

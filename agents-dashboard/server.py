@@ -55,10 +55,11 @@ DEFAULT_UPSTREAM_PORT = 4096
 UPSTREAM_URL = f"http://127.0.0.1:{DEFAULT_UPSTREAM_PORT}"
 PREFERRED_UPSTREAM_PORTS = (9181, 4096)
 
-# Known install location of the PEGAAi OpenCode binary.
+_LOCAL_APPDATA = os.environ.get("LOCALAPPDATA") or ""
+
 KNOWN_OPENCODE_PATHS = [
-    r"~\AppData\Local\PEGAAi Opencode\opencode.exe",
-    r"~\AppData\Local\Programs\opencode\opencode.exe",
+    str(Path(_LOCAL_APPDATA) / "PEGAAi Opencode" / "opencode.exe"),
+    str(Path(_LOCAL_APPDATA) / "Programs" / "opencode" / "opencode.exe"),
 ]
 
 EXTERNAL_BOTS = [
@@ -153,9 +154,7 @@ CONTENT_TYPES = {
     ".map": "application/json; charset=utf-8",
 }
 
-# CORS applied to every API response so the dashboard also works from file://.
 CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",

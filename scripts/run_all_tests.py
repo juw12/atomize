@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Discover and run all app tests (apps/*/tests/*.py)."""
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -72,7 +73,10 @@ def main():
         print(f"Running: {rel_path}")
         
         passed, output = run_test_file(test_file)
-        skipped = (not passed) and ("ModuleNotFoundError" in output)
+        # H6: ModuleNotFoundError is only SKIP if the test opts in via `# OPTIONAL_DEPS:` — fail loud by default.
+        test_src = test_file.read_text(encoding="utf-8", errors="replace")
+        opted_in = re.search(r"^\s*#\s*OPTIONAL_DEPS:", test_src, re.MULTILINE) is not None
+        skipped = (not passed) and opted_in and ("ModuleNotFoundError" in output)
         results.append((rel_path, passed, skipped, output))
         
         if passed:

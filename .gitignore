@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv3d/                              # 3D-specific venv (not matched by .venv/ above)
 venv/
 .pytest_cache/
 
@@ -11,9 +12,11 @@ apps/orbis/data/
 apps/orbis/server/data/
 apps/peers/server/data/
 apps/house-of-articles/server/data/
+scripts/lessons_out/
 *.db
 *.sqlite
 *.sqlite3
+**/traces.jsonl                       # agent trace files — may contain raw PII (M2 fix)
 
 # ---- Generated static site ----
 _site/
@@ -27,6 +30,7 @@ _site/
 .DS_Store
 Thumbs.db
 desktop.ini
+*.log                                  # npm-install.log, build logs, etc.
 
 # ---- Editors / IDEs ----
 .vscode/
@@ -34,5 +38,9 @@ desktop.ini
 *.swp
 *~
 
+# ---- Secrets (local only, never commit) ----
+.env
+
 # ---- Local scratch (not part of the monorepo) ----
 3d/
+orbis-loker-recovery/                 # recovery transcript dump — scratch, not source

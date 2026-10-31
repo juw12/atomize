@@ -13,8 +13,8 @@ Set shell = CreateObject("WScript.Shell")
 ' Folder this script lives in (agents-dashboard) = working dir + server.py location
 scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
 
-' Prefer the known pythonw.exe; fall back to PATH if it is missing.
-pyw = "~\AppData\Local\Programs\Python\Python313\pythonw.exe"
+' Prefer the per-user pythonw.exe under %LOCALAPPDATA%; fall back to PATH if missing.
+pyw = shell.ExpandEnvironmentStrings("%LOCALAPPDATA%\Programs\Python\Python313\pythonw.exe")
 If Not fso.FileExists(pyw) Then
     pyw = "pythonw.exe"
 End If

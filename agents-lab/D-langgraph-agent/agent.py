@@ -60,13 +60,25 @@ _ALLOWED_OPS = {
 }
 
 
-def _eval_node(node: ast.AST) -> float:
+_MAX_EXP = 4096
+
+
+def _eval_node(node: ast.AST, depth: int = 0) -> float:
+    if depth > 64:
+        raise ValueError("expression too deep")
     if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-        return node.value
+        v = node.value
+        if isinstance(v, int) and abs(v) > _MAX_EXP:
+            raise ValueError(f"operand exceeds {_MAX_EXP}")
+        return v
     if isinstance(node, ast.BinOp) and type(node.op) in _ALLOWED_OPS:
-        return _ALLOWED_OPS[type(node.op)](_eval_node(node.left), _eval_node(node.right))
+        left = _eval_node(node.left, depth + 1)
+        right = _eval_node(node.right, depth + 1)
+        if isinstance(node.op, ast.Pow) and (left > _MAX_EXP or right > _MAX_EXP):
+            raise ValueError(f"exponent operand exceeds {_MAX_EXP}")
+        return _ALLOWED_OPS[type(node.op)](left, right)
     if isinstance(node, ast.UnaryOp) and type(node.op) in _ALLOWED_OPS:
-        return _ALLOWED_OPS[type(node.op)](_eval_node(node.operand))
+        return _ALLOWED_OPS[type(node.op)](_eval_node(node.operand, depth + 1))
     raise ValueError("unsupported expression")
 
 
