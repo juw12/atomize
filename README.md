@@ -1,4 +1,45 @@
-# apps/
+<!-- HERO:START -->
+<p align="center">
+  <a href="https://github.com/juw12/atomize"><img src="docs/media/banner.jpg" alt="Atomize: Turn one blog post into a week of social content." width="100%"></a>
+</p>
+
+<p align="center">
+  <b>Turn one blog post into a week of social content.</b><br>
+  Paste one post and get 5 LinkedIn posts, 8 tweets, 3 newsletters and a YouTube Short script.
+</p>
+
+<p align="center">
+  <a href="#highlights">Highlights</a> ·
+  <a href="https://github.com/juw12">More by juw12</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/juw12/atomize"><img src="https://img.shields.io/github/last-commit/juw12/atomize?label=updated&color=9333ea" alt="Last updated"></a>
+  <img src="https://img.shields.io/badge/Web-24292f" alt="Web">
+  <img src="https://img.shields.io/badge/Next.js-24292f" alt="Next.js">
+  <img src="https://img.shields.io/badge/license-MIT-9333ea" alt="MIT license">
+</p>
+
+<a id="highlights"></a>
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <b>One post in</b><br>
+      Paste a blog post or an article link.
+    </td>
+    <td width="33%" valign="top">
+      <b>A week out</b><br>
+      LinkedIn posts, tweets, newsletters and a Short script.
+    </td>
+    <td width="33%" valign="top">
+      <b>SaaS-ready</b><br>
+      Next.js 14 and Claude, with Lemon Squeezy for payments.
+    </td>
+  </tr>
+</table>
+<!-- HERO:END -->
+
+## About
 
 A monorepo for product projects, each promoted from prototype to a real,
 runnable, deployable project.
