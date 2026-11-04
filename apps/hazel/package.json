@@ -16,7 +16,7 @@
     "repurpose",
     "publishing"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^45.0.0"
   },
