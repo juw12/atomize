@@ -197,6 +197,7 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual(fh.read(), "new")
             self.assertTrue(os.path.isfile(os.path.join(dst, "_internal", "a.dll")))
 
+    @unittest.skipUnless(sys.platform == "win32", "per-user install dir is a Windows path (runs in the windows CI job)")
     def test_default_install_dir_is_per_user(self):
         path = installer.default_install_dir()
         self.assertTrue(path.lower().endswith(os.path.join("programs", "lingua")))

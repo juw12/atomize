@@ -9,10 +9,16 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         python-version: ['3.12', '3.13']
+        include:
+          # Lingua is a Windows desktop app; run its installer/updater tests natively.
+          - os: windows-latest
+            python-version: '3.12'
     
     steps:
       - name: Checkout repository

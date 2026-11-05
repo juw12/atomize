@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import ntpath
 import os
 import re
 import subprocess
@@ -247,7 +248,8 @@ def stage_update(zip_path: str, staging_dir: str | None = None) -> str:
 def build_apply_script(staged_dir: str, install_dir: str, pid: int, log_path: str) -> str:
     """Batch script: wait for ``pid`` to exit, mirror files, relaunch."""
     excludes = " ".join('"' + name + '"' for name in KEEP_FILES)
-    exe = os.path.join(install_dir, EXE_NAME)
+    # The script is a Windows batch file, so always join with Windows separators.
+    exe = ntpath.join(install_dir, EXE_NAME)
     return "\r\n".join([
         "@echo off",
         "setlocal",
