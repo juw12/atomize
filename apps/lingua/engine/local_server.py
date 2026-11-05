@@ -82,6 +82,23 @@ class _Handler(SimpleHTTPRequestHandler):
     def _token_ok(self, candidate: str) -> bool:
         return bool(candidate) and secrets.compare_digest(candidate, self.token)
 
+    def _reject(self, status: int, payload: dict) -> None:
+        """Answer a POST we will not relay.
+
+        The unread request body is drained first (bounded by MAX_BODY) so the
+        client sees the JSON error instead of a reset connection; Windows
+        aborts the socket when a server closes with unread input pending.
+        """
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = 0
+        if 0 < length <= MAX_BODY:
+            self.rfile.read(length)
+        else:
+            self.close_connection = True
+        self._json(status, payload)
+
     # -- routes --------------------------------------------------------------
 
     def do_GET(self):
@@ -111,18 +128,18 @@ class _Handler(SimpleHTTPRequestHandler):
         parts = urlparse(self.path).path.strip("/").split("/")
         # gateway/<token>/<ocr|llm>/chat/completions
         if len(parts) != 5 or parts[0] != "gateway" or parts[3:] != ["chat", "completions"]:
-            self._json(404, {"error": "not found"})
+            self._reject(404, {"error": "not found"})
             return
         if not self._token_ok(parts[1]):
-            self._json(403, {"error": "not paired"})
+            self._reject(403, {"error": "not paired"})
             return
         base = self.targets.get(parts[2])
         if not base:
-            self._json(404, {"error": "unknown gateway"})
+            self._reject(404, {"error": "unknown gateway"})
             return
         key = self.api_key_fn()
         if not key:
-            self._json(500, {"error": "the laptop has no MaaS API key configured"})
+            self._reject(500, {"error": "the laptop has no MaaS API key configured"})
             return
         try:
             length = int(self.headers.get("Content-Length") or 0)
