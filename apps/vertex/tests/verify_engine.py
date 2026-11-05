@@ -24,9 +24,9 @@ import zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEST_FILE = os.path.join(HERE, "engine.test.mjs")
 TMP_3MF = os.path.join(HERE, "vertex-3mf.tmp")
-PORTABLE_NODE = (
-    r"~\.config\opencode\skills\portable-nodejs"
-    r"\bin\node-v24.14.1-win-x64\node.exe"
+PORTABLE_NODE = os.path.join(
+    os.path.expanduser("~"),
+    r".config\opencode\skills\portable-nodejs\bin\node-v24.14.1-win-x64\node.exe",
 )
 
 

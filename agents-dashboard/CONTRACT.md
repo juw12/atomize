@@ -152,6 +152,6 @@ The dashboard's Job/Chat panel is **in-app only** — it must NOT link out to th
 - On start: if `http://127.0.0.1:4096` is not answering, spawn
   `opencode serve --port 4096 --hostname 127.0.0.1` as a child process, wait up to ~40s for readiness.
 - Locate the executable via `shutil.which("opencode")` or the known path
-  `~\AppData\Local\PEGAAi Opencode\opencode.exe`.
+  `%USERPROFILE%\AppData\Local\PEGAAi Opencode\opencode.exe`.
 - On bridge shutdown (Ctrl-C): terminate the child `opencode serve` if the bridge spawned it.
 - If `opencode` cannot be found or never becomes ready → fall back to `sim` mode (never crash).

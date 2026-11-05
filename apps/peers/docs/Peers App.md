@@ -92,7 +92,7 @@ Logo: two overlapping circles + "Peers". Typography: readable **serif** for head
 
 - Single self-contained HTML file — **no CDN, fonts, or external requests**; verified offline.
 - Verified in a headless browser: 18 views render, **0 page/console errors**, all embedded photos load, JS passes `node --check`.
-- Source app also lives at `~\Desktop\opencode_project\peers-app\index.html`.
+- Source app also lives at `%USERPROFILE%\Desktop\opencode_project\peers-app\index.html`.
 
 ## Known limitations / possible next steps
 

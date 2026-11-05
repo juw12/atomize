@@ -127,7 +127,7 @@ def write_json(con, cfg: dict, repo_dir: str, days: int = 30) -> str
 ## 3. New diary repo (separate git repo, NOT the widget)
 
 Target: **`https://github.com/juwpegatron/diary.git`**  (repo is named `diary`)
-Local path: `~\Desktop\opencode_project\productivity-diary`
+Local path: `%USERPROFILE%\Desktop\opencode_project\productivity-diary`
 
 Layout:
 ```
@@ -145,7 +145,7 @@ productivity-diary/
 
 Rules:
 - The web dashboard (`index.html`) **must work with zero backend**: fetch `./data.json`, render client-side. No absolute paths (must work on GitHub Pages project sites).
-- `publish.ps1` uses `~\AppData\Local\Programs\Git\cmd\git.exe` (git is NOT on PATH). Auth via the existing Git Credential Manager (`git credential manager`), which is already configured for the `juwpegatron` account.
+- `publish.ps1` uses `%USERPROFILE%\AppData\Local\Programs\Git\cmd\git.exe` (git is NOT on PATH). Auth via the existing Git Credential Manager (`git credential manager`), which is already configured for the `juwpegatron` account.
 - **Repo creation** requires auth we may not have non-interactively. `create_repo.ps1` should:
   1. Try `git credential fill` (non-interactive, `GIT_TERMINAL_PROMPT=0`) to obtain the stored GitHub token, then
   2. `POST https://api.github.com/user/repos` via `curl.exe` with `{"name":"productivity-diary","private":true}`,
@@ -165,7 +165,7 @@ Add, following existing THEME + patterns:
   ```jsonc
   "tokens": { "enabled": true, "log_path": "" },
   "diary":  { "enabled": true,
-              "repo_dir": "~\\Desktop\\opencode_project\\productivity-diary",
+              "repo_dir": "%USERPROFILE%\\Desktop\\opencode_project\\productivity-diary",
               "auto_write": true, "auto_publish": false }
   ```
 

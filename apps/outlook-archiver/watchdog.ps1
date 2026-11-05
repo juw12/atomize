@@ -1,4 +1,4 @@
-﻿$pf = '~\outlook_archiver\daemon.pid'
+﻿$pf = Join-Path $PSScriptRoot 'daemon.pid'  # the daemon writes daemon.pid next to itself
 if (Test-Path -LiteralPath $pf) {
     $dp = (Get-Content $pf -ErrorAction SilentlyContinue).Trim()
     if ($dp -and (Get-Process -Id $dp -ErrorAction SilentlyContinue)) {

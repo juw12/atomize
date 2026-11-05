@@ -56,7 +56,7 @@ This machine has **no system Node.js or ffmpeg**; Hazel uses the portable
 Node.js and bundles ffmpeg, so it runs anywhere.
 
 ```powershell
-$pn="~\.config\opencode\skills\portable-nodejs\bin\node-v24.14.1-win-x64"
+$pn="%USERPROFILE%\.config\opencode\skills\portable-nodejs\bin\node-v24.14.1-win-x64"
 $env:PATH="$pn;$env:PATH"
 npm install        # electron + ffmpeg-static + ffprobe-static
 npm start

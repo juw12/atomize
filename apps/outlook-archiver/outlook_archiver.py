@@ -48,7 +48,7 @@ from winotify import Notification, audio
 
 # ----------------------------- configuration -----------------------------
 
-LOG_FILE = r"~\outlook_archive.log"
+LOG_FILE = os.environ.get("OUTLOOK_ARCHIVER_LOG") or os.path.join(os.path.expanduser("~"), "outlook_archive.log")
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PIDFILE = os.path.join(SCRIPT_DIR, "daemon.pid")

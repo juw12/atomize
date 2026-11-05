@@ -25,7 +25,7 @@ This is the working project for **Orbis**, built from the source product spec [[
 | Storage | SQLite (`prototype/data/orbis.db`, created at runtime) |
 | Runs by | `python server.py` **or** double-clicking `prototype/index.html` |
 | Status | Prototype (mock data). Not production. |
-| Desktop copy | `~\Desktop\Orbis\` |
+| Desktop copy | `%USERPROFILE%\Desktop\Orbis\` |
 
 ## What's real vs. what's a prototype
 
@@ -39,7 +39,7 @@ This is the working project for **Orbis**, built from the source product spec [[
 
 **Option A — with the backend (full experience, data persists):**
 ```powershell
-cd "~\Desktop\Orbis"
+cd "%USERPROFILE%\Desktop\Orbis"
 python server.py
 ```
 Then open `http://127.0.0.1:8765/` (the server opens it for you). Or double-click `prototype/start.bat` / `Orbis\start.bat`.

@@ -11,7 +11,7 @@ Two modes. Do NOT stop between steps unless blocked — but DO stop and ask when
 ## Mode A — called WITH an app idea / data (`$ARGUMENTS` describes a product)
 
 ### 0. Recall memory first (the "second brain")
-Read what already exists so you reuse patterns and never duplicate: Obsidian vault (`~\Documents\Obsidian Vault`) index/project notes + latest `Update Log/* Default Project.md`, plus the repo `README.md`, `docs/`, and the closest `apps/*/README.md`. Use the `obsidian` MCP if loaded, else read the vault files directly.
+Read what already exists so you reuse patterns and never duplicate: Obsidian vault (`%USERPROFILE%\Documents\Obsidian Vault`) index/project notes + latest `Update Log/* Default Project.md`, plus the repo `README.md`, `docs/`, and the closest `apps/*/README.md`. Use the `obsidian` MCP if loaded, else read the vault files directly.
 
 ### 0.5 Brief + Go/No-Go gate
 Write a one-page `docs/BRIEF.md`:
