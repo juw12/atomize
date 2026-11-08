@@ -1,9 +1,0 @@
-# Lingua runtime dependencies (the only app in the monorepo with third-party deps).
-# Install before running the app or its tests:
-#   pip install -r apps/lingua/requirements.txt
-Pillow>=10
-requests>=2.28
-# Optional: QR code in the Share-to-phone window
-qrcode>=7
-# Simplified <-> Traditional (Taiwan) clean-up in Text Desk / offline translate
-opencc-python-reimplemented>=0.1.7

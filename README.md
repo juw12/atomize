@@ -1,112 +1,46 @@
-<!-- HERO:START -->
 <p align="center">
-  <a href="https://github.com/juw12/atomize"><img src="docs/media/banner.jpg" alt="Atomize: Turn one blog post into a week of social content." width="100%"></a>
+  <a href="https://juw12.github.io/atomize/"><img src="docs/media/banner.jpg" alt="Atomize: Turn one blog post into a week of social content." width="100%"></a>
 </p>
 
-<p align="center">
-  <b>Turn one blog post into a week of social content.</b><br>
-  Paste one post and get 5 LinkedIn posts, 8 tweets, 3 newsletters and a YouTube Short script.
-</p>
+# Atomize
 
-<p align="center">
-  <a href="#highlights">Highlights</a> ·
-  <a href="https://github.com/juw12">More by juw12</a>
-</p>
+**Turn one article into a week of posts.** Paste a blog post and get LinkedIn posts, a numbered tweet thread, a newsletter and a short-video script. It runs entirely in your browser: nothing is uploaded and there is no AI bill.
 
-<p align="center">
-  <a href="https://github.com/juw12/atomize"><img src="https://img.shields.io/github/last-commit/juw12/atomize?label=updated&color=9333ea" alt="Last updated"></a>
-  <img src="https://img.shields.io/badge/Web-24292f" alt="Web">
-  <img src="https://img.shields.io/badge/Next.js-24292f" alt="Next.js">
-  <img src="https://img.shields.io/badge/license-MIT-9333ea" alt="MIT license">
-</p>
+**Try it:** https://juw12.github.io/atomize/
 
-<a id="highlights"></a>
-<table>
-  <tr>
-    <td width="33%" valign="top">
-      <b>One post in</b><br>
-      Paste a blog post or an article link.
-    </td>
-    <td width="33%" valign="top">
-      <b>A week out</b><br>
-      LinkedIn posts, tweets, newsletters and a Short script.
-    </td>
-    <td width="33%" valign="top">
-      <b>SaaS-ready</b><br>
-      Next.js 14 and Claude, with Lemon Squeezy for payments.
-    </td>
-  </tr>
-</table>
-<!-- HERO:END -->
+## What you get
 
-## About
-
-A monorepo for product projects, each promoted from prototype to a real,
-runnable, deployable project.
-
-| Project | What it is | Stack |
+| Format | Default | Rule |
 | --- | --- | --- |
-| [`apps/orbis`](apps/orbis) | Communication, identity, protection — and hiring (Orbis Work) — in one app | Zero-dependency Python stdlib server + SQLite + static PWA |
-| [`apps/peers`](apps/peers) | Verified reviews across category **modes** (food, travel, market, AI tools, health, finance, …) — every category shares one interface | Single-file web app + optional stdlib persistence backend |
-| [`apps/house-of-articles`](apps/house-of-articles) | Athlete-moment sneaker news + live market feed | Static prototype + versioned data spine |
-| [`apps/hazel`](apps/hazel) | Desktop studio for creators — auto-cut, repurpose to every platform, publish, measure traffic | Electron + bundled ffmpeg + local Whisper (offline) |
-| [`apps/lingua`](apps/lingua) | Live-translated Teams captions in an always-on-top overlay | Python + tkinter native desktop app (Pillow, requests) |
-| [`apps/pips`](apps/pips) | "The Morning Paper" — always-on-top Pomodoro timer + soundscapes + live app-usage tracking + daily score + coaching | Python + tkinter desktop widget (stdlib only) |
-| [`apps/sweep`](apps/sweep) | The `/sweep` pipeline — validate, then sync the repo to GitHub and mirror a note to Obsidian | PowerShell helper + OpenCode slash command |
+| LinkedIn posts | 5 | Hook + supporting line + hashtags, each under 1,300 characters |
+| Tweet thread | 8 | Numbered `1/8 … 8/8`, each under 280 characters |
+| Newsletter | 1 | Subject line, three-sentence summary, key points |
+| Short-video script | 1 | Hook (0-3 s), timed beats, close |
 
-Each project follows the same shape:
+Each output has its own Copy button.
+
+## How it works
+
+`atomize.js` is a small, dependency-free engine. It splits the article into sentences, scores each one by keyword frequency and position, and picks the strongest sentences for each format. It's extractive, which means every line comes from your own words, so nothing is made up. The same input always gives the same output.
+
+## Run locally
+
+Open `index.html` in a browser. No build step is needed.
 
 ```
-apps/<name>/
-  web/        static front-end (this is what gets deployed to GitHub Pages)
-  server/     optional zero-dependency Python backend (stdlib only)
-  tests/      hermetic, stdlib-only end-to-end tests
-  docs/       product specs and guides
-  README.md
+node tests/engine.test.js          # engine checks (CI runs these)
+python tests/test_atomize.py       # browser checks (needs Playwright)
 ```
 
-## Design principles
+## Files
 
-- **No third-party dependencies.** Backends run on the Python 3 standard library
-  only (`http.server`, `sqlite3`, `json`) — nothing to `pip install`, no build step.
-- **Offline-first, server-optional.** Every front-end works with **no** backend
-  (local storage or inline data) and upgrades to a real API when one is running.
-  That is what makes static GitHub Pages hosting viable.
-- **Static-first deploys.** The Pages workflow ships the front-ends as static
-  sites; backends run locally or on your own host.
+- `atomize.js`: the engine (works in the browser and in Node)
+- `app.js`: the page logic (input, counts, copy buttons)
+- `index.html`, `style.css`: the UI
+- `tests/`: engine and browser tests
 
-## Run a project locally
+## History
 
-```bash
-python apps/orbis/server/server.py
-python apps/peers/server/server.py
-python apps/house-of-articles/server/server.py
-```
+Earlier commits held copies of other apps from the [projects](https://github.com/juw12/projects) monorepo by mistake. They were removed in the commit that added this app, and git history still has them.
 
-Each server serves both its API and its `web/` front-end.
-
-## Tests
-
-```bash
-python apps/orbis/tests/verify_api.py
-python apps/peers/tests/verify_api.py
-python apps/house-of-articles/tests/verify_api.py
-```
-
-All tests are hermetic (temp database, free port) and exit `0` / `1`. You can
-also run every test at once:
-
-```bash
-python scripts/run_all_tests.py
-```
-
-## Live site
-
-`.github/workflows/pages.yml` builds a static site from the three `web/`
-directories (`scripts/build_site.py`) and deploys it with GitHub Pages. A
-`scripts/check_site.py` validator blocks the two failures that pass locally but
-break on Pages: **absolute paths** and filename **case** mismatches.
-
-## License
-
-Released under the [MIT License](LICENSE) © 2026 Juwen Lie. Contributions are welcome under the same license; see the [contributing guide](https://github.com/juw12/.github/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/juw12/.github/blob/main/CODE_OF_CONDUCT.md).
+MIT licensed. More by [juw12](https://github.com/juw12).

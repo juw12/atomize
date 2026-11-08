@@ -1,9 +1,0 @@
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-config.json
-*.log
-scripts/local-env.ps1
-dist/
-lingua.env

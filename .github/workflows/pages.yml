@@ -17,42 +17,30 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      
-      - name: Build static site
-        run: python scripts/build_site.py
-      
-      - name: Validate static site
-        run: python scripts/check_site.py
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+          node-version: 20
+      - name: Engine tests
+        run: node tests/engine.test.js
+      - name: Collect site
+        run: |
+          mkdir _site
+          cp index.html app.js atomize.js style.css _site/
+      - uses: actions/configure-pages@v5
         with:
           enablement: true
-      
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-  
+
   deploy:
     needs: build
-    
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
-    runs-on: ubuntu-latest
-    
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
