@@ -27,7 +27,8 @@ jobs:
       - name: Collect site
         run: |
           mkdir _site
-          cp index.html app.js atomize.js style.css _site/
+          cp index.html app.js atomize.js style.css manifest.webmanifest _site/
+          cp -R icons _site/
       - uses: actions/configure-pages@v5
         with:
           enablement: true
